@@ -82,5 +82,8 @@ module UserStateModule =
               Value = value
               Imperative = imperative }
 
+/// UserState type converter..
+type UserStateConverter = UserStateModule.UserStateConverter
+
 /// User-defined state.
 type UserState = UserStateModule.UserState
