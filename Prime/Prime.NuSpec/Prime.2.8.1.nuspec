@@ -9,7 +9,7 @@
         <licenseUrl>https://github.com/bryanedds/Prime/blob/master/License.md</licenseUrl>
         <projectUrl>https://github.com/bryanedds/Prime</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>An F# code library for pure functional programming, and much more!</description>
+        <description>An F# code library for pure functional programming... and much more!</description>
         <summary />
         <releaseNotes>Maintenence release.</releaseNotes>
         <copyright>Copyright (c) 2018 Bryan Edds</copyright>
