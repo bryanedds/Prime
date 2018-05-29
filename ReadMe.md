@@ -3,9 +3,9 @@ The Prime F# Code Library [![License](https://img.shields.io/badge/license-MIT-b
 
 ## Features
 
+- A powerful and reusable scripting language, AMSL, with the types in the **Scripting** module.
 - A metaprogramming system based on symbolic expressions with the **Symbol** and **SymbolicConverter** types.
 - A generalized serialization system based on the above and related types.
-- A powerful and reusable scripting language, AMSL, with the types in the **Scripting** module.
 - A purely functional, publisher-neutral event system with **EventSystem** and related types.
 - The functional-reactive **Stream** and **Chain** monads for said event system.
 - A purely functional dynamic property system called **Xtension**.
