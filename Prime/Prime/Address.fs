@@ -52,7 +52,7 @@ type AddressConverter (targetType : Type) =
             else failconv "Invalid AddressConverter conversion from source." None
 
 [<AutoOpen>]
-module AddressModule =
+module Address =
 
     /// Specifies the address of an identifiable value.
     /// TODO: P1: have Address constructor throw if multiple wildcards are used.
@@ -278,4 +278,4 @@ module AddressOperators =
     let inline acatsf<'a, 'b> (address : 'a Address) (address2 : 'b Address) = Address.acatsf<'a, 'b> address address2
 
 /// Specifies the address of an identifiable value.
-type 'a Address = 'a AddressModule.Address
+type 'a Address = 'a Address.Address

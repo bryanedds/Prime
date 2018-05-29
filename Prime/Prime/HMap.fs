@@ -8,7 +8,7 @@ open System.Collections.Generic
 open Prime
 
 [<AutoOpen>]
-module HMapModule =
+module HMap =
 
     /// A hash-key-value triple, implemented with a struct for efficiency.
     type private Hkv<'k, 'v when 'k :> 'k IEquatable> =
@@ -284,4 +284,4 @@ module HMapModule =
 
 /// A very fast persistent hash map.
 /// Works in effectively constant-time for look-ups and updates.
-type HMap<'k, 'v when 'k :> 'k IEquatable> = HMapModule.HMap<'k, 'v>
+type HMap<'k, 'v when 'k :> 'k IEquatable> = HMap.HMap<'k, 'v>

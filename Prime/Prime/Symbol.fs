@@ -19,7 +19,7 @@ type SymbolOrigin =
       Start : Position
       Stop : Position }
 
-[<RequireQualifiedAccess; CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
 module SymbolOrigin =
 
     let printStart origin =
@@ -73,7 +73,7 @@ type Symbol =
     | Quote of Symbol * SymbolOrigin option
     | Symbols of Symbol list * SymbolOrigin option
 
-[<RequireQualifiedAccess; CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
 module Symbol =
 
     let [<Literal>] NewlineChars = "\n\r"
@@ -331,7 +331,7 @@ type PrettyPrinter =
           ThresholdMin = Constants.PrettyPrinter.DefaultThresholdMin
           ThresholdMax = Constants.PrettyPrinter.DefaultThresholdMax }
 
-[<RequireQualifiedAccess; CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
 module PrettyPrinter =
 
     type private PrettySymbol =

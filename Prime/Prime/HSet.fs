@@ -8,7 +8,7 @@ open System.Collections.Generic
 open Prime
 
 [<AutoOpen>]
-module HSetModule =
+module HSet =
 
     /// A hash-value pair, implemented with a struct for efficiency.
     type private Hv<'a when 'a :> 'a IEquatable> =
@@ -254,4 +254,4 @@ module HSetModule =
 
 /// A very fast persistent hash set.
 /// Works in effectively constant-time for look-ups and updates.
-type HSet<'a when 'a :> 'a IEquatable> = 'a HSetModule.HSet
+type HSet<'a when 'a :> 'a IEquatable> = 'a HSet.HSet

@@ -6,7 +6,7 @@ open System
 open System.Collections.Generic
 
 [<AutoOpen>]
-module TMapModule =
+module TMap =
 
     type private Log<'k, 'v when 'k : equality> =
         | Add of 'k * 'v
@@ -203,4 +203,4 @@ module TMapModule =
                 (makeEmpty map.TConfig)
                 map
 
-type TMap<'k, 'v when 'k : equality> = TMapModule.TMap<'k, 'v>
+type TMap<'k, 'v when 'k : equality> = TMap.TMap<'k, 'v>

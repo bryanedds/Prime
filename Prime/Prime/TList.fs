@@ -6,7 +6,7 @@ open System
 open System.Collections.Generic
 
 [<AutoOpen>]
-module TListModule =
+module TList =
 
     type [<NoEquality; NoComparison>] private 'a Log =
         | Add of 'a
@@ -247,4 +247,4 @@ module TListModule =
         let removeMany values list =
             Seq.fold (flip remove) list values
 
-type 'a TList = 'a TListModule.TList
+type 'a TList = 'a TList.TList

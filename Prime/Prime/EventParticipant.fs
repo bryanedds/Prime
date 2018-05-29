@@ -59,7 +59,7 @@ type [<NoEquality; NoComparison>] PropertyTag<'s, 'a, 'w when 's :> Participant>
         let changeEvent = changeEventAddress ->>- this.This.ParticipantAddress
         changeEvent
 
-[<RequireQualifiedAccess; CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
 module PropertyTag =
 
     let map mapper (property : PropertyTag<_, _, _>) =

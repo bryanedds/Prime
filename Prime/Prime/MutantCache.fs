@@ -4,7 +4,7 @@
 namespace Prime
 
 [<AutoOpen>]
-module MutantCacheModule =
+module MutantCache =
 
     /// Presents a purely-functional interface to a mutable object / record / whatever.
     /// If it is not satisfactorily efficient to run a clone operation on the mutant for every get,
@@ -61,4 +61,4 @@ module MutantCacheModule =
 /// If it is not satisfactorily efficient to run a clone operation on the mutant for every get,
 /// just pass in the id function for make's cloneMutant arg, but make sure to NEVER mutate the
 /// returned mutant!
-type 'm MutantCache = 'm MutantCacheModule.MutantCache
+type 'm MutantCache = 'm MutantCache.MutantCache

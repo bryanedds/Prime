@@ -9,6 +9,7 @@ type [<Struct>] TConfig =
     | Functional
     | Imperative
 
+[<RequireQualifiedAccess>]
 module TConfig =
 
     let isFunctional config =
@@ -54,11 +55,11 @@ type TExprBuilder<'env> () =
     member this.TryFinally (body : TExpr<'a, 'expr>, compensation) : TExpr<'a,'expr> =
         fun env ->
             try body env
-            finally compensation()
+            finally compensation ()
 
     member this.Using (res : #IDisposable, body) =
         this.TryFinally (body res, fun () ->
-            match res with null -> () | disp -> disp.Dispose())
+            match res with null -> () | disp -> disp.Dispose ())
 
     member this.Delay f =
         this.Bind (this.Return (), f)

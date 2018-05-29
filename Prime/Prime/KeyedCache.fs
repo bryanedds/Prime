@@ -6,7 +6,7 @@ open System.Collections.Generic;
 open Prime
 
 [<AutoOpen>]
-module KeyedCacheModule =
+module KeyedCache =
 
     /// Presents a purely-functional interface to a cached value.
     /// Works by associating a cached value with a given cache key such that the cached value remains valid when queried
@@ -65,4 +65,4 @@ module KeyedCacheModule =
 /// Works by associating a cached value with a given cache key such that the cached value remains valid when queried
 /// for using the same cache key (as decided by a simple key comparer function), automatically rebuilding the cached
 /// value and key (as done with a simple factory function).
-type KeyedCache<'k, 'v> = KeyedCacheModule.KeyedCache<'k, 'v>
+type KeyedCache<'k, 'v> = KeyedCache.KeyedCache<'k, 'v>

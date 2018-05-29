@@ -32,7 +32,7 @@ type ChainBuilder () =
             | (world, Right v) -> match cont v with Chain f -> f world)
 
 [<AutoOpen>]
-module ChainBuilderModule =
+module ChainBuilder =
 
     /// Builds the chain monad.
     let chain = ChainBuilder ()

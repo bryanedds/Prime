@@ -5,14 +5,14 @@ namespace Prime
 open System
 
 [<AutoOpen>]
-module RandModule =
+module Rand =
 
     /// An immutable random number generator using the xorshift* algorithm.
     type [<StructuralEquality; NoComparison>] Rand =
         private
             { RandState : uint64 }
 
-    [<RequireQualifiedAccess; CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+    [<RequireQualifiedAccess>]
     module Rand =
     
         /// Get the sample value used to generate the current random value.
@@ -103,4 +103,4 @@ module RandModule =
             makeFromSeedState DefaultSeedState
 
 /// An immutable random number generator using the xorshift* algorithm.
-type Rand = RandModule.Rand
+type Rand = Rand.Rand

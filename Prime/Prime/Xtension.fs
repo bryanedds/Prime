@@ -6,7 +6,7 @@ open System
 open Prime
 
 [<AutoOpen>]
-module XtensionModule =
+module Xtension =
 
     /// Xtensions are a dynamic, functional, and convenient way to implement both dynamic properties
     /// and designer properties.
@@ -76,7 +76,7 @@ module XtensionModule =
                 let properties = UMap.add propertyName property xtension.Properties
                 { xtension with Properties = properties }
 
-    [<RequireQualifiedAccess; CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+    [<RequireQualifiedAccess>]
     module Xtension =
     
         /// The TConfig of Xtension's T/U structures.
@@ -151,4 +151,4 @@ module XtensionModule =
 
 /// Xtensions (and their supporting types) are a dynamic, functional, and convenient way
 /// to implement dynamic properties.
-type Xtension = XtensionModule.Xtension
+type Xtension = Xtension.Xtension

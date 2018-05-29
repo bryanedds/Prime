@@ -732,7 +732,7 @@ module Scripting =
         | AddToHeadFrame of Offset : int
 
     [<AutoOpen>]
-    module EnvModule =
+    module Env =
     
         /// The execution environment for scripts.
         type [<NoEquality; NoComparison>] Env =
@@ -741,7 +741,7 @@ module Scripting =
                   mutable LocalFrame : DeclarationFrame
                   mutable ProceduralFrames : ProceduralFrame list }
     
-        [<RequireQualifiedAccess; CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+        [<RequireQualifiedAccess>]
         module Env =
     
             let private BottomBinding =
@@ -868,7 +868,7 @@ module Scripting =
                   ProceduralFrames = [] }
 
     /// The execution environment for scripts.
-    type Env = EnvModule.Env
+    type Env = Env.Env
 
     /// Attempting to expose Env module contents as well, but does not seem to work...
-    module Env = EnvModule.Env
+    module Env = Env.Env

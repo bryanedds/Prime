@@ -42,7 +42,7 @@ type EitherBuilder () =
         | None -> this.Zero ()
 
 [<AutoOpen>]
-module EitherBuilderModule =
+module EitherBuilder =
 
     /// Builds the either monad.
     let either = EitherBuilder ()

@@ -52,7 +52,7 @@ type RelationConverter (targetType : Type) =
             else failconv "Invalid RelationConverter conversion from source." None
 
 [<AutoOpen>]
-module RelationModule =
+module Relation =
 
     /// A relation that can be resolved to an address via contextual resolution.
     type [<CustomEquality; NoComparison; TypeConverter (typeof<RelationConverter>)>] 'a Relation =
@@ -148,4 +148,4 @@ module RelationModule =
             { NameOpts = relation.NameOpts; TypeCarrier = fun (_ : 'b) -> () }
 
 /// A relation that can be resolved to an address via projection.
-type 'a Relation = 'a RelationModule.Relation
+type 'a Relation = 'a Relation.Relation

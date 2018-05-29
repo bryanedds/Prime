@@ -6,7 +6,7 @@ open System
 open System.Collections.Generic
 
 [<AutoOpen>]
-module TSetModule =
+module TSet =
 
     type private Log<'a when 'a : equality> =
         | Add of 'a
@@ -182,4 +182,4 @@ module TSetModule =
                 (makeEmpty set.TConfig)
                 set
 
-type TSet<'a when 'a : equality> = TSetModule.TSet<'a>
+type TSet<'a when 'a : equality> = TSet.TSet<'a>

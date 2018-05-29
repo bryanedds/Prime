@@ -19,7 +19,7 @@ type [<CLIMutable; ReferenceEquality>] EventInfo =
 // TODO: P1: consider replacing this with UList since we really want to add to the back anyway.
 type EventTrace = EventInfo list
 
-[<RequireQualifiedAccess; CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
 module EventTrace =
 
     let record moduleName functionName eventTrace : EventTrace =

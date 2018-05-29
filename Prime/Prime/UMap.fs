@@ -7,7 +7,7 @@ open System.Collections
 open System.Collections.Generic
 
 [<AutoOpen>]
-module UMapModule =
+module UMap =
 
     type [<NoEquality; NoComparison>] UMap<'k, 'v when 'k : equality> =
         private
@@ -97,4 +97,4 @@ module UMapModule =
             map.MapRef := tmap
             { MapRef = ref result }
 
-type UMap<'k, 'v when 'k : equality> = UMapModule.UMap<'k, 'v>
+type UMap<'k, 'v when 'k : equality> = UMap.UMap<'k, 'v>

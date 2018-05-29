@@ -99,7 +99,7 @@ type [<StructuralEquality; NoComparison>] DesignerProperty =
 type PropertyMap = UMap<string, Property>
 
 [<AutoOpen>]
-module ReflectionModule =
+module ReflectionSyntax =
 
     /// In tandem with the ValueDefinition type, grants a nice syntax to define value properties.
     let Define = { ValueDescription = () }
@@ -110,6 +110,7 @@ module ReflectionModule =
     /// In tandem with the PropertyDescriptor type, grants a nice syntax to denote properties.
     let Property = { PropertyDescription = () }
 
+[<RequireQualifiedAccess>]
 module Reflection =
 
     // NOTE: had to do some reflection hacking get this assembly as it was the only way I could
@@ -171,6 +172,7 @@ module Reflection =
     let pairsToMap mapType objs =
         pairsToMapping "Microsoft.FSharp.Collections.MapModule" mapType objs
 
+[<RequireQualifiedAccess>]
 module Type =
 
     /// Try to get an existing type with the given unqualified name. Time-intensive.

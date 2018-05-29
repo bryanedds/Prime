@@ -52,7 +52,7 @@ module Events =
     let Wildcard = ntoa<obj> "@"
 
 [<AutoOpen>]
-module EventSystemModule =
+module EventSystem =
 
     /// A publisher-neutral, purely functional event system.
     /// OPTIMIZATION: EventContext mutable for speed.
@@ -179,4 +179,4 @@ module EventSystemModule =
               EventAddresses = [] }
 
 /// A publisher-neutral, purely functional event system.
-type 'w EventSystem = 'w EventSystemModule.EventSystem
+type 'w EventSystem = 'w EventSystem.EventSystem

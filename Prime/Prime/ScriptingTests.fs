@@ -14,7 +14,7 @@ module ScriptingTests =
             member this.TryGetExtrinsic _ = failwithumf ()
             member this.TryImport _ _ = failwithnie ()
             member this.TryExport _ _ = failwithnie ()
-        static member make () = { ScriptingEnv = Scripting.EnvModule.Env.make () }
+        static member make () = { ScriptingEnv = Scripting.Env.Env.make () }
 
     let evalPartial exprStr =
         let world = TestWorld.make ()

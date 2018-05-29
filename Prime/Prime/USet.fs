@@ -7,7 +7,7 @@ open System.Collections
 open System.Collections.Generic
 
 [<AutoOpen>]
-module USetModule =
+module USet =
 
     type [<NoEquality; NoComparison>] USet<'a when 'a : equality> =
         private
@@ -85,4 +85,4 @@ module USetModule =
             set.SetRef := tset
             { SetRef = ref result }
 
-type USet<'a when 'a : equality> = USetModule.USet<'a>
+type USet<'a when 'a : equality> = USet.USet<'a>

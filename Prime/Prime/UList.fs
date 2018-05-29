@@ -6,7 +6,7 @@ open System.Collections
 open System.Collections.Generic
 
 [<AutoOpen>]
-module UListModule =
+module UList =
 
     type [<NoEquality; NoComparison>] 'a UList =
         private
@@ -138,4 +138,4 @@ module UListModule =
         let removeMany values list =
             { ListRef = ref (TList.removeMany values !list.ListRef) }
 
-type 'a UList = 'a UListModule.UList
+type 'a UList = 'a UList.UList

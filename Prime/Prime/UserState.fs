@@ -3,7 +3,7 @@ open System
 open System.ComponentModel
 
 [<AutoOpen>]
-module UserStateModule =
+module UserState =
 
     type UserStateConverter () =
         inherit TypeConverter ()
@@ -50,7 +50,7 @@ module UserStateModule =
               mutable Value : obj
               Imperative : bool }
 
-    [<RequireQualifiedAccess; CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+    [<RequireQualifiedAccess>]
     module UserState =
 
         /// Check that the user state is imperative.
@@ -83,7 +83,7 @@ module UserStateModule =
               Imperative = imperative }
 
 /// UserState type converter..
-type UserStateConverter = UserStateModule.UserStateConverter
+type UserStateConverter = UserState.UserStateConverter
 
 /// User-defined state.
-type UserState = UserStateModule.UserState
+type UserState = UserState.UserState
