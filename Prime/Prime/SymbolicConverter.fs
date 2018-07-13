@@ -56,7 +56,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             elif sourceType = typeof<string> then
                 if printing then
                     let sourceStr = string source
-                    if pointType = typeof<string> then String (sourceStr, None)
+                    if sourceType = typeof<string> then String (sourceStr, None)
                     elif Symbol.isNumber sourceStr then Number (sourceStr, None)
                     else Atom (sourceStr, None)
                 else
