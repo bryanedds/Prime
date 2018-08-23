@@ -165,11 +165,19 @@ module ScriptingPrimitives =
         match argsEvaled with
         | [|Violation _ as violation; _|] -> struct (violation, world)
         | [|_; Violation _ as violation|] -> struct (violation, world)
-        | [|Option _; value|] ->
-            struct (Option (Some value), world)
-        | [|List _; value|] ->
-            struct (List [value], world)
-        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for Option or List.", originOpt), world)
+        | [|String _; value|] ->
+            match value with
+            | String str as string when str.Length = 1 -> struct (string, world)
+            | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Application of " + fnName + " for String must be a String of length 1.", originOpt), world)
+        | [|Option _; value|] -> struct (Option (Some value), world)
+        | [|Codata _; value|] -> struct (Codata (Conversion [value]), world)
+        | [|List _; value|] -> struct (List [value], world)
+        | [|Ring _; value|] -> struct (Ring (Set.singleton value), world)
+        | [|Table _; value|] ->
+            match value with
+            | Tuple [|v1; v2|] -> struct (Table (Map.singleton v1 v2), world)
+            | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Application of " + fnName + " for Table must be a 2-value Tuple.", originOpt), world)
+        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for String, Option, Codata, Ring, Table or List.", originOpt), world)
 
     let evalApp evalApply fnName argsEvaled originOpt world =
         match argsEvaled with
@@ -177,13 +185,12 @@ module ScriptingPrimitives =
         | [|_; Violation _ as violation|] -> struct (violation, world)
         | [|Option fnOpt; Option valueOpt|] ->
             match (fnOpt, valueOpt) with
-            | (Some fn, Some value) ->
-                evalApply [|fn; value|] originOpt world
+            | (Some fn, Some value) -> evalApply [|fn; value|] originOpt world
             | (_, _) -> struct (Option None, world)
         | [|List fns; List values|] ->
-            let (results, world) =
+            let (resultsRev, world) =
               List.fold
-                (fun (results, world) value ->
+                (fun (resultsRev, world) value ->
                     let (result, world) =
                         List.fold
                             (fun (result, world) fn ->
@@ -191,10 +198,10 @@ module ScriptingPrimitives =
                                 (result', world))
                             (value, world)
                             fns
-                    (result :: results, world))
+                    (result :: resultsRev, world))
                 ([], world)
                 values
-            struct (List results, world)
+            struct (List (List.rev resultsRev), world)
         | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for Option or List.", originOpt), world)
 
     let evalBind evalApply fnName argsEvaled originOpt world =
@@ -206,14 +213,14 @@ module ScriptingPrimitives =
             | Some value -> evalApply [|fn; value|] originOpt world
             | None -> struct (Option None, world)
         | [|List values; fn|] ->
-            let (results, world) =
+            let (resultsRev, world) =
               List.fold
-                (fun (results, world) value ->
+                (fun (resultsRev, world) value ->
                     let struct (result, world) = evalApply [|fn; value|] originOpt world
-                    (result :: results, world))
+                    (result :: resultsRev, world))
                 ([], world)
                 values
-            struct (List results, world)
+            struct (List (List.rev resultsRev), world)
         | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for Option or List.", originOpt), world)
 
     let evalTuple _ argsEvaled _ world =
