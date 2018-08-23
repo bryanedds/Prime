@@ -1,4 +1,4 @@
-﻿// Prime - A PRIMitivEs code library.
+// Prime - A PRIMitivEs code library.
 // Copyright (C) Bryan Edds, 2013-2018.
 
 namespace Prime
@@ -188,20 +188,26 @@ module ScriptingPrimitives =
             | (Some fn, Some value) -> evalApply [|fn; value|] originOpt world
             | (_, _) -> struct (Option None, world)
         | [|List fns; List values|] ->
-            let (resultsRev, world) =
-              List.fold
-                (fun (resultsRev, world) value ->
-                    let (result, world) =
-                        List.fold
-                            (fun (result, world) fn ->
-                                let struct (result', world) = evalApply [|fn; result|] originOpt world
-                                (result', world))
-                            (value, world)
-                            fns
-                    (result :: resultsRev, world))
-                ([], world)
-                values
-            struct (List (List.rev resultsRev), world)
+            let resultsRevOpt =
+                List.foldWhileRight
+                    (fun (resultsRev, world) value ->
+                        let resultOpt =
+                            List.foldWhileRight
+                                (fun (result, world) fn ->
+                                    let struct (result', world) = evalApply [|fn; result|] originOpt world
+                                    match result' with
+                                    | Violation _ as v -> Left (v, world)
+                                    | _ -> Right (result', world))
+                                (Right (value, world))
+                                fns
+                        match resultOpt with
+                        | Right (result, world) -> Right (result :: resultsRev, world)
+                        | Left (violation, world) -> Left (violation, world))
+                    (Right ([], world))
+                    values
+            match resultsRevOpt with
+            | Right (resultsRev, world) -> struct (List (List.rev resultsRev), world)
+            | Left (violation, world) -> struct (violation, world)
         | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for Option or List.", originOpt), world)
 
     let evalBind evalApply fnName argsEvaled originOpt world =
@@ -213,14 +219,18 @@ module ScriptingPrimitives =
             | Some value -> evalApply [|fn; value|] originOpt world
             | None -> struct (Option None, world)
         | [|List values; fn|] ->
-            let (resultsRev, world) =
-              List.fold
-                (fun (resultsRev, world) value ->
-                    let struct (result, world) = evalApply [|fn; value|] originOpt world
-                    (result :: resultsRev, world))
-                ([], world)
-                values
-            struct (List (List.rev resultsRev), world)
+            let resultsRevOpt =
+                List.foldWhileRight
+                    (fun (resultsRev, world) value ->
+                        let struct (result, world) = evalApply [|fn; value|] originOpt world
+                        match result with
+                        | Violation _ as v -> Left (v, world)
+                        | _ -> Right (result :: resultsRev, world))
+                    (Right ([], world))
+                    values
+            match resultsRevOpt with
+            | Right (resultsRev, world) -> struct (List (List.rev resultsRev), world)
+            | Left (violation, world) -> struct (violation, world)
         | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for Option or List.", originOpt), world)
 
     let evalTuple _ argsEvaled _ world =
