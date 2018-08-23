@@ -98,6 +98,9 @@ module ScriptingWorld =
                  ("toIdentity", evalUnary ToIdentityFns)
                  ("toMin", evalUnary ToMinFns)
                  ("toMax", evalUnary ToMaxFns)
+                 ("pure", evalPure)
+                 ("app", evalApp evalApply)
+                 ("bind", evalBind evalApply)
                  ("inc", evalUnary IncFns)
                  ("dec", evalUnary DecFns)
                  ("negate", evalUnary NegateFns)
@@ -186,6 +189,7 @@ module ScriptingWorld =
     and evalOverload fnName argsEvaled originOpt world =
         if Array.notEmpty argsEvaled then
             match Array.last argsEvaled with
+            | Violation _ as error -> struct (error, world)
             | Pluggable pluggable ->
                 let pluggableTypeName = pluggable.TypeName
                 let xfnName = fnName + "_" + pluggableTypeName
@@ -198,7 +202,6 @@ module ScriptingWorld =
                 let xfnBinding = Binding (xfnName, ref UncachedBinding, ref UnknownBindingType, None)
                 let evaleds = Array.cons xfnBinding argsEvaled
                 evalApply evaleds originOpt world
-            | Violation _ as error -> struct (error, world)
             | _ -> struct (Violation (["InvalidOverload"], "Could not find overload for '" + fnName + "' for target.", originOpt), world)
         else struct (Violation (["InvalidFunctionTargetBinding"], "Cannot apply the non-existent binding '" + fnName + "'.", originOpt), world)
 
@@ -278,6 +281,7 @@ module ScriptingWorld =
 
     and evalUpdateKeywordInner fnName keyword target value originOpt world =
         match target with
+        | Violation _ as violation -> Left struct (violation, world)
         | Table map ->
             Right struct (Table (Map.add (Keyword keyword) value map), world)
         | Record (name, map, fields) ->
@@ -290,8 +294,6 @@ module ScriptingWorld =
                 else Left struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "Record does not contain element with name '" + name + "'.", originOpt), world)
             | None ->
                 Left struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "Record does not contain element with name '" + name + "'.", originOpt), world)
-        | Violation _ as violation ->
-            Left struct (violation, world)
         | _ ->
             match evalOverload fnName [|Keyword keyword; value; target|] originOpt world with
             | struct (Violation _, _) as error -> Left error
@@ -329,6 +331,7 @@ module ScriptingWorld =
             let (exprsHead, exprsTail) = (Array.head exprs, Array.tail exprs)
             let struct (headEvaled, world) = eval exprsHead world in annotateWorld world // force the type checker to see the world as it is
             match headEvaled with
+            | Violation _ as error -> struct (error, world)
             | Keyword keyword ->
                 let struct (tailEvaled, world) = evalMany exprsTail world
                 let union = Union (keyword, tailEvaled)
@@ -363,7 +366,7 @@ module ScriptingWorld =
                     | None -> struct (None, world)
                 let struct (evaled, world) =
                     if tailEvaled.Length = parsCount then
-                        let bindings = Array.map2 (fun par evaledArg -> struct (par, evaledArg)) pars tailEvaled
+                        let bindings = Array.map2 (fun par argEvaled -> struct (par, argEvaled)) pars tailEvaled
                         addProceduralBindings (AddToNewFrame parsCount) bindings world
                         let struct (evaled, world) = eval body world
                         removeProceduralBindings world
@@ -374,7 +377,6 @@ module ScriptingWorld =
                     setProceduralFrames framesCurrent world
                     struct (evaled, world)
                 | None -> struct (evaled, world)
-            | Violation _ as error -> struct (error, world)
             | _ -> struct (Violation (["MalformedApplication"], "Cannot apply the non-binding '" + scstring headEvaled + "'.", originOpt), world)
         else struct (Unit, world)
 

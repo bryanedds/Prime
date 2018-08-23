@@ -42,6 +42,7 @@ module Scripting =
             ((* Built-in Identifiers *)
              "true false nil " +
              "not hash toEmpty toIdentity toMin toMax " +
+             "pure app bind " +
              "inc dec negate " +
              "pow root sqr sqrt " +
              "floor ceiling truncate round exp log " +
