@@ -4,7 +4,6 @@
 namespace Prime
 open System
 open System.Collections.Generic
-open System.Diagnostics
 open System.IO
 open Prime
 open Prime.Scripting
@@ -15,13 +14,16 @@ open Prime.ScriptingPrimitives
 
 /// The context in which scripting takes place. Effectively a mix-in for the 'w type, where 'w is a type that
 /// represents the client program.
-type 'w ScriptingWorld =
+type ScriptingWorld<'w when 'w :> 'w ScriptingWorld> =
     interface
         abstract member GetEnv : unit -> Env
-        abstract member TryGetExtrinsic : string -> (string -> Expr array -> SymbolOrigin option -> 'w -> struct (Expr * 'w)) FOption
+        abstract member TryGetExtrinsic : string -> 'w ScriptingIntrinsic FOption
         abstract member TryImport : Type -> obj -> Expr option
         abstract member TryExport : Type -> Expr -> obj option
         end
+
+/// The intrinsic scripting function type.
+and ScriptingIntrinsic<'w when 'w :> 'w ScriptingWorld> = string -> Expr array -> SymbolOrigin option -> 'w -> struct (Expr * 'w)
 
 [<RequireQualifiedAccess>]
 module ScriptingWorld =
@@ -178,7 +180,7 @@ module ScriptingWorld =
                 dictPlus
             Intrinsics <- intrinsics
             intrinsics
-        else Intrinsics :?> Dictionary<string, string -> Expr array -> SymbolOrigin option -> 'w -> struct (Expr * 'w)>
+        else Intrinsics :?> Dictionary<string, 'w ScriptingIntrinsic>
 
     and internal evalIntrinsicInner<'w when 'w :> 'w ScriptingWorld> fnName argsEvaled originOpt (world : 'w) =
         let intrinsics = getIntrinsics ()
