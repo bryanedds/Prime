@@ -5,12 +5,14 @@ namespace Prime
 open System
 open System.Collections.Generic
 open System.ComponentModel
+open FSharp.Reflection
 open Prime
 module Scripting =
 
     type Pluggable =
         inherit IComparable
         abstract member TypeName : string
+        abstract member FSharpType : Type
         abstract member ToSymbol : unit -> Symbol
 
     and [<Struct; NoComparison>] CachedBinding =
@@ -244,6 +246,104 @@ module Scripting =
             | (TableUnevaled left, TableUnevaled right) -> compare left right
             | (RecordUnevaled (leftName, leftExprs), RecordUnevaled (rightName, rightExprs)) -> compare (leftName, leftExprs) (rightName, rightExprs)
             | (_, _) -> -1
+
+        /// Attempt to get the F# type that is used to represent the expression.
+        static member toFSharpTypeOpt expr =
+            match expr with
+            | Violation _ -> None
+            | Unit -> Some typeof<unit>
+            | Bool _ -> Some typeof<bool>
+            | Int _ -> Some typeof<int>
+            | Int64 _ -> Some typeof<int64>
+            | Single _ -> Some typeof<single>
+            | Double _ -> Some typeof<double>
+            | String _ -> Some typeof<string>
+            | Keyword keyword
+            | Union (keyword, _) ->
+                let typeOpt =
+                    // TODO: try caching the union types to speed this up
+                    AppDomain.CurrentDomain.GetAssemblies () |>
+                    Array.map (fun asm -> Array.filter FSharpType.IsUnion (asm.GetTypes ())) |>
+                    Array.concat |>
+                    Array.filter (fun ty -> ty.Name = keyword) |>
+                    Array.filter (fun ty -> ty.GenericTypeArguments |> Array.notExists (fun arg -> arg.IsGenericParameter)) |> // constrained generics not currently supported...
+                    Array.map (fun ty ->
+                        if ty.IsGenericType
+                        then ty.MakeGenericType (Array.create ty.GenericTypeArguments.Length typeof<obj>)
+                        else ty) |>
+                    Array.tryHead // just take the first found type for now...
+                typeOpt
+            | Record (keyword, _, _) ->
+                let typeOpt =
+                    // TODO: try caching the record types to speed this up
+                    AppDomain.CurrentDomain.GetAssemblies () |>
+                    Array.map (fun asm -> Array.filter FSharpType.IsRecord (asm.GetTypes ())) |>
+                    Array.concat |>
+                    Array.filter (fun ty -> ty.Name = keyword) |>
+                    Array.filter (fun ty -> ty.GenericTypeArguments |> Array.notExists (fun arg -> arg.IsGenericParameter)) |> // constrained generics not currently supported...
+                    Array.map (fun ty ->
+                        if ty.IsGenericType
+                        then ty.MakeGenericType (Array.create ty.GenericTypeArguments.Length typeof<obj>)
+                        else ty) |>
+                    Array.tryHead // just take the first found type for now...
+                typeOpt
+            | Pluggable value ->
+                Some value.FSharpType
+            | Tuple value ->
+                let typeOpts = Array.map Expr.toFSharpTypeOpt value
+                match Array.definitizePlus typeOpts with
+                | (true, types) -> Some (FSharpType.MakeTupleType types)
+                | (false, _) -> None
+            | Option opt ->
+                match opt with
+                | Some value ->
+                    match Expr.toFSharpTypeOpt value with
+                    | Some ty -> Some (typedefof<_ option>.MakeGenericType [|ty|])
+                    | None -> None
+                | None -> None
+            | List values ->
+                let typeOpts = List.map Expr.toFSharpTypeOpt values
+                match List.definitizePlus typeOpts with
+                | (true, types) ->
+                    match types with
+                    | head :: tail ->
+                        if List.notExists (fun item -> item <> head) tail
+                        then Some (typedefof<_ list>.MakeGenericType [|head|])
+                        else None
+                    | [] -> None
+                | (false, _) -> None
+            | Ring values ->
+                let typeOpts = List.map Expr.toFSharpTypeOpt (List.ofSeq values)
+                match List.definitizePlus typeOpts with
+                | (true, types) ->
+                    match types with
+                    | head :: tail ->
+                        if List.notExists (fun item -> item <> head) tail
+                        then Some (typedefof<_ Set>.MakeGenericType [|head|])
+                        else None
+                    | [] -> None
+                | (false, _) -> None
+            | Table values ->
+                let keyOpts = List.map Expr.toFSharpTypeOpt (Map.toKeyList values)
+                match List.definitizePlus keyOpts with
+                | (true, keyTypes) ->
+                    match keyTypes with
+                    | keyHead :: keyTail ->
+                        if List.notExists (fun item -> item <> keyHead) keyTail then
+                            let valOpts = List.map Expr.toFSharpTypeOpt (Map.toValueList values)
+                            match List.definitizePlus valOpts with
+                            | (true, valTypes) ->
+                                match valTypes with
+                                | valHead :: valTail ->
+                                    if List.notExists (fun item -> item <> valHead) valTail
+                                    then Some (typedefof<Map<_, _>>.MakeGenericType [|keyHead; valHead|])
+                                    else None
+                                | [] -> None
+                            | (false, _) -> None
+                        else None
+                    | [] -> None
+                | (false, _) -> None
+            | _ -> None
 
         override this.GetHashCode () =
             match this with
