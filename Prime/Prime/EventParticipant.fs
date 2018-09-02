@@ -23,39 +23,38 @@ type ParticipantOperators =
     static member (->-) (address, participant : Participant) = ParticipantOperators.acatf address participant
 
 /// The data for a change in a participant.
-type [<Struct; StructuralEquality; NoComparison>] ParticipantChangeData<'p, 'w when 'p :> Participant> =
-    { Participant : 'p
-      PropertyName : string
+type [<Struct; StructuralEquality; NoComparison>] 'w ParticipantChangeData =
+    { PropertyName : string
       OldWorld : 'w }
 
 /// Describes a property of a participant.
 /// Similar to a Haskell lens, but specialized to properties.
-type [<NoEquality; NoComparison>] PropertyTag<'s, 'a, 'w when 's :> Participant> =
-    { This : 's
+type [<NoEquality; NoComparison>] PropertyTag<'p, 'a, 'w when 'p :> Participant> =
+    { This : 'p
       Name : string
       Get : 'w -> 'a
       SetOpt : ('a -> 'w -> 'w) option }
 
-    member this.Map mapper : PropertyTag<'s, 'a, 'w> =
+    member this.Map mapper : PropertyTag<'p, 'a, 'w> =
         { This = this.This
           Name = this.Name
           Get = fun world -> mapper (this.Get world)
           SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (mapper value)) | None -> None }
 
-    member this.Map2 mapper unmapper : PropertyTag<'s, 'b, 'w> =
+    member this.Map2 mapper unmapper : PropertyTag<'p, 'b, 'w> =
         { This = this.This
           Name = this.Name
           Get = fun world -> mapper (this.Get world)
           SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (unmapper value)) | None -> None }
 
-    member this.MapOut mapper : PropertyTag<'s, 'b, 'w> =
+    member this.MapOut mapper : PropertyTag<'p, 'b, 'w> =
         { This = this.This
           Name = this.Name
           Get = fun world -> mapper (this.Get world)
           SetOpt = None }
 
     member this.Change =
-        let changeEventAddress = Address<ParticipantChangeData<'s, 'w>>.ltoa [typeof<'s>.Name; "Change"; this.Name; "Event"]
+        let changeEventAddress = Address<'w ParticipantChangeData>.ltoa [typeof<'p>.Name; "Change"; this.Name; "Event"]
         let changeEvent = changeEventAddress ->>- this.This.ParticipantAddress
         changeEvent
 

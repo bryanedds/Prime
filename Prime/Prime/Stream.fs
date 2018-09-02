@@ -506,7 +506,7 @@ module StreamOperators =
 
     /// Make a stream of the subscriber's change events.
     let [<DebuggerHidden; DebuggerStepThrough>] (!--) (property : PropertyTag<'a, 'b, 'w>) =
-        let changeEventAddress = ltoa<ParticipantChangeData<'a, 'w>> [typeof<'a>.Name; "Change"; property.Name; "Event"] ->>- property.This.ParticipantAddress
+        let changeEventAddress = ltoa<'w ParticipantChangeData> [typeof<'a>.Name; "Change"; property.Name; "Event"] ->>- property.This.ParticipantAddress
         stream changeEventAddress --- mapEvent (fun _ world -> property.Get world)
 
     /// Propagate the event data of a stream to a property in the observing participant when the
