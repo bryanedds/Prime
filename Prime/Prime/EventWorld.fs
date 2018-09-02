@@ -169,10 +169,10 @@ module EventWorld =
         let boxableSubscription = fun (evtObj : obj) (evtDynObj : obj) world ->
             match subscription :> obj with
             | :? (Event<obj, Participant> -> 'w -> Handling * 'w) as subscriptionDynamic ->
-                let evt = try evtDynObj :?> Event<obj, Participant> with exn -> debugSubscriptionTypeMismatch (); reraise ()
+                let evt = try evtDynObj :?> Event<obj, Participant> with _ -> debugSubscriptionTypeMismatch (); reraise ()
                 subscriptionDynamic evt world
             | _ ->
-                let evt = try evtObj :?> Event<'a, 's> with exn -> debugSubscriptionTypeMismatch (); reraise ()
+                let evt = try evtObj :?> Event<'a, 's> with _ -> debugSubscriptionTypeMismatch (); reraise ()
                 subscription evt world
         boxableSubscription :> obj
 
@@ -226,7 +226,7 @@ module EventWorld =
               Publisher = publisher :> Participant
               Address = atooa eventAddress
               Trace = eventTrace }
-        let callableSubscription = unbox<BoxableSubscription<'w>> subscription
+        let callableSubscription = unbox<'w BoxableSubscription> subscription
         let oldEventContext = getEventContext world
         setEventContext subscriber world
         let (handling, world) = callableSubscription evt evtDynamic world
