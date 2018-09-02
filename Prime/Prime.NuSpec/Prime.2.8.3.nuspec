@@ -11,7 +11,7 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>An F# code library for pure functional programming... and much more!</description>
         <summary />
-        <releaseNotes>Added Amsl functions for pure, app, and bind.</releaseNotes>
+        <releaseNotes>Removed Participant field from ParticipantChangeData in order to remove contravariance for events that use it.</releaseNotes>
         <copyright>Copyright (c) 2018 Bryan Edds</copyright>
         <language>en-US</language>
         <tags>F# Functional Programming</tags>
