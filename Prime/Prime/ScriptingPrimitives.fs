@@ -271,9 +271,9 @@ module ScriptingPrimitives =
             | Left _ as error -> error
         | Unfold (unfolder, state) ->
             match evalApply [|unfolder; state|] originOpt world with
+            | struct (Violation _, _) as error -> Left error
             | struct (Option (Some state), world) -> Right (Right struct (state, Unfold (unfolder, state), world))
             | struct (Option None, world) -> Right (Left world)
-            | struct (Violation _, _) as error -> Left error
             | struct (_, world) -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s unfolder must return an Option.", originOpt), world)
         | Conversion (head :: []) -> Right (Right struct (head, Empty, world))
         | Conversion (head :: tail) -> Right (Right struct (head, Conversion tail, world))
@@ -448,21 +448,21 @@ module ScriptingPrimitives =
             | error -> error
         | Unfold (unfolder, costate) ->
             match evalApply [|unfolder; costate|] originOpt world with
+            | struct (Violation _, _) as error -> Left error
             | struct (Option (Some costate), world) ->
                 match evalApply [|scanner; state; costate|] originOpt world with
+                | struct (Violation _, _) as error -> Left error
                 | struct (Option (Some state), world) -> evalScanWhileCodata evalApply fnName originOpt scanner state (Unfold (unfolder, costate)) world
                 | struct (Option None, world) -> Right struct (state, [], world)
-                | struct (Violation _, _) as error -> Left error
                 | struct (_, world) -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s scanner must return an Option.", originOpt), world)
             | struct (Option None, world) -> Right struct (state, [], world)
-            | struct (Violation _, _) as error -> Left error
             | struct (_, world) -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s unfolder must return an Option.", originOpt), world)
         | Conversion list ->
             Seq.foldWhileRight (fun struct (state, states, world) elem ->
                 match evalApply [|scanner; state; elem|] originOpt world with
+                | struct (Violation _, _) as error -> Left error
                 | struct (Option (Some state), world) -> (Right struct (state, state :: states, world))
                 | struct (Option None, world) -> Left struct (List states, world)
-                | struct (Violation _, _) as error -> Left error
                 | _ -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s scanner must return an Option.", originOpt), world))
                 (Right struct (state, [], world))
                 list
@@ -480,19 +480,19 @@ module ScriptingPrimitives =
             | error -> error
         | Unfold (unfolder, costate) ->
             match evalApply [|unfolder; costate|] originOpt world with
+            | struct (Violation _, _) as error -> Left error
             | struct (Option (Some costate), world) ->
                 match evalApply [|scanner; Int i; state; costate|] originOpt world with
                 | struct (Violation _, _) as error -> Left error
                 | struct (state, world) -> evalScaniCodata evalApply fnName originOpt (inc i) scanner state (Unfold (unfolder, costate)) world
             | struct (Option None, world) -> Right struct (i, state, [], world)
-            | struct (Violation _, _) as error -> Left error
             | struct (_, world) -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s unfolder must return an Option.", originOpt), world)
         | Conversion list ->
             Seq.foldWhileRight (fun struct (i, state, states, world) elem ->
                 match evalApply [|scanner; Int i; state; elem|] originOpt world with
+                | struct (Violation _, _) as error -> Left error
                 | struct (Option (Some state), world) -> (Right struct (inc i, state, state :: states, world))
                 | struct (Option None, world) -> Left struct (List states, world)
-                | struct (Violation _, _) as error -> Left error
                 | _ -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s scanner must return an Option.", originOpt), world))
                 (Right struct (i, state, [], world))
                 list
@@ -510,19 +510,19 @@ module ScriptingPrimitives =
             | error -> error
         | Unfold (unfolder, costate) ->
             match evalApply [|unfolder; costate|] originOpt world with
+            | struct (Violation _, _) as error -> Left error
             | struct (Option (Some costate), world) ->
                 match evalApply [|scanner; state; costate|] originOpt world with
                 | struct (Violation _, _) as error -> Left error
                 | struct (state, world) -> evalScanCodata evalApply fnName originOpt scanner state (Unfold (unfolder, costate)) world
             | struct (Option None, world) -> Right struct (state, [], world)
-            | struct (Violation _, _) as error -> Left error
             | struct (_, world) -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s unfolder must return an Option.", originOpt), world)
         | Conversion list ->
             Seq.foldWhileRight (fun struct (state, states, world) elem ->
                 match evalApply [|scanner; state; elem|] originOpt world with
+                | struct (Violation _, _) as error -> Left error
                 | struct (Option (Some state), world) -> (Right struct (state, state :: states, world))
                 | struct (Option None, world) -> Left struct (List states, world)
-                | struct (Violation _, _) as error -> Left error
                 | _ -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s scanner must return an Option.", originOpt), world))
                 (Right struct (state, [], world))
                 list
@@ -533,9 +533,9 @@ module ScriptingPrimitives =
             match
                 Seq.foldWhileRight (fun struct (state, states, world) elem ->
                     match evalApply [|scanner; state; String (string elem)|] originOpt world with
+                    | struct (Violation _, _) as error -> Left error
                     | struct (Option (Some state), world) -> (Right struct (state, state :: states, world))
                     | struct (Option None, world) -> Left struct (List states, world)
-                    | struct (Violation _, _) as error -> Left error
                     | _ -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s scanner must return an Option.", originOpt), world))
                     (Right struct (state, [], world))
                     str with
@@ -549,9 +549,9 @@ module ScriptingPrimitives =
             match
                 Seq.foldWhileRight (fun struct (state, states, world) elem ->
                     match evalApply [|scanner; state; elem|] originOpt world with
+                    | struct (Violation _, _) as error -> Left error
                     | struct (Option (Some state), world) -> (Right struct (state, state :: states, world))
                     | struct (Option None, world) -> Left struct (List states, world)
-                    | struct (Violation _, _) as error -> Left error
                     | struct (_, world) -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s scanner must return an Option.", originOpt), world))
                     (Right struct (state, [], world))
                     list with
@@ -561,9 +561,9 @@ module ScriptingPrimitives =
             match
                 Seq.foldWhileRight (fun struct (state, states, world) elem ->
                     match evalApply [|scanner; state; elem|] originOpt world with
+                    | struct (Violation _, _) as error -> Left error
                     | struct (Option (Some state), world) -> (Right struct (state, state :: states, world))
                     | struct (Option None, world) -> Left struct (List states, world)
-                    | struct (Violation _, _) as error -> Left error
                     | struct (_, world) -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s scanner must return an Option.", originOpt), world))
                     (Right struct (state, [], world))
                     set with
@@ -574,9 +574,9 @@ module ScriptingPrimitives =
                 Seq.foldWhileRight (fun struct (state, states, world) (key, value) ->
                     let entry = Tuple [|key; value|]
                     match evalApply [|scanner; state; entry|] originOpt world with
+                    | struct (Violation _, _) as error -> Left error
                     | struct (Option (Some state), world) -> (Right struct (state, state :: states, world))
                     | struct (Option None, world) -> Left struct (List states, world)
-                    | struct (Violation _, _) as error -> Left error
                     | struct (_, world) -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s scanner must return an Option.", originOpt), world))
                     (Right struct (state, [], world))
                     (Map.toList map) with
@@ -685,21 +685,21 @@ module ScriptingPrimitives =
             | error -> error
         | Unfold (unfolder, costate) ->
             match evalApply [|unfolder; costate|] originOpt world with
+            | struct (Violation _, _) as error -> Left error
             | struct (Option (Some costate), world) ->
                 match evalApply [|folder; state; costate|] originOpt world with
+                | struct (Violation _, _) as error -> Left error
                 | struct (Option (Some state), world) -> evalFoldWhileCodata evalApply fnName originOpt folder state (Unfold (unfolder, costate)) world
                 | struct (Option None, world) -> Right struct (state, world)
-                | struct (Violation _, _) as error -> Left error
                 | struct (_, world) -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s folder must return an Option.", originOpt), world)
             | struct (Option None, world) -> Right struct (state, world)
-            | struct (Violation _, _) as error -> Left error
             | struct (_, world) -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s unfolder must return an Option.", originOpt), world)
         | Conversion list ->
             Seq.foldWhileRight (fun struct (state, world) elem ->
                 match evalApply [|folder; state; elem|] originOpt world with
+                | struct (Violation _, _) as error -> Left error
                 | struct (Option (Some state), world) -> Right struct (state, world)
                 | struct (Option None, world) -> Left struct (state, world)
-                | struct (Violation _, _) as error -> Left error
                 | struct (_, world) -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s folder must return an Option.", originOpt), world))
                 (Right struct (state, world))
                 list
@@ -717,19 +717,19 @@ module ScriptingPrimitives =
             | error -> error
         | Unfold (unfolder, costate) ->
             match evalApply [|unfolder; costate|] originOpt world with
+            | struct (Violation _, _) as error -> Left error
             | struct (Option (Some costate), world) ->
                 match evalApply [|folder; Int i; state; costate|] originOpt world with
                 | struct (Violation _, _) as error -> Left error
                 | struct (state, world) -> evalFoldiCodata evalApply fnName originOpt (inc i) folder state (Unfold (unfolder, costate)) world
             | struct (Option None, world) -> Right struct (i, state, world)
-            | struct (Violation _, _) as error -> Left error
             | struct (_, world) -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s unfolder must return an Option.", originOpt), world)
         | Conversion list ->
             Seq.foldWhileRight (fun struct (i, state, world) elem ->
                 match evalApply [|folder; Int i; state; elem|] originOpt world with
+                | struct (Violation _, _) as error -> Left error
                 | struct (Option (Some state), world) -> (Right struct (inc i, state, world))
                 | struct (Option None, world) -> Left struct (state, world)
-                | struct (Violation _, _) as error -> Left error
                 | _ -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s folder must return an Option.", originOpt), world))
                 (Right struct (i, state, world))
                 list
@@ -747,19 +747,19 @@ module ScriptingPrimitives =
             | error -> error
         | Unfold (unfolder, costate) ->
             match evalApply [|unfolder; costate|] originOpt world with
+            | struct (Violation _, _) as error -> Left error
             | struct (Option (Some costate), world) ->
                 match evalApply [|folder; state; costate|] originOpt world with
                 | struct (Violation _, _) as error -> Left error
                 | struct (state, world) -> evalFoldCodata evalApply fnName originOpt folder state (Unfold (unfolder, costate)) world
             | struct (Option None, world) -> Right struct (state, world)
-            | struct (Violation _, _) as error -> Left error
             | struct (_, world) -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s unfolder must return an Option.", originOpt), world)
         | Conversion list ->
             Seq.foldWhileRight (fun struct (state, world) elem ->
                 match evalApply [|folder; state; elem|] originOpt world with
+                | struct (Violation _, _) as error -> Left error
                 | struct (Option (Some state), world) -> (Right struct (state, world))
                 | struct (Option None, world) -> Left struct (state, world)
-                | struct (Violation _, _) as error -> Left error
                 | _ -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s folder must return an Option.", originOpt), world))
                 (Right struct (state, world))
                 list
@@ -770,9 +770,9 @@ module ScriptingPrimitives =
             let eir =
                 Seq.foldWhileRight (fun struct (state, world) elem ->
                     match evalApply [|folder; state; String (string elem)|] originOpt world with
+                    | struct (Violation _, _) as error -> Left error
                     | struct (Option (Some state), world) -> (Right struct (state, world))
                     | struct (Option None, world) -> Left struct (state, world)
-                    | struct (Violation _, _) as error -> Left error
                     | _ -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s folder must return an Option.", originOpt), world))
                     (Right struct (state, world))
                     str
@@ -785,9 +785,9 @@ module ScriptingPrimitives =
             let eir =
                 Seq.foldWhileRight (fun struct (state, world) elem ->
                     match evalApply [|folder; state; elem|] originOpt world with
+                    | struct (Violation _, _) as error -> Left error
                     | struct (Option (Some state), world) -> (Right struct (state, world))
                     | struct (Option None, world) -> Left struct (state, world)
-                    | struct (Violation _, _) as error -> Left error
                     | _ -> Left struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s folder must return an Option.", originOpt), world))
                     (Right struct (state, world))
                     list

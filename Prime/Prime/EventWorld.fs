@@ -160,7 +160,7 @@ module EventWorld =
     let private debugSubscriptionTypeMismatch () =
         Log.debug ^
             "If you've reached this exception, then you've probably inadvertantly mixed up an event type " +
-            "parameter for some form of EventWorld.publish or subscribe. " +
+            "parameter when calling EventWorld.publish or subscribe. " +
             "This exception can also crop up when your implementation of EventWorld.PublishEvent doesn't " +
             "correctly specialize its 's and 'w types for EventWorld.publishEvent calls."
 

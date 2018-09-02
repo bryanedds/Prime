@@ -384,13 +384,13 @@ module ScriptingWorld =
         match exprs with
         | [|left; right|] ->
             match eval left world with
+            | struct (Violation _, _) as error -> error
             | struct (Bool false, _) as never -> never
             | struct (Bool true, world) ->
                 match eval right world with
-                | struct (Bool _, _) as result -> result
                 | struct (Violation _, _) as error -> error
+                | struct (Bool _, _) as result -> result
                 | _ -> struct (Violation (["InvalidArgumentType"; "&&"], "Cannot apply a logic function to non-Bool values.", originOpt), world)
-            | struct (Violation _, _) as error -> error
             | _ -> struct (Violation (["InvalidArgumentType"; "&&"], "Cannot apply a logic function to non-Bool values.", originOpt), world)
         | _ -> struct (Violation (["InvalidArgumentCount"; "&&"], "Incorrect number of arguments for application of '&&'; 2 arguments required.", originOpt), world)
 
@@ -398,13 +398,13 @@ module ScriptingWorld =
         match exprs with
         | [|left; right|] ->
             match eval left world with
+            | struct (Violation _, _) as error -> error
             | struct (Bool true, _) as always -> always
             | struct (Bool false, world) ->
                 match eval right world with
-                | struct (Bool _, _) as result -> result
                 | struct (Violation _, _) as error -> error
+                | struct (Bool _, _) as result -> result
                 | _ -> struct (Violation (["InvalidArgumentType"; "&&"], "Cannot apply a logic function to non-Bool values.", originOpt), world)
-            | struct (Violation _, _) as error -> error
             | _ -> struct (Violation (["InvalidArgumentType"; "&&"], "Cannot apply a logic function to non-Bool values.", originOpt), world)
         | _ -> struct (Violation (["InvalidArgumentCount"; "&&"], "Incorrect number of arguments for application of '&&'; 2 arguments required.", originOpt), world)
 
@@ -474,8 +474,8 @@ module ScriptingWorld =
 
     and evalIf condition consequent alternative originOpt world =
         match eval condition world with
-        | struct (Bool bool, world) -> if bool then eval consequent world else eval alternative world
         | struct (Violation _ as evaled, world) -> struct (evaled, world)
+        | struct (Bool bool, world) -> if bool then eval consequent world else eval alternative world
         | struct (_, world) -> struct (Violation (["InvalidIfCondition"], "Must provide an expression that evaluates to a Bool in an if condition.", originOpt), world)
 
     and evalMatch input (cases : (Expr * Expr) array) originOpt world =
@@ -484,9 +484,9 @@ module ScriptingWorld =
             Seq.foldUntilRight (fun world (condition, consequent) ->
                 let struct (evaledInput, world) = eval condition world
                 match evalBinaryInner EqFns "=" input evaledInput originOpt world with
+                | struct (Violation _, world) -> Right struct (evaledInput, world)
                 | struct (Bool true, world) -> Right (eval consequent world)
                 | struct (Bool false, world) -> Left world
-                | struct (Violation _, world) -> Right struct (evaledInput, world)
                 | _ -> failwithumf ())
                 (Left world)
                 cases
@@ -498,8 +498,8 @@ module ScriptingWorld =
         let resultEir =
             Seq.foldUntilRight (fun world (condition, consequent) ->
                 match eval condition world with
-                | struct (Bool bool, world) -> if bool then Right (eval consequent world) else Left world
                 | struct (Violation _ as evaled, world) -> Right struct (evaled, world)
+                | struct (Bool bool, world) -> if bool then Right (eval consequent world) else Left world
                 | struct (_, world) -> Right struct (Violation (["InvalidSelectCondition"], "Must provide an expression that evaluates to a Bool in a case condition.", originOpt), world))
                 (Left world)
                 exprPairs
