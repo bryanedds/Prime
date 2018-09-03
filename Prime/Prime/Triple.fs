@@ -53,35 +53,35 @@ module Triple =
         (a, b, c)
 
     /// Insert an item in a pair to build a triple.
-    let inline insert b (a, c) =
+    let inline insert (b : 'b) (a : 'a, c : 'c) =
         (a, b, c)
 
     /// Append an item to a pair to build a triple.
-    let inline append c (a, b) =
+    let inline append (c : 'c) (a : 'a, b : 'b) =
         (a, b, c)
 
     /// Replace triple member a.
-    let inline withA a (_, b, c) =
+    let inline withA (a : 'a) (_ : 'd, b : 'b, c : 'c) =
         (a, b, c)
 
     /// Replace triple member b.
-    let inline withB b (a, _, c) =
+    let inline withB (b : 'b) (a : 'a, _ : 'd, c : 'c) =
         (a, b, c)
 
     /// Replace triple member c.
-    let inline withC c (a, b, _) =
+    let inline withC (c : 'c) (a : 'a, b : 'b, _ : 'd) =
         (a, b, c)
 
     /// Map over triple member a.
-    let inline mapA mapper (a, b, c) =
+    let inline mapA (mapper : 'a -> 'd) (a : 'a, b : 'b, c : 'c) =
         (mapper a, b, c)
 
     /// Map over triple member b.
-    let inline mapB mapper (a, b, c) =
+    let inline mapB (mapper : 'b -> 'd) (a : 'a, b : 'b, c : 'c) =
         (a, mapper b, c)
 
     /// Map over triple member c.
-    let inline mapC mapper (a, b, c) =
+    let inline mapC (mapper : 'c -> 'd) (a : 'a, b : 'b, c : 'c) =
         (a, b, mapper c)
 
     /// Make a triple.

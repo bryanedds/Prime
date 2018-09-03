@@ -13,7 +13,7 @@ type [<ReferenceEquality>] Stream<'a, 'g, 'w when 'g :> Participant and 'w :> Ev
 // TODO: document track functions.
 module Stream =
 
-    (* Event-Based Combinators *)
+    (* Side-Effecting Combinators *)
 
     /// Make a stream of an event at the given address.
     let [<DebuggerHidden; DebuggerStepThrough>] stream<'a, 'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>>
@@ -31,8 +31,8 @@ module Stream =
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
-    let [<DebuggerHidden; DebuggerStepThrough>] trackEvent4
-        (tracker : 'c -> Event<'a, 'g> -> 'w -> 'c * bool)
+    let [<DebuggerHidden; DebuggerStepThrough>] trackEffect4
+        (tracker : 'c -> Event<'a, 'g> -> 'w -> 'c * bool * 'w)
         (transformer : 'c -> 'b)
         (state : 'c)
         (stream : Stream<'a, 'g, 'w>) :
@@ -50,7 +50,7 @@ module Stream =
                 EventWorld.unsubscribe<'g, 'w> subscriptionKey world
             let subscription = fun evt world ->
                 let state = EventWorld.getEventState stateKey world
-                let (state, tracked) = tracker state evt world
+                let (state, tracked, world) = tracker state evt world
                 let world = EventWorld.addEventState stateKey state world
                 let world =
                     if tracked then
@@ -63,8 +63,8 @@ module Stream =
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
-    let [<DebuggerHidden; DebuggerStepThrough>] trackEvent2
-        (tracker : 'a -> Event<'a, 'g> -> 'w -> 'a * bool)
+    let [<DebuggerHidden; DebuggerStepThrough>] trackEffect2
+        (tracker : 'a -> Event<'a, 'g> -> 'w -> 'a * bool * 'w)
         (stream : Stream<'a, 'g, 'w>) :
         Stream<'a, 'g, 'w> =
         let subscribe = fun (world : 'w) ->
@@ -81,7 +81,7 @@ module Stream =
             let subscription = fun evt world ->
                 let stateOpt = EventWorld.getEventState stateKey world
                 let state = match stateOpt with Some state -> state | None -> evt.Data
-                let (state, tracked) = tracker state evt world
+                let (state, tracked, world) = tracker state evt world
                 let world = EventWorld.addEventState stateKey state world
                 let world =
                     if tracked then
@@ -93,8 +93,8 @@ module Stream =
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
-    let [<DebuggerHidden; DebuggerStepThrough>] trackEvent
-        (tracker : 'b -> 'w -> 'b * bool) (state : 'b) (stream : Stream<'a, 'g, 'w>) : Stream<'a, 'g, 'w> =
+    let [<DebuggerHidden; DebuggerStepThrough>] trackEffect
+        (tracker : 'b -> 'w -> 'b * bool * 'w) (state : 'b) (stream : Stream<'a, 'g, 'w>) : Stream<'a, 'g, 'w> =
         let subscribe = fun (world : 'w) ->
             let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalPariticipant :?> 'g
             let stateKey = makeGuid ()
@@ -108,7 +108,7 @@ module Stream =
                 EventWorld.unsubscribe<'g, 'w> subscriptionKey world
             let subscription = fun evt world ->
                 let state = EventWorld.getEventState stateKey world
-                let (state, tracked) = tracker state world
+                let (state, tracked, world) = tracker state world
                 let world = EventWorld.addEventState stateKey state world
                 let world =
                     if tracked then
@@ -121,20 +121,20 @@ module Stream =
         { Subscribe = subscribe }
 
     /// Fold over a stream, then map the result.
-    let [<DebuggerHidden; DebuggerStepThrough>] foldMapEvent (f : 'b -> Event<'a, 'g> -> 'w -> 'b) g s (stream : Stream<'a, 'g, 'w>) : Stream<'c, 'g, 'w> =
-        trackEvent4 (fun b a w -> (f b a w, true)) g s stream
+    let [<DebuggerHidden; DebuggerStepThrough>] foldMapEffect (f : 'b -> Event<'a, 'g> -> 'w -> 'b * 'w) g s (stream : Stream<'a, 'g, 'w>) : Stream<'c, 'g, 'w> =
+        trackEffect4 (fun b a w -> (Triple.insert true (f b a w))) g s stream
 
     /// Fold over a stream, aggegating the result.
-    let [<DebuggerHidden; DebuggerStepThrough>] foldEvent (f : 'b -> Event<'a, 'g> -> 'w -> 'b) s (stream : Stream<'a, 'g, 'w>) : Stream<'b, 'g, 'w> =
-        trackEvent4 (fun b a w -> (f b a w, true)) id s stream
+    let [<DebuggerHidden; DebuggerStepThrough>] foldEffect (f : 'b -> Event<'a, 'g> -> 'w -> 'b * 'w) s (stream : Stream<'a, 'g, 'w>) : Stream<'b, 'g, 'w> =
+        trackEffect4 (fun b a w -> (Triple.insert true (f b a w))) id s stream
 
     /// Reduce over a stream, accumulating the result.
-    let [<DebuggerHidden; DebuggerStepThrough>] reduceEvent (f : 'a -> Event<'a, 'g> -> 'w -> 'a) (stream : Stream<'a, 'g, 'w>) : Stream<'a, 'g, 'w> =
-        trackEvent2 (fun a a2 w -> (f a a2 w, true)) stream
+    let [<DebuggerHidden; DebuggerStepThrough>] reduceEffect (f : 'a -> Event<'a, 'g> -> 'w -> 'a * 'w) (stream : Stream<'a, 'g, 'w>) : Stream<'a, 'g, 'w> =
+        trackEffect2 (fun a a2 w -> (Triple.insert true (f a a2 w))) stream
 
     /// Filter a stream by the given 'pred' procedure.
-    let [<DebuggerHidden; DebuggerStepThrough>] filterEvent
-        (pred : Event<'a, 'g> -> 'w -> bool) (stream : Stream<'a, 'g, 'w>) =
+    let [<DebuggerHidden; DebuggerStepThrough>] filterEffect
+        (pred : Event<'a, 'g> -> 'w -> bool * 'w) (stream : Stream<'a, 'g, 'w>) =
         let subscribe = fun (world : 'w) ->
             let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalPariticipant :?> 'g
             let subscriptionKey = makeGuid ()
@@ -144,8 +144,9 @@ module Stream =
                 let world = unsubscribe world
                 EventWorld.unsubscribe<'g, 'w> subscriptionKey world
             let subscription = fun evt world ->
+                let (passed, world) = pred evt world
                 let world =
-                    if pred evt world then
+                    if passed then
                         let eventTrace = EventTrace.record "Stream" "filterEvent" evt.Trace
                         EventWorld.publishPlus<'a, 'g, 'g, 'w> EventWorld.sortSubscriptionsNone evt.Data subscriptionAddress eventTrace globalParticipant false world
                     else world
@@ -155,8 +156,8 @@ module Stream =
         { Subscribe = subscribe }
 
     /// Map over a stream by the given 'mapper' procedure.
-    let [<DebuggerHidden; DebuggerStepThrough>] mapEvent
-        (mapper : Event<'a, 'g> -> 'w -> 'b) (stream : Stream<'a, 'g, 'w>) : Stream<'b, 'g, 'w> =
+    let [<DebuggerHidden; DebuggerStepThrough>] mapEffect
+        (mapper : Event<'a, 'g> -> 'w -> 'b * 'w) (stream : Stream<'a, 'g, 'w>) : Stream<'b, 'g, 'w> =
         let subscribe = fun (world : 'w) ->
             let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalPariticipant :?> 'g
             let subscriptionKey = makeGuid ()
@@ -167,11 +168,54 @@ module Stream =
                 EventWorld.unsubscribe<'g, 'w> subscriptionKey world
             let subscription = fun evt world ->
                 let eventTrace = EventTrace.record "Stream" "mapEvent" evt.Trace
-                let world = EventWorld.publishPlus<'b, 'g, 'g, 'w> EventWorld.sortSubscriptionsNone (mapper evt world) subscriptionAddress eventTrace globalParticipant false world
+                let (eventData, world) = mapper evt world
+                let world = EventWorld.publishPlus<'b, 'g, 'g, 'w> EventWorld.sortSubscriptionsNone eventData subscriptionAddress eventTrace globalParticipant false world
                 (Cascade, world)
             let world = EventWorld.subscribePlus<'a, 'g, 'g, 'w> subscriptionKey subscription eventAddress globalParticipant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
+
+    (* Event-Accessing Combinators *)
+
+    let [<DebuggerHidden; DebuggerStepThrough>] trackEvent4
+        (tracker : 'c -> Event<'a, 'g> -> 'w -> 'c * bool)
+        (transformer : 'c -> 'b)
+        (state : 'c)
+        (stream : Stream<'a, 'g, 'w>) :
+        Stream<'b, 'g, 'w> =
+        trackEffect4 (fun state evt world -> Triple.append world (tracker state evt world)) transformer state stream
+
+    let [<DebuggerHidden; DebuggerStepThrough>] trackEvent2
+        (tracker : 'a -> Event<'a, 'g> -> 'w -> 'a * bool)
+        (stream : Stream<'a, 'g, 'w>) :
+        Stream<'a, 'g, 'w> =
+        trackEffect2 (fun state evt world -> Triple.append world (tracker state evt world)) stream
+
+    let [<DebuggerHidden; DebuggerStepThrough>] trackEvent
+        (tracker : 'b -> 'w -> 'b * bool) (state : 'b) (stream : Stream<'a, 'g, 'w>) : Stream<'a, 'g, 'w> =
+        trackEffect (fun state world -> Triple.append world (tracker state world)) state stream
+
+    /// Fold over a stream, then map the result.
+    let [<DebuggerHidden; DebuggerStepThrough>] foldMapEvent (f : 'b -> Event<'a, 'g> -> 'w -> 'b) g s (stream : Stream<'a, 'g, 'w>) : Stream<'c, 'g, 'w> =
+        foldMapEffect (fun state evt world -> (f state evt world, world)) g s stream
+
+    /// Fold over a stream, aggegating the result.
+    let [<DebuggerHidden; DebuggerStepThrough>] foldEvent (f : 'b -> Event<'a, 'g> -> 'w -> 'b) s (stream : Stream<'a, 'g, 'w>) : Stream<'b, 'g, 'w> =
+        foldEffect (fun state evt world -> (f state evt world, world)) s stream
+
+    /// Reduce over a stream, accumulating the result.
+    let [<DebuggerHidden; DebuggerStepThrough>] reduceEvent (f : 'a -> Event<'a, 'g> -> 'w -> 'a) (stream : Stream<'a, 'g, 'w>) : Stream<'a, 'g, 'w> =
+        reduceEffect (fun value evt world -> (f value evt world, world)) stream
+
+    /// Filter a stream by the given 'pred' procedure.
+    let [<DebuggerHidden; DebuggerStepThrough>] filterEvent
+        (pred : Event<'a, 'g> -> 'w -> bool) (stream : Stream<'a, 'g, 'w>) =
+        filterEffect (fun evt world -> (pred evt world, world)) stream
+
+    /// Map over a stream by the given 'mapper' procedure.
+    let [<DebuggerHidden; DebuggerStepThrough>] mapEvent
+        (mapper : Event<'a, 'g> -> 'w -> 'b) (stream : Stream<'a, 'g, 'w>) : Stream<'b, 'g, 'w> =
+        mapEffect (fun evt world -> (mapper evt world, world)) stream
 
     (* World-Accessing Combinators *)
 
