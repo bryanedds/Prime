@@ -80,6 +80,7 @@ module String =
         | head :: tail -> Char.ToUpperInvariant head :: tail |> Array.ofList |> String
 
     /// Textualize a string for usage as text.
+    /// TODO: seems specific to Nu - move this into Nu?
     let textualize (str : string) =
         str.Replace('_', '\"')
 

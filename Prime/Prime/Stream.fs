@@ -522,10 +522,8 @@ module Stream =
     /// Take only the first event from a stream that satisfies 'p'.
     let [<DebuggerHidden; DebuggerStepThrough>] search p stream = stream |> filter p |> head
 
-    /// Filter out the None data values from a stream and strip the Some constructor from
-    /// the remaining values.
-    let [<DebuggerHidden; DebuggerStepThrough>] choose (stream : Stream<'a option, 'g, 'w>) =
-        stream |> filter Option.isSome |> map Option.get
+    /// Filter out the None data values from a stream and strip the Some constructor from the remaining values.
+    let [<DebuggerHidden; DebuggerStepThrough>] choose (stream : Stream<'a option, 'g, 'w>) = stream |> filter Option.isSome |> map Option.get
 
     /// Transform a stream into a running maximum of it numeric data.
     let [<DebuggerHidden; DebuggerStepThrough>] max stream = reduce (fun n a -> if n < a then a else n) stream
