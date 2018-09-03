@@ -31,6 +31,10 @@ module ScriptingWorld =
     let mutable private Intrinsics =
         Unchecked.defaultof<obj>
 
+    let private toOverloadName fnName typeName =
+        // TODO: can we blit this into a global mutable string for most cases in order to avoid allocation?
+        fnName + "_" + typeName
+
     let inline annotateWorld<'w when 'w :> 'w ScriptingWorld> (_ : 'w) =
         () // NOTE: simply infers that a type is a world.
 
@@ -194,13 +198,13 @@ module ScriptingWorld =
             | Violation _ as error -> struct (error, world)
             | Pluggable pluggable ->
                 let pluggableTypeName = pluggable.TypeName
-                let xfnName = fnName + "_" + pluggableTypeName
+                let xfnName = toOverloadName fnName pluggableTypeName
                 let xfnBinding = Binding (xfnName, ref UncachedBinding, ref UnknownBindingType, None)
                 let evaleds = Array.cons xfnBinding argsEvaled
                 evalApply evaleds originOpt world
             | Union (name, _)
             | Record (name, _, _) ->
-                let xfnName = fnName + "_" + name
+                let xfnName = toOverloadName fnName name
                 let xfnBinding = Binding (xfnName, ref UncachedBinding, ref UnknownBindingType, None)
                 let evaleds = Array.cons xfnBinding argsEvaled
                 evalApply evaleds originOpt world
