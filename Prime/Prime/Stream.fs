@@ -11,12 +11,11 @@ type [<ReferenceEquality>] Stream<'a, 'g, 'w when 'g :> Participant and 'w :> Ev
     { Subscribe : 'w -> 'a Address * ('w -> 'w) * 'w }
 
 // TODO: document track functions.
+[<RequireQualifiedAccess>]
 module Stream =
 
-    (* Side-Effecting Combinators *)
-
     /// Make a stream of an event at the given address.
-    let [<DebuggerHidden; DebuggerStepThrough>] stream<'a, 'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>>
+    let [<DebuggerHidden; DebuggerStepThrough>] make<'a, 'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>>
         (eventAddress : 'a Address) : Stream<'a, 'g, 'w> =
         let subscribe = fun (world : 'w) ->
             let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalPariticipant :?> 'g
@@ -30,6 +29,8 @@ module Stream =
             let world = EventWorld.subscribePlus<'a, 'g, 'g, 'w> subscriptionKey subscription eventAddress globalParticipant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
+
+    (* Side-Effecting Combinators *)
 
     let [<DebuggerHidden; DebuggerStepThrough>] trackEffect4
         (tracker : 'c -> Event<'a, 'g> -> 'w -> 'c * bool * 'w)
@@ -410,7 +411,7 @@ module Stream =
     let [<DebuggerHidden; DebuggerStepThrough>] lifetime<'s, 'a, 'g, 'w when 's :> Participant and 'w :> EventWorld<'g, 'w>>
         (subscriber : 's) (stream_ : Stream<'a, 'g, 'w>) : Stream<'a, 'g, 'w> =
         let removingEventAddress = ltoa<unit> [typeof<'s>.Name; "Unregistering"; "Event"] ->>- subscriber.ParticipantAddress
-        let removingStream = stream removingEventAddress
+        let removingStream = make removingEventAddress
         until removingStream stream_
 
     /// Subscribe to a stream, handling each event with the given subscription,
@@ -540,21 +541,18 @@ module Stream =
 [<AutoOpen>]
 module StreamOperators =
 
-    // open related module
-    open Stream
-
     /// Stream sequencing operator.
     let (---) = (|>)
 
     /// Make a stream of the subscriber's change events.
     let [<DebuggerHidden; DebuggerStepThrough>] (!--) (property : PropertyTag<'a, 'b, 'w>) =
         let changeEventAddress = ltoa<'w ParticipantChangeData> [typeof<'a>.Name; "Change"; property.Name; "Event"] ->>- property.This.ParticipantAddress
-        stream changeEventAddress --- mapEvent (fun _ world -> property.Get world)
+        Stream.make changeEventAddress --- Stream.mapEvent (fun _ world -> property.Get world)
 
     /// Propagate the event data of a stream to a property in the observing participant when the
     /// subscriber exists (doing nothing otherwise).
     let [<DebuggerHidden; DebuggerStepThrough>] (-->) stream (property : PropertyTag<'a, 'b, 'w>) =
-        subscribe (fun a world ->
+        Stream.subscribe (fun a world ->
             if world.ParticipantExists a.Subscriber then
                 match property.SetOpt with
                 | Some set -> set a.Data world

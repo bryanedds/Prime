@@ -37,6 +37,7 @@ module ChainBuilder =
     /// Builds the chain monad.
     let chain = ChainBuilder ()
 
+[<RequireQualifiedAccess>]
 module Chain =
 
     /// Monadic return for the chain monad.
