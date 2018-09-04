@@ -87,7 +87,7 @@ module ScriptingMarshalling =
             match tryImport tryImportExt valueType value with
             | Some value -> Some (Option (Some value))
             | None -> None
-        | None -> Some (Option None)
+        | None -> Some NoneValue
 
     and tryImportEither tryImportExt (ty : Type) (value : obj) =
         let gargs = ty.GetGenericArguments ()
@@ -251,9 +251,9 @@ module ScriptingMarshalling =
 
     and tryExportEither tryExportExt (ty : Type) (eir : Expr) =
         let leftType = (ty.GetGenericArguments ()).[0]
-        let leftCase = (FSharpType.GetUnionCases ty).[0]
+        let leftCase = (FSharpType.GetUnionCases ty).[1]
         let rightType = (ty.GetGenericArguments ()).[1]
-        let rightCase = (FSharpType.GetUnionCases ty).[1]
+        let rightCase = (FSharpType.GetUnionCases ty).[0]
         match eir with
         | Either eir ->
             match eir with

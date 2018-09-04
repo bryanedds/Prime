@@ -27,3 +27,15 @@ module Option =
         match opt with
         | Some value -> mapper value
         | None -> aDefault
+
+    /// Remove a value if contained by an option.
+    let remove value opt =
+        match opt with
+        | Some value2 -> if value2 = value then None else opt
+        | None -> None
+
+    /// The number of value contained by an option.
+    let length opt =
+        match opt with
+        | Some _ -> 1
+        | None -> 0

@@ -17,6 +17,7 @@ module ScriptingUnary =
           Keyword : string -> SymbolOrigin option -> Expr
           Tuple : Expr array -> SymbolOrigin option -> Expr
           Union : string -> Expr array -> SymbolOrigin option -> Expr
+          Option : Expr option -> SymbolOrigin option -> Expr
           Codata : Codata -> SymbolOrigin option -> Expr
           List : Expr list -> SymbolOrigin option -> Expr
           Ring : Expr Set -> SymbolOrigin option -> Expr
@@ -33,6 +34,7 @@ module ScriptingUnary =
           Keyword = fun value _ -> Int (hash value)
           Tuple = fun value _ -> Int (hash value)
           Union = fun name fields _ -> Int (hash (name, fields))
+          Option = fun value _ -> Int (hash value)
           Codata = fun value _ -> Int (hash value)
           List = fun value _ -> Int (hash value)
           Ring = fun value _ -> Int (hash value)
@@ -49,6 +51,7 @@ module ScriptingUnary =
           Keyword = fun _ _ -> Keyword String.Empty
           Tuple = fun _ _ -> Tuple Array.empty
           Union = fun _ _ _ -> Union (String.Empty, Array.empty)
+          Option = fun _ _ -> NoneValue
           Codata = fun _ _ -> Codata Empty
           List = fun _ _ -> List []
           Ring = fun _ _ -> Ring Set.empty
@@ -65,6 +68,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToIdentity"], "Cannot convert a Keyword to an identity representation.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToIdentity"], "Cannot convert a Tuple to an identity representation.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "ToIdentity"], "Cannot convert a Union to an identity representation.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToIdentity"], "Cannot convert Option to an identity representation.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToIdentity"], "Cannot convert Codata to an identity representation.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToIdentity"], "Cannot convert a List to an identity representation.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToIdentity"], "Cannot convert a Ring to an identity representation.", originOpt)
@@ -81,6 +85,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToMin"], "Cannot convert a Keyword to a minimum representation.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToMin"], "Cannot convert a Tuple to a minimum representation.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "ToMin"], "Cannot convert a Union to a minimum representation.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToMin"], "Cannot convert Option to a minimum representation.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToMin"], "Cannot convert Codata to a minimum representation.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToMin"], "Cannot convert a List to a minimum representation.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToMin"], "Cannot convert a Ring to a minimum representation.", originOpt)
@@ -97,6 +102,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToMax"], "Cannot convert a Keyword to a maximum representation.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToMax"], "Cannot convert a Tuple to a maximum representation.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "ToMax"], "Cannot convert a Union to a maximum representation.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToMax"], "Cannot convert Option to a maximum representation.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToMax"], "Cannot convert Codata to a maximum representation.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToMax"], "Cannot convert a List to a maximum representation.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "ToMax"], "Cannot convert a Ring to a maximum representation.", originOpt)
@@ -113,6 +119,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Inc"], "Cannot increment a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Inc"], "Cannot increment a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Inc"], "Cannot increment a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Inc"], "Cannot increment an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Inc"], "Cannot increment Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Inc"], "Cannot increment a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Inc"], "Cannot increment a Ring.", originOpt)
@@ -129,6 +136,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Dec"], "Cannot decrement a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Dec"], "Cannot decrement a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Dec"], "Cannot decrement a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Dec"], "Cannot decrement an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Dec"], "Cannot decrement Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Dec"], "Cannot decrement a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Dec"], "Cannot decrement a Ring.", originOpt)
@@ -145,6 +153,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Negate"], "Cannot negate a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Negate"], "Cannot negate a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Negate"], "Cannot negate a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Negate"], "Cannot negate an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Negate"], "Cannot negate Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Negate"], "Cannot negate a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Negate"], "Cannot negate a Ring.", originOpt)
@@ -161,6 +170,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sqr"], "Cannot square a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sqr"], "Cannot square a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Sqr"], "Cannot square a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sqr"], "Cannot square an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sqr"], "Cannot square Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sqr"], "Cannot square a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sqr"], "Cannot square a Ring.", originOpt)
@@ -177,6 +187,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sqrt"], "Cannot square root a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sqrt"], "Cannot square root a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Sqrt"], "Cannot square root a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sqrt"], "Cannot square root an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sqrt"], "Cannot square root Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sqrt"], "Cannot square root a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sqrt"], "Cannot square root a Ring.", originOpt)
@@ -193,6 +204,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Floor"], "Cannot floor a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Floor"], "Cannot floor a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Floor"], "Cannot floor a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Floor"], "Cannot floor an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Floor"], "Cannot floor Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Floor"], "Cannot floor a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Floor"], "Cannot floor a Ring.", originOpt)
@@ -209,6 +221,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Ceiling"], "Cannot get ceiling of a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Ceiling"], "Cannot get ceiling of a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Ceiling"], "Cannot get ceiling of a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Ceiling"], "Cannot get ceiling of an Otion.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Ceiling"], "Cannot get ceiling of Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Ceiling"], "Cannot get ceiling of a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Ceiling"], "Cannot get ceiling of a Ring.", originOpt)
@@ -225,6 +238,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Truncate"], "Cannot truncate a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Truncate"], "Cannot truncate a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Truncate"], "Cannot truncate a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Truncate"], "Cannot truncate an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Truncate"], "Cannot truncate Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Truncate"], "Cannot truncate a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Truncate"], "Cannot truncate a Ring.", originOpt)
@@ -241,6 +255,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Exp"], "Cannot exponentiate a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Exp"], "Cannot exponentiate a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Exp"], "Cannot exponentiate a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Exp"], "Cannot exponentiate an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Exp"], "Cannot exponentiate Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Exp"], "Cannot exponentiate a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Exp"], "Cannot exponentiate a Ring.", originOpt)
@@ -257,6 +272,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Round"], "Cannot round a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Round"], "Cannot round a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Round"], "Cannot round a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Round"], "Cannot round an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Round"], "Cannot round Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Round"], "Cannot round a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Round"], "Cannot round a Ring.", originOpt)
@@ -265,14 +281,15 @@ module ScriptingUnary =
 
     let LogFns =
         { Bool = fun _ originOpt -> Violation (["InvalidArgumentType"; "Log"], "Cannot log a Bool.", originOpt)
-          Int = fun value originOpt -> if value = 0 then Violation (["OutOfRangeArgument"; "Log"], "Cannot log a zero Int.", originOpt) else Int (int ^ Math.Log (double value))
-          Int64 = fun value originOpt -> if value = 0L then Violation (["OutOfRangeArgument"; "Log"], "Cannot log a zero Int64.", originOpt) else Int64 (int64 ^ Math.Log (double value))
-          Single = fun value originOpt -> if value = 0.0f then Violation (["OutOfRangeArgument"; "Log"], "Cannot log a zero Single.", originOpt) else Single (single ^ Math.Log (double value))
-          Double = fun value originOpt -> if value = 0.0 then Violation (["OutOfRangeArgument"; "Log"], "Cannot log a zero Double.", originOpt) else Double (Math.Log value)
+          Int = fun value originOpt -> if value = 0 then Violation (["ArgumentOutOfRange"; "Log"], "Cannot log a zero Int.", originOpt) else Int (int ^ Math.Log (double value))
+          Int64 = fun value originOpt -> if value = 0L then Violation (["ArgumentOutOfRange"; "Log"], "Cannot log a zero Int64.", originOpt) else Int64 (int64 ^ Math.Log (double value))
+          Single = fun value originOpt -> if value = 0.0f then Violation (["ArgumentOutOfRange"; "Log"], "Cannot log a zero Single.", originOpt) else Single (single ^ Math.Log (double value))
+          Double = fun value originOpt -> if value = 0.0 then Violation (["ArgumentOutOfRange"; "Log"], "Cannot log a zero Double.", originOpt) else Double (Math.Log value)
           String = fun _ originOpt -> Violation (["InvalidArgumentType"; "Log"], "Cannot log a String.", originOpt)
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Log"], "Cannot log a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Log"], "Cannot log a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Log"], "Cannot log a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Log"], "Cannot log an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Log"], "Cannot log Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Log"], "Cannot log a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Log"], "Cannot log a Ring.", originOpt)
@@ -289,6 +306,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sin"], "Cannot sin a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sin"], "Cannot sin a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Sin"], "Cannot sin a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sin"], "Cannot sin an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sin"], "Cannot sin Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sin"], "Cannot sin a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sin"], "Cannot sin a Ring.", originOpt)
@@ -305,6 +323,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Cos"], "Cannot cos a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Cos"], "Cannot cos a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Cos"], "Cannot cos a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Cos"], "Cannot cos an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Cos"], "Cannot cos Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Cos"], "Cannot cos a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Cos"], "Cannot cos a Ring.", originOpt)
@@ -321,6 +340,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Tan"], "Cannot tan a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Tan"], "Cannot tan a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Tan"], "Cannot tan a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Tan"], "Cannot tan an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Tan"], "Cannot tan Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Tan"], "Cannot tan a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Tan"], "Cannot tan a Ring.", originOpt)
@@ -337,6 +357,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Asin"], "Cannot asin a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Asin"], "Cannot asin a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Asin"], "Cannot asin a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Asin"], "Cannot asin an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Asin"], "Cannot asin Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Asin"], "Cannot asin a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Asin"], "Cannot asin a Ring.", originOpt)
@@ -353,6 +374,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Acos"], "Cannot acos a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Acos"], "Cannot acos a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Acos"], "Cannot acos a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Acos"], "Cannot acos an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Acos"], "Cannot acos Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Acos"], "Cannot acos a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Acos"], "Cannot acos a Ring.", originOpt)
@@ -369,6 +391,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Atan"], "Cannot atan a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Atan"], "Cannot atan a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Atan"], "Cannot atan a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Atan"], "Cannot atan an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Atan"], "Cannot atan Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Atan"], "Cannot atan a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Atan"], "Cannot atan a Ring.", originOpt)
@@ -385,6 +408,7 @@ module ScriptingUnary =
           Keyword = fun value _ -> Int (value.Length)
           Tuple = fun value _ -> Int (Array.length value)
           Union = fun _ fields _ -> Int (Array.length fields)
+          Option = fun value _ -> Int (Option.length value)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Length"], "Cannot get length of Codata.", originOpt)
           List = fun value _ -> Int (List.length value)
           Ring = fun value _ -> Int (value.Count)
@@ -393,14 +417,15 @@ module ScriptingUnary =
 
     let NormalFns =
         { Bool = fun _ originOpt -> Violation (["InvalidArgumentType"; "Normal"], "Cannot normalize a Bool.", originOpt)
-          Int = fun value originOpt -> if value = 0 then Violation (["OutOfRangeArgument"; "Normal"], "Cannot get the normal of a zero Int.", originOpt) elif value < 0 then Int -1 else Int 1
-          Int64 = fun value originOpt -> if value = 0L then Violation (["OutOfRangeArgument"; "Normal"], "Cannot get the normal of a zero Int64.", originOpt) elif value < 0L then Int64 -1L else Int64 1L
-          Single = fun value originOpt -> if value = 0.0f then Violation (["OutOfRangeArgument"; "Normal"], "Cannot get the normal of a zero Single.", originOpt) elif value < 0.0f then Single -1.0f else Single 1.0f
-          Double = fun value originOpt -> if value = 0.0 then Violation (["OutOfRangeArgument"; "Normal"], "Cannot get the normal of a zero Double.", originOpt) elif value < 0.0 then Double -1.0 else Double 1.0
+          Int = fun value originOpt -> if value = 0 then Violation (["ArgumentOutOfRange"; "Normal"], "Cannot get the normal of a zero Int.", originOpt) elif value < 0 then Int -1 else Int 1
+          Int64 = fun value originOpt -> if value = 0L then Violation (["ArgumentOutOfRange"; "Normal"], "Cannot get the normal of a zero Int64.", originOpt) elif value < 0L then Int64 -1L else Int64 1L
+          Single = fun value originOpt -> if value = 0.0f then Violation (["ArgumentOutOfRange"; "Normal"], "Cannot get the normal of a zero Single.", originOpt) elif value < 0.0f then Single -1.0f else Single 1.0f
+          Double = fun value originOpt -> if value = 0.0 then Violation (["ArgumentOutOfRange"; "Normal"], "Cannot get the normal of a zero Double.", originOpt) elif value < 0.0 then Double -1.0 else Double 1.0
           String = fun _ originOpt -> Violation (["InvalidArgumentType"; "Normal"], "Cannot normalize a String.", originOpt)
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Normal"], "Cannot normalize a Keyword.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Normal"], "Cannot normalize a Tuple.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Normal"], "Cannot normalize a Union.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Normal"], "Cannot normalize an Option.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Normal"], "Cannot normalize Codata.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Normal"], "Cannot normalize a List.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Normal"], "Cannot normalize a Ring.", originOpt)
@@ -417,6 +442,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Bool"], "Cannot convert a Keyword to a Bool.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Bool"], "Cannot convert a Tuple to a Bool.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Bool"], "Cannot convert a Union to a Bool.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Bool"], "Cannot convert an Option to a Bool.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Bool"], "Cannot convert Codata to a Bool.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Bool"], "Cannot convert a List to a Bool.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Bool"], "Cannot convert a Ring to a Bool.", originOpt)
@@ -433,6 +459,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Int"], "Cannot convert a Keyword to an Int.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Int"], "Cannot convert a Tuple to an Int.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Int"], "Cannot convert a Union to an Int.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Int"], "Cannot convert an Option to a Int.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Int"], "Cannot convert Codata to an Int.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Int"], "Cannot convert a List to an Int.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Int"], "Cannot convert a Ring to an Int.", originOpt)
@@ -449,6 +476,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Int64"], "Cannot convert a Keyword to an Int64.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Int64"], "Cannot convert a Tuple to an Int64.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Int64"], "Cannot convert a Union to an Int64.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Int64"], "Cannot convert an Option to an Int64.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Int64"], "Cannot convert Codata to an Int64.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Int64"], "Cannot convert a List to an Int64.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Int64"], "Cannot convert a Ring to an Int64.", originOpt)
@@ -465,6 +493,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Single"], "Cannot convert a Keyword to a Single.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Single"], "Cannot convert a Tuple to a Single.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Single"], "Cannot convert a Union to a Single.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Single"], "Cannot convert an Option to a Single.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Single"], "Cannot convert Codata to a Single.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Single"], "Cannot convert a List to a Single.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Single"], "Cannot convert a Ring to a Single.", originOpt)
@@ -481,6 +510,7 @@ module ScriptingUnary =
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Double"], "Cannot convert a Keyword to a Double.", originOpt)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "Double"], "Cannot convert a Tuple to a Double.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Double"], "Cannot convert a Union to a Double.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "Double"], "Cannot convert an Option to a Double.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "Double"], "Cannot convert Codata to a Double.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "Double"], "Cannot convert a List to a Double.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "Double"], "Cannot convert a Ring to a Double.", originOpt)
@@ -497,6 +527,7 @@ module ScriptingUnary =
           Keyword = fun value _ -> String (value)
           Tuple = fun _ originOpt -> Violation (["InvalidArgumentType"; "String"], "Cannot convert a Tuple to a String.", originOpt)
           Union = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "String"], "Cannot convert a Union to a String.", originOpt)
+          Option = fun _ originOpt -> Violation (["InvalidArgumentType"; "String"], "Cannot convert an Option to a String.", originOpt)
           Codata = fun _ originOpt -> Violation (["InvalidArgumentType"; "String"], "Cannot convert Codata to a String.", originOpt)
           List = fun _ originOpt -> Violation (["InvalidArgumentType"; "String"], "Cannot convert a List to a String.", originOpt)
           Ring = fun _ originOpt -> Violation (["InvalidArgumentType"; "String"], "Cannot convert a Ring to a String.", originOpt)
@@ -510,7 +541,7 @@ module ScriptingUnary =
             | Violation _ as violation -> struct (violation, world)
             | Bool bool -> struct (Bool (fn bool), world)
             | _ -> struct (Violation (["InvalidArgumentType"; (String.capitalize fnName)], "Cannot apply a Bool function to a non-Bool value.", originOpt), world)
-        | _ -> struct (Violation (["InvalidArgumentCount"; (String.capitalize fnName)], "Incorrect number of arguments for application of '" + fnName + "'; 1 argument required.", originOpt), world)
+        | _ -> struct (Violation (["InvalidArgumentCount"; (String.capitalize fnName)], "Incorrect number of arguments for '" + fnName + "'; 1 argument required.", originOpt), world)
 
     let evalUnaryInner (fns : UnaryFns) fnName argEvaled originOpt (world : 'w) =
         match argEvaled with
@@ -524,6 +555,7 @@ module ScriptingUnary =
         | Keyword keyword -> struct (fns.Keyword keyword originOpt, world)
         | Tuple tuple -> struct (fns.Tuple tuple originOpt, world)
         | Union (name, union) -> struct (fns.Union name union originOpt, world)
+        | Option opt -> struct (fns.Option opt originOpt, world)
         | Codata codata -> struct (fns.Codata codata originOpt, world)
         | List list -> struct (fns.List list originOpt, world)
         | Ring ring -> struct (fns.Ring ring originOpt, world)
@@ -534,4 +566,4 @@ module ScriptingUnary =
     let evalUnary fns fnName argsEvaled originOpt (world : 'w) =
         match argsEvaled with
         | [|argEvaled|] -> evalUnaryInner fns fnName argEvaled originOpt world
-        | _ -> struct (Violation (["InvalidArgumentCount"; (String.capitalize fnName)], "Incorrect number of arguments for application of '" + fnName + "'; 1 argument required.", originOpt), world)
+        | _ -> struct (Violation (["InvalidArgumentCount"; (String.capitalize fnName)], "Incorrect number of arguments for '" + fnName + "'; 1 argument required.", originOpt), world)

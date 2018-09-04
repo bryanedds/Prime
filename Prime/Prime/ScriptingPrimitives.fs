@@ -47,18 +47,23 @@ module ScriptingPrimitives =
         | String str ->
             if index >= 0 && index < String.length str
             then Right struct (String (string str.[index]), world)
-            else Left struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "String does not contain element at index " + string index + ".", originOpt), world)
+            else Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "String does not contain element at index " + string index + ".", originOpt), world)
         | Option opt ->
             match (index, opt) with
             | (0, Some value) -> Right struct (value, world)
-            | (_, Some _) -> Left struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "Option does not contain element at index " + string index + ".", originOpt), world)
+            | (_, Some _) -> Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Option does not contain element at index " + string index + ".", originOpt), world)
             | (_, None) -> Left struct (Violation (["InvalidIndex"; String.capitalize fnName], "Function '" + fnName + "' requires some value.", originOpt), world)
+        | Either eir ->
+            match (index, eir) with
+            | (0, Right value) -> Right struct (value, world)
+            | (1, Left value) -> Right struct (value, world)
+            | (_, _) -> Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Either does not contain element at index " + string index + ".", originOpt), world)
         | Codata _ ->
             Left struct (Violation (["NotImplemented"; String.capitalize fnName], "Function '" + fnName + "' is not implemented for Codata.", originOpt), world)
         | List list ->
             match List.tryItem index list with
             | Some item -> Right struct (item, world)
-            | None -> Left struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "List does not contain element at index " + string index + ".", originOpt), world)
+            | None -> Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "List does not contain element at index " + string index + ".", originOpt), world)
         | Table map ->
             match Map.tryFind (Int index) map with
             | Some value -> Right struct (value, world)
@@ -68,7 +73,7 @@ module ScriptingPrimitives =
         | Record (_, _, fields) ->
             if index >= 0 && index < Array.length fields
             then Right struct (fields.[index], world)
-            else Left struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "Structure does not contain element at index " + string index + ".", originOpt), world)
+            else Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Structure does not contain element at index " + string index + ".", originOpt), world)
         | _ -> Left struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Application of " + fnName + " requires an indexed value for its second argument.", originOpt), world)
 
     let evalIndexKeywordInner name fnName argEvaled originOpt world =
@@ -83,9 +88,9 @@ module ScriptingPrimitives =
             | Some index ->
                 if index >= 0 && index < Array.length fields
                 then Right struct (fields.[index], world)
-                else Left struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "Record does not contain element with name '" + name + "'.", originOpt), world)
+                else Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Record does not contain element with name '" + name + "'.", originOpt), world)
             | None ->
-                Left struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "Record does not contain element with name '" + name + "'.", originOpt), world)
+                Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Record does not contain element with name '" + name + "'.", originOpt), world)
         | _ -> Left struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Application of " + fnName + " requires a name-indexed value for its second argument.", originOpt), world)
 
     let evalIndexInner fnName argEvaled arg2Evaled originOpt world =
@@ -104,7 +109,7 @@ module ScriptingPrimitives =
     let evalTryIndex fnName argEvaled arg2Evaled originOpt world =
         match evalIndexInner fnName argEvaled arg2Evaled originOpt world with
         | Right struct (evaled, world) -> struct (Option (Some evaled), world)
-        | Left struct (_, world) -> struct (Option None, world)
+        | Left struct (_, world) -> struct (NoneValue, world)
 
     let evalHasIndex fnName argEvaled arg2Evaled originOpt world =
         match evalIndexInner fnName argEvaled arg2Evaled originOpt world with
@@ -128,7 +133,7 @@ module ScriptingPrimitives =
         match argEvaled with
         | Violation _ as error -> struct (error, world)
         | Int index -> evalIndexInt index fnName arg2Evaled originOpt world
-        | _ -> struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "Application of '" + fnName + "'requires an Int as its first argument.", originOpt), world)
+        | _ -> struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Application of '" + fnName + "'requires an Int as its first argument.", originOpt), world)
 
     let evalGetTypeName _ argEvaled _ world =
         match argEvaled with
@@ -145,6 +150,7 @@ module ScriptingPrimitives =
         | Tuple _ -> struct (String "Tuple", world)
         | Union _ -> struct (String "Union", world)
         | Option _ -> struct (String "Option", world)
+        | Either _ -> struct (String "Either", world)
         | Codata _ -> struct (String "Codata", world)
         | List _ -> struct (String "List", world)
         | Ring _ -> struct (String "Ring", world)
@@ -170,6 +176,7 @@ module ScriptingPrimitives =
             | String str as string when str.Length = 1 -> struct (string, world)
             | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Application of " + fnName + " for String must be a String of length 1.", originOpt), world)
         | [|Option _; value|] -> struct (Option (Some value), world)
+        | [|Either _; value|] -> struct (Either (Right value), world)
         | [|Codata _; value|] -> struct (Codata (Conversion [value]), world)
         | [|List _; value|] -> struct (List [value], world)
         | [|Ring _; value|] -> struct (Ring (Set.singleton value), world)
@@ -186,7 +193,12 @@ module ScriptingPrimitives =
         | [|Option fnOpt; Option valueOpt|] ->
             match (fnOpt, valueOpt) with
             | (Some fn, Some value) -> evalApply [|fn; value|] originOpt world
-            | (_, _) -> struct (Option None, world)
+            | (_, _) -> struct (NoneValue, world)
+        | [|Either fnEir; Either valueEir|] ->
+            match (fnEir, valueEir) with
+            | (Right fn, Right value) -> evalApply [|fn; value|] originOpt world
+            | (Left value, _) -> struct (Either (Left value), world)
+            | (_, Left value) -> struct (Either (Left value), world)
         | [|List fns; List values|] ->
             let resultsRevOpt =
                 List.foldWhileRight
@@ -217,7 +229,11 @@ module ScriptingPrimitives =
         | [|Option valueOpt; fn|] ->
             match valueOpt with
             | Some value -> evalApply [|fn; value|] originOpt world
-            | None -> struct (Option None, world)
+            | None -> struct (NoneValue, world)
+        | [|Either valueEir as eir; fn|] ->
+            match valueEir with
+            | Right value -> evalApply [|fn; value|] originOpt world
+            | Left _ -> struct (eir, world)
         | [|List values; fn|] ->
             let resultsRevOpt =
                 List.foldWhileRight
@@ -253,6 +269,24 @@ module ScriptingPrimitives =
         | Violation _ as violation -> struct (violation, world)
         | Option evaled -> struct (Bool (Option.isSome evaled), world)
         | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Cannot apply " + fnName + " to a non-Option.", originOpt), world)
+
+    let evalLeft _ argEvaled _ world =
+        struct (Either (Left argEvaled), world)
+
+    let evalRight _ argEvaled _ world =
+        struct (Either (Right argEvaled), world)
+    
+    let evalIsLeft fnName argEvaled originOpt world =
+        match argEvaled with
+        | Violation _ as violation -> struct (violation, world)
+        | Either evaled -> struct (Bool (Either.isLeft evaled), world)
+        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Cannot apply " + fnName + " to a non-Either.", originOpt), world)
+    
+    let evalIsRight fnName argEvaled originOpt world =
+        match argEvaled with
+        | Violation _ as violation -> struct (violation, world)
+        | Either evaled -> struct (Bool (Either.isRight evaled), world)
+        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Cannot apply " + fnName + " to a non-Either.", originOpt), world)
 
     let evalCodata fnName argEvaled arg2Evaled originOpt world =
         match argEvaled with
@@ -297,6 +331,7 @@ module ScriptingPrimitives =
         | Keyword str -> struct (Bool (String.isEmpty str), world)
         | Union (str, _) -> struct (Bool (String.isEmpty str), world)
         | Option opt -> struct (Bool (Option.isNone opt), world)
+        | Either eir -> struct (Bool (Either.isLeft eir), world)
         | Codata codata ->
             match evalCodataIsEmpty evalApply fnName originOpt codata world with
             | Right struct (empty, world) -> struct (Bool empty, world)
@@ -319,6 +354,7 @@ module ScriptingPrimitives =
         | Keyword str -> struct (Bool (String.notEmpty str), world)
         | Union (str, _) -> struct (Bool (String.notEmpty str), world)
         | Option opt -> struct (Bool (Option.isSome opt), world)
+        | Either eir -> struct (Bool (Either.isRight eir), world)
         | Codata codata ->
             match evalCodataIsEmpty evalApply fnName originOpt codata world with
             | Right struct (empty, world) -> struct (Bool (not empty), world)
@@ -340,6 +376,10 @@ module ScriptingPrimitives =
             match opt with
             | Some value -> Right (Right struct (value, NoneValue, world))
             | None -> Right (Left world)
+        | Either eir ->
+            match eir with
+            | Right value -> Right (Right struct (value, NoneValue, world))
+            | Left _ -> Right (Left world)
         | Codata codata ->
             match evalCodataTryUncons evalApply fnName originOpt codata world with
             | Right (Right struct (head, tail, world)) -> Right (Right struct (head, Codata tail, world))
@@ -362,13 +402,13 @@ module ScriptingPrimitives =
     let evalTryUncons evalApply fnName argEvaled originOpt world =
         match evalTryUnconsInner evalApply fnName argEvaled originOpt world with
         | Right (Right struct (head, tail, world)) -> struct (Option (Some (Tuple [|head; tail|])), world)
-        | Right (Left world) -> struct (Option None, world)
+        | Right (Left world) -> struct (NoneValue, world)
         | Left error -> error
 
     let evalUncons evalApply fnName argEvaled originOpt world =
         match evalTryUnconsInner evalApply fnName argEvaled originOpt world with
         | Right (Right struct (head, tail, world)) -> struct (Tuple [|head; tail|], world)
-        | Right (Left world) -> struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "Cannot apply " + fnName + " to an empty container.", originOpt), world)
+        | Right (Left world) -> struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Cannot apply " + fnName + " to an empty container.", originOpt), world)
         | Left error -> error
 
     let evalCons fnName argEvaled arg2Evaled originOpt world =
@@ -377,11 +417,15 @@ module ScriptingPrimitives =
             match argEvaled with
             | Violation _ as violation -> struct (violation, world)
             | String head when String.length head = 1 -> struct (String (head + str), world)
-            | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Incorrect number of arguments for application of '" + fnName + "'; 2 string arguments required where the first is of length 1.", originOpt), world)
+            | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Incorrect number of arguments for '" + fnName + "'; 2 string arguments required where the first is of length 1.", originOpt), world)
         | (argEvaled, Option opt) ->
             match opt with
-            | Some _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Cannot cons onto some value.", originOpt), world)
+            | Some _ -> struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Cannot cons onto a some value.", originOpt), world)
             | None -> struct (Option (Some argEvaled), world)
+        | (argEvaled, Either eir) ->
+            match eir with
+            | Right _ -> struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Cannot cons onto a right value.", originOpt), world)
+            | Left _ -> struct (Either (Right argEvaled), world)
         | (argEvaled, List list) ->
             struct (List (argEvaled :: list), world)
         | (argEvaled, Codata codata) ->
@@ -405,6 +449,7 @@ module ScriptingPrimitives =
         match argEvaled with
         | Violation _ as violation -> struct (violation, world)
         | Option _ -> struct (argEvaled, world)
+        | Either _ -> struct (argEvaled, world)
         | Codata _ -> struct (argEvaled, world)
         | List list -> struct (List (List.rev list), world)
         | Ring _ -> struct (argEvaled, world)
@@ -414,25 +459,25 @@ module ScriptingPrimitives =
     let evalTryHead evalApply fnName argsEvaled originOpt world =
         match evalTryUnconsInner evalApply fnName argsEvaled originOpt world with
         | Right (Right struct (head, _, world)) -> struct (head, world)
-        | Right (Left world) -> struct (Option None, world)
+        | Right (Left world) -> struct (NoneValue, world)
         | Left error -> error
 
     let evalHead evalApply fnName argsEvaled originOpt world =
         match evalTryUnconsInner evalApply fnName argsEvaled originOpt world with
         | Right (Right struct (head, _, world)) -> struct (head, world)
-        | Right (Left world) -> struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "Cannot apply " + fnName + " to a container with no elements.", originOpt), world)
+        | Right (Left world) -> struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Cannot apply " + fnName + " to a container with no elements.", originOpt), world)
         | Left error -> error
 
     let evalTryTail evalApply fnName argsEvaled originOpt world =
         match evalTryUnconsInner evalApply fnName argsEvaled originOpt world with
         | Right (Right struct (_, tail, world)) -> struct (tail, world)
-        | Right (Left world) -> struct (Option None, world)
+        | Right (Left world) -> struct (NoneValue, world)
         | Left error -> error
 
     let evalTail evalApply fnName argsEvaled originOpt world =
         match evalTryUnconsInner evalApply fnName argsEvaled originOpt world with
         | Right (Right struct (_, tail, world)) -> struct (tail, world)
-        | Right (Left world) -> struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "Cannot apply " + fnName + " to a container with no elements.", originOpt), world)
+        | Right (Left world) -> struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Cannot apply " + fnName + " to a container with no elements.", originOpt), world)
         | Left error -> error
 
     let rec evalScanWhileCodata evalApply fnName originOpt scanner state codata world =
@@ -883,6 +928,10 @@ module ScriptingPrimitives =
             match opt with
             | Some value -> evalApply [|mapper; Int 0; value|] originOpt world
             | None -> struct (option, world)
+        | (mapper, (Either eir as either)) ->
+            match eir with
+            | Right value -> evalApply [|mapper; Int 0; value|] originOpt world
+            | Left _ -> struct (either, world)
         | (mapper, String str) ->
             let (list, world) =
                 str |>
@@ -934,6 +983,10 @@ module ScriptingPrimitives =
             match opt with
             | Some value -> evalApply [|mapper; value|] originOpt world
             | None -> struct (option, world)
+        | (mapper, (Either eir as either)) ->
+            match eir with
+            | Right value -> evalApply [|mapper; value|] originOpt world
+            | Left _ -> struct (either, world)
         | (mapper, String str) ->
             let struct (list, world) =
                 str |>
@@ -1006,6 +1059,7 @@ module ScriptingPrimitives =
             | String str' -> struct (Bool (str.Contains str'), world)
             | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "First argument to " + fnName + " for a String must also be a String.", originOpt), world)
         | (argEvaled, Option opt) -> struct (Bool (match opt with Some value -> value = argEvaled | None -> false), world)
+        | (argEvaled, Either eir) -> struct (Bool (match eir with Right value -> value = argEvaled | Left _ -> false), world)
         | (argEvaled, Codata codata) ->
             match evalContainsCodata evalApply fnName argEvaled originOpt codata world with
             | Right struct (bool, world) -> struct (Bool bool, world)
@@ -1036,6 +1090,7 @@ module ScriptingPrimitives =
         match argEvaled with
         | Violation _ as error -> struct (error, world)
         | Option opt -> struct (Codata (Conversion (match opt with Some value -> [value] | None -> [])), world)
+        | Either eir -> struct (Codata (Conversion (match eir with Right value -> [value] | Left _ -> [])), world)
         | Codata _ -> struct (argEvaled, world)
         | List list -> struct (Codata (Conversion list), world)
         | Ring set -> struct (Codata (Conversion (Set.toList set)), world)
@@ -1056,6 +1111,7 @@ module ScriptingPrimitives =
         | Violation _ as error -> struct (error, world)
         | String str -> struct (List (str |> Seq.map (string >> String) |> List.ofSeq), world)
         | Option opt -> struct (List (match opt with Some value -> [value] | None -> []), world)
+        | Either eir -> struct (List (match eir with Right value -> [value] | Left _ -> []), world)
         | Codata codata ->
             match evalCodataToList evalApply fnName originOpt [] codata world with
             | Right (Right struct (_, _, list, world)) -> struct (List (List.rev list), world)
@@ -1074,6 +1130,7 @@ module ScriptingPrimitives =
         | Violation _ as error -> struct (error, world)
         | String str -> struct (Ring (str |> Seq.map (string >> String) |> Set.ofSeq), world)
         | Option opt -> struct (Ring (match opt with Some value -> Set.singleton value | None -> Set.empty), world)
+        | Either eir -> struct (Ring (match eir with Right value -> Set.singleton value | Left _ -> Set.empty), world)
         | Codata codata ->
             match evalCodataToList evalApply fnName originOpt [] codata world with
             | Right (Right struct (_, _, list, world)) -> struct (Ring (Set.ofList list), world)
@@ -1089,9 +1146,16 @@ module ScriptingPrimitives =
         | (value, container) ->
             match container with
             | Violation _ as error -> struct (error, world)
+            | String str ->
+                match value with
+                | Violation _ as error -> struct (error, world)
+                | String str2 -> struct (String (str.Replace (str2, "")), world)
+                | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Incorrect type of argument for " + fnName + "; argument must be string.", originOpt), world)
+            | Option opt -> struct (Option (Option.remove value opt), world)
+            | List list -> struct (List (List.remove ((=) value) list), world)
             | Ring set -> struct (Ring (Set.remove value set), world)
             | Table map -> struct (Table (Map.remove value map), world)
-            | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Incorrect type of argument for application of '" + fnName + "'; target must be a container.", originOpt), world)
+            | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Incorrect type of argument for '" + fnName + "'; target must be a container.", originOpt), world)
 
     let evalToTable fnName argEvaled originOpt world =
         match argEvaled with

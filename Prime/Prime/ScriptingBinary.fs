@@ -17,6 +17,7 @@ module ScriptingBinary =
           Keyword : string -> string -> SymbolOrigin option -> Expr
           Tuple : Expr array -> Expr array -> SymbolOrigin option -> Expr
           Union : string -> Expr array -> string -> Expr array -> SymbolOrigin option -> Expr
+          Option : Expr option -> Expr option -> SymbolOrigin option -> Expr
           Codata : Codata -> Codata -> SymbolOrigin option -> Expr
           List : Expr list -> Expr list -> SymbolOrigin option -> Expr
           Ring : Expr Set -> Expr Set -> SymbolOrigin option -> Expr
@@ -33,6 +34,7 @@ module ScriptingBinary =
           Keyword = fun left right _ -> Bool (left = right)
           Tuple = fun left right _ -> Bool (left = right)
           Union = fun keywordLeft fieldsLeft keywordRight fieldsRight _ -> Bool ((keywordLeft, fieldsLeft) = (keywordRight, fieldsRight))
+          Option = fun left right _ -> Bool (left = right)
           Codata = fun _ _ originOpt -> Violation (["NotImplemented"; "Eq"], "Equality not implemented for Codata.", originOpt)
           List = fun left right _ -> Bool (left = right)
           Ring = fun left right _ -> Bool (left = right)
@@ -49,6 +51,7 @@ module ScriptingBinary =
           Keyword = fun left right _ -> Bool (left <> right)
           Tuple = fun left right _ -> Bool (left <> right)
           Union = fun keywordLeft fieldsLeft keywordRight fieldsRight _ -> Bool ((keywordLeft, fieldsLeft) <> (keywordRight, fieldsRight))
+          Option = fun left right _ -> Bool (left <> right)
           Codata = fun _ _ originOpt -> Violation (["NotImplemented"; "NotEq"], "Equality not implemented for Codata.", originOpt)
           List = fun left right _ -> Bool (left <> right)
           Ring = fun left right _ -> Bool (left <> right)
@@ -65,6 +68,7 @@ module ScriptingBinary =
           Keyword = fun left right _ -> Bool (left < right)
           Tuple = fun left right _ -> Bool (left < right)
           Union = fun keywordLeft fieldsLeft keywordRight fieldsRight _ -> Bool ((keywordLeft, fieldsLeft) < (keywordRight, fieldsRight))
+          Option = fun left right _ -> Bool (left < right)
           Codata = fun _ _ originOpt -> Violation (["NotImplemented"; "Lt"], "Comparison not implemented for Codata.", originOpt)
           List = fun left right _ -> Bool (left < right)
           Ring = fun left right _ -> Bool (left < right)
@@ -81,6 +85,7 @@ module ScriptingBinary =
           Keyword = fun left right _ -> Bool (left > right)
           Tuple = fun left right _ -> Bool (left > right)
           Union = fun keywordLeft fieldsLeft keywordRight fieldsRight _ -> Bool ((keywordLeft, fieldsLeft) > (keywordRight, fieldsRight))
+          Option = fun left right _ -> Bool (left > right)
           Codata = fun _ _ originOpt -> Violation (["NotImplemented"; "Gt"], "Comparison not implemented for Codata.", originOpt)
           List = fun left right _ -> Bool (left > right)
           Ring = fun left right _ -> Bool (left > right)
@@ -97,6 +102,7 @@ module ScriptingBinary =
           Keyword = fun left right _ -> Bool (left <= right)
           Tuple = fun left right _ -> Bool (left <= right)
           Union = fun keywordLeft fieldsLeft keywordRight fieldsRight _ -> Bool ((keywordLeft, fieldsLeft) <= (keywordRight, fieldsRight))
+          Option = fun left right _ -> Bool (left <= right)
           Codata = fun _ _ originOpt -> Violation (["NotImplemented"; "LtEq"], "Comparison not implemented for Codata.", originOpt)
           List = fun left right _ -> Bool (left <= right)
           Ring = fun left right _ -> Bool (left <= right)
@@ -113,6 +119,7 @@ module ScriptingBinary =
           Keyword = fun left right _ -> Bool (left >= right)
           Tuple = fun left right _ -> Bool (left >= right)
           Union = fun keywordLeft fieldsLeft keywordRight fieldsRight _ -> Bool ((keywordLeft, fieldsLeft) >= (keywordRight, fieldsRight))
+          Option = fun left right _ -> Bool (left >= right)
           Codata = fun _ _ originOpt -> Violation (["NotImplemented"; "GtEq"], "Comparison not implemented for Codata.", originOpt)
           List = fun left right _ -> Bool (left >= right)
           Ring = fun left right _ -> Bool (left >= right)
@@ -129,6 +136,12 @@ module ScriptingBinary =
           Keyword = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Add"], "Cannot add Keywords.", originOpt)
           Tuple = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Add"], "Cannot add Tuples.", originOpt)
           Union = fun _ _ _ _ originOpt -> Violation (["InvalidArgumentType"; "Add"], "Cannot add Unions.", originOpt)
+          Option = fun left right originOpt ->
+            match (left, right) with
+            | (Some _, Some _) -> Violation (["ArgumentOutOfRange"; "Add"], "Cannot add two some values.", originOpt)
+            | (Some left, None) -> left
+            | (None, Some right) -> right
+            | (None, None) -> NoneValue
           Codata = fun left right _ -> Codata (Add (left, right))
           List = fun left right _ -> List (left @ right)
           Ring = fun left right _ -> Ring (Set.union left right)
@@ -145,6 +158,7 @@ module ScriptingBinary =
           Keyword = fun left right _ -> String (left.Replace (right, String.Empty))
           Tuple = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Sub"], "Cannot subtract Tuples.", originOpt)
           Union = fun _ _ _ _ originOpt -> Violation (["InvalidArgumentType"; "Sub"], "Cannot subtract Unions.", originOpt)
+          Option = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Sub"], "Cannot subtract Options.", originOpt)
           Codata = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Sub"], "Cannot subtract Codata.", originOpt)
           List = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Sub"], "Cannot subtract Lists.", originOpt)
           Ring = fun left right _ -> Ring (Set.difference left right)
@@ -161,6 +175,7 @@ module ScriptingBinary =
           Keyword = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Mul"], "Cannot multiply Keyword.", originOpt)
           Tuple = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Mul"], "Cannot multiply Tuples.", originOpt)
           Union = fun _ _ _ _ originOpt -> Violation (["InvalidArgumentType"; "Mul"], "Cannot multiply Unions.", originOpt)
+          Option = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Mul"], "Cannot multiply Options.", originOpt)
           Codata = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Mul"], "Cannot multiply Codata.", originOpt)
           List = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Mul"], "Cannot multiply Lists.", originOpt)
           Ring = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Mul"], "Cannot multiply Rings.", originOpt)
@@ -168,15 +183,16 @@ module ScriptingBinary =
           Record = fun _ _ _ _ _ _ originOpt -> Violation (["InvalidArgumentType"; "Mul"], "Cannot multiply Records.", originOpt) }
 
     let DivFns =
-        { Bool = fun left right originOpt -> if right = false then Violation (["OutOfRangeArgument"; "Div"], "Cannot divide by a false Bool.", originOpt) else Bool (if left && right then true else false)
-          Int = fun left right originOpt -> if right = 0 then Violation (["OutOfRangeArgument"; "Div"], "Cannot divide by a zero Int.", originOpt) else Int (left / right)
-          Int64 = fun left right originOpt -> if right = 0L then Violation (["OutOfRangeArgument"; "Div"], "Cannot divide by a zero Int64.", originOpt) else Int64 (left / right)
+        { Bool = fun left right originOpt -> if right = false then Violation (["ArgumentOutOfRange"; "Div"], "Cannot divide by a false Bool.", originOpt) else Bool (if left && right then true else false)
+          Int = fun left right originOpt -> if right = 0 then Violation (["ArgumentOutOfRange"; "Div"], "Cannot divide by a zero Int.", originOpt) else Int (left / right)
+          Int64 = fun left right originOpt -> if right = 0L then Violation (["ArgumentOutOfRange"; "Div"], "Cannot divide by a zero Int64.", originOpt) else Int64 (left / right)
           Single = fun left right _ -> Single (left / right)
           Double = fun left right _ -> Double (left / right)
           String = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Div"], "Cannot divide Strings.", originOpt)
           Keyword = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Div"], "Cannot divide Keywords.", originOpt)
           Tuple = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Div"], "Cannot divide Tuples.", originOpt)
           Union = fun _ _ _ _ originOpt -> Violation (["InvalidArgumentType"; "Div"], "Cannot divide Unions.", originOpt)
+          Option = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Div"], "Cannot divide Options.", originOpt)
           Codata = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Div"], "Cannot divide Codata.", originOpt)
           List = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Div"], "Cannot divide Lists.", originOpt)
           Ring = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Div"], "Cannot divide Rings.", originOpt)
@@ -185,14 +201,15 @@ module ScriptingBinary =
 
     let ModFns =
         { Bool = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Mod"], "Cannot modulate Bools.", originOpt)
-          Int = fun left right originOpt -> if right = 0 then Violation (["OutOfRangeArgument"; "Mod"], "Cannot modulate by a zero Int.", originOpt) else Int (left % right)
-          Int64 = fun left right originOpt -> if right = 0L then Violation (["OutOfRangeArgument"; "Mod"], "Cannot divide by a zero Int64.", originOpt) else Int64 (left % right)
+          Int = fun left right originOpt -> if right = 0 then Violation (["ArgumentOutOfRange"; "Mod"], "Cannot modulate by a zero Int.", originOpt) else Int (left % right)
+          Int64 = fun left right originOpt -> if right = 0L then Violation (["ArgumentOutOfRange"; "Mod"], "Cannot divide by a zero Int64.", originOpt) else Int64 (left % right)
           Single = fun left right _ -> Single (left % right)
           Double = fun left right _ -> Double (left % right)
           String = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Mod"], "Cannot modulate Strings.", originOpt)
           Keyword = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Mod"], "Cannot modulate Keywords.", originOpt)
           Tuple = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Mod"], "Cannot modulate Tuples.", originOpt)
           Union = fun _ _ _ _ originOpt -> Violation (["InvalidArgumentType"; "Mod"], "Cannot modulate Unions.", originOpt)
+          Option = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Mod"], "Cannot modulate Options.", originOpt)
           Codata = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Mod"], "Cannot modulate Codata.", originOpt)
           List = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Mod"], "Cannot modulate Lists.", originOpt)
           Ring = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Mod"], "Cannot modulate Rings.", originOpt)
@@ -209,6 +226,7 @@ module ScriptingBinary =
           Keyword = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Pow"], "Cannot power Keywords.", originOpt)
           Tuple = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Pow"], "Cannot power Tuples.", originOpt)
           Union = fun _ _ _ _ originOpt -> Violation (["InvalidArgumentType"; "Pow"], "Cannot power Unions.", originOpt)
+          Option = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Pow"], "Cannot power Options.", originOpt)
           Codata = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Pow"], "Cannot power Codata.", originOpt)
           List = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Pow"], "Cannot power Lists.", originOpt)
           Ring = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Pow"], "Cannot power Rings.", originOpt)
@@ -225,6 +243,7 @@ module ScriptingBinary =
           Keyword = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Root"], "Cannot root Keywords.", originOpt)
           Tuple = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Root"], "Cannot root Tuples.", originOpt)
           Union = fun _ _ _ _ originOpt -> Violation (["InvalidArgumentType"; "Root"], "Cannot root Unions.", originOpt)
+          Option = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Root"], "Cannot root Options.", originOpt)
           Codata = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Root"], "Cannot root Codata.", originOpt)
           List = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Root"], "Cannot root Lists.", originOpt)
           Ring = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Root"], "Cannot root Rings.", originOpt)
@@ -241,6 +260,7 @@ module ScriptingBinary =
           Keyword = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Cross"], "Cannot cross multiply Keywords.", originOpt)
           Tuple = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Cross"], "Cannot cross multiply Tuples.", originOpt)
           Union = fun _ _ _ _ originOpt -> Violation (["InvalidArgumentType"; "Cross"], "Cannot cross multiply Unions.", originOpt)
+          Option = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Cross"], "Cannot cross multiply Options.", originOpt)
           Codata = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Cross"], "Cannot cross multiply Codata.", originOpt)
           List = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Cross"], "Cannot cross multiply Lists.", originOpt)
           Ring = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Cross"], "Cannot cross multiply Rings.", originOpt)
@@ -257,6 +277,7 @@ module ScriptingBinary =
           Keyword = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Dot"], "Cannot dot multiply Keywords.", originOpt)
           Tuple = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Dot"], "Cannot dot multiply Tuples.", originOpt)
           Union = fun _ _ _ _ originOpt -> Violation (["InvalidArgumentType"; "Dot"], "Cannot dot multiply Unions.", originOpt)
+          Option = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Dot"], "Cannot dot multiply Options.", originOpt)
           Codata = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Dot"], "Cannot dot multiply Codata.", originOpt)
           List = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Dot"], "Cannot dot multiply Lists.", originOpt)
           Ring = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Dot"], "Cannot dot multiply Rings.", originOpt)
@@ -275,6 +296,7 @@ module ScriptingBinary =
         | (Tuple tupleLeft, Tuple tupleRight) -> struct (fns.Tuple tupleLeft tupleRight originOpt, world)
         | (Union (nameLeft, fieldsLeft), Union (nameRight, fieldsRight)) -> struct (fns.Union nameLeft fieldsLeft nameRight fieldsRight originOpt, world)
         | (Codata codataLeft, Codata codataRight) -> struct (fns.Codata codataLeft codataRight originOpt, world)
+        | (Option optionLeft, Option optionRight) -> struct (fns.Option optionLeft optionRight originOpt, world)
         | (List listLeft, List listRight) -> struct (fns.List listLeft listRight originOpt, world)
         | (Ring ringLeft, Ring ringRight) -> struct (fns.Ring ringLeft ringRight originOpt, world)
         | (Table tableLeft, Table tableRight) -> struct (fns.Table tableLeft tableRight originOpt, world)
@@ -285,4 +307,4 @@ module ScriptingBinary =
     let evalBinary fns fnName argsEvaled originOpt (world : 'w) =
         match argsEvaled with
         | [|evaledLeft; evaledRight|] -> evalBinaryInner fns fnName evaledLeft evaledRight originOpt world
-        | _ -> struct (Violation (["InvalidArgumentCount"; (String.capitalize fnName)], "Incorrect number of arguments for application of '" + fnName + "'; 2 arguments required.", originOpt), world)
+        | _ -> struct (Violation (["InvalidArgumentCount"; (String.capitalize fnName)], "Incorrect number of arguments for '" + fnName + "'; 2 arguments required.", originOpt), world)

@@ -152,6 +152,10 @@ module ScriptingWorld =
                  ("some", evalSinglet evalSome)
                  ("isNone", evalSinglet evalIsNone)
                  ("isSome", evalSinglet evalIsSome)
+                 ("left", evalSinglet evalLeft)
+                 ("right", evalSinglet evalRight)
+                 ("isLeft", evalSinglet evalIsLeft)
+                 ("isRight", evalSinglet evalIsRight)
                  ("isEmpty", evalSinglet (evalIsEmpty evalApply))
                  ("notEmpty", evalSinglet (evalNotEmpty evalApply))
                  ("tryUncons", evalSinglet (evalTryUncons evalApply))
@@ -261,11 +265,11 @@ module ScriptingWorld =
                     let right = str.Substring (index, str.Length)
                     Right struct (String (left + str2 + right), world)
                 | _ -> Left struct (Violation (["InvalidArgumentValue"; String.capitalize fnName], "String update value must be a String of length 1.", originOpt), world)
-            else Left struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "String does not contain element at index " + string index + ".", originOpt), world)
+            else Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "String does not contain element at index " + string index + ".", originOpt), world)
         | Option opt ->
             match (index, opt) with
             | (0, Some value) -> Right struct (value, world)
-            | (_, _) -> Left struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "Could not update at index " + string index + ".", originOpt), world)
+            | (_, _) -> Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Could not update at index " + string index + ".", originOpt), world)
         | List _ -> Left struct (Violation (["NotImplemented"; String.capitalize fnName], "Updating lists by index is not yet implemented.", originOpt), world) // TODO: implement
         | Table map -> Right struct (Table (Map.add (Int index) value map), world)
         | Tuple elements
@@ -279,7 +283,7 @@ module ScriptingWorld =
                 | Union (name, _) -> Right struct (Union (name, elements'), world)
                 | Record (name, map, _) -> Right struct (Record (name, map, elements'), world)
                 | _ -> failwithumf ()
-            else Left struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "Could not update structure at index " + string index + ".", originOpt), world)
+            else Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Could not update structure at index " + string index + ".", originOpt), world)
         | _ ->
             match evalOverload fnName [|Int index; value; target|] originOpt world with
             | struct (Violation _, _) as error -> Left error
@@ -297,9 +301,9 @@ module ScriptingWorld =
                     let fields' = Array.copy fields
                     fields'.[index] <- value
                     Right struct (Record (name, map, fields'), world)
-                else Left struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "Record does not contain element with name '" + name + "'.", originOpt), world)
+                else Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Record does not contain element with name '" + name + "'.", originOpt), world)
             | None ->
-                Left struct (Violation (["OutOfRangeArgument"; String.capitalize fnName], "Record does not contain element with name '" + name + "'.", originOpt), world)
+                Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Record does not contain element with name '" + name + "'.", originOpt), world)
         | _ ->
             match evalOverload fnName [|Keyword keyword; value; target|] originOpt world with
             | struct (Violation _, _) as error -> Left error
@@ -324,7 +328,7 @@ module ScriptingWorld =
     and evalTryUpdate indexerExpr targetExpr valueExpr originOpt world =
         match evalUpdateInner "tryUpdate" indexerExpr targetExpr valueExpr originOpt world with
         | Right struct (evaled, world) -> struct (Option (Some evaled), world)
-        | Left struct (_, world) -> struct (Option None, world)
+        | Left struct (_, world) -> struct (NoneValue, world)
 
     and evalUpdate indexerExpr targetExpr valueExpr originOpt world =
         match evalUpdateInner "update" indexerExpr targetExpr valueExpr originOpt world with
@@ -398,7 +402,7 @@ module ScriptingWorld =
                 | struct (Bool _, _) as result -> result
                 | _ -> struct (Violation (["InvalidArgumentType"; "&&"], "Cannot apply a logic function to non-Bool values.", originOpt), world)
             | _ -> struct (Violation (["InvalidArgumentType"; "&&"], "Cannot apply a logic function to non-Bool values.", originOpt), world)
-        | _ -> struct (Violation (["InvalidArgumentCount"; "&&"], "Incorrect number of arguments for application of '&&'; 2 arguments required.", originOpt), world)
+        | _ -> struct (Violation (["InvalidArgumentCount"; "&&"], "Incorrect number of arguments for '&&'; 2 arguments required.", originOpt), world)
 
     and evalApplyOr exprs originOpt world =
         match exprs with
@@ -412,7 +416,7 @@ module ScriptingWorld =
                 | struct (Bool _, _) as result -> result
                 | _ -> struct (Violation (["InvalidArgumentType"; "&&"], "Cannot apply a logic function to non-Bool values.", originOpt), world)
             | _ -> struct (Violation (["InvalidArgumentType"; "&&"], "Cannot apply a logic function to non-Bool values.", originOpt), world)
-        | _ -> struct (Violation (["InvalidArgumentCount"; "&&"], "Incorrect number of arguments for application of '&&'; 2 arguments required.", originOpt), world)
+        | _ -> struct (Violation (["InvalidArgumentCount"; "&&"], "Incorrect number of arguments for '&&'; 2 arguments required.", originOpt), world)
 
     and evalLet4 binding body originOpt world =
         let world =
