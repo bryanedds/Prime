@@ -7,8 +7,8 @@ open Prime
 
 /// Haskell-style Either type.
 type Either<'l, 'r> =
-    | Right of 'r
     | Left of 'l
+    | Right of 'r
 
 /// Builds an either monad.
 type EitherBuilder () =

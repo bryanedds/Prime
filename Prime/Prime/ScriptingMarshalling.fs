@@ -82,13 +82,20 @@ module ScriptingMarshalling =
 
     and tryImportOption tryImportExt (ty : Type) (value : obj) =
         let valueType = (ty.GetGenericArguments ()).[0]
-        let opt = Reflection.objToOption value
-        match opt with
+        match Reflection.objToOption value with
         | Some value ->
             match tryImport tryImportExt valueType value with
             | Some value -> Some (Option (Some value))
             | None -> None
         | None -> Some (Option None)
+
+    and tryImportEither tryImportExt (ty : Type) (value : obj) =
+        let gargs = ty.GetGenericArguments ()
+        let leftType = gargs.[0]
+        let rightType = gargs.[1]
+        match Reflection.objToEither value with
+        | Right right -> tryImport tryImportExt rightType right
+        | Left left -> tryImport tryImportExt leftType left
 
     and tryImportList tryImportExt (ty : Type) (value : obj) =
         let itemType = (ty.GetGenericArguments ()).[0]
@@ -108,11 +115,14 @@ module ScriptingMarshalling =
 
     and tryImportMap tryImportExt (ty : Type) (value : obj) =
         let gargs = ty.GetGenericArguments ()
-        let itemType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs.[0]; gargs.[1]|]
-        let items = Reflection.objToObjList value
-        let itemOpts = List.map (fun item -> tryImport tryImportExt itemType item) items
-        match Seq.definitizePlus itemOpts with
-        | (true, items) -> Some (Ring (Set.ofSeq items))
+        let keyType = gargs.[0]
+        let valueType = gargs.[1]
+        let pairs = Reflection.objToObjList value
+        let pairs = List.map Reflection.objToKeyValuePair pairs
+        let pairOpts = pairs |> List.map (fun kvp -> (tryImport tryImportExt keyType kvp.Key, tryImport tryImportExt valueType kvp.Value))
+        let pairOpts = pairOpts |> List.map (fun (k, v) -> match (k, v) with (Some k_, Some v_) -> Some (k_, v_) | _ -> None)
+        match List.definitizePlus pairOpts with
+        | (true, items) -> Some (Table (Map.ofList items))
         | (false, _) -> None
 
     and Importers : Dictionary<string, (Type -> obj -> Expr option) -> Type -> obj -> Expr option> =
@@ -130,6 +140,7 @@ module ScriptingMarshalling =
          (typedefof<_ Address>.Name, (fun _ ty value -> tryImportAddress ty value))
          (typedefof<_ Relation>.Name, (fun _ ty value -> tryImportRelation ty value))
          (typedefof<_ option>.Name, (fun tryImportExt ty value -> tryImportOption tryImportExt ty value))
+         (typedefof<Either<_, _>>.Name, (fun tryImportExt ty value -> tryImportEither tryImportExt ty value))
          (typedefof<_ list>.Name, (fun tryImportExt ty value -> tryImportList tryImportExt ty value))
          (typedefof<_ Set>.Name, (fun tryImportExt ty value -> tryImportSet tryImportExt ty value))
          (typedefof<Map<_, _>>.Name, (fun tryImportExt ty value -> tryImportMap tryImportExt ty value))] |>
@@ -238,6 +249,24 @@ module ScriptingMarshalling =
             | None -> Some (None :> obj)
         | _ -> None
 
+    and tryExportEither tryExportExt (ty : Type) (eir : Expr) =
+        let leftType = (ty.GetGenericArguments ()).[0]
+        let leftCase = (FSharpType.GetUnionCases ty).[0]
+        let rightType = (ty.GetGenericArguments ()).[1]
+        let rightCase = (FSharpType.GetUnionCases ty).[1]
+        match eir with
+        | Either eir ->
+            match eir with
+            | Right right ->
+                match tryExport tryExportExt rightType right with
+                | Some right -> Some (FSharpValue.MakeUnion (rightCase, [|right|]))
+                | None -> None
+            | Left left ->
+                match tryExport tryExportExt leftType left with
+                | Some left -> Some (FSharpValue.MakeUnion (leftCase, [|left|]))
+                | None -> None
+        | _ -> None
+
     and tryExportList tryExportExt (ty : Type) (list : Expr) =
         match list with
         | List list ->
@@ -287,6 +316,7 @@ module ScriptingMarshalling =
          (typedefof<_ Address>.Name, fun _ ty evaled -> tryExportAddress ty evaled)
          (typedefof<_ Relation>.Name, fun _ ty evaled -> tryExportRelation ty evaled)
          (typedefof<_ option>.Name, tryExportOption)
+         (typedefof<Either<_, _>>.Name, tryExportEither)
          (typedefof<_ list>.Name, tryExportList)
          (typedefof<_ Set>.Name, tryExportSet)
          (typedefof<Map<_, _>>.Name, tryExportMap)] |>

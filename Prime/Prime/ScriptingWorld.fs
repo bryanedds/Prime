@@ -566,6 +566,7 @@ module ScriptingWorld =
         | Union _
         | Pluggable _
         | Option _
+        | Either _
         | Codata _
         | List _
         | Ring _

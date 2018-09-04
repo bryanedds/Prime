@@ -59,7 +59,7 @@ module Scripting =
              "scanWhile scani scan foldWhile foldi fold mapi map contains " +
              "pure app bind " +
              "map2 product sum " +
-             // TODO: "either isLeft isRight left right " +
+             "either isLeft isRight left right " +
              "toString " +
              "codata toCodata empty " +
              "list toList " +
@@ -111,6 +111,7 @@ module Scripting =
         | Tuple of Expr array
         | Union of string * Expr array
         | Option of Expr option
+        | Either of Either<Expr, Expr>
         | Codata of Codata
         | List of Expr list
         | Ring of Set<Expr>
@@ -157,6 +158,7 @@ module Scripting =
             | Union _
             | Pluggable _
             | Option _
+            | Either _
             | Codata _
             | List _
             | Ring _
@@ -197,6 +199,7 @@ module Scripting =
             | (Tuple left, Tuple right) -> left = right
             | (Union (leftName, leftExprs), Union (rightName, rightExprs)) -> (leftName, leftExprs) = (rightName, rightExprs)
             | (Option left, Option right) -> left = right
+            | (Either left, Either right) -> left = right
             | (Codata left, Codata right) -> left = right
             | (List left, List right) -> left = right
             | (Ring left, Ring right) -> left = right
@@ -238,6 +241,7 @@ module Scripting =
             | (Tuple left, Tuple right) -> compare left right
             | (Union (leftName, leftExprs), Union (rightName, rightExprs)) -> compare (leftName, leftExprs) (rightName, rightExprs)
             | (Option left, Option right) -> compare left right
+            | (Either left, Either right) -> compare left right
             | (Codata left, Codata right) -> compare left right
             | (List left, List right) -> compare left right
             | (Ring left, Ring right) -> compare left right
@@ -302,6 +306,18 @@ module Scripting =
                     | Some ty -> Some (typedefof<_ option>.MakeGenericType [|ty|])
                     | None -> None
                 | None -> None
+            | Either eir ->
+                // NOTE: no instance of Either can ever hold full type information, so we force use of obj here. This
+                // may not be sensible in at least some cases, however.
+                match eir with
+                | Right value ->
+                    match Expr.toFSharpTypeOpt value with
+                    | Some ty -> Some (typedefof<Either<_, _>>.MakeGenericType [|typeof<obj>; ty|])
+                    | None -> None
+                | Left value ->
+                    match Expr.toFSharpTypeOpt value with
+                    | Some ty -> Some (typedefof<Either<_, _>>.MakeGenericType [|ty; typeof<obj>|])
+                    | None -> None
             | List values ->
                 let typeOpts = List.map Expr.toFSharpTypeOpt values
                 match List.definitizePlus typeOpts with
@@ -361,6 +377,7 @@ module Scripting =
             | Tuple value -> hash value
             | Union (name, fields) -> hash (name, fields)
             | Option value -> hash value
+            | Either value -> hash value
             | Codata value -> hash value
             | List value -> hash value
             | Ring value -> hash value
@@ -482,6 +499,10 @@ module Scripting =
                     match option with
                     | Some value -> Symbols ([Atom ("some", None); this.ExprToSymbol value], None) :> obj
                     | None -> Atom ("none", None) :> obj
+                | Either either ->
+                    match either with
+                    | Right value -> Symbols ([Atom ("right", None); this.ExprToSymbol value], None) :> obj
+                    | Left value -> Symbols ([Atom ("left", None); this.ExprToSymbol value], None) :> obj
                 | Codata codata ->
                     this.CodataToSymbol codata :> obj
                 | List elems ->

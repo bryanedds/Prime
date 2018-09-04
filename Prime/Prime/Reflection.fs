@@ -137,6 +137,13 @@ module Reflection =
             Some value
         else None
 
+    let objToEither (source : obj) =
+        let optType = source.GetType ()
+        let value = (optType.GetProperty "Item").GetValue (source, null)
+        if (optType.GetProperty "IsRight").GetValue (source, null) :?> bool
+        then Right value
+        else Left value
+
     let objToComparableSet (source : obj) =
         let iEnumerable = source :?> IEnumerable
         Set.ofSeq (enumerable<IComparable> iEnumerable)
