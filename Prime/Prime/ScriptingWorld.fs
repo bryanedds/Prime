@@ -176,6 +176,7 @@ module ScriptingWorld =
                  ("bind", evalBind evalApply)
                  ("map2", evalMap2 evalApply)
                  ("product", evalProduct)
+                 ("sum", evalSum)
                  ("contains", evalDoublet (evalContains evalApply))
                  ("toString", evalSinglet evalToString)
                  ("codata", evalDoublet evalCodata)

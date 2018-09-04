@@ -865,13 +865,13 @@ module ScriptingPrimitives =
             let struct (codata, world) = evalMapCodata evalApply originOpt mapper codata world
             struct (Codata codata, world)
         | (mapper, List list) ->
-            let struct (list, world) =
+            let struct (listRev, world) =
                 Seq.foldi (fun i struct (elems, world) elem ->
                     let struct (elem, world) = evalApply [|mapper; Int i; elem|] originOpt world
                     struct (elem :: elems, world))
                     struct ([], world)
                     list
-            struct (List (List.rev list), world)
+            struct (List (List.rev listRev), world)
         | (mapper, Ring set) ->
             let struct (set, world) =
                 Seq.foldi (fun i struct (elems, world) elem ->
@@ -920,13 +920,13 @@ module ScriptingPrimitives =
             let struct (codata, world) = evalMapCodata evalApply originOpt mapper codata world
             struct (Codata codata, world)
         | (mapper, List list) ->
-            let struct (list, world) =
+            let struct (listRev, world) =
                 List.fold (fun struct (elems, world) elem ->
                     let struct (elem, world) = evalApply [|mapper; elem|] originOpt world
                     struct (elem :: elems, world))
                     struct ([], world)
                     list
-            struct (List (List.rev list), world)
+            struct (List (List.rev listRev), world)
         | (mapper, Ring set) ->
             let struct (set, world) =
                 Set.fold (fun struct (elems, world) elem ->
@@ -1084,14 +1084,14 @@ module ScriptingPrimitives =
             | (Right left, Right right) -> evalApply [|fn; left; right|] originOpt world
             | (_, _) -> struct (Either leftEir, world) 
         | [|fn; List leftList; List rightList|] ->
-            let struct (list, world) =
+            let struct (listRev, world) =
                 List.fold2 (fun struct (elems, world) elem elem2 ->
                     let struct (elem, world) = evalApply [|fn; elem; elem2|] originOpt world
                     struct (elem :: elems, world))
                     struct ([], world)
                     leftList
                     rightList
-            struct (List (List.rev list), world)
+            struct (List (List.rev listRev), world)
         | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for two Options, two Eithers, or two Lists.", originOpt), world)
 
     let evalProduct fnName argsEvaled originOpt world =
@@ -1107,14 +1107,33 @@ module ScriptingPrimitives =
             | (Right left, Right right) -> struct (Either (Right (Tuple [|left; right|])), world)
             | (_, _) -> struct (Either leftEir, world)
         | [|List leftList; List rightList|] ->
-            let struct (list, world) =
-                List.fold2 (fun struct (pairs, world) left right ->
-                    let pair = Tuple [|left; right|]
-                    struct (pair :: pairs, world))
-                    struct ([], world)
-                    leftList
-                    rightList
-            struct (List (List.rev list), world)
+            let min = Math.Min (List.length leftList, List.length rightList)
+            let leftList = List.truncate min leftList
+            let rightList = List.truncate min rightList
+            let list = List.map2 (fun left right -> Tuple [|left; right|]) leftList rightList
+            struct (List list, world)
+        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for two Options, two Eithers, or two Lists.", originOpt), world)
+
+    let evalSum fnName argsEvaled originOpt world =
+        match argsEvaled with
+        | [|Violation _ as violation; _|] -> struct (violation, world)
+        | [|_; Violation _ as violation|] -> struct (violation, world)
+        | [|Option leftOpt; Option rightOpt|] ->
+            match (leftOpt, rightOpt) with
+            | (Some value, None) -> struct (Option (Some (Either (Right value))), world)
+            | (None, Some value) -> struct (Option (Some (Either (Right value))), world)
+            | (_, _) -> struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Function '" + fnName + "' requires one and only one some value.", originOpt), world)
+        | [|Either leftEir; Either rightEir|] ->
+            match (leftEir, rightEir) with
+            | (Right value, Left _) -> struct (Either (Right (Either (Right value))), world)
+            | (Left _, Right value) -> struct (Either (Right (Either (Right value))), world)
+            | (_, _) -> struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Function '" + fnName + "' requires one and only one right value.", originOpt), world)
+        | [|List leftList; List rightList|] ->
+            let min = Math.Min (List.length leftList, List.length rightList)
+            let leftList = leftList |> List.truncate min |> List.map (fun elem -> Either (Left elem))
+            let rightList = rightList |> List.truncate min |> List.map (fun elem -> Either (Right elem))
+            let list = leftList @ rightList
+            struct (List list, world)
         | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for two Options, two Eithers, or two Lists.", originOpt), world)
 
     let evalToString fnName argEvaled originOpt world =
