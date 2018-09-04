@@ -99,8 +99,7 @@ module String =
     let toArray str = Array.ofList (explode str)
     
     /// Surround a string with another surrounding string.
-    let surround (str : string) (surrounding : string) =
-        surrounding + str + surrounding
+    let surround (sur : string) (str : string) = sur + str + sur
 
     /// Contract escaped characters in a string.
     let unescape (str : string) =
