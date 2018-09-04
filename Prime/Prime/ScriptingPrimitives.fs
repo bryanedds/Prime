@@ -167,88 +167,6 @@ module ScriptingPrimitives =
         | Record (name, _, _) -> struct (String name, world)
         | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Application of " + fnName + " requires a Union or Record value.", originOpt), world)
 
-    let evalPure fnName argsEvaled originOpt world =
-        match argsEvaled with
-        | [|Violation _ as violation; _|] -> struct (violation, world)
-        | [|_; Violation _ as violation|] -> struct (violation, world)
-        | [|String _; value|] ->
-            match value with
-            | String str as string when str.Length = 1 -> struct (string, world)
-            | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Application of " + fnName + " for String must be a String of length 1.", originOpt), world)
-        | [|Option _; value|] -> struct (Option (Some value), world)
-        | [|Either _; value|] -> struct (Either (Right value), world)
-        | [|Codata _; value|] -> struct (Codata (Conversion [value]), world)
-        | [|List _; value|] -> struct (List [value], world)
-        | [|Ring _; value|] -> struct (Ring (Set.singleton value), world)
-        | [|Table _; value|] ->
-            match value with
-            | Tuple [|v1; v2|] -> struct (Table (Map.singleton v1 v2), world)
-            | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Application of " + fnName + " for Table must be a 2-value Tuple.", originOpt), world)
-        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for String, Option, Codata, Ring, Table or List.", originOpt), world)
-
-    let evalApp evalApply fnName argsEvaled originOpt world =
-        match argsEvaled with
-        | [|Violation _ as violation; _|] -> struct (violation, world)
-        | [|_; Violation _ as violation|] -> struct (violation, world)
-        | [|Option fnOpt; Option valueOpt|] ->
-            match (fnOpt, valueOpt) with
-            | (Some fn, Some value) -> evalApply [|fn; value|] originOpt world
-            | (_, _) -> struct (NoneValue, world)
-        | [|Either fnEir; Either valueEir|] ->
-            match (fnEir, valueEir) with
-            | (Right fn, Right value) -> evalApply [|fn; value|] originOpt world
-            | (Left value, _) -> struct (Either (Left value), world)
-            | (_, Left value) -> struct (Either (Left value), world)
-        | [|List fns; List values|] ->
-            let resultsRevOpt =
-                List.foldWhileRight
-                    (fun (resultsRev, world) value ->
-                        let resultOpt =
-                            List.foldWhileRight
-                                (fun (result, world) fn ->
-                                    let struct (result', world) = evalApply [|fn; result|] originOpt world
-                                    match result' with
-                                    | Violation _ as v -> Left (v, world)
-                                    | _ -> Right (result', world))
-                                (Right (value, world))
-                                fns
-                        match resultOpt with
-                        | Right (result, world) -> Right (result :: resultsRev, world)
-                        | Left (violation, world) -> Left (violation, world))
-                    (Right ([], world))
-                    values
-            match resultsRevOpt with
-            | Right (resultsRev, world) -> struct (List (List.rev resultsRev), world)
-            | Left (violation, world) -> struct (violation, world)
-        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for Option or List.", originOpt), world)
-
-    let evalBind evalApply fnName argsEvaled originOpt world =
-        match argsEvaled with
-        | [|Violation _ as violation; _|] -> struct (violation, world)
-        | [|_; Violation _ as violation|] -> struct (violation, world)
-        | [|Option valueOpt; fn|] ->
-            match valueOpt with
-            | Some value -> evalApply [|fn; value|] originOpt world
-            | None -> struct (NoneValue, world)
-        | [|Either valueEir as eir; fn|] ->
-            match valueEir with
-            | Right value -> evalApply [|fn; value|] originOpt world
-            | Left _ -> struct (eir, world)
-        | [|List values; fn|] ->
-            let resultsRevOpt =
-                List.foldWhileRight
-                    (fun (resultsRev, world) value ->
-                        let struct (result, world) = evalApply [|fn; value|] originOpt world
-                        match result with
-                        | Violation _ as v -> Left (v, world)
-                        | _ -> Right (result :: resultsRev, world))
-                    (Right ([], world))
-                    values
-            match resultsRevOpt with
-            | Right (resultsRev, world) -> struct (List (List.rev resultsRev), world)
-            | Left (violation, world) -> struct (violation, world)
-        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for Option or List.", originOpt), world)
-
     let evalTuple _ argsEvaled _ world =
         struct (Tuple argsEvaled, world)
 
@@ -1069,6 +987,88 @@ module ScriptingPrimitives =
         | (Violation _ as error, _) -> struct (error, world)
         | (_, (Violation _ as error)) -> struct (error, world)
         | (_, _) -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Cannot apply " + fnName + " to a non-container.", originOpt), world)
+
+    let evalPure fnName argsEvaled originOpt world =
+        match argsEvaled with
+        | [|Violation _ as violation; _|] -> struct (violation, world)
+        | [|_; Violation _ as violation|] -> struct (violation, world)
+        | [|String _; value|] ->
+            match value with
+            | String str as string when str.Length = 1 -> struct (string, world)
+            | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Application of " + fnName + " for String must be a String of length 1.", originOpt), world)
+        | [|Option _; value|] -> struct (Option (Some value), world)
+        | [|Either _; value|] -> struct (Either (Right value), world)
+        | [|Codata _; value|] -> struct (Codata (Conversion [value]), world)
+        | [|List _; value|] -> struct (List [value], world)
+        | [|Ring _; value|] -> struct (Ring (Set.singleton value), world)
+        | [|Table _; value|] ->
+            match value with
+            | Tuple [|v1; v2|] -> struct (Table (Map.singleton v1 v2), world)
+            | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Application of " + fnName + " for Table must be a 2-value Tuple.", originOpt), world)
+        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for String, Option, Codata, Ring, Table or List.", originOpt), world)
+
+    let evalApp evalApply fnName argsEvaled originOpt world =
+        match argsEvaled with
+        | [|Violation _ as violation; _|] -> struct (violation, world)
+        | [|_; Violation _ as violation|] -> struct (violation, world)
+        | [|Option fnOpt; Option valueOpt|] ->
+            match (fnOpt, valueOpt) with
+            | (Some fn, Some value) -> evalApply [|fn; value|] originOpt world
+            | (_, _) -> struct (NoneValue, world)
+        | [|Either fnEir; Either valueEir|] ->
+            match (fnEir, valueEir) with
+            | (Right fn, Right value) -> evalApply [|fn; value|] originOpt world
+            | (Left value, _) -> struct (Either (Left value), world)
+            | (_, Left value) -> struct (Either (Left value), world)
+        | [|List fns; List values|] ->
+            let resultsRevOpt =
+                List.foldWhileRight
+                    (fun (resultsRev, world) value ->
+                        let resultOpt =
+                            List.foldWhileRight
+                                (fun (result, world) fn ->
+                                    let struct (result', world) = evalApply [|fn; result|] originOpt world
+                                    match result' with
+                                    | Violation _ as v -> Left (v, world)
+                                    | _ -> Right (result', world))
+                                (Right (value, world))
+                                fns
+                        match resultOpt with
+                        | Right (result, world) -> Right (result :: resultsRev, world)
+                        | Left (violation, world) -> Left (violation, world))
+                    (Right ([], world))
+                    values
+            match resultsRevOpt with
+            | Right (resultsRev, world) -> struct (List (List.rev resultsRev), world)
+            | Left (violation, world) -> struct (violation, world)
+        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for Option or List.", originOpt), world)
+
+    let evalBind evalApply fnName argsEvaled originOpt world =
+        match argsEvaled with
+        | [|Violation _ as violation; _|] -> struct (violation, world)
+        | [|_; Violation _ as violation|] -> struct (violation, world)
+        | [|Option valueOpt; fn|] ->
+            match valueOpt with
+            | Some value -> evalApply [|fn; value|] originOpt world
+            | None -> struct (NoneValue, world)
+        | [|Either valueEir as eir; fn|] ->
+            match valueEir with
+            | Right value -> evalApply [|fn; value|] originOpt world
+            | Left _ -> struct (eir, world)
+        | [|List values; fn|] ->
+            let resultsRevOpt =
+                List.foldWhileRight
+                    (fun (resultsRev, world) value ->
+                        let struct (result, world) = evalApply [|fn; value|] originOpt world
+                        match result with
+                        | Violation _ as v -> Left (v, world)
+                        | _ -> Right (result :: resultsRev, world))
+                    (Right ([], world))
+                    values
+            match resultsRevOpt with
+            | Right (resultsRev, world) -> struct (List (List.rev resultsRev), world)
+            | Left (violation, world) -> struct (violation, world)
+        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for Option or List.", originOpt), world)
 
     let evalToString fnName argEvaled originOpt world =
         match argEvaled with

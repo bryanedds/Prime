@@ -55,11 +55,11 @@ module Scripting =
              "record " +
              "tuple pair unit fst snd thd fth fif " +
              "some none isSome isNone isEmpty notEmpty " +
+             "either isLeft isRight left right " +
              "tryUncons uncons cons commit tryHead head tryTail tail " +
              "scanWhile scani scan foldWhile foldi fold mapi map contains " +
              "pure app bind " +
              "map2 product sum " +
-             "either isLeft isRight left right " +
              "toString " +
              "codata toCodata empty " +
              "list toList " +
