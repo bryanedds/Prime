@@ -68,7 +68,7 @@ module Scripting =
              "let fun if match select try do break get set define " +
 
              (* Prelude Identifiers *)
-             "-u- -b- -i- -L- -f- -d- -s- -K- -T- -U- -o- -l- -r- -t- -R- -F- " +
+             "-u- -b- -i- -L- -f- -d- -s- -K- -T- -U- -o- -e- -l- -r- -t- -R- -F- " +
              "isUnit isBool isInt isInt64 isSingle isDouble isString " +
              "isKeyword isTuple isUnion isOption isList isRing isTable isRecord isFunction " +
              "id flip isZero isIdentity isPositive isNegative isPositiveInfinity isNegativeInfinity isNaN " +
