@@ -17,6 +17,12 @@ module Async =
             { let! b = a
               return f b }
 
+    /// Apply an asynchronous operation to an asynchronous value.
+    let Apply f a =
+        async
+             { let! b = f (async.ReturnFrom a)
+               return b }
+
 [<AutoOpen>]
 module Vsync =
 
@@ -54,7 +60,10 @@ module Vsync =
             match v with
             | Sync _ -> failwithumf ()
             | Async a -> a
-    
+
+        let [<DebuggerHidden; DebuggerStepThrough>] private ExtractFn f =
+            fun a -> Extract (f (Async a))
+
         /// Create a potentially asynchronous operation that runs computation, and when computation results, runs binder resolution.
         let [<DebuggerHidden; DebuggerStepThrough>] Bind v f =
             match v with
@@ -192,6 +201,12 @@ module Vsync =
             match v with
             | Sync a -> Sync (fun () -> f (a ()))
             | Async a -> Async (Async.Map f a)
+    
+        /// Apply a potentially asynchronous operation to a potentially asynchronous value.
+        let [<DebuggerHidden; DebuggerStepThrough>] Apply (f : Vsync<'a> -> Vsync<'b>) (v : Vsync<'a>) : Vsync<'b> =
+            match v with
+            | Sync a -> Sync (fun () -> match f (Sync (fun () -> a ())) with Sync a -> a () | Async _ -> failwithumf ())
+            | Async a -> Async (Async.Apply (ExtractFn f) a)
 
 /// The Vsync computation expression builder.
 type [<Sealed>] VsyncBuilder () =
