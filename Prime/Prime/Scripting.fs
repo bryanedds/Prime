@@ -44,7 +44,6 @@ module Scripting =
             ((* Built-in Identifiers *)
              "true false nil " +
              "not hash toEmpty toIdentity toMin toMax " +
-             "pure app bind " +
              "inc dec negate " +
              "pow root sqr sqrt " +
              "floor ceiling truncate round exp log " +
@@ -58,6 +57,8 @@ module Scripting =
              "some none isSome isNone isEmpty notEmpty " +
              "tryUncons uncons cons commit tryHead head tryTail tail " +
              "scanWhile scani scan foldWhile foldi fold mapi map contains " +
+             "pure app bind " +
+             "map2 product sum " +
              // TODO: "either isLeft isRight left right " +
              "toString " +
              "codata toCodata empty " +
