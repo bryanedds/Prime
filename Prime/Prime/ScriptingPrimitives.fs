@@ -1041,7 +1041,7 @@ module ScriptingPrimitives =
             match resultsRevOpt with
             | Right (resultsRev, world) -> struct (List (List.rev resultsRev), world)
             | Left (violation, world) -> struct (violation, world)
-        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for Option or List.", originOpt), world)
+        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for Option, Either, or List.", originOpt), world)
 
     let evalBind evalApply fnName argsEvaled originOpt world =
         match argsEvaled with
@@ -1068,7 +1068,54 @@ module ScriptingPrimitives =
             match resultsRevOpt with
             | Right (resultsRev, world) -> struct (List (List.rev resultsRev), world)
             | Left (violation, world) -> struct (violation, world)
-        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for Option or List.", originOpt), world)
+        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for Option, Either, or List.", originOpt), world)
+
+    let evalMap2 evalApply fnName argsEvaled originOpt world =
+        match argsEvaled with
+        | [|Violation _ as violation; _; _|] -> struct (violation, world)
+        | [|_; Violation _ as violation; _|] -> struct (violation, world)
+        | [|_; _; Violation _ as violation|] -> struct (violation, world)
+        | [|fn; Option leftOpt; Option rightOpt|] ->
+            match (leftOpt, rightOpt) with
+            | (Some left, Some right) -> evalApply [|fn; left; right|] originOpt world
+            | (_, _) -> struct (NoneValue, world)
+        | [|fn; Either leftEir; Either rightEir|] ->
+            match (leftEir, rightEir) with
+            | (Right left, Right right) -> evalApply [|fn; left; right|] originOpt world
+            | (_, _) -> struct (Either leftEir, world) 
+        | [|fn; List leftList; List rightList|] ->
+            let struct (list, world) =
+                List.fold2 (fun struct (elems, world) elem elem2 ->
+                    let struct (elem, world) = evalApply [|fn; elem; elem2|] originOpt world
+                    struct (elem :: elems, world))
+                    struct ([], world)
+                    leftList
+                    rightList
+            struct (List (List.rev list), world)
+        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for two Options, two Eithers, or two Lists.", originOpt), world)
+
+    let evalProduct fnName argsEvaled originOpt world =
+        match argsEvaled with
+        | [|Violation _ as violation; _|] -> struct (violation, world)
+        | [|_; Violation _ as violation|] -> struct (violation, world)
+        | [|Option leftOpt; Option rightOpt|] ->
+            match (leftOpt, rightOpt) with
+            | (Some left, Some right) -> struct (Option (Some (Tuple [|left; right|])), world)
+            | (_, _) -> struct (NoneValue, world)
+        | [|Either leftEir; Either rightEir|] ->
+            match (leftEir, rightEir) with
+            | (Right left, Right right) -> struct (Either (Right (Tuple [|left; right|])), world)
+            | (_, _) -> struct (Either leftEir, world)
+        | [|List leftList; List rightList|] ->
+            let struct (list, world) =
+                List.fold2 (fun struct (pairs, world) left right ->
+                    let pair = Tuple [|left; right|]
+                    struct (pair :: pairs, world))
+                    struct ([], world)
+                    leftList
+                    rightList
+            struct (List (List.rev list), world)
+        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for two Options, two Eithers, or two Lists.", originOpt), world)
 
     let evalToString fnName argEvaled originOpt world =
         match argEvaled with
