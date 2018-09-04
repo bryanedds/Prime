@@ -59,13 +59,13 @@ module Either =
     /// Monadic bind for Either.
     let inline bind a f = either.Bind (a, f)
 
-    /// Query whether an Either value is a Left value.
+    /// Check whether an Either value is a Left value.
     let isLeft eir =
         match eir with
         | Right _ -> false
         | Left _ -> true
     
-    /// Query whether an Either value is a Right value.
+    /// Check whether an Either value is a Right value.
     let isRight eir =
         match eir with
         | Right _ -> true

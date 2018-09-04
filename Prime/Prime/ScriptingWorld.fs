@@ -77,10 +77,10 @@ module ScriptingWorld =
     let log expr =
         match expr with
         | Violation (names, error, originOpt) ->
-            Log.info ^
-                "Unexpected Violation: " + String.concat Constants.Scripting.ViolationSeparatorStr names + "\n" +
-                "Due to: " + error + "\n" +
-                SymbolOrigin.tryPrint originOpt + "\n"
+            Log.info
+                ("Unexpected Violation: " + String.concat Constants.Scripting.ViolationSeparatorStr names + "\n" +
+                 "Due to: " + error + "\n" +
+                 SymbolOrigin.tryPrint originOpt + "\n")
         | _ -> ()
 
     let rec getIntrinsics<'w when 'w :> 'w ScriptingWorld> () =
@@ -454,12 +454,12 @@ module ScriptingWorld =
                 match binding with
                 | VariableBinding (name, body) ->
                     let struct (bodyValue, world) = eval body world
-                    addProceduralBinding (AddToHeadFrame ^ inc i) name bodyValue world
+                    addProceduralBinding (AddToHeadFrame (inc i)) name bodyValue world
                     world
                 | FunctionBinding (name, args, body) ->
                     let frames = getProceduralFrames world :> obj
                     let fn = Fun (args, args.Length, body, true, Some frames, originOpt)
-                    addProceduralBinding (AddToHeadFrame ^ inc i) name fn world
+                    addProceduralBinding (AddToHeadFrame (inc i)) name fn world
                     world)
                 world
                 bindingsTail

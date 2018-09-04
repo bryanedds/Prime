@@ -158,11 +158,11 @@ module EventWorld =
         else [|eventAddress|]
 
     let private debugSubscriptionTypeMismatch () =
-        Log.debug ^
-            "If you've reached this exception, then you've probably inadvertantly mixed up an event type " +
-            "parameter when calling EventWorld.publish or subscribe. " +
-            "This exception can also crop up when your implementation of EventWorld.PublishEvent doesn't " +
-            "correctly specialize its 's and 'w types for EventWorld.publishEvent calls."
+        Log.debug
+            ("If you've reached this exception, then you've probably inadvertantly mixed up an event type " +
+             "parameter when calling EventWorld.publish or subscribe. " +
+             "This exception can also crop up when your implementation of EventWorld.PublishEvent doesn't " +
+             "correctly specialize its 's and 'w types for EventWorld.publishEvent calls.")
 
     let private boxSubscription<'a, 's, 'g, 'w when 's :> Participant and 'g :> Participant and 'w :> EventWorld<'g, 'w>>
         (subscription : Event<'a, 's> -> 'w -> Handling * 'w) =

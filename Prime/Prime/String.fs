@@ -146,7 +146,7 @@ module String =
             Guid.TryParse last36 |> fst
         else false
     
-    /// Query for equality a list of string lexicographically.
+    /// Check for equality a list of string lexicographically.
     let rec equateMany (strs : string list) (strs2 : string list) =
         match (strs, strs2) with
         | ([], []) -> true

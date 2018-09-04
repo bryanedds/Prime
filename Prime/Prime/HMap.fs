@@ -31,7 +31,7 @@ module HMap =
     module private HNode =
 
         let inline failwithKeyNotFound (k : 'k) =
-            raise (KeyNotFoundException ^ "Could not find HMap key '" + k.ToString () + "'.")
+            raise (KeyNotFoundException ("Could not find HMap key '" + k.ToString () + "'."))
 
         /// OPTIMIZATION: Array.Clone () is not used since it's been profiled to be slower
         let inline private cloneArray (arr : HNode<'k, 'v> array) =
