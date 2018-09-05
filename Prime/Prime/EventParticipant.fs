@@ -34,6 +34,32 @@ type [<NoEquality; NoComparison>] PropertyTag<'p, 'a, 'w when 'p :> Participant>
       Name : string
       Get : 'w -> 'a
       SetOpt : ('a -> 'w -> 'w) option }
+      
+    member this.TrySet value world =
+        match this.SetOpt with
+        | Some setter -> (true, setter value world)
+        | None -> (false, world)
+      
+    member this.Set value world =
+        match this.TrySet value world with
+        | (true, world) -> world
+        | (false, _) -> failwithumf ()
+
+    member this.TryUpdateWorld updater world =
+        let value = this.Get world
+        let value' = updater value world
+        this.TrySet value' world
+
+    member this.TryUpdate updater world =
+        this.TryUpdateWorld (fun value _ -> updater value) world
+
+    member this.UpdateWorld updater world =
+        match this.TryUpdateWorld updater world with
+        | (true, world) -> world
+        | (false, _) -> failwithumf ()
+
+    member this.Update updater world =
+        this.UpdateWorld (fun value _ -> updater value) world
 
     member this.Map mapper : PropertyTag<'p, 'a, 'w> =
         { This = this.This
@@ -53,7 +79,7 @@ type [<NoEquality; NoComparison>] PropertyTag<'p, 'a, 'w when 'p :> Participant>
           Get = fun world -> mapper (this.Get world)
           SetOpt = None }
 
-    member this.Change =
+    member this.ChangeEvent =
         let changeEventAddress = Address<'w ParticipantChangeData>.ltoa [typeof<'p>.Name; "Change"; this.Name; "Event"]
         let changeEvent = changeEventAddress ->>- this.This.ParticipantAddress
         changeEvent
