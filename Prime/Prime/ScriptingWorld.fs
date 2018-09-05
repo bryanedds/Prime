@@ -172,7 +172,7 @@ module ScriptingWorld =
                  ("mapi", evalDoublet (evalMapi evalApply))
                  ("map", evalDoublet (evalMap evalApply))
                  ("pure", evalPure)
-                 ("app", evalApp evalApply)
+                 ("apply", evalApplyScript evalApply)
                  ("bind", evalBind evalApply)
                  ("map2", evalMap2 evalApply)
                  ("product", evalProduct)

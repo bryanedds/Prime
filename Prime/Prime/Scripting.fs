@@ -58,7 +58,7 @@ module Scripting =
              "either isLeft isRight left right " +
              "tryUncons uncons cons commit tryHead head tryTail tail " +
              "scanWhile scani scan foldWhile foldi fold mapi map contains " +
-             "pure app bind " +
+             "pure apply bind " +
              "map2 product sum " +
              "toString " +
              "codata toCodata empty " +

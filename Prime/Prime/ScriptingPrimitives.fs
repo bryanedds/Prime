@@ -992,6 +992,7 @@ module ScriptingPrimitives =
         match argsEvaled with
         | [|Violation _ as violation; _|] -> struct (violation, world)
         | [|_; Violation _ as violation|] -> struct (violation, world)
+        | [|Fun _ as fn|] -> struct (Fun ([||], 0, fn, false, None, None), world)
         | [|String _; value|] ->
             match value with
             | String str as string when str.Length = 1 -> struct (string, world)
@@ -1005,12 +1006,13 @@ module ScriptingPrimitives =
             match value with
             | Tuple [|v1; v2|] -> struct (Table (Map.singleton v1 v2), world)
             | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Application of " + fnName + " for Table must be a 2-value Tuple.", originOpt), world)
-        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for String, Option, Codata, Ring, Table or List.", originOpt), world)
+        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for a function, String, Option, Codata, Ring, Table or List.", originOpt), world)
 
-    let evalApp evalApply fnName argsEvaled originOpt world =
+    let evalApplyScript evalApply fnName argsEvaled originOpt world =
         match argsEvaled with
         | [|Violation _ as violation; _|] -> struct (violation, world)
         | [|_; Violation _ as violation|] -> struct (violation, world)
+        | [|Fun _ as fn; value|] -> evalApply [|fn; value|] originOpt world
         | [|Option fnOpt; Option valueOpt|] ->
             match (fnOpt, valueOpt) with
             | (Some fn, Some value) -> evalApply [|fn; value|] originOpt world
@@ -1042,7 +1044,7 @@ module ScriptingPrimitives =
             | Right (resultsRev, world) -> struct (List (List.rev resultsRev), world)
             | Left (violation, world) -> struct (violation, world)
         | [|Codata _; Codata _|] -> struct (Violation (["NotImplemented"; String.capitalize fnName], "Function '" + fnName + "' is not implemented for Codata.", originOpt), world)
-        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for two Options, two Eithers, two Codata, or two Lists.", originOpt), world)
+        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for a function, two Options, two Eithers, two Codata, or two Lists.", originOpt), world)
 
     let evalBind evalApply fnName argsEvaled originOpt world =
         match argsEvaled with

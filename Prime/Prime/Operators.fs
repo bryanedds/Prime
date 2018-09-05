@@ -50,6 +50,9 @@ module Operators =
     /// Transforms a function by flipping the order of its arguments.
     let inline flip4 f a b c d = f d a b c
 
+    /// Apply a function to an argument.
+    let inline apply f a = f a
+
     /// Test for null.
     let inline isNull a = match a with null -> true | _ -> false
 
