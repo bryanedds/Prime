@@ -29,8 +29,8 @@ type [<Struct; StructuralEquality; NoComparison>] 'w ParticipantChangeData =
 
 /// Describes a property of a participant.
 /// Similar to a Haskell lens, but specialized to properties.
-type [<NoEquality; NoComparison>] PropertyTag<'p, 'a, 'w when 'p :> Participant> =
-    { This : 'p
+type [<NoEquality; NoComparison>] PropertyTag<'a, 'w> =
+    { This : Participant
       Name : string
       Get : 'w -> 'a
       SetOpt : ('a -> 'w -> 'w) option }
@@ -61,39 +61,39 @@ type [<NoEquality; NoComparison>] PropertyTag<'p, 'a, 'w when 'p :> Participant>
     member this.Update updater world =
         this.UpdateWorld (fun value _ -> updater value) world
 
-    member this.Map mapper : PropertyTag<'p, 'a, 'w> =
+    member this.Map mapper : PropertyTag<'a, 'w> =
         { This = this.This
           Name = this.Name
           Get = fun world -> mapper (this.Get world)
           SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (mapper value)) | None -> None }
 
-    member this.Map2 mapper unmapper : PropertyTag<'p, 'b, 'w> =
+    member this.Map2 mapper unmapper : PropertyTag<'b, 'w> =
         { This = this.This
           Name = this.Name
           Get = fun world -> mapper (this.Get world)
           SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (unmapper value)) | None -> None }
 
-    member this.MapOut mapper : PropertyTag<'p, 'b, 'w> =
+    member this.MapOut mapper : PropertyTag<'b, 'w> =
         { This = this.This
           Name = this.Name
           Get = fun world -> mapper (this.Get world)
           SetOpt = None }
 
     member this.ChangeEvent =
-        let changeEventAddress = Address<'w ParticipantChangeData>.ltoa [typeof<'p>.Name; "Change"; this.Name; "Event"]
+        let changeEventAddress = Address<'w ParticipantChangeData>.ltoa [getTypeName this; "Change"; this.Name; "Event"]
         let changeEvent = changeEventAddress ->>- this.This.ParticipantAddress
         changeEvent
 
 [<RequireQualifiedAccess>]
 module PropertyTag =
 
-    let map mapper (property : PropertyTag<_, _, _>) =
+    let map mapper (property : PropertyTag<_, _>) =
         property.Map mapper
 
-    let map2 mapper unmapper (property : PropertyTag<_, _, _>) =
+    let map2 mapper unmapper (property : PropertyTag<_, _>) =
         property.Map2 mapper unmapper
 
-    let mapOut mapper (property : PropertyTag<_, _, _>) =
+    let mapOut mapper (property : PropertyTag<_, _>) =
         property.MapOut mapper
 
     let makeReadOnly this name get =
