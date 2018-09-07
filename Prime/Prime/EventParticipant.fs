@@ -80,7 +80,7 @@ type [<NoEquality; NoComparison>] PropertyTag<'a, 'w> =
           SetOpt = None }
 
     member this.ChangeEvent =
-        let changeEventAddress = Address<'w ParticipantChangeData>.ltoa [getTypeName this; "Change"; this.Name; "Event"]
+        let changeEventAddress = Address<'w ParticipantChangeData>.ltoa [getTypeName this.This; "Change"; this.Name; "Event"]
         let changeEvent = changeEventAddress ->>- this.This.ParticipantAddress
         changeEvent
 
