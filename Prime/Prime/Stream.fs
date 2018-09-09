@@ -191,7 +191,7 @@ module Stream =
             // initialize event state, subscription keys and addresses
             let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalPariticipant :?> 'g
             let stateKey = makeGuid ()
-            let state = (List.empty<'a>, List.empty<'b>)
+            let state = (List.empty<Event<'a, 'g>>, List.empty<Event<'b, 'g>>)
             let world = EventWorld.addEventState stateKey state world
             let subscriptionKey = makeGuid ()
             let subscriptionKey' = makeGuid ()

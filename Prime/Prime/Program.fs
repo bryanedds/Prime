@@ -58,12 +58,6 @@ module Program =
         let list = [0 .. 10000000]
         runTimings (fun () -> list |> List.rev |> List.sort |> List.map (fun x -> x * 13) |> List.filter (fun x -> x % 2 = 0)) "F# List Compute"
         
-        // run map timings
-        runMapTimings
-            (fun entries -> Array.fold (fun map (k, v) -> Map.add k v map) Map.empty entries)
-            (fun entries map -> Array.iter (fun (k, _) -> Map.find k map |> ignore) entries)
-            "F# Map"
-        
         // run hmap timings
         runMapTimings
             (fun entries -> Array.fold (fun map (k, v) -> HMap.add k v map) (HMap.makeEmpty ()) entries)
@@ -94,6 +88,12 @@ module Program =
             (fun entries -> Array.iter (fun (k, v) -> if not (dic.ContainsKey k) then dic.Add (k, v)) entries)
             (fun entries () -> Array.iter (fun (k, _) -> dic.[k] |> ignore) entries)
             ".NET Dictionary"
+        
+        // run map timings
+        runMapTimings
+            (fun entries -> Array.fold (fun map (k, v) -> Map.add k v map) Map.empty entries)
+            (fun entries map -> Array.iter (fun (k, _) -> Map.find k map |> ignore) entries)
+            "F# Map"
 
         // success
         0
