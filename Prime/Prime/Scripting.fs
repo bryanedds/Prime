@@ -43,7 +43,7 @@ module Scripting =
     and [<Syntax
             ((* Built-in Identifiers *)
              "true false nil " +
-             "not hash toEmpty toIdentity toMin toMax " +
+             "not hash empty identity minimum maximum " +
              "inc dec negate " +
              "pow root sqr sqrt " +
              "floor ceiling truncate round exp log " +
