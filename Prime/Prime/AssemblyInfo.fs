@@ -26,8 +26,8 @@ open System.Runtime.InteropServices
 [<assembly: Guid("ee462c6e-67d0-4a00-8311-4955eb70c314")>]
 
 // Version information for assembly.
-[<assembly: AssemblyVersion("3.0.1.0")>]
-[<assembly: AssemblyFileVersion("3.0.1.0")>]
+[<assembly: AssemblyVersion("3.0.3.0")>]
+[<assembly: AssemblyFileVersion("3.0.3.0")>]
 
 // Attribute target.
 do ()

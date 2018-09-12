@@ -11,7 +11,7 @@ module SymbolicOperators =
     /// Convert a value to a symbol.
     let valueToSymbol<'a> (value : 'a) =
         let ty = if isNull (value :> obj) then typeof<'a> else getType value
-        let converter = SymbolicConverter (true, None, ty)
+        let converter = SymbolicConverter (false, None, ty)
         converter.ConvertTo (value, typeof<Symbol>) :?> Symbol
 
     /// Convert a symbol to a value.
@@ -20,15 +20,23 @@ module SymbolicOperators =
         converter.ConvertFrom symbol :?> 'a
 
     /// Uses a symbolic converter to convert a value to a string.
-    let scstring<'a> (value : 'a) =
+    let scstring2<'a> printing (value : 'a) =
         let ty = if isNull (value :> obj) then typeof<'a> else getType value
-        let converter = SymbolicConverter (true, None, ty)
+        let converter = SymbolicConverter (printing, None, ty)
         converter.ConvertToString value
 
+    /// Uses a symbolic converter to convert a value to a string.
+    let scstring<'a> value =
+        scstring2<'a> false value
+
     /// Uses a symbolic converter to convert a string to a value.
-    let scvalue<'a> (str : string) : 'a =
-        let converter = SymbolicConverter (false, None, typeof<'a>)
+    let scvalue2<'a> printing (str : string) : 'a =
+        let converter = SymbolicConverter (printing, None, typeof<'a>)
         converter.ConvertFromString str :?> 'a
+
+    /// Uses a symbolic converter to convert a string to a value.
+    let scvalue<'a> str =
+        scvalue2<'a> false str
 
     /// Get the default value of type 'a taking into account DefaultValue decorations.
     let scdefaultof<'a> () : 'a =

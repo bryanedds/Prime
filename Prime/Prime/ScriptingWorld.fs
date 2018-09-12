@@ -626,7 +626,7 @@ module ScriptingWorld =
 
     /// Attempt to evaluate a script.
     let tryEvalScript choose scriptFilePath world =
-        Log.info ("Evaluating script '" + scriptFilePath + "...")
+        Log.info ("Evaluating script '" + scriptFilePath + "'...")
         try let scriptStr =
                 scriptFilePath |>
                 File.ReadAllText |>
@@ -636,7 +636,7 @@ module ScriptingWorld =
                 (fun str -> Symbol.OpenSymbolsStr + str + Symbol.CloseSymbolsStr) |>
                 scvalue<Expr array>
             let struct (evaleds, world) = evalMany script world
-            Log.info ("Successfully evaluated script '" + scriptFilePath + ".")
+            Log.info ("Successfully evaluated script '" + scriptFilePath + "'.")
             Right struct (scriptStr, evaleds, world)
         with exn ->
             let error = "Failed to evaluate script '" + scriptFilePath + "' due to: " + scstring exn

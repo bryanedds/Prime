@@ -12,7 +12,7 @@
 #| The Tuple type indicator.            |# [define -T- [tuple]]
 #| The Union type indicator.            |# [define -U- [nil]]
 #| The Option type indicator.           |# [define -o- none]
-#| The Either type indicator.           |# [define -e- none]
+#| The Either type indicator.           |# [define -e- [left []]]
 #| The List type indicator.             |# [define -l- [list]]
 #| The Ring type indicator.             |# [define -r- [ring]]
 #| The Table type indicator.            |# [define -t- [table]]
