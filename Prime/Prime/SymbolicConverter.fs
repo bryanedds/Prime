@@ -54,16 +54,10 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
 
             // symbolize string
             elif sourceType = typeof<string> then
-                if printing then
-                    let sourceStr = string source
-                    if sourceType = typeof<string> then String (sourceStr, None)
-                    elif Symbol.isNumber sourceStr then Number (sourceStr, None)
-                    else Atom (sourceStr, None)
-                else
-                    let sourceStr = string source
-                    if Symbol.shouldBeExplicit sourceStr then String (sourceStr, None)
-                    elif Symbol.isNumber sourceStr then Number (sourceStr, None)
-                    else Atom (sourceStr, None)
+                let sourceStr = string source
+                if printing && sourceType = typeof<string> || Symbol.shouldBeExplicit sourceStr then String (sourceStr, None)
+                elif Symbol.isNumber sourceStr then Number (sourceStr, None)
+                else Atom (sourceStr, None)
 
             // symbolize Symbol (no transformation)
             elif sourceType = typeof<Symbol> then
