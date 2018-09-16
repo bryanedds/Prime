@@ -61,6 +61,6 @@ module ScriptingTests =
         | _ -> Assert.True false
 
     let [<Fact>] outOfRangeWorks () =
-        match evalPartial "[fst empty]" with
+        match evalPartial "[fst coempty]" with
         | Scripting.Violation _ -> Assert.True true
         | _ -> Assert.True false

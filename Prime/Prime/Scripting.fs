@@ -61,7 +61,7 @@ module Scripting =
              "pure apply bind " +
              "map2 product sum " +
              "toString " +
-             "codata toCodata empty " +
+             "codata toCodata coempty " +
              "list toList " +
              "ring toRing add remove " +
              "table toTable " +
@@ -431,7 +431,7 @@ module Scripting =
 
         member this.CodataToSymbol codata =
             match codata with
-            | Empty -> Atom ("empty", None)
+            | Empty -> Atom ("coempty", None)
             | Add (left, right) -> Symbols ([Atom ("+", None); this.CodataToSymbol left; this.CodataToSymbol right], None)
             | Unfold (unfolder, state) -> Symbols ([Atom ("codata", None); this.ExprToSymbol unfolder; this.ExprToSymbol state], None)
             | Conversion source -> Symbols ([Atom ("toCodata", None); this.ExprsToSymbol source], None)
@@ -652,7 +652,7 @@ module Scripting =
                     | "false" | "False" -> Bool false :> obj
                     | "none" | "None" -> Option None :> obj
                     | "nil" -> Keyword String.Empty :> obj
-                    | "empty" -> Codata Empty :> obj
+                    | "coempty" -> Codata Empty :> obj
                     | "Index" -> Binding ("index", ref UncachedBinding, ref UnknownBindingType, originOpt) :> obj
                     | "NaN" -> Single Single.NaN :> obj // NOTE: can't tell the difference between a single NaN and a double NaN!
                     | "Infinity" -> Double Double.PositiveInfinity :> obj
