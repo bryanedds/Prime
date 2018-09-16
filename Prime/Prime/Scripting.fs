@@ -51,7 +51,7 @@ module Scripting =
              "length normal cross dot " +
              "violation bool int int64 single double string " +
              "getTypeName " +
-             "tryIndex hasIndex index tryUpdate update getName " +
+             "tryIndex hasIndex index tryAlter alter getName " +
              "record " +
              "tuple pair unit fst snd thd fth fif " +
              "some none isSome isNone isEmpty notEmpty " +
@@ -65,7 +65,7 @@ module Scripting =
              "list toList " +
              "ring toRing add remove " +
              "table toTable " +
-             "let fun if match select try do break get set define " +
+             "let fun if match select try do break get set update define " +
 
              (* Prelude Identifiers *)
              "-u- -b- -i- -L- -f- -d- -s- -K- -T- -U- -o- -e- -l- -r- -t- -R- -F- " +
@@ -74,7 +74,7 @@ module Scripting =
              "id flip isZero isIdentity isPositive isNegative isPositiveInfinity isNegativeInfinity isNaN " +
              "min max compare sign abs fst! snd! rev foldBackWhile foldBacki foldBack " +
              "reduceWhile reducei reduce definitize filter takeWhile take skipWhile skip " +
-             // TODO: "substring update curry compose sort replace slice split " +
+             // TODO: "substring curry compose sort replace slice split " +
              "countBy count notContains exists notExists zipBy zip pi e v2Zero v2Identity",
 
              (* Unions *)
@@ -87,7 +87,7 @@ module Scripting =
              "define fun",
 
              (* Detail Words *)
-             "get set",
+             "get set update",
              Constants.PrettyPrinter.DefaultThresholdMin,
              Constants.PrettyPrinter.DefaultThresholdMax);
           TypeConverter (typeof<ExprConverter>);
@@ -125,8 +125,8 @@ module Scripting =
 
         (* Special Forms *)
         | Binding of string * CachedBinding ref * BindingType ref * SymbolOrigin option
-        | TryUpdate of Expr * Expr * Expr * Breakpoint * SymbolOrigin option
-        | Update of Expr * Expr * Expr * Breakpoint * SymbolOrigin option
+        | TryAlter of Expr * Expr * Expr * Breakpoint * SymbolOrigin option
+        | Alter of Expr * Expr * Expr * Breakpoint * SymbolOrigin option
         | Apply of Expr array * Breakpoint * SymbolOrigin option
         | ApplyAnd of Expr array * Breakpoint * SymbolOrigin option
         | ApplyOr of Expr array * Breakpoint * SymbolOrigin option
@@ -168,8 +168,8 @@ module Scripting =
             | TableUnevaled _
             | RecordUnevaled _ -> None
             | Binding (_, _, _, originOpt)
-            | TryUpdate (_, _, _, _, originOpt)
-            | Update (_, _, _, _, originOpt)
+            | TryAlter (_, _, _, _, originOpt)
+            | Alter (_, _, _, _, originOpt)
             | Apply (_, _, originOpt)
             | ApplyAnd (_, _, originOpt)
             | ApplyOr (_, _, originOpt)
@@ -209,8 +209,8 @@ module Scripting =
             | (TableUnevaled left, TableUnevaled right) -> left = right
             | (RecordUnevaled (leftName, leftExprs), RecordUnevaled (rightName, rightExprs)) -> (leftName, leftExprs) = (rightName, rightExprs)
             | (Binding (left, _, _, _), Binding (right, _, _, _)) -> left = right
-            | (TryUpdate (leftExpr, leftExpr2, leftExpr3, _, _), TryUpdate (rightExpr, rightExpr2, rightExpr3, _, _)) -> (leftExpr, leftExpr2, leftExpr3) = (rightExpr, rightExpr2, rightExpr3)
-            | (Update (leftExpr, leftExpr2, leftExpr3, _, _), TryUpdate (rightExpr, rightExpr2, rightExpr3, _, _)) -> (leftExpr, leftExpr2, leftExpr3) = (rightExpr, rightExpr2, rightExpr3)
+            | (TryAlter (leftExpr, leftExpr2, leftExpr3, _, _), TryAlter (rightExpr, rightExpr2, rightExpr3, _, _)) -> (leftExpr, leftExpr2, leftExpr3) = (rightExpr, rightExpr2, rightExpr3)
+            | (Alter (leftExpr, leftExpr2, leftExpr3, _, _), TryAlter (rightExpr, rightExpr2, rightExpr3, _, _)) -> (leftExpr, leftExpr2, leftExpr3) = (rightExpr, rightExpr2, rightExpr3)
             | (Apply (left, _, _), Apply (right, _, _)) -> left = right
             | (ApplyAnd (left, _, _), ApplyAnd (right, _, _)) -> left = right
             | (ApplyOr (left, _, _), ApplyOr (right, _, _)) -> left = right
@@ -556,14 +556,14 @@ module Scripting =
                 | Binding (name, _, _, originOpt) ->
                     if name = "index" then Atom ("Index", originOpt) :> obj
                     else Atom (name, originOpt) :> obj
-                | TryUpdate (expr, expr2, expr3, _, originOpt) ->
+                | TryAlter (expr, expr2, expr3, _, originOpt) ->
                     let index = this.ExprsToIndex expr expr2
-                    let tryUpdateSymbol = Atom ("tryUpdate", None)
-                    Symbols ([tryUpdateSymbol; index; this.ExprToSymbol expr3], originOpt) :> obj
-                | Update (expr, expr2, expr3, _, originOpt) ->
+                    let tryAlterSymbol = Atom ("tryAlter", None)
+                    Symbols ([tryAlterSymbol; index; this.ExprToSymbol expr3], originOpt) :> obj
+                | Alter (expr, expr2, expr3, _, originOpt) ->
                     let index = this.ExprsToIndex expr expr2
-                    let updateSymbol = Atom ("update", None)
-                    Symbols ([updateSymbol; index; this.ExprToSymbol expr3], originOpt) :> obj
+                    let alterSymbol = Atom ("alter", None)
+                    Symbols ([alterSymbol; index; this.ExprToSymbol expr3], originOpt) :> obj
                 | Apply (exprs, _, originOpt) ->
                     let exprSymbols = Array.map this.ExprToSymbol exprs
                     Symbols (List.ofArray exprSymbols, originOpt) :> obj
@@ -722,26 +722,26 @@ module Scripting =
                                     RecordUnevaled (name, definitions) :> obj
                                 else Violation (["InvalidForm"; "Record"], "Invalid Record form. Requires 1 or more field definitions.", originOpt) :> obj
                             | _ -> Violation (["InvalidForm"; "Record"], "Invalid Record form. Requires 1 name and 1 or more field definitions.", originOpt) :> obj
-                        | "tryUpdate" ->
+                        | "tryAlter" ->
                             match tail with
                             | [index; body] ->
                                 match this.IndexToExprs index with
                                 | Some (indexer, target) ->
                                     let breakpoint = { BreakEnabled = false; BreakCondition = Unit }
-                                    TryUpdate (this.SymbolToExpr indexer, this.SymbolToExpr target, this.SymbolToExpr body, breakpoint, originOpt) :> obj
+                                    TryAlter (this.SymbolToExpr indexer, this.SymbolToExpr target, this.SymbolToExpr body, breakpoint, originOpt) :> obj
                                 | None ->
-                                    Violation (["InvalidForm"; "TryUpdate"], "Invalid tryUpdate form. Requires an index for the first argument.", originOpt) :> obj
-                            | _ -> Violation (["InvalidForm"; "TryUpdate"], "Invalid tryUpdate form. Requires 1 index and 1 value.", originOpt) :> obj
-                        | "update" ->
+                                    Violation (["InvalidForm"; "TryAlter"], "Invalid tryAlter form. Requires an index for the first argument.", originOpt) :> obj
+                            | _ -> Violation (["InvalidForm"; "TryAlter"], "Invalid tryAlter form. Requires 1 index and 1 value.", originOpt) :> obj
+                        | "alter" ->
                             match tail with
                             | [index; body] ->
                                 match this.IndexToExprs index with
                                 | Some (indexer, target) ->
                                     let breakpoint = { BreakEnabled = false; BreakCondition = Unit }
-                                    Update (this.SymbolToExpr indexer, this.SymbolToExpr target, this.SymbolToExpr body, breakpoint, originOpt) :> obj
+                                    Alter (this.SymbolToExpr indexer, this.SymbolToExpr target, this.SymbolToExpr body, breakpoint, originOpt) :> obj
                                 | None ->
-                                    Violation (["InvalidForm"; "Update"], "Invalid update form. Requires an index for the first argument.", originOpt) :> obj
-                            | _ -> Violation (["InvalidForm"; "Update"], "Invalid update form. Requires 1 index and 1 value.", originOpt) :> obj
+                                    Violation (["InvalidForm"; "Alter"], "Invalid alter form. Requires an index for the first argument.", originOpt) :> obj
+                            | _ -> Violation (["InvalidForm"; "Alter"], "Invalid alter form. Requires 1 index and 1 value.", originOpt) :> obj
                         | "let" ->
                             match tail with
                             | [] -> Violation (["InvalidForm"; "Let"], "Invalid let form. Requires both a binding and a body.", originOpt) :> obj

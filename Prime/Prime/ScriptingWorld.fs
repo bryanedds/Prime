@@ -258,7 +258,7 @@ module ScriptingWorld =
             | Environmental -> struct (Violation (["NonexistentBinding"], "Non-existent binding '" + name + "'.", originOpt), world)
         | Some binding -> struct (binding, world)
 
-    and evalUpdateIntInner fnName index target value originOpt world =
+    and evalAlterIntInner fnName index target value originOpt world =
         match target with
         | String str ->
             if index >= 0 && index < String.length str then
@@ -267,12 +267,12 @@ module ScriptingWorld =
                     let left = str.Substring (0, index)
                     let right = str.Substring (index, str.Length)
                     Right struct (String (left + str2 + right), world)
-                | _ -> Left struct (Violation (["InvalidArgumentValue"; String.capitalize fnName], "String update value must be a String of length 1.", originOpt), world)
+                | _ -> Left struct (Violation (["InvalidArgumentValue"; String.capitalize fnName], "String alter value must be a String of length 1.", originOpt), world)
             else Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "String does not contain element at index " + string index + ".", originOpt), world)
         | Option opt ->
             match (index, opt) with
             | (0, Some value) -> Right struct (value, world)
-            | (_, _) -> Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Could not update at index " + string index + ".", originOpt), world)
+            | (_, _) -> Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Could not alter at index " + string index + ".", originOpt), world)
         | List _ -> Left struct (Violation (["NotImplemented"; String.capitalize fnName], "Updating lists by index is not yet implemented.", originOpt), world) // TODO: implement
         | Table map -> Right struct (Table (Map.add (Int index) value map), world)
         | Tuple elements
@@ -286,13 +286,13 @@ module ScriptingWorld =
                 | Union (name, _) -> Right struct (Union (name, elements'), world)
                 | Record (name, map, _) -> Right struct (Record (name, map, elements'), world)
                 | _ -> failwithumf ()
-            else Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Could not update structure at index " + string index + ".", originOpt), world)
+            else Left struct (Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Could not alter structure at index " + string index + ".", originOpt), world)
         | _ ->
             match evalOverload fnName [|Int index; value; target|] originOpt world with
             | struct (Violation _, _) as error -> Left error
             | struct (_, _) as success -> Right success
 
-    and evalUpdateKeywordInner fnName keyword target value originOpt world =
+    and evalAlterKeywordInner fnName keyword target value originOpt world =
         match target with
         | Violation _ as violation -> Left struct (violation, world)
         | Table map ->
@@ -312,14 +312,14 @@ module ScriptingWorld =
             | struct (Violation _, _) as error -> Left error
             | struct (_, _) as success -> Right success
 
-    and evalUpdateInner fnName indexerExpr targetExpr valueExpr originOpt world =
+    and evalAlterInner fnName indexerExpr targetExpr valueExpr originOpt world =
         let struct (indexer, world) = eval indexerExpr world
         let struct (target, world) = eval targetExpr world
         let struct (value, world) = eval valueExpr world
         match indexer with
         | Violation _ as v -> Left struct (v, world)
-        | Int index -> evalUpdateIntInner fnName index target value originOpt world
-        | Keyword keyword -> evalUpdateKeywordInner fnName keyword target value originOpt world
+        | Int index -> evalAlterIntInner fnName index target value originOpt world
+        | Keyword keyword -> evalAlterKeywordInner fnName keyword target value originOpt world
         | _ ->
             match target with
             | Table map -> Right struct (Table (Map.add indexer valueExpr map), world)
@@ -328,13 +328,13 @@ module ScriptingWorld =
                 | struct (Violation _, _) as error -> Left error
                 | struct (_, _) as success -> Right success
 
-    and evalTryUpdate indexerExpr targetExpr valueExpr originOpt world =
-        match evalUpdateInner "tryUpdate" indexerExpr targetExpr valueExpr originOpt world with
+    and evalTryAlter indexerExpr targetExpr valueExpr originOpt world =
+        match evalAlterInner "tryAlter" indexerExpr targetExpr valueExpr originOpt world with
         | Right struct (evaled, world) -> struct (Option (Some evaled), world)
         | Left struct (_, world) -> struct (NoneValue, world)
 
-    and evalUpdate indexerExpr targetExpr valueExpr originOpt world =
-        match evalUpdateInner "update" indexerExpr targetExpr valueExpr originOpt world with
+    and evalAlter indexerExpr targetExpr valueExpr originOpt world =
+        match evalAlterInner "alter" indexerExpr targetExpr valueExpr originOpt world with
         | Right success -> success
         | Left error -> error
 
@@ -583,8 +583,8 @@ module ScriptingWorld =
         | TableUnevaled exprPairs -> evalTableUnevaled exprPairs world
         | RecordUnevaled (name, exprPairs) -> evalRecordUnevaled name exprPairs world
         | Binding (name, cachedBinding, bindingType, originOpt) as expr -> evalBinding expr name cachedBinding bindingType originOpt world
-        | TryUpdate (expr, expr2, expr3, _, originOpt) -> evalTryUpdate expr expr2 expr3 originOpt world
-        | Update (expr, expr2, expr3, _, originOpt) -> evalUpdate expr expr2 expr3 originOpt world
+        | TryAlter (expr, expr2, expr3, _, originOpt) -> evalTryAlter expr expr2 expr3 originOpt world
+        | Alter (expr, expr2, expr3, _, originOpt) -> evalAlter expr expr2 expr3 originOpt world
         | Apply (exprs, _, originOpt) -> evalApply exprs originOpt world
         | ApplyAnd (exprs, _, originOpt) -> evalApplyAnd exprs originOpt world
         | ApplyOr (exprs, _, originOpt) -> evalApplyOr exprs originOpt world
