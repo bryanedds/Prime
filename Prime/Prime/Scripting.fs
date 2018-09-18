@@ -55,7 +55,7 @@ module Scripting =
              "record " +
              "tuple pair unit fst snd thd fth fif " +
              "some none isSome isNone isEmpty notEmpty " +
-             "either isLeft isRight left right " +
+             "isLeft isRight left right " +
              "tryUncons uncons cons commit tryHead head tryTail tail " +
              "scanWhile scani scan foldWhile foldi fold mapi map contains " +
              "pure apply bind " +
@@ -75,7 +75,7 @@ module Scripting =
              "min max compare sign abs fst! snd! rev foldBackWhile foldBacki foldBack " +
              "reduceWhile reducei reduce definitize filter takeWhile take skipWhile skip " +
              // TODO: "substring curry compose sort replace slice split " +
-             "countBy count notContains exists notExists zipBy zip pi e v2Zero v2Identity",
+             "countBy count notContains exists notExists zipBy zip pi e",
 
              (* Unions *)
              "Gt Lt Eq Positive Negative Zero",
@@ -494,7 +494,9 @@ module Scripting =
                 | Union (name, fields) ->
                     let nameSymbol = Atom (name, None)
                     let elemSymbols = fields |> Array.map this.ExprToSymbol |> List.ofArray
-                    Symbols (nameSymbol :: elemSymbols, None) :> obj
+                    match elemSymbols with
+                    | [] -> nameSymbol :> obj
+                    | _ :: _ -> Symbols (nameSymbol :: elemSymbols, None) :> obj
                 | Option option ->
                     match option with
                     | Some value -> Symbols ([Atom ("some", None); this.ExprToSymbol value], None) :> obj

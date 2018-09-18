@@ -52,7 +52,10 @@ module ScriptingMarshalling =
                     if not ^ Array.isEmpty unionFields then
                         let unionFieldOpts = Array.mapi (fun i unionField -> tryImport tryImportExt unionFieldInfos.[i].PropertyType unionField) unionFields
                         match Array.definitizePlus unionFieldOpts with
-                        | (true, unionFields) -> Some (Union (unionCase.Name, unionFields))
+                        | (true, unionFields) ->
+                            match unionFields with
+                            | [||] -> Some (Keyword unionCase.Name)
+                            | _ -> Some (Union (unionCase.Name, unionFields))
                         | (false, _) -> None
                     else Some (Union (unionCase.Name, [||]))
 

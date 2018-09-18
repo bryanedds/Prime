@@ -177,8 +177,15 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
         // desymbolize .NET primitive
         if destType.IsPrimitive then
             match symbol with
-            | Atom (str, _) | Number (str, _) | String (str, _) ->
+            | Atom (str, _) | String (str, _) ->
                 (TypeDescriptor.GetConverter destType).ConvertFromString str
+            | Number (str, _) ->
+                // allow for numbers with single-character suffixes
+                let trimmed =
+                    if Char.IsLetter str.[str.Length - 1]
+                    then str.Substring (0, str.Length - 1)
+                    else str
+                (TypeDescriptor.GetConverter destType).ConvertFromString trimmed
             | Quote (_, _) | Symbols (_, _) ->
                 failconv "Expected Symbol, Number, or String for conversion to .NET primitive." (Some symbol)
 
