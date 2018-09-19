@@ -252,7 +252,7 @@ module ScriptingWorld =
             | UnknownBindingType ->
                 if (getIntrinsics<'w> ()).ContainsKey name then bindingType := Intrinsic; struct (expr, world)
                 elif FOption.isSome (world.TryGetExtrinsic name) then bindingType := Extrinsic; struct (expr, world)
-                else bindingType := Environmental; struct (expr, world)
+                else struct (Violation (["NonexistentBinding"], "Non-existent binding '" + name + "'.", originOpt), world)
             | Intrinsic -> struct (expr, world)
             | Extrinsic -> struct (expr, world)
             | Environmental -> struct (Violation (["NonexistentBinding"], "Non-existent binding '" + name + "'.", originOpt), world)

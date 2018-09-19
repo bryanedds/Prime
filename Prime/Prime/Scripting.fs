@@ -362,6 +362,9 @@ module Scripting =
                 | (false, _) -> None
             | _ -> None
 
+        static member internal isValidBinding (str : string) =
+            str.Length > 0 && Char.IsLower str.[0]
+
         override this.GetHashCode () =
             match this with
             | Violation (names, error, _) -> hash names ^^^ hash error
@@ -450,13 +453,13 @@ module Scripting =
             match indices with
             | Symbols ([Atom ("Index", _); target; indexer], _) -> Some (target, indexer)
             | _ -> None
-
+            
         member this.SymbolsToBindingOpt bindingSymbols =
             match bindingSymbols with
-            | [Atom (bindingName, _); bindingBody] ->
+            | [Atom (bindingName, _); bindingBody] when Expr.isValidBinding bindingName ->
                 let binding = VariableBinding (bindingName, this.SymbolToExpr bindingBody)
                 Some binding
-            | [Atom (bindingName, _); Symbols (bindingArgs, _); bindingBody] ->
+            | [Atom (bindingName, _); Symbols (bindingArgs, _); bindingBody] when Expr.isValidBinding bindingName ->
                 let (bindingArgs, bindingErrors) = List.split (function Atom _ -> true | _ -> false) bindingArgs
                 if List.isEmpty bindingErrors then
                     let bindingArgs = List.map (function Atom (arg, _) -> arg | _ -> failwithumf ()) bindingArgs
@@ -753,8 +756,8 @@ module Scripting =
                                 | Symbols (bindingSymbols, _) ->
                                     match this.SymbolsToBindingOpt bindingSymbols with
                                     | Some binding -> Let (binding, this.SymbolToExpr body, originOpt) :> obj
-                                    | None -> Violation (["InvalidForm"; "Let"], "Invalid let form. Bindings require both a name and an expression.", originOpt) :> obj
-                                | _ -> Violation (["InvalidForm"; "Let"], "Invalid let form. Bindings require both a name and an expression.", originOpt) :> obj
+                                    | None -> Violation (["InvalidForm"; "Let"], "Invalid let form. Bindings require both a valid name and an expression.", originOpt) :> obj
+                                | _ -> Violation (["InvalidForm"; "Let"], "Invalid let form. Bindings require both a valid name and an expression.", originOpt) :> obj
                             | bindingsAndBody ->
                                 let (bindings, body) = (List.allButLast bindingsAndBody, List.last bindingsAndBody)
                                 let (bindings, bindingsErrored) = List.split (function Symbols ([_; _], _) -> true | _ -> false) bindings
@@ -765,8 +768,8 @@ module Scripting =
                                     if List.isEmpty bindingErrors then
                                         let bindings = List.definitize bindingOpts
                                         LetMany (bindings, this.SymbolToExpr body, originOpt) :> obj
-                                    else Violation (["InvalidForm"; "Let"], "Invalid let form. Bindings require both a name and an expression.", originOpt) :> obj
-                                else Violation (["InvalidForm"; "Let"], "Invalid let form. Bindings require both a name and an expression.", originOpt) :> obj
+                                    else Violation (["InvalidForm"; "Let"], "Invalid let form. Bindings require both a valid name and an expression.", originOpt) :> obj
+                                else Violation (["InvalidForm"; "Let"], "Invalid let form. Bindings require both a valid name and an expression.", originOpt) :> obj
                         | "fun" ->
                             match tail with
                             | [args; body] ->

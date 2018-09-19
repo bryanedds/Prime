@@ -11,7 +11,7 @@ module ScriptingTests =
         { ScriptingEnv : Scripting.Env }
         interface TestWorld ScriptingWorld with
             member this.GetEnv () = this.ScriptingEnv
-            member this.TryGetExtrinsic _ = failwithumf ()
+            member this.TryGetExtrinsic _ = FOption.none ()
             member this.TryImport _ _ = failwithnie ()
             member this.TryExport _ _ = failwithnie ()
         static member make () = { ScriptingEnv = Scripting.Env.Env.make () }
@@ -62,5 +62,15 @@ module ScriptingTests =
 
     let [<Fact>] outOfRangeWorks () =
         match evalPartial "[fst coempty]" with
+        | Scripting.Violation _ -> Assert.True true
+        | _ -> Assert.True false
+
+    let [<Fact>] unboundBindingWorks () =
+        match evalPartial "unbound" with
+        | Scripting.Violation _ -> Assert.True true
+        | _ -> Assert.True false
+
+    let [<Fact>] unboundFunctionCallWorks () =
+        match evalPartial "[unbound 0]" with
         | Scripting.Violation _ -> Assert.True true
         | _ -> Assert.True false
