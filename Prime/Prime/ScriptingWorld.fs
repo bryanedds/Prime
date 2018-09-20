@@ -17,13 +17,13 @@ open Prime.ScriptingPrimitives
 type ScriptingWorld<'w when 'w :> 'w ScriptingWorld> =
     interface
         abstract member GetEnv : unit -> Env
-        abstract member TryGetExtrinsic : string -> 'w ScriptingIntrinsic FOption
+        abstract member TryGetExtrinsic : string -> 'w ScriptingTrinsic FOption
         abstract member TryImport : Type -> obj -> Expr option
         abstract member TryExport : Type -> Expr -> obj option
         end
 
 /// The intrinsic scripting function type.
-and ScriptingIntrinsic<'w when 'w :> 'w ScriptingWorld> = string -> Expr array -> SymbolOrigin option -> 'w -> struct (Expr * 'w)
+and ScriptingTrinsic<'w when 'w :> 'w ScriptingWorld> = string -> Expr array -> SymbolOrigin option -> 'w -> struct (Expr * 'w)
 
 [<RequireQualifiedAccess>]
 module ScriptingWorld =
@@ -192,7 +192,7 @@ module ScriptingWorld =
                 dictPlus
             Intrinsics <- intrinsics
             intrinsics
-        else Intrinsics :?> Dictionary<string, 'w ScriptingIntrinsic>
+        else Intrinsics :?> Dictionary<string, 'w ScriptingTrinsic>
 
     and internal evalIntrinsicInner<'w when 'w :> 'w ScriptingWorld> fnName argsEvaled originOpt (world : 'w) =
         let intrinsics = getIntrinsics ()
