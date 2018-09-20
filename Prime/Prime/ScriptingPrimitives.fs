@@ -1245,3 +1245,10 @@ module ScriptingPrimitives =
             else struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Function " + fnName + " cannot only be applied to container of pairs.", originOpt), world)
         | Table _ as table -> struct (table, world)
         | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Cannot apply " + fnName + " to a non-string or non-container.", originOpt), world)
+
+    let evalInfo fnName argEvaled originOpt world =
+        match argEvaled with
+        | Violation _ as violation -> struct (violation, world)
+        | Binding (_, _, _, _) -> struct (Violation (["NotImplemented"], "Inspect is not yet implemented for bindings", originOpt), world)
+        | Fun (args, _, _, _, _, _) -> struct (String ("[fun [" + String.Join (" ", args) + "] ...]"), world)
+        | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Cannot apply " + fnName + " to a non-function.", originOpt), world)

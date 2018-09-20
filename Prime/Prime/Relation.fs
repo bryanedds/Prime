@@ -57,13 +57,12 @@ module Relation =
     /// A relation that can be resolved to an address via contextual resolution.
     type [<CustomEquality; NoComparison; TypeConverter (typeof<RelationConverter>)>] 'a Relation =
         private
-            { NameOpts : string option list
-              TypeCarrier : 'a -> unit }
+            { NameOpts : string option list }
 
         /// Make a relation from a list of names where "?" names are empty.
         static member makeFromList<'a> (names : string list) : 'a Relation =
             let nameOpts = List.map (fun name -> match name with Constants.Relation.SlotStr -> None | _ -> Some name) names
-            { NameOpts = nameOpts; TypeCarrier = fun (_ : 'a) -> () }
+            { NameOpts = nameOpts }
 
         /// Make a relation from an address where "?" names are empty.
         static member makeFromAddress<'a> (address : 'a Address) : 'a Relation =
@@ -110,7 +109,7 @@ module Relation =
                         namesMatching <- inc namesMatching
                 namesMatching
             let names2' = List.trySkip namesMatching names2
-            { NameOpts = (List.append (List.init namesMatching (fun _ -> None)) (List.map Some names2')); TypeCarrier = fun (_ : 'b) -> () }
+            { NameOpts = (List.append (List.init namesMatching (fun _ -> None)) (List.map Some names2')) }
 
         interface 'a Relation IEquatable with
             member this.Equals that =
@@ -132,8 +131,8 @@ module Relation =
     module Relation =
 
         /// Make a relation from a list of option names.
-        let makeFromList<'a> nameOptsList =
-            { NameOpts = nameOptsList; TypeCarrier = fun (_ : 'a) -> () }
+        let makeFromList<'a> nameOptsList : 'a Relation =
+            { NameOpts = nameOptsList }
 
         /// Make a relation from a '/' delimited string.
         let makeFromString<'a> relationStr =
@@ -144,8 +143,8 @@ module Relation =
             relation.NameOpts
 
         /// Change the type of an address.
-        let changeType<'a, 'b> (relation : 'a Relation) =
-            { NameOpts = relation.NameOpts; TypeCarrier = fun (_ : 'b) -> () }
+        let changeType<'a, 'b> (relation : 'a Relation) : 'a Relation =
+            { NameOpts = relation.NameOpts }
 
 /// A relation that can be resolved to an address via projection.
 type 'a Relation = 'a Relation.Relation

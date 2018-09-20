@@ -135,7 +135,7 @@ module Symbol =
     let isNumberParser = numberLiteral NumberFormat "number" >>. eof
     let isNumber str = match run isNumberParser str with Success (_, _, position) -> position.Index = int64 str.Length | Failure _ -> false
     let shouldBeExplicit str = Seq.exists (fun chr -> Char.IsWhiteSpace chr || Seq.contains chr StructureCharsNoStr) str
-    
+
     let readAtomChars = many1 (noneOf (StructureChars + WhitespaceChars))
     let readStringChars = many (noneOf [CloseStringChar])
     let (readSymbol : Parser<Symbol, SymbolState>, private readSymbolRef : Parser<Symbol, SymbolState> ref) = createParserForwardedToRef ()

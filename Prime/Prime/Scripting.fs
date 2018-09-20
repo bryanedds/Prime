@@ -65,6 +65,7 @@ module Scripting =
              "list toList " +
              "ring toRing add remove " +
              "table toTable " +
+             "info " +
              "let fun if match select try do break get set update define " +
 
              (* Prelude Identifiers *)

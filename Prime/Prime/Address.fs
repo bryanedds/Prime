@@ -59,14 +59,13 @@ module Address =
     type [<CustomEquality; CustomComparison; TypeConverter (typeof<AddressConverter>)>] 'a Address =
         private
             { Names : string list
-              HashCode : int // OPTIMIZATION: hash is cached for speed
-              TypeCarrier : 'a -> unit }
+              HashCode : int } // OPTIMIZATION: hash is cached for speed
     
         /// Make an address from a '/' delimited string.
         /// NOTE: do not move this function as the AddressConverter's reflection code relies on it being exactly here!
-        static member makeFromString<'a> (addressStr : string) =
+        static member makeFromString<'a> (addressStr : string) : 'a Address =
             let names = List.ofArray (addressStr.Split Constants.Address.Separator)
-            { Names = names; HashCode = String.hashMany names; TypeCarrier = fun (_ : 'a) -> () }
+            { Names = names; HashCode = String.hashMany names }
 
         /// Hash an Address.
         static member hash (address : 'a Address) =
@@ -87,8 +86,8 @@ module Address =
             Address<'a>.makeFromString<'a> str
 
         /// Convert a names list into an address.
-        static member ltoa<'a> (names : string list) =
-            { Names = names; HashCode = String.hashMany names; TypeCarrier = fun (_ : 'a) -> () }
+        static member ltoa<'a> (names : string list) : 'a Address =
+            { Names = names; HashCode = String.hashMany names }
 
         /// Convert a single name into an address.
         static member ntoa<'a> name : 'a Address =
@@ -99,12 +98,12 @@ module Address =
             String.concat Constants.Address.SeparatorStr address.Names
 
         /// Convert an address of type 'a to an address of type 'b.
-        static member atoa<'a, 'b> (address : 'a Address) =
-            { Names = address.Names; HashCode = address.HashCode; TypeCarrier = fun (_ : 'b) -> () }
+        static member atoa<'a, 'b> (address : 'a Address) : 'b Address =
+            { Names = address.Names; HashCode = address.HashCode }
 
         /// Convert any address to an obj Address.
-        static member atooa<'a> (address : 'a Address) =
-            { Names = address.Names; HashCode = address.HashCode; TypeCarrier = fun (_ : obj) -> () }
+        static member atooa<'a> (address : 'a Address) : obj Address =
+            { Names = address.Names; HashCode = address.HashCode }
 
         /// Concatenate two addresses of the same type.
         static member acat<'a> (address : 'a Address) (address2 : 'a Address) : 'a Address=
@@ -170,8 +169,8 @@ module Address =
     module Address =
 
         /// The empty address.
-        let empty<'a> =
-            { Names = []; HashCode = String.hashMany []; TypeCarrier = fun (_ : 'a) -> () }
+        let empty<'a> : 'a Address =
+            { Names = []; HashCode = String.hashMany [] }
 
         /// Make an address from a list of names.
         let makeFromList<'a> names : 'a Address =

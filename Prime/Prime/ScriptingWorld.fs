@@ -187,7 +187,8 @@ module ScriptingWorld =
                  ("toRing", evalSinglet (evalToRing evalApply))
                  ("add", evalDoublet evalCons)
                  ("remove", evalDoublet evalRemove)
-                 ("toTable", evalSinglet evalToTable)] |>
+                 ("toTable", evalSinglet evalToTable)
+                 ("info", evalSinglet evalInfo)] |>
                 dictPlus
             Intrinsics <- intrinsics
             intrinsics
