@@ -22,7 +22,7 @@ type ScriptingWorld<'w when 'w :> 'w ScriptingWorld> =
         abstract member TryExport : Type -> Expr -> obj option
         end
 
-/// The intrinsic scripting function type.
+/// The type for intrinsic and extrinsic scripting functions.
 and ScriptingTrinsic<'w when 'w :> 'w ScriptingWorld> = string -> Expr array -> SymbolOrigin option -> 'w -> struct (Expr * 'w)
 
 [<RequireQualifiedAccess>]
