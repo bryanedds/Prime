@@ -107,12 +107,16 @@ module Symbol =
         NumberLiteralOptions.AllowFraction |||
         NumberLiteralOptions.AllowHexadecimal |||
         NumberLiteralOptions.AllowSuffix
-    
+
     let isWhitespaceChar chr = isAnyOf WhitespaceChars chr
     let isStructureChar chr = isAnyOf StructureChars chr
     let isExplicit (str : string) = str.StartsWith OpenStringStr && str.EndsWith CloseStringStr
-    let distillate (str : string) = (str.Replace (OpenStringStr, "")).Replace (CloseStringStr, "")
-    
+
+    let distill (str : string) =
+        if str.StartsWith OpenStringStr && str.EndsWith CloseStringStr
+        then str.Substring (1, str.Length - 1)
+        else str
+
     let skipLineComment = skipChar LineCommentChar >>. skipRestOfLine true
     let skipMultilineComment =
         // TODO: make multiline comments nest.
@@ -232,13 +236,13 @@ module Symbol =
     let rec writeSymbol symbol =
         match symbol with
         | Atom (str, _) ->
-            let str = distillate str
+            let str = distill str
             if Seq.isEmpty str then OpenStringStr + CloseStringStr
             elif not (isExplicit str) && shouldBeExplicit str then OpenStringStr + str + CloseStringStr
             elif isExplicit str && not (shouldBeExplicit str) then str.Substring (1, str.Length - 2)
             else str
-        | Number (str, _) -> distillate str
-        | String (str, _) -> OpenStringStr + distillate str + CloseStringStr
+        | Number (str, _) -> distill str
+        | String (str, _) -> OpenStringStr + distill str + CloseStringStr
         | Quote (symbol, _) -> QuoteStr + writeSymbol symbol
         | Symbols (symbols, _) ->
             match symbols with

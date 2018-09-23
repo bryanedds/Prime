@@ -200,7 +200,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 str :> obj
             | String (str, _) ->
                 if printing
-                then Symbol.OpenStringStr + Symbol.distillate str + Symbol.CloseStringStr :> obj
+                then Symbol.OpenStringStr + Symbol.distill str + Symbol.CloseStringStr :> obj
                 else str :> obj
             | Quote (_, _) | Symbols (_, _) ->
                 failconv "Expected Symbol, Number, or String for conversion to string." (Some symbol)
