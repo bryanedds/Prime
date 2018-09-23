@@ -139,6 +139,14 @@ module String =
             .Replace("\t", "\\t")
             .Replace("\v", "\\v")
 
+    /// Contract unescaped characters in a string.
+    let unescapeDQ (str : string) =
+        str.Replace ("\\\"", "\"")
+
+    /// Expand escaped double-quote characters in a string.
+    let escapeDQ (str : string) =
+        str.Replace ("\"", "\\\"")
+
     /// Check that a name ends with a Guid.
     let endsWithGuid str =
         if String.length str >= 36 then

@@ -140,15 +140,23 @@ module Symbol =
     let isNumber str = match run isNumberParser str with Success (_, _, position) -> position.Index = int64 str.Length | Failure _ -> false
     let shouldBeExplicit str = Seq.exists (fun chr -> Char.IsWhiteSpace chr || Seq.contains chr StructureCharsNoStr) str
 
-    let readAtomChars = many1 (noneOf (StructureChars + WhitespaceChars))
-    let readStringChars = many (noneOf [CloseStringChar])
+    let characterEscaped =
+        parse {
+            do! skipChar '\\'
+            do! skipChar '\"'
+            return "\\\"" }
+    let characterNonEscaped = noneOf [CloseStringChar] |>> string
+    let character = characterEscaped <|> characterNonEscaped
+    let charactersAtom = many1 (noneOf (StructureChars + WhitespaceChars))
+    let charactersString = many character |>> fun strs -> String.Join ("", strs) |> String.explode
+
     let (readSymbol : Parser<Symbol, SymbolState>, private readSymbolRef : Parser<Symbol, SymbolState> ref) = createParserForwardedToRef ()
 
     let readAtom =
         parse {
             let! userState = getUserState
             let! start = getPosition
-            let! chars = readAtomChars
+            let! chars = charactersAtom
             let! stop = getPosition
             do! skipWhitespaces
             let str = chars |> String.implode |> fun str -> str.TrimEnd ()
@@ -177,7 +185,7 @@ module Symbol =
             let! start = getPosition
             do! openString
             do! skipWhitespaces
-            let! escaped = readStringChars
+            let! escaped = charactersString
             do! closeString
             let! stop = getPosition
             do! skipWhitespaces
@@ -242,7 +250,7 @@ module Symbol =
             elif isExplicit str && not (shouldBeExplicit str) then str.Substring (1, str.Length - 2)
             else str
         | Number (str, _) -> distill str
-        | String (str, _) -> OpenStringStr + distill str + CloseStringStr
+        | String (str, _) -> OpenStringStr + String.unescapeDQ (distill str) + CloseStringStr
         | Quote (symbol, _) -> QuoteStr + writeSymbol symbol
         | Symbols (symbols, _) ->
             match symbols with
