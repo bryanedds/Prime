@@ -50,7 +50,7 @@ module ScriptingTests =
     let [<Fact>] letFunWorks () = Assert.Equal ("1", eval "[let [f [fun [x] x]] [f 1]]")
     let [<Fact>] doWorks () = Assert.Equal ("4", eval "[do [+ 1 1] [+ 2 2]]")
     let [<Fact>] infoWorks () = Assert.Equal ("\"[fun [a b c] ...]\"", eval "[info [fun [a b c] a]]")
-    let [<Fact>] infoTrinsicWorks () = Assert.Equal ("\"[fun [a b] \"Determine equality.\"]\"", eval "[info =]")
+    let [<Fact>] infoTrinsicWorks () = Assert.Equal ("\"[fun [a b] 'Determine equality.']\"", eval "[info =]")
 
     let [<Fact>] matchFailureWorks () =
         match evalPartial "[match 2 [0 0] [1 2]]" with

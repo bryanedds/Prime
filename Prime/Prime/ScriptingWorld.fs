@@ -267,10 +267,10 @@ module ScriptingWorld =
         | Violation _ as violation -> struct (violation, world)
         | Binding (name, _, _, _) ->
             match Dictionary.tryFind name (getIntrinsics<'w> ()) with
-            | Some trinsic -> struct (String ("[fun [" + String.Join (" ", trinsic.Pars) + "] \"" + (Option.getOrDefault "" trinsic.DocOpt) + "\"]"), world)
+            | Some trinsic -> struct (String ("[fun [" + String.Join (" ", trinsic.Pars) + "] '" + (Option.getOrDefault "" trinsic.DocOpt) + "']"), world)
             | None ->
                 match world.TryGetExtrinsic name |> FOption.toOpt with
-                | Some trinsic -> struct (String ("[fun [" + String.Join (" ", trinsic.Pars) + "] \"" + (Option.getOrDefault "" trinsic.DocOpt) + "\"]"), world)
+                | Some trinsic -> struct (String ("[fun [" + String.Join (" ", trinsic.Pars) + "] '" + (Option.getOrDefault "" trinsic.DocOpt) + "']"), world)
                 | None -> struct (Violation (["NonExistentBinding/Function"], "Could not find function binding '" + name + "' for use with '" + fnName + "'.", originOpt), world)
         | Fun (args, _, _, _, _, _) -> struct (String ("[fun [" + String.Join (" ", args) + "] ...]"), world)
         | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Cannot apply " + fnName + " to a non-function.", originOpt), world)
