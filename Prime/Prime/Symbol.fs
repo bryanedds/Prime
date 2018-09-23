@@ -114,7 +114,7 @@ module Symbol =
 
     let distill (str : string) =
         if str.StartsWith OpenStringStr && str.EndsWith CloseStringStr
-        then str.Substring (1, str.Length - 1)
+        then str.Substring (1, str.Length - 2)
         else str
 
     let skipLineComment = skipChar LineCommentChar >>. skipRestOfLine true
