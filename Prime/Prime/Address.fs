@@ -228,6 +228,10 @@ module Address =
         let allButLast<'a, 'b> (address : 'a Address) =
             makeFromList<'b> (List.allButLast address.Names)
 
+        /// Find the index of a name
+        let findIndex finder address =
+            List.findIndex finder address.Names
+
         /// Get the length of an address by its names.
         let length address =
             List.length address.Names

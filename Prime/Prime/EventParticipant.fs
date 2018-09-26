@@ -43,7 +43,7 @@ type [<NoEquality; NoComparison>] PropertyTag<'a, 'w> =
     member this.Set value world =
         match this.TrySet value world with
         | (true, world) -> world
-        | (false, _) -> failwithumf ()
+        | (false, _) -> failwith ("PropertyTag for '" + this.Name + "' is readonly.")
 
     member this.TryUpdateWorld updater world =
         let value = this.Get world
@@ -80,7 +80,7 @@ type [<NoEquality; NoComparison>] PropertyTag<'a, 'w> =
           SetOpt = None }
 
     member this.ChangeEvent =
-        let changeEventAddress = Address<'w ParticipantChangeData>.ltoa [getTypeName this.This; "Change"; this.Name; "Event"]
+        let changeEventAddress = Address<'w ParticipantChangeData>.ltoa ["Change"; this.Name; "Event"]
         let changeEvent = changeEventAddress ->>- this.This.ParticipantAddress
         changeEvent
 

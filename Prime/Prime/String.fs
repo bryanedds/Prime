@@ -80,7 +80,6 @@ module String =
         | head :: tail -> Char.ToUpperInvariant head :: tail |> Array.ofList |> String
 
     /// Textualize a string for usage as text.
-    /// TODO: seems specific to Nu - move this into Nu?
     let textualize (str : string) =
         str.Replace('_', '\"')
 
@@ -117,6 +116,7 @@ module String =
                         | 'r' -> '\r'
                         | 't' -> '\t'
                         | 'v' -> '\v'
+                        | '\"' -> '_'
                         | c -> c
                     (false, chr :: chars)
                 elif y = '\\' then (true, chars)

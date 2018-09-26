@@ -439,8 +439,8 @@ module Stream =
     /// Terminate a stream when the subscriber is unregistered from the world.
     let [<DebuggerHidden; DebuggerStepThrough>] lifetime<'s, 'a, 'g, 'w when 's :> Participant and 'w :> EventWorld<'g, 'w>>
         (subscriber : 's) (stream_ : Stream<'a, 'g, 'w>) : Stream<'a, 'g, 'w> =
-        let removingEventAddress = ltoa<unit> [typeof<'s>.Name; "Unregistering"; "Event"] ->>- subscriber.ParticipantAddress
-        let removingStream = make removingEventAddress
+        let unregisteringEventAddress = ltoa<unit> [typeof<'s>.Name; "Unregistering"; "Event"] ->>- subscriber.ParticipantAddress
+        let removingStream = make unregisteringEventAddress
         until removingStream stream_
 
     /// Subscribe to a stream, handling each event with the given subscription,
