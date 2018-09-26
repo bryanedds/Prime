@@ -127,18 +127,18 @@ module Chain =
     let [<DebuggerHidden; DebuggerStepThrough>] run (m : Chain<unit, 'a, 'g, 'w>) (world : 'w) : 'w =
         run2 m world |> fst
 
-    let private run4 handling (chain : Chain<Event<'a, 'g>, unit, 'g, 'w>) (stream : Stream<'a, 'g, 'w>) (world : 'w) =
-        let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalPariticipant :?> 'g
+    let private run4 handling (chain : Chain<Event<'a, Participant>, unit, 'g, 'w>) (stream : Stream<'a, 'g, 'w>) (world : 'w) =
+        let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalPariticipant
         let stateKey = makeGuid ()
         let subscriptionKey = makeGuid ()
-        let world = EventWorld.addEventState stateKey (fun (_ : Event<'a, 'g>) -> chain) world
+        let world = EventWorld.addEventState stateKey (fun (_ : Event<'a, Participant>) -> chain) world
         let (eventAddress, unsubscribe, world) = stream.Subscribe world
         let unsubscribe = fun world ->
             let world = EventWorld.removeEventState stateKey world
             let world = unsubscribe world
             EventWorld.unsubscribe subscriptionKey world
         let advance = fun evt world ->
-            let chain = EventWorld.getEventState stateKey world : Event<'a, 'g> -> Chain<Event<'a, 'g>, unit, 'g, 'w>
+            let chain = EventWorld.getEventState stateKey world : Event<'a, Participant> -> Chain<Event<'a, Participant>, unit, 'g, 'w>
             let (world, advanceResult) = advance chain evt world
             match advanceResult with
             | Right () -> unsubscribe world
@@ -146,8 +146,8 @@ module Chain =
         let subscription = fun evt world ->
             let world = advance evt world
             (handling, world)
-        let world = advance Unchecked.defaultof<Event<'a, 'g>> world
-        let world = EventWorld.subscribePlus<'a, 'g, 'g, 'w> subscriptionKey subscription eventAddress globalParticipant world |> snd
+        let world = advance Unchecked.defaultof<Event<'a, Participant>> world
+        let world = EventWorld.subscribePlus<'a, Participant, 'g, 'w> subscriptionKey subscription eventAddress globalParticipant world |> snd
         (unsubscribe, world)
 
     /// Run a chain over Nu's event system.
