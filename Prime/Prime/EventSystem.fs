@@ -30,6 +30,9 @@ type [<Struct; NoEquality; NoComparison>] Event<'a, 's when 's :> Participant> =
       Address : 'a Address
       Trace : EventTrace }
 
+/// The generalized event type (can be used to handle any event).
+type EventGeneralized = Event<obj, Participant>
+
 /// Abstracts over a subscription sorting procedure.
 type 'w SubscriptionSorter =
     SubscriptionEntry array -> 'w -> SubscriptionEntry array
