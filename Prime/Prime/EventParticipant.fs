@@ -11,6 +11,12 @@ type Participant =
         abstract member ParticipantAddress : Participant Address
         end
 
+type [<StructuralEquality; NoComparison>] GlobalParticipantGeneralized =
+    { GpgAddress : GlobalParticipantGeneralized Address }
+    interface Participant with
+        member this.ParticipantAddress = atoa<GlobalParticipantGeneralized, Participant> this.GpgAddress
+        end
+
 /// Operators for the Participant type.
 type ParticipantOperators =
     private

@@ -307,7 +307,7 @@ module EventWorld =
                     eventAddress
                     (ltoa<obj Address> ["Unsubscribe"; "Event"])
                     (EventTrace.record "EventWorld" "unsubscribe" EventTrace.empty)
-                    (EventSystem.getGlobalPariticipant (world.GetEventSystem ()))
+                    (EventSystem.getGlobalParticipant (world.GetEventSystem ()))
                     world
             else world
         else world
@@ -336,7 +336,7 @@ module EventWorld =
                     objEventAddress
                     (ltoa<obj Address> ["Subscribe"; "Event"])
                     (EventTrace.record "EventWorld" "subscribePlus5" EventTrace.empty)
-                    (EventSystem.getGlobalPariticipant (world.GetEventSystem ()))
+                    (EventSystem.getGlobalParticipant (world.GetEventSystem ()))
                     world
             (unsubscribe<'g, 'w> subscriptionKey, world)
         else failwith "Event name cannot be empty."
@@ -358,7 +358,7 @@ module EventWorld =
             let world = unsubscribe monitorKey world
             world
         let subscription' = fun _ eventSystem -> (Cascade, unsubscribe eventSystem)
-        let removingEventAddress = ltoa<unit> [typeof<'s>.Name; "Unregistering"; "Event"] ->>- subscriberAddress
+        let removingEventAddress = ltoa<unit> ["Unregistering"; "Event"] ->>- subscriberAddress
         let world = subscribePlus<unit, 's, 'g, 'w> removalKey subscription' removingEventAddress subscriber world |> snd
         (unsubscribe, world)
 

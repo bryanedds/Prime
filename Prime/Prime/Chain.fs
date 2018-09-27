@@ -128,7 +128,7 @@ module Chain =
         run2 m world |> fst
 
     let private run4 handling (chain : Chain<Event<'a, Participant>, unit, 'g, 'w>) (stream : Stream<'a, 'g, 'w>) (world : 'w) =
-        let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalPariticipant
+        let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalParticipantGeneralized
         let stateKey = makeGuid ()
         let subscriptionKey = makeGuid ()
         let world = EventWorld.addEventState stateKey (fun (_ : Event<'a, Participant>) -> chain) world
