@@ -60,7 +60,6 @@ module Rand =
             (number % max, rand)
             
         /// Get the next random value as an int type.
-        /// NOTE: System.Random.Next will never return Int32.MaxValue, but this will.
         let nextInt rand =
             let rand = advance rand
             let sampleInt = int (sample rand >>> 32)
@@ -73,7 +72,6 @@ module Rand =
             (number % max, rand)
             
         /// Get the next random value as an int64 type.
-        /// NOTE: System.Random.Next will never return Int64.MaxValue, but this will.
         let nextInt64 rand =
             let rand = advance rand
             let number = sample rand

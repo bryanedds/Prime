@@ -60,7 +60,7 @@ module EventSystem =
         private
             { Subscriptions : SubscriptionEntries
               Unsubscriptions : UnsubscriptionEntries
-              GlobalParticipant : Participant
+              GlobalParticipantSpecialized : Participant
               GlobalParticipantGeneralized : GlobalParticipantGeneralized
               mutable EventContext : Participant
               EventStates : UMap<Guid, obj>
@@ -124,9 +124,9 @@ module EventSystem =
         let getEventContext (eventSystem : 'w EventSystem) =
             eventSystem.EventContext
 
-        /// Get the global participant of the event system.
-        let getGlobalParticipant (eventSystem : 'w EventSystem) =
-            eventSystem.GlobalParticipant
+        /// Get the specialized global participant of the event system.
+        let getGlobalParticipantSpecialized (eventSystem : 'w EventSystem) =
+            eventSystem.GlobalParticipantSpecialized
 
         /// Get the generalized global participant of the event system.
         let getGlobalParticipantGeneralized (eventSystem : 'w EventSystem) =
@@ -172,12 +172,12 @@ module EventSystem =
             eventSystem.EventAddresses
 
         /// Make an event system.
-        let make eventTracer eventTracing eventFilter globalParticipant globalParticipantGeneralized =
+        let make eventTracer eventTracing eventFilter globalParticipantSpecialized globalParticipantGeneralized =
             { Subscriptions = UMap.makeEmpty Config
               Unsubscriptions = UMap.makeEmpty Config
-              GlobalParticipant = globalParticipant
+              GlobalParticipantSpecialized = globalParticipantSpecialized
               GlobalParticipantGeneralized = globalParticipantGeneralized
-              EventContext = globalParticipant
+              EventContext = globalParticipantSpecialized
               EventStates = UMap.makeEmpty Config
               EventTracer = eventTracer
               EventTracing = eventTracing

@@ -307,7 +307,7 @@ module EventWorld =
                     eventAddress
                     (ltoa<obj Address> ["Unsubscribe"; "Event"])
                     (EventTrace.record "EventWorld" "unsubscribe" EventTrace.empty)
-                    (EventSystem.getGlobalParticipant (world.GetEventSystem ()))
+                    (EventSystem.getGlobalParticipantSpecialized (world.GetEventSystem ()))
                     world
             else world
         else world
@@ -336,7 +336,7 @@ module EventWorld =
                     objEventAddress
                     (ltoa<obj Address> ["Subscribe"; "Event"])
                     (EventTrace.record "EventWorld" "subscribePlus5" EventTrace.empty)
-                    (EventSystem.getGlobalParticipant (world.GetEventSystem ()))
+                    (EventSystem.getGlobalParticipantSpecialized (world.GetEventSystem ()))
                     world
             (unsubscribe<'g, 'w> subscriptionKey, world)
         else failwith "Event name cannot be empty."
