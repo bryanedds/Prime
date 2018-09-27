@@ -128,6 +128,11 @@ module ScriptingMarshalling =
         | (true, items) -> Some (Table (Map.ofList items))
         | (false, _) -> None
 
+    and tryImportDesignerProperty tryImportExt (_ : Type) (value : obj) =
+        match value with
+        | :? DesignerProperty as property -> tryImport tryImportExt property.DesignerType property.DesignerValue
+        | _ -> None
+
     and Importers : Dictionary<string, (Type -> obj -> Expr option) -> Type -> obj -> Expr option> =
         [(typeof<Void>.Name, (fun _ _ _ -> Unit |> Some))
          (typeof<unit>.Name, (fun _ _ _ -> Unit |> Some))
@@ -146,14 +151,15 @@ module ScriptingMarshalling =
          (typedefof<Either<_, _>>.Name, (fun tryImportExt ty value -> tryImportEither tryImportExt ty value))
          (typedefof<_ list>.Name, (fun tryImportExt ty value -> tryImportList tryImportExt ty value))
          (typedefof<_ Set>.Name, (fun tryImportExt ty value -> tryImportSet tryImportExt ty value))
-         (typedefof<Map<_, _>>.Name, (fun tryImportExt ty value -> tryImportMap tryImportExt ty value))] |>
+         (typedefof<Map<_, _>>.Name, (fun tryImportExt ty value -> tryImportMap tryImportExt ty value))
+         (typeof<DesignerProperty>.Name, (fun tryImportExt ty value -> tryImportDesignerProperty tryImportExt ty value))] |>
         dictPlus
 
-    let rec tryExport tryExportExt (ty : Type) (value : Expr) =
+    let rec tryExport tryExportExt (ty : Type) (current : obj) (value : Expr) =
 
         // try to export from the custom types
         match Exporters.TryGetValue ty.Name with
-        | (true, tryExport) -> tryExport tryExportExt ty value
+        | (true, tryExport) -> tryExport tryExportExt ty current value
         | (false, _) ->
 
             // try to export as extension value
@@ -167,7 +173,7 @@ module ScriptingMarshalling =
                     | Union (_, fields)
                     | Record (_, _, fields) ->
                         let fieldInfos = FSharpType.GetTupleElements ty
-                        let fieldOpts = Array.mapi (fun i fieldSymbol -> tryExport tryExportExt fieldInfos.[i] fieldSymbol) fields
+                        let fieldOpts = Array.mapi (fun i fieldSymbol -> tryExport tryExportExt fieldInfos.[i] () fieldSymbol) fields
                         match Array.definitizePlus fieldOpts with
                         | (true, fields) -> Some (FSharpValue.MakeTuple (fields, ty))
                         | (false, _) -> None
@@ -179,7 +185,7 @@ module ScriptingMarshalling =
                     | Union (_, fields)
                     | Record (_, _, fields) ->
                         let fieldInfos = FSharpType.GetRecordFields ty
-                        let fieldOpts = Array.mapi (fun i fieldSymbol -> tryExport tryExportExt fieldInfos.[i].PropertyType fieldSymbol) fields
+                        let fieldOpts = Array.mapi (fun i fieldSymbol -> tryExport tryExportExt fieldInfos.[i].PropertyType () fieldSymbol) fields
                         match Array.definitizePlus fieldOpts with
                         | (true, fields) -> Some (FSharpValue.MakeRecord (ty, fields))
                         | (false, _) -> None
@@ -198,7 +204,7 @@ module ScriptingMarshalling =
                         match Array.tryFind (fun (unionCase : UnionCaseInfo) -> unionCase.Name = name) unionCases with
                         | Some unionCase ->
                             let unionFieldInfos = unionCase.GetFields ()
-                            let unionValueOpts = Array.mapi (fun i unionSymbol -> tryExport tryExportExt unionFieldInfos.[i].PropertyType unionSymbol) fields
+                            let unionValueOpts = Array.mapi (fun i unionSymbol -> tryExport tryExportExt unionFieldInfos.[i].PropertyType () unionSymbol) fields
                             match Array.definitizePlus unionValueOpts with
                             | (true, unionValues) -> Some (FSharpValue.MakeUnion (unionCase, unionValues))
                             | (false, _) -> None
@@ -216,14 +222,14 @@ module ScriptingMarshalling =
         | String str | Keyword str -> Some ((GuidConverter ()).ConvertFromString str)
         | _ -> None
 
-    and tryExportKvp tryExportExt (ty : Type) (tuple : Expr) =
+    and tryExportKvp tryExportExt (ty : Type) (_ : obj)  (tuple : Expr) =
         match tuple with
         | Tuple [|fst; snd|] ->
             match ty.GetGenericArguments () with
             | [|fstType; sndType|] ->
                 let pairType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|fstType; sndType|]
-                let fstOpt = tryExport tryExportExt fstType fst
-                let sndOpt = tryExport tryExportExt sndType snd
+                let fstOpt = tryExport tryExportExt fstType () fst
+                let sndOpt = tryExport tryExportExt sndType () snd
                 match (fstOpt, sndOpt) with
                 | (Some fst, Some snd) -> Some (Reflection.objsToKeyValuePair fst snd pairType)
                 | (_, _) -> None
@@ -240,19 +246,19 @@ module ScriptingMarshalling =
         | String str | Keyword str -> Some ((RelationConverter ty).ConvertFromString str)
         | _ -> None
 
-    and tryExportOption tryExportExt (ty : Type) (opt : Expr) =
+    and tryExportOption tryExportExt (ty : Type) (_ : obj) (opt : Expr) =
         match opt with
         | Option opt ->
             match opt with
             | Some value ->
                 let valueType = (ty.GetGenericArguments ()).[0]
-                match tryExport tryExportExt valueType value with
+                match tryExport tryExportExt valueType () value with
                 | Some value -> Some (Activator.CreateInstance (ty, [|value|]))
                 | None -> None
             | None -> Some (None :> obj)
         | _ -> None
 
-    and tryExportEither tryExportExt (ty : Type) (eir : Expr) =
+    and tryExportEither tryExportExt (ty : Type) (_ : obj) (eir : Expr) =
         let leftType = (ty.GetGenericArguments ()).[0]
         let leftCase = (FSharpType.GetUnionCases ty).[1]
         let rightType = (ty.GetGenericArguments ()).[1]
@@ -261,66 +267,74 @@ module ScriptingMarshalling =
         | Either eir ->
             match eir with
             | Right right ->
-                match tryExport tryExportExt rightType right with
+                match tryExport tryExportExt rightType () right with
                 | Some right -> Some (FSharpValue.MakeUnion (rightCase, [|right|]))
                 | None -> None
             | Left left ->
-                match tryExport tryExportExt leftType left with
+                match tryExport tryExportExt leftType () left with
                 | Some left -> Some (FSharpValue.MakeUnion (leftCase, [|left|]))
                 | None -> None
         | _ -> None
 
-    and tryExportList tryExportExt (ty : Type) (list : Expr) =
+    and tryExportList tryExportExt (ty : Type) _ (list : Expr) =
         match list with
         | List list ->
             let garg = ty.GetGenericArguments () |> Array.item 0
             let itemType = if garg.IsGenericTypeDefinition then garg.GetGenericTypeDefinition () else garg
-            let itemOpts = List.map (fun item -> tryExport tryExportExt itemType item) list
+            let itemOpts = List.map (fun item -> tryExport tryExportExt itemType () item) list
             match List.definitizePlus itemOpts with
             | (true, items) -> Some (Reflection.objsToList ty items)
             | (false, _) -> None
         | _ -> None
 
-    and tryExportSet tryExportExt (ty : Type) (ring : Expr) =
+    and tryExportSet tryExportExt (ty : Type) _ (ring : Expr) =
         match ring with
         | Ring set ->
             let elementType = (ty.GetGenericArguments ()).[0]
-            let elementOpts = Seq.map (fun element -> tryExport tryExportExt elementType element) set
+            let elementOpts = Seq.map (fun element -> tryExport tryExportExt elementType () element) set
             match Seq.definitizePlus elementOpts with
             | (true, elements) -> Some (Reflection.objsToSet ty elements)
             | (false, _) -> None
         | _ -> None
 
-    and tryExportMap tryExportExt (ty : Type) (table : Expr) =
+    and tryExportMap tryExportExt (ty : Type) _ (table : Expr) =
         match table with
         | Table map ->
             match ty.GetGenericArguments () with
             | [|fstType; sndType|] ->
                 let pairType = typedefof<Tuple<_, _>>.MakeGenericType [|fstType; sndType|]
-                let pairOpts = Seq.map (fun (kvp : KeyValuePair<_, _>) -> tryExport tryExportExt pairType (Tuple [|kvp.Key; kvp.Value|])) map
+                let pairOpts = Seq.map (fun (kvp : KeyValuePair<_, _>) -> tryExport tryExportExt pairType () (Tuple [|kvp.Key; kvp.Value|])) map
                 match Seq.definitizePlus pairOpts with
                 | (true, pairs) -> Some (Reflection.pairsToMap ty pairs)
                 | (false, _) -> None
             | _ -> None
         | _ -> None
 
-    and Exporters : Dictionary<string, (Type -> Expr -> obj option) -> Type -> Expr -> obj option> =
-        [(typeof<Void>.Name, fun _ _ _ -> () :> obj |> Some)
-         (typeof<unit>.Name, fun _ _ _ -> () :> obj |> Some)
-         (typeof<bool>.Name, fun _ _ evaled -> match evaled with Bool value -> value :> obj |> Some | _ -> None)
-         (typeof<int>.Name, fun _ _ evaled -> match evaled with Int value -> value :> obj |> Some | _ -> None)
-         (typeof<int64>.Name, fun _ _ evaled -> match evaled with Int64 value -> value :> obj |> Some | _ -> None)
-         (typeof<single>.Name, fun _ _ evaled -> match evaled with Single value -> value :> obj |> Some | _ -> None)
-         (typeof<double>.Name, fun _ _ evaled -> match evaled with Double value -> value :> obj |> Some | _ -> None)
-         (typeof<char>.Name, fun _ _ evaled -> match evaled with String value when value.Length = 1 -> value.[0] :> obj |> Some | _ -> None)
-         (typeof<string>.Name, fun _ _ evaled -> match evaled with String value -> value :> obj |> Some | Keyword value -> value :> obj |> Some | _ -> None)
-         (typedefof<Guid>.Name, fun _ ty evaled -> tryExportGuid ty evaled)
+    and tryExportDesignerProperty tryExportExt (ty : Type) (current : obj) (evaled : Expr) =
+        match tryExport tryExportExt ty current evaled with
+        | Some exported ->
+            let ty = getType exported
+            Some ({ DesignerType = ty; DesignerValue = exported } :> obj)
+        | None -> None
+
+    and Exporters : Dictionary<string, (Type -> Expr -> obj option) -> Type -> obj -> Expr -> obj option> =
+        [(typeof<Void>.Name, fun _ _ _ _ -> () :> obj |> Some)
+         (typeof<unit>.Name, fun _ _ _ _ -> () :> obj |> Some)
+         (typeof<bool>.Name, fun _ _ _ evaled -> match evaled with Bool value -> value :> obj |> Some | _ -> None)
+         (typeof<int>.Name, fun _ _ _ evaled -> match evaled with Int value -> value :> obj |> Some | _ -> None)
+         (typeof<int64>.Name, fun _ _ _ evaled -> match evaled with Int64 value -> value :> obj |> Some | _ -> None)
+         (typeof<single>.Name, fun _ _ _ evaled -> match evaled with Single value -> value :> obj |> Some | _ -> None)
+         (typeof<double>.Name, fun _ _ _ evaled -> match evaled with Double value -> value :> obj |> Some | _ -> None)
+         (typeof<char>.Name, fun _ _ _ evaled -> match evaled with String value when value.Length = 1 -> value.[0] :> obj |> Some | _ -> None)
+         (typeof<string>.Name, fun _ _ _ evaled -> match evaled with String value -> value :> obj |> Some | Keyword value -> value :> obj |> Some | _ -> None)
+         (typedefof<Guid>.Name, fun _ ty _ evaled -> tryExportGuid ty evaled)
          (typedefof<KeyValuePair<_, _>>.Name, tryExportKvp)
-         (typedefof<_ Address>.Name, fun _ ty evaled -> tryExportAddress ty evaled)
-         (typedefof<_ Relation>.Name, fun _ ty evaled -> tryExportRelation ty evaled)
+         (typedefof<_ Address>.Name, fun _ ty _ evaled -> tryExportAddress ty evaled)
+         (typedefof<_ Relation>.Name, fun _ ty _ evaled -> tryExportRelation ty evaled)
          (typedefof<_ option>.Name, tryExportOption)
          (typedefof<Either<_, _>>.Name, tryExportEither)
          (typedefof<_ list>.Name, tryExportList)
          (typedefof<_ Set>.Name, tryExportSet)
-         (typedefof<Map<_, _>>.Name, tryExportMap)] |>
+         (typedefof<Map<_, _>>.Name, tryExportMap)
+         (typeof<DesignerProperty>.Name, tryExportDesignerProperty)] |>
         dictPlus

@@ -24,7 +24,6 @@ type [<Struct; NoEquality; NoComparison>] SubscriptionEntry =
 /// An event used by the event system.
 type [<Struct; NoEquality; NoComparison>] Event<'a, 's when 's :> Participant> =
     { Data : 'a
-      DataType : Type // here so type can be recovered in a dynamic context
       Subscriber : 's
       Publisher : Participant
       Address : 'a Address
