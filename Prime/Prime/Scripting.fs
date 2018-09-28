@@ -363,8 +363,11 @@ module Scripting =
                 | (false, _) -> None
             | _ -> None
 
-        static member internal isValidBinding (str : string) =
-            str.Length > 0 && Char.IsLower str.[0]
+        static member internal isKeyword (str : string) =
+            str.Length > 0 && str.[0] = Constants.Relation.Slot || Char.IsUpper str.[0]
+
+        static member internal isBinding (str : string) =
+            str.Length > 0 && not (Expr.isKeyword str)
 
         override this.GetHashCode () =
             match this with
@@ -457,10 +460,10 @@ module Scripting =
             
         member this.SymbolsToBindingOpt bindingSymbols =
             match bindingSymbols with
-            | [Atom (bindingName, _); bindingBody] when Expr.isValidBinding bindingName ->
+            | [Atom (bindingName, _); bindingBody] when Expr.isBinding bindingName ->
                 let binding = VariableBinding (bindingName, this.SymbolToExpr bindingBody)
                 Some binding
-            | [Atom (bindingName, _); Symbols (bindingArgs, _); bindingBody] when Expr.isValidBinding bindingName ->
+            | [Atom (bindingName, _); Symbols (bindingArgs, _); bindingBody] when Expr.isBinding bindingName ->
                 let (bindingArgs, bindingErrors) = List.split (function Atom _ -> true | _ -> false) bindingArgs
                 if List.isEmpty bindingErrors then
                     let bindingArgs = List.map (function Atom (arg, _) -> arg | _ -> failwithumf ()) bindingArgs
@@ -666,8 +669,7 @@ module Scripting =
                     | "Infinityf" -> Single Single.PositiveInfinity :> obj
                     | "-Infinityf" -> Single Single.NegativeInfinity :> obj
                     | _ ->
-                        let firstChar = str.[0]
-                        if firstChar = Constants.Relation.Slot || Char.IsUpper firstChar
+                        if Expr.isKeyword str
                         then Keyword str :> obj
                         else Binding (str, ref UncachedBinding, ref UnknownBindingType, originOpt) :> obj
                 | Number (str, originOpt) ->
