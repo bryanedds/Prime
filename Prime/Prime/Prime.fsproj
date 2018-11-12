@@ -105,6 +105,7 @@
     <Compile Include="Molder.fs" />
     <Compile Include="UserState.fs" />
     <Compile Include="Xtension.fs" />
+    <Compile Include="Simulation.fs" />
     <Compile Include="EventTrace.fs" />
     <Compile Include="EventFilter.fs" />
     <Compile Include="EventParticipant.fs" />
