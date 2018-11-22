@@ -19,12 +19,12 @@ module HSet =
             end
 
     /// Hash set node.
-    type [<Struct; NoComparison>]
+    type [<CompilationRepresentation (CompilationRepresentationFlags.UseNullAsTrueValue); NoComparison>]
         private HNode<'a when 'a :> 'a IEquatable> =
         | Nil
-        | Singleton of S : 'a Hv
-        | Multiple of M : 'a HNode array
-        | Gutter of G : Hv<'a> array
+        | Singleton of 'a Hv
+        | Multiple of 'a HNode array
+        | Gutter of Hv<'a> array
 
     [<RequireQualifiedAccess>]
     module private HNode =

@@ -20,12 +20,12 @@ module HMap =
             end
 
     /// Hash map node.
-    type [<Struct; NoComparison>]
+    type [<CompilationRepresentation (CompilationRepresentationFlags.UseNullAsTrueValue); NoComparison>]
         private HNode<'k, 'v when 'k :> 'k IEquatable> =
         | Nil
-        | Singleton of S : Hkv<'k, 'v>
-        | Multiple of M : HNode<'k, 'v> array
-        | Gutter of G : Hkv<'k, 'v> array
+        | Singleton of Hkv<'k, 'v>
+        | Multiple of HNode<'k, 'v> array
+        | Gutter of Hkv<'k, 'v> array
 
     [<RequireQualifiedAccess>]
     module private HNode =
@@ -36,7 +36,7 @@ module HMap =
         /// OPTIMIZATION: Array.Clone () is not used since it's been profiled to be slower
         let inline private cloneArray (arr : HNode<'k, 'v> array) =
             let arr' = Array.zeroCreate 16 : HNode<'k, 'v> array
-            Array.Copy (arr, 0, arr', 0, 16)
+            Array.Copy (arr, 0, arr', 0, 16) // param checks are inefficient, but hopefully there's at least a memcpy underneath...
             arr'
     
         let inline private hashToIndex h dep =
