@@ -133,7 +133,7 @@ module Scripting =
         | ApplyOr of Expr array * Breakpoint * SymbolOrigin option
         | Let of Binding * Expr * SymbolOrigin option
         | LetMany of Binding list * Expr * SymbolOrigin option
-        | Fun of string array * int * Expr * bool * obj option * SymbolOrigin option
+        | Fun of string array * int * Expr * bool * obj option * string option * SymbolOrigin option
         | If of Expr * Expr * Expr * SymbolOrigin option
         | Match of Expr * (Expr * Expr) array * SymbolOrigin option
         | Select of (Expr * Expr) array * SymbolOrigin option
@@ -176,7 +176,7 @@ module Scripting =
             | ApplyOr (_, _, originOpt)
             | Let (_, _, originOpt)
             | LetMany (_, _, originOpt)
-            | Fun (_, _, _, _, _, originOpt)
+            | Fun (_, _, _, _, _, _, originOpt)
             | If (_, _, _, originOpt)
             | Match (_, _, originOpt)
             | Select (_, originOpt)
@@ -217,7 +217,7 @@ module Scripting =
             | (ApplyOr (left, _, _), ApplyOr (right, _, _)) -> left = right
             | (Let (leftBinding, leftBody, _), Let (rightBinding, rightBody, _)) -> (leftBinding, leftBody) = (rightBinding, rightBody)
             | (LetMany (leftBindings, leftBody, _), LetMany (rightBindings, rightBody, _)) -> (leftBindings, leftBody) = (rightBindings, rightBody)
-            | (Fun (leftPars, _, leftBody, _, _, _), Fun (rightPars, _, rightBody, _, _, _)) -> (leftPars, leftBody) = (rightPars, rightBody)
+            | (Fun (leftPars, _, leftBody, _, _, _, _), Fun (rightPars, _, rightBody, _, _, _, _)) -> (leftPars, leftBody) = (rightPars, rightBody)
             | (If (leftConditional, leftConsequent, leftAlternative, _), If (rightConditional, rightConsequent, rightAlternative, _)) -> (leftConditional, leftConsequent, leftAlternative) = (rightConditional, rightConsequent, rightAlternative)
             | (Match (leftInput, leftCases, _), Match (rightInput, rightCases, _)) -> (leftInput, leftCases) = (rightInput, rightCases)
             | (Select (left, _), Select (right, _)) -> left = right
@@ -594,7 +594,7 @@ module Scripting =
                     let bindingSymbols = List.map (fun binding -> this.BindingToSymbol binding) bindings
                     let bodySymbol = this.ExprToSymbol body
                     Symbols (letSymbol :: bindingSymbols @ [bodySymbol], originOpt) :> obj
-                | Fun (pars, _, body, _, _, originOpt) ->
+                | Fun (pars, _, body, _, _, _, originOpt) ->
                     let funSymbol = Atom ("fun", None)
                     let parSymbols = Array.map (fun par -> Atom (par, None)) pars
                     let parsSymbol = Symbols (List.ofArray parSymbols, None)
@@ -780,7 +780,7 @@ module Scripting =
                                 | Symbols (args, _) ->
                                     if List.forall (function Atom _ -> true | _ -> false) args then
                                         let args = Array.map (function Atom (arg, _) -> arg | _ -> failwithumf ()) (Array.ofList args)
-                                        Fun (args, Array.length args, this.SymbolToExpr body, false, None, originOpt) :> obj
+                                        Fun (args, Array.length args, this.SymbolToExpr body, false, None, None, originOpt) :> obj
                                     else Violation (["InvalidForm"; "Function"], "Invalid fun form. Each argument must be a single name.", originOpt) :> obj
                                 | _ -> Violation (["InvalidForm"; "Function"], "Invalid fun form. Arguments must be enclosed in brackets.", originOpt) :> obj
                             | _ -> Violation (["InvalidForm"; "Function"], "Invalid fun form. Fun requires 1 argument list and 1 body.", originOpt) :> obj

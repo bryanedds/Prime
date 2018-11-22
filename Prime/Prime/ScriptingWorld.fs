@@ -272,7 +272,7 @@ module ScriptingWorld =
                 match world.TryGetExtrinsic name |> FOption.toOpt with
                 | Some trinsic -> struct (String ("[fun [" + String.Join (" ", trinsic.Pars) + "] '" + (Option.getOrDefault "" trinsic.DocOpt) + "']"), world)
                 | None -> struct (Violation (["NonExistentBinding/Function"], "Could not find function binding '" + name + "' for use with '" + fnName + "'.", originOpt), world)
-        | Fun (args, _, _, _, _, _) -> struct (String ("[fun [" + String.Join (" ", args) + "] ...]"), world)
+        | Fun (args, _, _, _, _, _, _) -> struct (String ("[fun [" + String.Join (" ", args) + "] ...]"), world)
         | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Cannot apply " + fnName + " to a non-function.", originOpt), world)
 
     and evalAlterIntInner fnName index target value originOpt world =
@@ -385,7 +385,7 @@ module ScriptingWorld =
                     else failwithumf ()
                 | Environmental ->
                     failwithumf ()
-            | Fun (pars, parsCount, body, _, framesOpt, originOpt) ->
+            | Fun (pars, parsCount, body, _, framesOpt, _, originOpt) ->
                 let struct (tailEvaled, world) = evalMany exprsTail world
                 let struct (framesCurrentOpt, world) =
                     match framesOpt with
@@ -447,7 +447,7 @@ module ScriptingWorld =
                 world
             | FunctionBinding (name, args, body) ->
                 let frames = getProceduralFrames world :> obj
-                let fn = Fun (args, args.Length, body, true, Some frames, originOpt)
+                let fn = Fun (args, args.Length, body, true, Some frames, None, originOpt)
                 addProceduralBinding (AddToNewFrame 1) name fn world
                 world
         let struct (evaled, world) = eval body world
@@ -463,7 +463,7 @@ module ScriptingWorld =
                 world
             | FunctionBinding (name, args, body) ->
                 let frames = getProceduralFrames world :> obj
-                let fn = Fun (args, args.Length, body, true, Some frames, originOpt)
+                let fn = Fun (args, args.Length, body, true, Some frames, None, originOpt)
                 addProceduralBinding (AddToNewFrame bindingsCount) name fn world
                 world
         let world =
@@ -475,7 +475,7 @@ module ScriptingWorld =
                     world
                 | FunctionBinding (name, args, body) ->
                     let frames = getProceduralFrames world :> obj
-                    let fn = Fun (args, args.Length, body, true, Some frames, originOpt)
+                    let fn = Fun (args, args.Length, body, true, Some frames, None, originOpt)
                     addProceduralBinding (AddToHeadFrame (inc i)) name fn world
                     world)
                 world
@@ -498,8 +498,8 @@ module ScriptingWorld =
         if not framesPushed then
             if Option.isNone framesOpt then
                 let frames = getProceduralFrames world :> obj
-                struct (Fun (pars, parsCount, body, true, Some frames, originOpt), world)
-            else struct (Fun (pars, parsCount, body, true, framesOpt, originOpt), world)
+                struct (Fun (pars, parsCount, body, true, Some frames, None, originOpt), world)
+            else struct (Fun (pars, parsCount, body, true, framesOpt, None, originOpt), world)
         else struct (fn, world)
 
     and evalIf condition consequent alternative originOpt world =
@@ -568,7 +568,7 @@ module ScriptingWorld =
                 struct (tryAddDeclarationBinding name evaled world, world)
             | FunctionBinding (name, args, body) ->
                 let frames = getProceduralFrames world :> obj
-                let fn = Fun (args, args.Length, body, true, Some frames, originOpt)
+                let fn = Fun (args, args.Length, body, true, Some frames, None, originOpt)
                 struct (tryAddDeclarationBinding name fn world, world)
         if bound
         then struct (Unit, world)
@@ -607,7 +607,7 @@ module ScriptingWorld =
         | ApplyOr (exprs, _, originOpt) -> evalApplyOr exprs originOpt world
         | Let (binding, body, originOpt) -> evalLet binding body originOpt world
         | LetMany (bindings, body, originOpt) -> evalLetMany bindings body originOpt world
-        | Fun (pars, parsCount, body, framesPushed, framesOpt, originOpt) as fn -> evalFun fn pars parsCount body framesPushed framesOpt originOpt world
+        | Fun (pars, parsCount, body, framesPushed, framesOpt, _, originOpt) as fn -> evalFun fn pars parsCount body framesPushed framesOpt originOpt world
         | If (condition, consequent, alternative, originOpt) -> evalIf condition consequent alternative originOpt world
         | Match (input, cases, originOpt) -> evalMatch input cases originOpt world
         | Select (exprPairs, originOpt) -> evalSelect exprPairs originOpt world

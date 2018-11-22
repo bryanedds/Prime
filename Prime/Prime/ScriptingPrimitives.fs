@@ -829,7 +829,7 @@ module ScriptingPrimitives =
         | Unfold (unfolder, codata) ->
             let breakpoint = { BreakEnabled = false; BreakCondition = Unit }
             let args = [|unfolder; Binding ("state", ref UncachedBinding, ref Environmental, originOpt)|]
-            let unfolder = Unfold (Fun ([|"state"|], 1, Apply (args, breakpoint, originOpt), false, None, originOpt), codata)
+            let unfolder = Unfold (Fun ([|"state"|], 1, Apply (args, breakpoint, originOpt), false, None, None, originOpt), codata)
             struct (unfolder, world)
         | Conversion list ->
             let struct (mapped, world) =
@@ -1005,14 +1005,14 @@ module ScriptingPrimitives =
             match value with
             | Tuple [|v1; v2|] -> struct (Table (Map.singleton v1 v2), world)
             | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Application of " + fnName + " for Table must be a 2-value Tuple.", originOpt), world)
-        | [|Fun _; value|] -> struct (Fun ([||], 0, value, false, None, None), world)
+        | [|Fun _; value|] -> struct (Fun ([||], 0, value, false, None, None, None), world)
         | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for a function, String, Option, Codata, Ring, Table or List.", originOpt), world)
 
     let evalApplyScript evalApply fnName argsEvaled originOpt world =
         match argsEvaled with
         | [|Violation _ as violation; _|] -> struct (violation, world)
         | [|_; Violation _ as violation|] -> struct (violation, world)
-        | [|Fun (_, 1, _, _, _, _) as fn; value|] -> evalApply [|fn; value|] originOpt world
+        | [|Fun (_, 1, _, _, _, _, _) as fn; value|] -> evalApply [|fn; value|] originOpt world
         | [|Option fnOpt; Option valueOpt|] ->
             match (fnOpt, valueOpt) with
             | (Some fn, Some value) -> evalApply [|fn; value|] originOpt world

@@ -11,6 +11,7 @@ type Participant =
         abstract member ParticipantAddress : Participant Address
         end
 
+/// A participant in the event system that is globalized and compatible with generatlized events.
 type [<StructuralEquality; NoComparison>] GlobalParticipantGeneralized =
     { GpgAddress : GlobalParticipantGeneralized Address }
     interface Participant with
