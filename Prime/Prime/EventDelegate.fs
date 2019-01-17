@@ -5,10 +5,31 @@ namespace Prime
 open System
 open Prime
 
+/// Describes whether an in-flight event has been resolved or should cascade to down-stream handlers.
+type [<Struct>] Handling =
+    | Resolve
+    | Cascade
+
+/// Specifies whether an event-based application is running or exiting.
+type [<Struct>] Liveness =
+    | Running
+    | Exiting
+
+/// An event used by the event system.
+type [<Struct; NoEquality; NoComparison>] Event<'a, 's when 's :> Participant> =
+    { Data : 'a
+      Subscriber : 's
+      Publisher : Participant
+      Address : 'a Address
+      Trace : EventTrace }
+
+/// The generalized event type (can be used to handle any event).
+type EventGeneralized = Event<obj, Participant>
+
 /// An entry in the subscription map.
 type [<Struct; NoEquality; NoComparison>] SubscriptionEntry =
     { SubscriptionKey : Guid
-      Subscriber : Participant
+      SubscriberEntry : Participant
       Callback : obj }
 
 /// Abstracts over a subscription sorting procedure.

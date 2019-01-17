@@ -6,27 +6,6 @@ open System
 open System.Collections.Generic
 open Prime
 
-/// Describes whether an in-flight event has been resolved or should cascade to down-stream handlers.
-type [<Struct>] Handling =
-    | Resolve
-    | Cascade
-
-/// Specifies whether an event-based application is running or exiting.
-type [<Struct>] Liveness =
-    | Running
-    | Exiting
-
-/// An event used by the event system.
-type [<Struct; NoEquality; NoComparison>] Event<'a, 's when 's :> Participant> =
-    { Data : 'a
-      Subscriber : 's
-      Publisher : Participant
-      Address : 'a Address
-      Trace : EventTrace }
-
-/// The generalized event type (can be used to handle any event).
-type EventGeneralized = Event<obj, Participant>
-
 /// A publisher-neutral event system.
 /// Effectively a mix-in for the 'w type, where 'w is a type that represents the client program.
 type EventWorld<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> =
@@ -211,8 +190,8 @@ module EventWorld =
         (IComparable * SubscriptionEntry) array =
         Array.map
             (fun (subscription : SubscriptionEntry) ->
-                let priority = getSortPriority subscription.Subscriber world
-                (priority, { SubscriptionKey = subscription.SubscriptionKey; Subscriber = subscription.Subscriber; Callback = subscription.Callback }))
+                let priority = getSortPriority subscription.SubscriberEntry world
+                (priority, { SubscriptionKey = subscription.SubscriptionKey; SubscriberEntry = subscription.SubscriberEntry; Callback = subscription.Callback }))
             subscriptions
 
     let private getSubscriptionsSorted (publishSorter : SubscriptionSorter<'w>) eventAddress allowWildcard (world : 'w) =
@@ -305,7 +284,7 @@ module EventWorld =
 #if DEBUG
                         let world = pushEventAddress objEventAddress world
 #endif
-                        let (handling, world) = world.PublishEventHook subscription.Subscriber publisher eventData eventAddress eventTrace subscription.Callback world
+                        let (handling, world) = world.PublishEventHook subscription.SubscriberEntry publisher eventData eventAddress eventTrace subscription.Callback world
 #if DEBUG
                         let world = popEventAddress world
 #endif
@@ -330,7 +309,7 @@ module EventWorld =
             if FOption.isSome subscriptionsArrayOpt then
                 let subscriptionsArray =
                     FOption.get subscriptionsArrayOpt |>
-                    Array.remove (fun subscription -> subscription.SubscriptionKey = subscriptionKey && subscription.Subscriber = subscriber)
+                    Array.remove (fun subscription -> subscription.SubscriptionKey = subscriptionKey && subscription.SubscriberEntry = subscriber)
                 let subscriptions = 
                     match subscriptionsArray with
                     | [||] -> UMap.remove eventAddress subscriptions
@@ -356,7 +335,7 @@ module EventWorld =
             let subscriptions =
                 let subscriptionEntry =
                     { SubscriptionKey = subscriptionKey
-                      Subscriber = subscriber :> Participant
+                      SubscriberEntry = subscriber :> Participant
                       Callback = boxSubscription subscription }
                 let subscriptionEntriesOpt = UMap.tryFindFast objEventAddress subscriptions
                 if FOption.isSome subscriptionEntriesOpt then
