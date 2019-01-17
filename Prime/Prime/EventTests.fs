@@ -15,13 +15,18 @@ module EventTests =
 
     type [<ReferenceEquality>] TestWorld =
         { TestState : int
-          TestEventSystem : TestWorld EventSystem }
+          TestEventDelegate : TestWorld EventDelegate }
         interface EventWorld<TestParticipant, TestWorld> with
             member this.GetLiveness () = Running
-            member this.GetEventSystem () = this.TestEventSystem
-            member this.UpdateEventSystem updater = { this with TestEventSystem = updater this.TestEventSystem }
+            member this.GetGlobalParticipantSpecialized () = EventDelegate.getGlobalParticipantSpecialized this.TestEventDelegate
+            member this.GetGlobalParticipantGeneralized () = EventDelegate.getGlobalParticipantGeneralized this.TestEventDelegate
             member this.ParticipantExists participant = participant.GetType () = typeof<TestParticipant>
-            member this.PublishEvent (participant : Participant) publisher eventData eventAddress eventTrace subscription world =
+            member this.GetPropertyOpt _ _ = failwithnie ()
+            member this.SetPropertyOpt _ _ _ = failwithnie ()
+            member this.HandlePropertyChange _ _ _ = failwithnie ()
+            member this.GetEventDelegateHook () = this.TestEventDelegate
+            member this.UpdateEventDelegateHook updater = { this with TestEventDelegate = updater this.TestEventDelegate }
+            member this.PublishEventHook (participant : Participant) publisher eventData eventAddress eventTrace subscription world =
                 match participant with
                 | :? GlobalParticipantGeneralized -> EventWorld.publishEvent<'a, 'p, Participant, TestParticipant, TestWorld> participant publisher eventData eventAddress eventTrace subscription world
                 | :? TestParticipant -> EventWorld.publishEvent<'a, 'p, TestParticipant, TestParticipant, TestWorld> participant publisher eventData eventAddress eventTrace subscription world
@@ -29,7 +34,7 @@ module EventTests =
         static member incTestState this =
             { this with TestState = inc this.TestState }
         static member make eventTracer eventTracing eventFilter globalParticipant globalContext =
-            { TestState = 0; TestEventSystem = EventSystem.make eventTracer eventTracing eventFilter globalParticipant globalContext }
+            { TestState = 0; TestEventDelegate = EventDelegate.make eventTracer eventTracing eventFilter globalParticipant globalContext }
 
     let TestEvent = ntoa<int> "Inc"
     let TestEvent2 = ntoa<bool> "Flag"

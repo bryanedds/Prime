@@ -2,7 +2,6 @@
 // Copyright (C) Bryan Edds, 2013-2018.
 
 namespace Prime
-open System
 open System.Diagnostics
 open Prime
 
@@ -128,7 +127,7 @@ module Chain =
         run2 m world |> fst
 
     let private run4 handling (chain : Chain<Event<'a, Participant>, unit, 'g, 'w>) (stream : Stream<'a, 'g, 'w>) (world : 'w) =
-        let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalParticipantGeneralized
+        let globalParticipant = EventWorld.getGlobalParticipantGeneralized world
         let stateKey = makeGuid ()
         let subscriptionKey = makeGuid ()
         let world = EventWorld.addEventState stateKey (fun (_ : Event<'a, Participant>) -> chain) world
@@ -150,13 +149,13 @@ module Chain =
         let world = EventWorld.subscribePlus<'a, Participant, 'g, 'w> subscriptionKey subscription eventAddress globalParticipant world |> snd
         (unsubscribe, world)
 
-    /// Run a chain over Nu's event system.
+    /// Run a chain over Prime's event system.
     /// Allows each chainhronized operation to run without referencing its source event, and
     /// without specifying its event handling approach by assuming Cascade.
     let runAssumingCascade chain (stream : Stream<'a, 'g, 'w>) world =
         run4 Cascade chain stream world
 
-    /// Run a chain over Nu's event system.
+    /// Run a chain over Prime's event system.
     /// Allows each chainhronized operation to run without referencing its source event, and
     /// without specifying its event handling approach by assuming Resolve.
     let runAssumingResolve chain (stream : Stream<'a, 'g, 'w>) world =

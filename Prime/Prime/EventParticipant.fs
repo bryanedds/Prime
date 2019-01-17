@@ -2,7 +2,6 @@
 // Copyright (C) Bryan Edds, 2013-2018.
 
 namespace Prime
-open System
 open Prime
 
 /// A participant in the event system.
@@ -11,7 +10,7 @@ type Participant =
         abstract member ParticipantAddress : Participant Address
         end
 
-/// A participant in the event system that is globalized and compatible with generatlized events.
+/// A participant in the event system that is globalized and compatible with generalized events.
 type [<StructuralEquality; NoComparison>] GlobalParticipantGeneralized =
     { GpgAddress : GlobalParticipantGeneralized Address }
     interface Participant with

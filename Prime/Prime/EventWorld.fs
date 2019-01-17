@@ -6,16 +6,47 @@ open System
 open System.Collections.Generic
 open Prime
 
-/// The context in which all events take place. Effectively a mix-in for the 'w type, where 'w is a type that
-/// represents the client program.
+/// Describes whether an in-flight event has been resolved or should cascade to down-stream handlers.
+type [<Struct>] Handling =
+    | Resolve
+    | Cascade
+
+/// Specifies whether an event-based application is running or exiting.
+type [<Struct>] Liveness =
+    | Running
+    | Exiting
+
+/// An event used by the event system.
+type [<Struct; NoEquality; NoComparison>] Event<'a, 's when 's :> Participant> =
+    { Data : 'a
+      Subscriber : 's
+      Publisher : Participant
+      Address : 'a Address
+      Trace : EventTrace }
+
+/// The generalized event type (can be used to handle any event).
+type EventGeneralized = Event<obj, Participant>
+
+/// A publisher-neutral event system.
+/// Effectively a mix-in for the 'w type, where 'w is a type that represents the client program.
 type EventWorld<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> =
     interface
+        inherit EventSystem<'w>
         abstract member GetLiveness : unit -> Liveness
-        abstract member GetEventSystem : unit -> 'w EventSystem
-        abstract member UpdateEventSystem : ('w EventSystem -> 'w EventSystem) -> 'w
-        abstract member ParticipantExists : Participant -> bool
-        abstract member PublishEvent<'a, 'p when 'p :> Participant> : Participant -> 'p -> 'a -> 'a Address -> EventTrace -> obj -> 'w -> Handling * 'w
+        abstract member GetGlobalParticipantSpecialized : unit -> Participant
+        abstract member GetGlobalParticipantGeneralized : unit -> GlobalParticipantGeneralized
+        abstract member GetEventDelegateHook : unit -> 'w EventDelegate
+        abstract member UpdateEventDelegateHook : ('w EventDelegate -> 'w EventDelegate) -> 'w
+        abstract member PublishEventHook<'a, 'p when 'p :> Participant> : Participant -> 'p -> 'a -> 'a Address -> EventTrace -> obj -> 'w -> Handling * 'w
         end
+
+/// Handles participant property changes.
+and ParticipantPropertyChangeHandler<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> =
+    EventWorld<'g, 'w> -> EventWorld<'g, 'w> -> EventWorld<'g, 'w>
+
+/// Detaches a participant property change handler.
+and ParticipantPropertyChangeUnhandler<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> =
+    EventWorld<'g, 'w> -> EventWorld<'g, 'w>
 
 [<RequireQualifiedAccess>]
 module EventWorld =
@@ -23,75 +54,72 @@ module EventWorld =
     let mutable EventAddressCaching = false
     let EventAddressCache = Dictionary<obj, obj> HashIdentity.Structural
     let EventAddressListCache = Dictionary<obj Address, obj List> HashIdentity.Structural
-
-    /// Get the event system.
-    let getEventSystem<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> (world : 'w) =
-        world.GetEventSystem ()
-
-    /// Get the event system as tranformed via 'by'.
-    let getEventSystemBy<'a, 'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> (by : 'w EventSystem -> 'a) (world : 'w) : 'a =
-        let eventSystem = world.GetEventSystem ()
+    
+    let private getEventDelegate<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> (world : 'w) =
+        world.GetEventDelegateHook ()
+        
+    let private getEventDelegateBy<'a, 'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> (by : 'w EventDelegate -> 'a) (world : 'w) : 'a =
+        let eventSystem = world.GetEventDelegateHook ()
         by eventSystem
-
-    /// Update the event system in the world.
-    let updateEventSystem<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> updater (world : 'w) =
-        world.UpdateEventSystem updater
+        
+    let private updateEventDelegate<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> updater (world : 'w) =
+        world.UpdateEventDelegateHook updater
 
     /// Get event subscriptions.
     let getSubscriptions<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> (world : 'w) =
-        getEventSystemBy EventSystem.getSubscriptions world
+        getEventDelegateBy EventDelegate.getSubscriptions world
 
     /// Get event unsubscriptions.
     let getUnsubscriptions<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> (world : 'w) =
-        getEventSystemBy EventSystem.getUnsubscriptions world
+        getEventDelegateBy EventDelegate.getUnsubscriptions world
 
     /// Set event subscriptions.
     let private setSubscriptions<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> subscriptions (world : 'w) =
-        world.UpdateEventSystem (EventSystem.setSubscriptions subscriptions)
+        updateEventDelegate (EventDelegate.setSubscriptions subscriptions) world
 
     /// Set event unsubscriptions.
     let private setUnsubscriptions<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> unsubscriptions (world : 'w) =
-        world.UpdateEventSystem (EventSystem.setUnsubscriptions unsubscriptions)
+        updateEventDelegate (EventDelegate.setUnsubscriptions unsubscriptions) world
 
     /// Add event state to the world.
     let addEventState<'a, 'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> key (state : 'a) (world : 'w) =
-        world.UpdateEventSystem (EventSystem.addEventState key state)
+        updateEventDelegate (EventDelegate.addEventState key state) world
 
     /// Remove event state from the world.
     let removeEventState<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> key (world : 'w) =
-        world.UpdateEventSystem (EventSystem.removeEventState key)
+        updateEventDelegate (EventDelegate.removeEventState key) world
 
     /// Get event state from the world.
     let getEventState<'a, 'g ,'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> key (world : 'w) : 'a =
-        getEventSystemBy (EventSystem.getEventState<'a, 'w> key) world
+        getEventDelegateBy (EventDelegate.getEventState<'a, 'w> key) world
 
     /// Get whether events are being traced.
     let getEventTracing<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> (world : 'w) =
-        getEventSystemBy EventSystem.getEventTracing<'w> world
+        getEventDelegateBy EventDelegate.getEventTracing<'w> world
 
     /// Set whether events are being traced.
     let setEventTracing<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> tracing (world : 'w) =
-        updateEventSystem (EventSystem.setEventTracing tracing) world
+        updateEventDelegate (EventDelegate.setEventTracing tracing) world
 
     /// Get the state of the event filter.
     let getEventFilter<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> (world : 'w) =
-        getEventSystemBy EventSystem.getEventFilter world
+        getEventDelegateBy EventDelegate.getEventFilter world
 
     /// Set the state of the event filter.
     let setEventFilter<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> filter (world : 'w) =
-        updateEventSystem (EventSystem.setEventFilter filter) world
+        updateEventDelegate (EventDelegate.setEventFilter filter) world
 
     /// Get the event context of the world.
     let getEventContext<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> (world : 'w) =
-        getEventSystemBy EventSystem.getEventContext world
+        getEventDelegateBy EventDelegate.getEventContext world
 
     /// Set the event context of the world.
     let setEventContext<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> context (world : 'w) =
-        EventSystem.setEventContext context (world.GetEventSystem ())
+        EventDelegate.setEventContext context (getEventDelegate world)
 
     /// Qualify the event context of the world.
     let qualifyEventContext<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> (address : obj Address) (world : 'w) =
-        getEventSystemBy (EventSystem.qualifyEventContext address) world
+        getEventDelegateBy (EventDelegate.qualifyEventContext address) world
 
     /// Set whether event addresses are cached internally.
     /// If you enable caching, be sure to use EventWorld.cleanEventAddressCache to keep the cache from expanding
@@ -188,8 +216,8 @@ module EventWorld =
             subscriptions
 
     let private getSubscriptionsSorted (publishSorter : SubscriptionSorter<'w>) eventAddress allowWildcard (world : 'w) =
-        let eventSystem = getEventSystem world
-        let eventSubscriptions = EventSystem.getSubscriptions eventSystem
+        let eventSystem = getEventDelegate world
+        let eventSubscriptions = EventDelegate.getSubscriptions eventSystem
         let eventAddresses = getEventAddresses2 eventAddress allowWildcard
         let subscriptionOpts = Array.map (fun eventAddress -> UMap.tryFindFast eventAddress eventSubscriptions) eventAddresses
         let subscriptionOpts = Array.filter FOption.isSome subscriptionOpts
@@ -198,16 +226,25 @@ module EventWorld =
         publishSorter subscriptions world
 
     let private logEvent<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> eventAddress eventTrace (world : 'w) =
-        EventSystem.logEvent<'w> eventAddress eventTrace (getEventSystem world)
+        EventDelegate.logEvent<'w> eventAddress eventTrace (getEventDelegate world)
 
     let private pushEventAddress<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> eventAddress (world : 'w) =
-        updateEventSystem (EventSystem.pushEventAddress eventAddress) world
+        updateEventDelegate (EventDelegate.pushEventAddress eventAddress) world
 
     let private popEventAddress<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> (world : 'w) =
-        updateEventSystem EventSystem.popEventAddress world
+        updateEventDelegate EventDelegate.popEventAddress world
 
     let private getEventAddresses<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> (world : 'w) =
-        getEventSystemBy EventSystem.getEventAddresses world
+        getEventDelegateBy EventDelegate.getEventAddresses world
+
+    let getLiveness<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> (world : 'w) =
+        world.GetLiveness ()
+
+    let getGlobalParticipantSpecialized<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> (world : 'w) =
+        world.GetGlobalParticipantSpecialized ()
+
+    let getGlobalParticipantGeneralized<'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>> (world : 'w) =
+        world.GetGlobalParticipantGeneralized ()
 
     /// Publish an event directly.
     let publishEvent<'a, 'p, 's, 'g, 'w when 'p :> Participant and 's :> Participant and 'g :> Participant and 'w :> EventWorld<'g, 'w>>
@@ -268,7 +305,7 @@ module EventWorld =
 #if DEBUG
                         let world = pushEventAddress objEventAddress world
 #endif
-                        let (handling, world) = world.PublishEvent subscription.Subscriber publisher eventData eventAddress eventTrace subscription.Callback world
+                        let (handling, world) = world.PublishEventHook subscription.Subscriber publisher eventData eventAddress eventTrace subscription.Callback world
 #if DEBUG
                         let world = popEventAddress world
 #endif
@@ -305,7 +342,7 @@ module EventWorld =
                     eventAddress
                     (ltoa<obj Address> ["Unsubscribe"; "Event"])
                     (EventTrace.record "EventWorld" "unsubscribe" EventTrace.empty)
-                    (EventSystem.getGlobalParticipantSpecialized (world.GetEventSystem ()))
+                    (getGlobalParticipantSpecialized world)
                     world
             else world
         else world
@@ -334,7 +371,7 @@ module EventWorld =
                     objEventAddress
                     (ltoa<obj Address> ["Subscribe"; "Event"])
                     (EventTrace.record "EventWorld" "subscribePlus5" EventTrace.empty)
-                    (EventSystem.getGlobalParticipantSpecialized (world.GetEventSystem ()))
+                    (getGlobalParticipantSpecialized world)
                     world
             (unsubscribe<'g, 'w> subscriptionKey, world)
         else failwith "Event name cannot be empty."

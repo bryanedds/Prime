@@ -24,7 +24,7 @@ module Stream =
     let [<DebuggerHidden; DebuggerStepThrough>] make<'a, 'g, 'w when 'g :> Participant and 'w :> EventWorld<'g, 'w>>
         (eventAddress : 'a Address) : Stream<'a, 'g, 'w> =
         let subscribe = fun (world : 'w) ->
-            let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalParticipantGeneralized
+            let globalParticipant = EventWorld.getGlobalParticipantGeneralized world
             let subscriptionKey = makeGuid ()
             let subscriptionAddress = ntoa<'a> (scstring subscriptionKey)
             let unsubscribe = fun world -> EventWorld.unsubscribe<'g, 'w> subscriptionKey world
@@ -45,7 +45,7 @@ module Stream =
         (stream : Stream<'a, 'g, 'w>) :
         Stream<'b, 'g, 'w> =
         let subscribe = fun (world : 'w) ->
-            let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalParticipantGeneralized
+            let globalParticipant = EventWorld.getGlobalParticipantGeneralized world
             let stateKey = makeGuid ()
             let world = EventWorld.addEventState stateKey state world
             let subscriptionKey = makeGuid ()
@@ -75,7 +75,7 @@ module Stream =
         (stream : Stream<'a, 'g, 'w>) :
         Stream<'a, 'g, 'w> =
         let subscribe = fun (world : 'w) ->
-            let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalParticipantGeneralized
+            let globalParticipant = EventWorld.getGlobalParticipantGeneralized world
             let stateKey = makeGuid ()
             let world = EventWorld.addEventState stateKey None world
             let subscriptionKey = makeGuid ()
@@ -103,7 +103,7 @@ module Stream =
     let [<DebuggerHidden; DebuggerStepThrough>] trackEffect
         (tracker : 'b -> 'w -> 'b * bool * 'w) (state : 'b) (stream : Stream<'a, 'g, 'w>) : Stream<'a, 'g, 'w> =
         let subscribe = fun (world : 'w) ->
-            let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalParticipantGeneralized
+            let globalParticipant = EventWorld.getGlobalParticipantGeneralized world
             let stateKey = makeGuid ()
             let world = EventWorld.addEventState stateKey state world
             let subscriptionKey = makeGuid ()
@@ -143,7 +143,7 @@ module Stream =
     let [<DebuggerHidden; DebuggerStepThrough>] filterEffect
         (pred : Event<'a, Participant> -> 'w -> bool * 'w) (stream : Stream<'a, 'g, 'w>) =
         let subscribe = fun (world : 'w) ->
-            let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalParticipantGeneralized
+            let globalParticipant = EventWorld.getGlobalParticipantGeneralized world
             let subscriptionKey = makeGuid ()
             let subscriptionAddress = ntoa<'a> (scstring subscriptionKey)
             let (eventAddress, unsubscribe, world) = stream.Subscribe world
@@ -166,7 +166,7 @@ module Stream =
     let [<DebuggerHidden; DebuggerStepThrough>] mapEffect
         (mapper : Event<'a, Participant> -> 'w -> 'b * 'w) (stream : Stream<'a, 'g, 'w>) : Stream<'b, 'g, 'w> =
         let subscribe = fun (world : 'w) ->
-            let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalParticipantGeneralized
+            let globalParticipant = EventWorld.getGlobalParticipantGeneralized world
             let subscriptionKey = makeGuid ()
             let subscriptionAddress = ntoa<'b> (scstring subscriptionKey)
             let (eventAddress, unsubscribe, world) = stream.Subscribe world
@@ -189,7 +189,7 @@ module Stream =
         let subscribe = fun (world : 'w) ->
 
             // initialize event state, subscription keys and addresses
-            let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalParticipantGeneralized
+            let globalParticipant = EventWorld.getGlobalParticipantGeneralized world
             let stateKey = makeGuid ()
             let state = (List.empty<Event<'a, Participant>>, List.empty<Event<'b, Participant>>)
             let world = EventWorld.addEventState stateKey state world
@@ -389,7 +389,7 @@ module Stream =
             let (subscriptionAddress, unsubscribe, world) = stream.Subscribe world
             let (subscriptionAddress', unsubscribe', world) = stream2.Subscribe world
             let subscriptionAddress'' = ntoa<Either<'a, 'b>> (scstring subscriptionKey'')
-            let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalParticipantGeneralized
+            let globalParticipant = EventWorld.getGlobalParticipantGeneralized world
             let unsubscribe = fun world ->
                 let world = unsubscribe (unsubscribe' world)
                 let world = EventWorld.unsubscribe<'g, 'w> subscriptionKey world
@@ -413,7 +413,7 @@ module Stream =
     let [<DebuggerHidden; DebuggerStepThrough>] until
         (stream : Stream<'b, 'g, 'w>) (stream2 : Stream<'a, 'g, 'w>) : Stream<'a, 'g, 'w> =
         let subscribe = fun (world : 'w) ->
-            let globalParticipant = world.GetEventSystem () |> EventSystem.getGlobalParticipantGeneralized
+            let globalParticipant = EventWorld.getGlobalParticipantGeneralized world
             let subscriptionKey = makeGuid ()
             let subscriptionKey' = makeGuid ()
             let subscriptionKey'' = makeGuid ()

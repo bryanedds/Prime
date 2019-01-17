@@ -99,6 +99,14 @@ module Operators =
     let assignTypeConverter<'t, 'c> () =
         TypeDescriptor.AddAttributes (typeof<'t>, TypeConverterAttribute typeof<'c>) |> ignore
 
+    /// The bracket function for automatic resource handling.
+    let bracket make action destroy =
+        let resource = make ()
+        let result =
+            try action resource
+            finally destroy resource
+        result
+
     /// Make a Guid.
     let inline makeGuid () =
         Guid.NewGuid ()
