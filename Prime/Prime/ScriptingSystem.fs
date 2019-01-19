@@ -14,7 +14,7 @@ open Prime.ScriptingPrimitives
 
 /// The context in which scripting takes place. Effectively a mix-in for the 'w type, where 'w is a type that
 /// represents the client program.
-type ScriptingWorld<'w when 'w :> 'w ScriptingWorld> =
+type ScriptingSystem<'w when 'w :> 'w ScriptingSystem> =
     interface
         abstract member GetEnv : unit -> Env
         abstract member TryGetExtrinsic : string -> 'w ScriptingTrinsic FOption
@@ -23,13 +23,13 @@ type ScriptingWorld<'w when 'w :> 'w ScriptingWorld> =
         end
 
 /// The type for intrinsic and extrinsic scripting functions.
-and [<NoEquality; NoComparison>] ScriptingTrinsic<'w when 'w :> 'w ScriptingWorld> =
+and [<NoEquality; NoComparison>] ScriptingTrinsic<'w when 'w :> 'w ScriptingSystem> =
     { Fn : string -> Expr array -> SymbolOrigin option -> 'w -> struct (Expr * 'w)
       Pars : string list
       DocOpt : string option }
 
 [<RequireQualifiedAccess>]
-module ScriptingWorld =
+module ScriptingSystem =
 
     let mutable private Intrinsics =
         Unchecked.defaultof<obj>
@@ -38,43 +38,43 @@ module ScriptingWorld =
         // TODO: can we blit this into a global mutable string for most cases in order to avoid allocation?
         fnName + "_" + typeName
 
-    let inline annotateWorld<'w when 'w :> 'w ScriptingWorld> (_ : 'w) =
+    let inline annotateWorld<'w when 'w :> 'w ScriptingSystem> (_ : 'w) =
         () // NOTE: simply infers that a type is a world.
 
-    let tryGetBinding<'w when 'w :> 'w ScriptingWorld> name cachedBinding bindingType (world : 'w) =
+    let tryGetBinding<'w when 'w :> 'w ScriptingSystem> name cachedBinding bindingType (world : 'w) =
         Env.tryGetBinding name cachedBinding bindingType (world.GetEnv ())
 
-    let tryAddDeclarationBinding<'w when 'w :> 'w ScriptingWorld> name value (world : 'w) =
+    let tryAddDeclarationBinding<'w when 'w :> 'w ScriptingSystem> name value (world : 'w) =
         Env.tryAddDeclarationBinding name value (world.GetEnv ())
 
-    let addProceduralBinding<'w when 'w :> 'w ScriptingWorld> appendType name value (world : 'w) =
+    let addProceduralBinding<'w when 'w :> 'w ScriptingSystem> appendType name value (world : 'w) =
         Env.addProceduralBinding appendType name value (world.GetEnv ())
 
-    let addProceduralBindings<'w when 'w :> 'w ScriptingWorld> appendType bindings (world : 'w) =
+    let addProceduralBindings<'w when 'w :> 'w ScriptingSystem> appendType bindings (world : 'w) =
         Env.addProceduralBindings appendType bindings (world.GetEnv ())
 
-    let removeProceduralBindings<'w when 'w :> 'w ScriptingWorld> (world : 'w) =
+    let removeProceduralBindings<'w when 'w :> 'w ScriptingSystem> (world : 'w) =
         Env.removeProceduralBindings (world.GetEnv ())
 
-    let getProceduralFrames<'w when 'w :> 'w ScriptingWorld> (world : 'w) =
+    let getProceduralFrames<'w when 'w :> 'w ScriptingSystem> (world : 'w) =
         Env.getProceduralFrames (world.GetEnv ())
 
-    let setProceduralFrames<'w when 'w :> 'w ScriptingWorld> proceduralFrames (world : 'w) =
+    let setProceduralFrames<'w when 'w :> 'w ScriptingSystem> proceduralFrames (world : 'w) =
         Env.setProceduralFrames proceduralFrames (world.GetEnv ())
 
-    let getGlobalFrame<'w when 'w :> 'w ScriptingWorld> (world : 'w) =
+    let getGlobalFrame<'w when 'w :> 'w ScriptingSystem> (world : 'w) =
         Env.getGlobalFrame (world.GetEnv ())
 
-    let getLocalFrame<'w when 'w :> 'w ScriptingWorld> (world : 'w) =
+    let getLocalFrame<'w when 'w :> 'w ScriptingSystem> (world : 'w) =
         Env.getLocalFrame (world.GetEnv ())
 
-    let setLocalFrame<'w when 'w :> 'w ScriptingWorld> localFrame (world : 'w) =
+    let setLocalFrame<'w when 'w :> 'w ScriptingSystem> localFrame (world : 'w) =
         Env.setLocalFrame localFrame (world.GetEnv ())
 
-    let tryImport<'w when 'w :> 'w ScriptingWorld> ty value (world : 'w) =
+    let tryImport<'w when 'w :> 'w ScriptingSystem> ty value (world : 'w) =
         tryImport world.TryImport ty value
 
-    let tryExport<'w when 'w :> 'w ScriptingWorld> ty value (world : 'w) =
+    let tryExport<'w when 'w :> 'w ScriptingSystem> ty value (world : 'w) =
         tryExport world.TryExport ty value
 
     let log expr =
@@ -86,7 +86,7 @@ module ScriptingWorld =
                  SymbolOrigin.tryPrint originOpt + "\n")
         | _ -> ()
 
-    let rec getIntrinsics<'w when 'w :> 'w ScriptingWorld> () =
+    let rec getIntrinsics<'w when 'w :> 'w ScriptingSystem> () =
         if isNull Intrinsics then
             let intrinsics =
                 [("=", { Fn = evalBinary EqFns; Pars = ["a"; "b"]; DocOpt = Some "Determine equality." })
@@ -197,7 +197,7 @@ module ScriptingWorld =
             intrinsics
         else Intrinsics :?> Dictionary<string, 'w ScriptingTrinsic>
 
-    and internal evalIntrinsicInner<'w when 'w :> 'w ScriptingWorld> fnName argsEvaled originOpt (world : 'w) =
+    and internal evalIntrinsicInner<'w when 'w :> 'w ScriptingSystem> fnName argsEvaled originOpt (world : 'w) =
         let intrinsics = getIntrinsics ()
         match intrinsics.TryGetValue fnName with
         | (true, intrinsic) -> intrinsic.Fn fnName argsEvaled originOpt world
@@ -249,7 +249,7 @@ module ScriptingWorld =
         let fields = evaledPairs |> List.map snd |> Array.ofList
         struct (Record (name, map, fields), world)
 
-    and evalBinding<'w when 'w :> 'w ScriptingWorld> expr name cachedBinding bindingType originOpt (world : 'w) =
+    and evalBinding<'w when 'w :> 'w ScriptingSystem> expr name cachedBinding bindingType originOpt (world : 'w) =
         match tryGetBinding name cachedBinding bindingType world with
         | None ->
             match !bindingType with
@@ -356,7 +356,7 @@ module ScriptingWorld =
         | Left error -> error
 
     // TODO: decompose this function - it's too hard to read
-    and evalApply<'w when 'w :> 'w ScriptingWorld> (exprs : Expr array) (originOpt : SymbolOrigin option) (world : 'w) : struct (Expr * 'w) =
+    and evalApply<'w when 'w :> 'w ScriptingSystem> (exprs : Expr array) (originOpt : SymbolOrigin option) (world : 'w) : struct (Expr * 'w) =
         if Array.notEmpty exprs then
             let (exprsHead, exprsTail) = (Array.head exprs, Array.tail exprs)
             let struct (headEvaled, world) = eval exprsHead world in annotateWorld world // force the type checker to see the world as it is

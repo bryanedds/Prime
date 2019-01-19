@@ -9,7 +9,7 @@ module ScriptingTests =
 
     type [<ReferenceEquality>] TestWorld =
         { ScriptingEnv : Scripting.Env }
-        interface TestWorld ScriptingWorld with
+        interface TestWorld ScriptingSystem with
             member this.GetEnv () = this.ScriptingEnv
             member this.TryGetExtrinsic _ = FOption.none ()
             member this.TryImport _ _ = failwithnie ()
@@ -18,10 +18,10 @@ module ScriptingTests =
 
     let evalPartial exprStr =
         let world = TestWorld.make ()
-        match ScriptingWorld.tryEvalScript id Constants.Scripting.PreludeFilePath world with
+        match ScriptingSystem.tryEvalScript id Constants.Scripting.PreludeFilePath world with
         | Right struct (_, _, world) ->
             let expr = scvalue<Scripting.Expr> exprStr
-            ScriptingWorld.eval expr world |> fst'
+            ScriptingSystem.eval expr world |> fst'
         | Left _ ->
             Assert.True false
             Scripting.Unit
