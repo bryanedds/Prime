@@ -2,13 +2,13 @@
 // Copyright (C) Bryan Edds, 2013-2018.
 
 namespace Prime
+open System
 open Prime
 
-/// A participant in the event system.
-type Participant =
-    interface
-        abstract member ParticipantAddress : Participant Address
-        end
+/// The data for a change in a participant.
+type [<Struct; StructuralEquality; NoComparison>] 'w ParticipantChangeData =
+    { PropertyName : string
+      OldWorld : 'w }
 
 /// A participant in the event system that is globalized and compatible with generalized events.
 type [<StructuralEquality; NoComparison>] GlobalParticipantGeneralized =
@@ -16,22 +16,6 @@ type [<StructuralEquality; NoComparison>] GlobalParticipantGeneralized =
     interface Participant with
         member this.ParticipantAddress = atoa<GlobalParticipantGeneralized, Participant> this.GpgAddress
         end
-
-/// Operators for the Participant type.
-type ParticipantOperators =
-    private
-        | ParticipantOperators
-
-    /// Concatenate two addresses, forcing the type of first address.
-    static member acatf<'a> (address : 'a Address) (participant : Participant) = acatf address (atooa participant.ParticipantAddress)
-
-    /// Concatenate two addresses, takings the type of first address.
-    static member (->-) (address, participant : Participant) = ParticipantOperators.acatf address participant
-
-/// The data for a change in a participant.
-type [<Struct; StructuralEquality; NoComparison>] 'w ParticipantChangeData =
-    { PropertyName : string
-      OldWorld : 'w }
 
 /// Describes a property of a participant.
 /// Similar to a Haskell lens, but specialized to properties.

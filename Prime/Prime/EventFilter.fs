@@ -1,7 +1,11 @@
-﻿namespace Prime
+﻿// Prime - A PRIMitivEs code library.
+// Copyright (C) Bryan Edds, 2013-2018.
+
+namespace Prime
 open System
 open System.ComponentModel
 open System.Text.RegularExpressions
+open Prime
 
 /// Converts Rexpr types.
 type RexprConverter () =

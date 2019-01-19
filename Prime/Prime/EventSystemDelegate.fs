@@ -54,11 +54,11 @@ module Events =
     let Wildcard = ntoa<obj> "@"
 
 [<AutoOpen>]
-module EventDelegate =
+module EventSystemDelegate =
 
-    /// The implementation portion of EventWorld.
+    /// The implementation portion of EventSystem.
     /// OPTIMIZATION: EventContext mutable for speed.
-    type [<ReferenceEquality>] 'w EventDelegate =
+    type [<ReferenceEquality>] 'w EventSystemDelegate =
         private
             { Subscriptions : SubscriptionEntries
               Unsubscriptions : UnsubscriptionEntries
@@ -72,71 +72,71 @@ module EventDelegate =
               EventAddresses : obj Address list }
 
     [<RequireQualifiedAccess>]
-    module EventDelegate =
+    module EventSystemDelegate =
 
         /// The TConfig of Xtension's T/U structures.
         let Config = Functional
 
         /// Add event state.
-        let addEventState<'a, 'w> key (state : 'a) (eventSystem : 'w EventDelegate) =
-            { eventSystem with EventStates = UMap.add key (state :> obj) eventSystem.EventStates }
+        let addEventState<'a, 'w> key (state : 'a) (esd : 'w EventSystemDelegate) =
+            { esd with EventStates = UMap.add key (state :> obj) esd.EventStates }
 
         /// Remove event state.
-        let removeEventState<'w> key (eventSystem : 'w EventDelegate) =
-            { eventSystem with EventStates = UMap.remove key eventSystem.EventStates }
+        let removeEventState<'w> key (esd : 'w EventSystemDelegate) =
+            { esd with EventStates = UMap.remove key esd.EventStates }
 
         /// Get subscriptions.
-        let getSubscriptions<'w> (eventSystem : 'w EventDelegate) =
-            eventSystem.Subscriptions
+        let getSubscriptions<'w> (esd : 'w EventSystemDelegate) =
+            esd.Subscriptions
 
         /// Get unsubscriptions.
-        let getUnsubscriptions<'w> (eventSystem : 'w EventDelegate) =
-            eventSystem.Unsubscriptions
+        let getUnsubscriptions<'w> (esd : 'w EventSystemDelegate) =
+            esd.Unsubscriptions
 
         /// Set subscriptions.
-        let internal setSubscriptions<'w> subscriptions (eventSystem : 'w EventDelegate) =
-            { eventSystem with Subscriptions = subscriptions }
+        let internal setSubscriptions<'w> subscriptions (esd : 'w EventSystemDelegate) =
+            { esd with Subscriptions = subscriptions }
 
         /// Set unsubscriptions.
-        let internal setUnsubscriptions<'w> unsubscriptions (eventSystem : 'w EventDelegate) =
-            { eventSystem with Unsubscriptions = unsubscriptions }
+        let internal setUnsubscriptions<'w> unsubscriptions (esd : 'w EventSystemDelegate) =
+            { esd with Unsubscriptions = unsubscriptions }
 
         /// Get event state.
-        let getEventState<'a, 'w> key (eventSystem : 'w EventDelegate) =
-            let state = UMap.find key eventSystem.EventStates
+        let getEventState<'a, 'w> key (esd : 'w EventSystemDelegate) =
+            let state = UMap.find key esd.EventStates
             state :?> 'a
 
         /// Get whether events are being traced.
-        let getEventTracing<'w> (eventSystem : 'w EventDelegate) =
-            eventSystem.EventTracing
+        let getEventTracing<'w> (esd : 'w EventSystemDelegate) =
+            esd.EventTracing
 
         /// Set whether events are being traced.
-        let setEventTracing<'w> tracing (eventSystem : 'w EventDelegate) =
-            { eventSystem with EventTracing = tracing }
+        let setEventTracing<'w> tracing (esd : 'w EventSystemDelegate) =
+            { esd with EventTracing = tracing }
 
         /// Get the state of the event filter.
-        let getEventFilter<'w> (eventSystem : 'w EventDelegate) =
-            eventSystem.EventFilter
+        let getEventFilter<'w> (esd : 'w EventSystemDelegate) =
+            esd.EventFilter
 
         /// Set the state of the event filter.
-        let setEventFilter<'w> filter (eventSystem : 'w EventDelegate) =
-            { eventSystem with EventFilter = filter }
+        let setEventFilter<'w> filter (esd : 'w EventSystemDelegate) =
+            { esd with EventFilter = filter }
 
         /// Get the context of the event system.
-        let getEventContext (eventSystem : 'w EventDelegate) =
-            eventSystem.EventContext
+        let getEventContext (esd : 'w EventSystemDelegate) =
+            esd.EventContext
 
         /// Get the specialized global participant of the event system.
-        let getGlobalParticipantSpecialized (eventSystem : 'w EventDelegate) =
-            eventSystem.GlobalParticipantSpecialized
+        let getGlobalParticipantSpecialized (esd : 'w EventSystemDelegate) =
+            esd.GlobalParticipantSpecialized
 
         /// Get the generalized global participant of the event system.
-        let getGlobalParticipantGeneralized (eventSystem : 'w EventDelegate) =
-            eventSystem.GlobalParticipantGeneralized
+        let getGlobalParticipantGeneralized (esd : 'w EventSystemDelegate) =
+            esd.GlobalParticipantGeneralized
 
         /// Qualify the event context of the world.
-        let qualifyEventContext (address : obj Address) (eventSystem : 'w EventDelegate) =
-            let context = getEventContext eventSystem
+        let qualifyEventContext (address : obj Address) (esd : 'w EventSystemDelegate) =
+            let context = getEventContext esd
             let contextAddress = context.ParticipantAddress
             let contextAddressLength = Address.length contextAddress
             let addressLength = Address.length address
@@ -150,28 +150,28 @@ module EventDelegate =
             else false
 
         /// Set the context of the event context.
-        let setEventContext context (eventSystem : 'w EventDelegate) =
-            eventSystem.EventContext <- context
+        let setEventContext context (esd : 'w EventSystemDelegate) =
+            esd.EventContext <- context
 
         /// Log an event.
-        let logEvent<'w> (address : obj Address) (trace : EventTrace) (eventSystem : 'w EventDelegate) =
-            if eventSystem.EventTracing then
+        let logEvent<'w> (address : obj Address) (trace : EventTrace) (esd : 'w EventSystemDelegate) =
+            if esd.EventTracing then
                 let addressStr = scstring address
                 let traceRev = List.rev trace // for efficiency during normal execution, trace is cons'd up into a reversed list
-                if EventFilter.filter addressStr traceRev eventSystem.EventFilter then
-                    eventSystem.EventTracer (addressStr + "|" + scstring traceRev)
+                if EventFilter.filter addressStr traceRev esd.EventFilter then
+                    esd.EventTracer (addressStr + "|" + scstring traceRev)
 
         /// Push an event address to the list for cycle-detection.
-        let pushEventAddress<'w> eventAddress (eventSystem : 'w EventDelegate) =
-            { eventSystem with EventAddresses = eventAddress :: eventSystem.EventAddresses }
+        let pushEventAddress<'w> eventAddress (esd : 'w EventSystemDelegate) =
+            { esd with EventAddresses = eventAddress :: esd.EventAddresses }
             
         /// Pop an event address to the list for cycle-detection.
-        let popEventAddress<'w> (eventSystem : 'w EventDelegate) =
-            { eventSystem with EventAddresses = List.tail eventSystem.EventAddresses }
+        let popEventAddress<'w> (esd : 'w EventSystemDelegate) =
+            { esd with EventAddresses = List.tail esd.EventAddresses }
             
         /// Get the current event address list for cycle-detection.
-        let getEventAddresses<'w> (eventSystem : 'w EventDelegate) =
-            eventSystem.EventAddresses
+        let getEventAddresses<'w> (esd : 'w EventSystemDelegate) =
+            esd.EventAddresses
 
         /// Make an event delegate.
         let make eventTracer eventTracing eventFilter globalParticipantSpecialized globalParticipantGeneralized =
@@ -186,5 +186,5 @@ module EventDelegate =
               EventFilter = eventFilter
               EventAddresses = [] }
               
-/// The implementation portion of EventWorld.
-type 'w EventDelegate = 'w EventDelegate.EventDelegate
+/// The implementation portion of EventSystem.
+type 'w EventSystemDelegate = 'w EventSystemDelegate.EventSystemDelegate

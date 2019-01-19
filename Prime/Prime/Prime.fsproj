@@ -105,12 +105,12 @@
     <Compile Include="Molder.fs" />
     <Compile Include="UserState.fs" />
     <Compile Include="Xtension.fs" />
+    <Compile Include="PropertySystem.fs" />
     <Compile Include="EventTrace.fs" />
     <Compile Include="EventFilter.fs" />
     <Compile Include="EventParticipant.fs" />
+    <Compile Include="EventSystemDelegate.fs" />
     <Compile Include="EventSystem.fs" />
-    <Compile Include="EventDelegate.fs" />
-    <Compile Include="EventWorld.fs" />
     <Compile Include="Stream.fs" />
     <Compile Include="Chain.fs" />
     <Compile Include="Scripting.fs" />
@@ -118,7 +118,7 @@
     <Compile Include="ScriptingBinary.fs" />
     <Compile Include="ScriptingMarshalling.fs" />
     <Compile Include="ScriptingPrimitives.fs" />
-    <Compile Include="ScriptingWorld.fs" />
+    <Compile Include="ScriptingSystem.fs" />
     <Compile Include="ListTests.fs" />
     <Compile Include="MapTests.fs" />
     <Compile Include="SetTests.fs" />

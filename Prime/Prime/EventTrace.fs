@@ -1,5 +1,9 @@
-﻿namespace Prime
+﻿// Prime - A PRIMitivEs code library.
+// Copyright (C) Bryan Edds, 2013-2018.
+
+namespace Prime
 open System
+open Prime
 
 type [<CLIMutable; ReferenceEquality>] EventInfo =
     { ModuleName : string
