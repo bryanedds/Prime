@@ -5,6 +5,24 @@ namespace Prime
 open System
 open Prime
 
+/// A participant in the observable-property system.
+type Participant =
+    interface
+        inherit Propertied
+        abstract member ParticipantAddress : Participant Address
+        end
+
+/// Operators for the Participant type.
+type ParticipantOperators =
+    private
+        | ParticipantOperators
+
+    /// Concatenate two addresses, forcing the type of first address.
+    static member acatf<'a> (address : 'a Address) (participant : Participant) = acatf address (atooa participant.ParticipantAddress)
+
+    /// Concatenate two addresses, takings the type of first address.
+    static member (->-) (address, participant : Participant) = ParticipantOperators.acatf address participant
+
 /// The data for a change in a participant.
 type [<Struct; StructuralEquality; NoComparison>] 'w ParticipantChangeData =
     { PropertyName : string
