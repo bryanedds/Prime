@@ -84,6 +84,7 @@
     <Compile Include="Dictionary.fs" />
     <Compile Include="Rand.fs" />
     <Compile Include="Symbol.fs" />
+    <Compile Include="PrettyPrinter.fs" />
     <Compile Include="Address.fs" />
     <Compile Include="Relation.fs" />
     <Compile Include="KeyedCache.fs" />
