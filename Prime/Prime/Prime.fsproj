@@ -120,6 +120,7 @@
     <Compile Include="ScriptingMarshalling.fs" />
     <Compile Include="ScriptingPrimitives.fs" />
     <Compile Include="ScriptingSystem.fs" />
+    <Compile Include="Whisp.fs" />
     <Compile Include="ListTests.fs" />
     <Compile Include="MapTests.fs" />
     <Compile Include="SetTests.fs" />
