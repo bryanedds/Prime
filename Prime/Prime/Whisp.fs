@@ -107,7 +107,11 @@ module Whisp =
         static member fromIndex index block =
             let blocks = Block.getFlattened block
             let candidates = Array.filter (Block.containsIndex index) blocks
-            match Array.sortBy Block.getLength candidates with
+            let biasedAgainstRoot =
+                if Array.length candidates > 1 && Array.contains block candidates
+                then Array.remove Block.isRoot candidates
+                else candidates
+            match Array.sortBy Block.getLength biasedAgainstRoot with
             | [||] -> block
             | ordered -> Array.head ordered
 
