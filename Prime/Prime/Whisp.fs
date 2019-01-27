@@ -285,6 +285,7 @@ module Whisp =
             else return! fail "Unexpected atom." }
 
     let skipUnit = skipString "()" >>. skipWhitespaces
+    let skipEquality = skipString "=" >>. skipWhitespaces
 
     let skipLet = skipAtom "let" >>. skipWhitespaces
     let skipIf = skipAtom "if" >>. skipWhitespaces
@@ -343,7 +344,7 @@ module Whisp =
             let! binding = inScope scope parseAtom
 
             // body
-            do! inScope scope (skipString "=" >>. skipWhitespaces)
+            do! inScope scope skipEquality
             let! body = inScope scope (parseExpr scope)
             return Let (binding, body) }
 
