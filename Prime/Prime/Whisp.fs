@@ -170,10 +170,7 @@ module Whisp =
     let [<Literal>] WhitespaceChars = OffsetChars + NewlineChars
     let [<Literal>] LineCommentStr = "//"
     let [<Literal>] ReservedChars = "{}\\#$"
-    let [<Literal>] StructureCharsNoStr = "()"
-    let [<Literal>] StructureChars = "\"" + StructureCharsNoStr
-    let (*Literal*) IllegalNameChars = ReservedChars + StructureChars + WhitespaceChars
-    let (*Literal*) IllegalNameCharsArray = Array.ofSeq IllegalNameChars
+    let [<Literal>] StructureChars = "\"()"
 
     let skipLineComment<'a> : Parser<unit, 'a> =
         parse {
@@ -273,6 +270,7 @@ module Whisp =
     let parseAtom =
         parse {
             let! chars = many1 (noneOf (StructureChars + WhitespaceChars))
+            do! skipWhitespaces
             let str = (chars |> String.implode).TrimEnd ()
             return str }
 
@@ -283,10 +281,12 @@ module Whisp =
             then return ()
             else return! fail "Unexpected atom." }
 
-    let skipLet = skipAtom "let"
-    let skipIf = skipAtom "if"
-    let skipThen = skipAtom "then"
-    let skipElse = skipAtom "else"
+    let skipUnit = skipString "()" >>. skipWhitespaces
+
+    let skipLet = skipAtom "let" >>. skipWhitespaces
+    let skipIf = skipAtom "if" >>. skipWhitespaces
+    let skipThen = skipAtom "then" >>. skipWhitespaces
+    let skipElse = skipAtom "else" >>. skipWhitespaces
 
     let skipForm =
         attempt skipLet <|>
@@ -298,23 +298,19 @@ module Whisp =
         parse {
             do! notFollowedBy skipForm
             let! atomStr = parseAtom
-            do! skipWhitespaces
             return Binding atomStr }
 
     let parseUnit =
         parse {
-            do! skipString "()"
-            do! skipWhitespaces
+            do! skipUnit
             return Unit }
 
     let parseEnclosure =
         parse {
             let! openingScope = pushScope
-            do! skipString "("
-            do! skipWhitespaces
+            do! skipString "(" >>. skipWhitespaces
             let! expr = inScope parseExpr
-            do! inScope (skipString ")")
-            do! skipWhitespaces
+            do! inScope (skipString ")" >>. skipWhitespaces)
             do! popScope openingScope
             return expr }
 
@@ -344,13 +340,10 @@ module Whisp =
             // binding
             let! letScope = pushScope
             do! skipLet
-            do! skipWhitespaces
             let! binding = inScope parseAtom
 
             // body
-            do! skipWhitespaces
             do! inScope (skipAtom "=")
-            do! skipWhitespaces
             let! body = inScope parseExpr
 
             // fin
@@ -362,17 +355,14 @@ module Whisp =
 
             // if
             do! skipIf
-            do! skipWhitespaces
             let! predicate = inScope parseExpr
 
             // then
-            do! skipThen
-            do! skipWhitespaces
+            do! inScope skipThen
             let! consequent = inScope parseExpr
 
             // else
-            do! skipElse
-            do! skipWhitespaces
+            do! inScope skipElse
             let! alternative = inScope parseExpr
 
             // fin
