@@ -158,6 +158,10 @@ module Whisp =
         { Limiter : Block
           Root : Block }
 
+    type TypeRecord =
+        { TypeName : string
+          TypePars : TypeRecord list }
+
     type Expr =
         | Unit
         | Binding of string
@@ -170,7 +174,13 @@ module Whisp =
     let [<Literal>] WhitespaceChars = OffsetChars + NewlineChars
     let [<Literal>] LineCommentStr = "//"
     let [<Literal>] ReservedChars = "{}\\#$"
-    let [<Literal>] StructureChars = "\"()"
+    let [<Literal>] StructureChars = "()\""
+    
+    let createParserWithArgsForwardedToRef () =
+        // TODO: put this in FParsec.fs?
+        let dummyParser = fun _ _ -> failwith "A parser created with createParserWithArgsForwardedToRef was not initialized"
+        let r = ref dummyParser
+        (fun arg stream -> !r arg stream), r : ('t -> Parser<'a, 'u>) * ('t -> Parser<'a, 'u>) ref
 
     let skipLineComment<'a> : Parser<unit, 'a> =
         parse {
@@ -240,30 +250,23 @@ module Whisp =
             Right block
         | Failure (error, _, _) -> Left error
 
-    let (parseExpr : Parser<Expr, ParseScope>, private parseExprRef : Parser<Expr, ParseScope> ref) =
-        createParserForwardedToRef ()
+    let (parseExpr : ParseScope -> Parser<Expr, unit>, private parseExprRef : (ParseScope -> Parser<Expr, unit>) ref) =
+        createParserWithArgsForwardedToRef ()
 
-    let parseExprs =
-        many parseExpr
+    let parseExprs scope =
+        many (parseExpr scope)
 
-    let pushScope =
+    let pushScope scope =
         parse {
             let! position = getPosition
-            let! oldScope = getUserState
-            let currentScope = { oldScope with Limiter = Block.fromIndex position.Index oldScope.Root }
-            do! setUserState currentScope
-            return oldScope }
+            let newScope = { scope with Limiter = Block.fromIndex position.Index scope.Root }
+            return newScope }
 
-    let popScope oldScope =
-        parse {
-            do! setUserState oldScope }
-
-    let inScope parse =
+    let inScope scope parse =
         Primitives.parse {
             let! position = getPosition
-            let! currentScope = getUserState
-            let currentBlock = Block.fromIndex position.Index currentScope.Root
-            if currentBlock = currentScope.Limiter || Block.isAncestor currentScope.Limiter currentBlock
+            let block = Block.fromIndex position.Index scope.Root
+            if block = scope.Limiter || Block.isAncestor scope.Limiter block
             then return! parse
             else return! fail "End of block." }
 
@@ -305,81 +308,76 @@ module Whisp =
             do! skipUnit
             return Unit }
 
-    let parseEnclosure =
+    let parseEnclosure scope =
         parse {
-            let! openingScope = pushScope
+            let! scope = pushScope scope
             do! skipString "(" >>. skipWhitespaces
-            let! expr = inScope parseExpr
-            do! inScope (skipString ")" >>. skipWhitespaces)
-            do! popScope openingScope
+            let! expr = inScope scope (parseExpr scope)
+            do! inScope scope (skipString ")" >>. skipWhitespaces)
             return expr }
 
-    let parseApplyFragment =
-        attempt parseEnclosure <|>
+    let parseApplyFragment scope =
+        attempt (parseEnclosure scope) <|>
         attempt parseBinding <|>
         attempt parseUnit
 
-    let rec parseApply =
+    let rec parseApply scope =
         parse {
-            let! meaningScope = pushScope
-            let! meaning = parseApplyFragment
+            let! scope = pushScope scope
+            let! fn = parseApplyFragment scope
             let! args = many1 ^ parse {
                 let! position = getPosition
-                let! currentScope = getUserState
-                let currentBlock = Block.fromIndex position.Index currentScope.Root
+                let block = Block.fromIndex position.Index scope.Root
                 return!
-                    if currentBlock.ParentOpt = Some currentScope.Limiter
-                    then inScope (attempt parseApply <|> parseApplyFragment)
-                    else inScope parseApplyFragment }
-            do! popScope meaningScope
-            return Apply (meaning, args) }
+                    if block.ParentOpt = Some scope.Limiter
+                    then inScope scope (attempt (parseApply scope) <|> parseApplyFragment scope)
+                    else inScope scope (parseApplyFragment scope) }
+            return Apply (fn, args) }
 
-    let parseLet =
+    let parseLet scope =
         parse {
 
             // binding
-            let! letScope = pushScope
+            let! scope = pushScope scope
             do! skipLet
-            let! binding = inScope parseAtom
+            let! binding = inScope scope parseAtom
 
             // body
-            do! inScope (skipAtom "=")
-            let! body = inScope parseExpr
-
-            // fin
-            do! popScope letScope
+            do! inScope scope (skipString "=" >>. skipWhitespaces)
+            let! body = inScope scope (parseExpr scope)
             return Let (binding, body) }
 
-    let parseIf =
+    let parseIf scope =
         parse {
 
             // if
             do! skipIf
-            let! predicate = inScope parseExpr
+            let! predicate = inScope scope (parseExpr scope)
 
             // then
-            do! inScope skipThen
-            let! consequent = inScope parseExpr
+            do! inScope scope skipThen
+            let! consequent = inScope scope (parseExpr scope)
 
             // else
-            do! inScope skipElse
-            let! alternative = inScope parseExpr
+            do! inScope scope skipElse
+            let! alternative = inScope scope (parseExpr scope)
 
             // fin
             return If (predicate, consequent, alternative) }
 
     do parseExprRef :=
-        attempt parseLet <|>
-        attempt parseIf <|>
-        attempt parseApply <|>
-        attempt parseEnclosure <|>
-        attempt parseBinding <|>
-        attempt parseUnit
+        fun scope ->
+            attempt (parseLet scope) <|>
+            attempt (parseIf scope) <|>
+            attempt (parseApply scope) <|>
+            attempt (parseEnclosure scope) <|>
+            attempt parseBinding <|>
+            attempt parseUnit
 
     let tryParseFromString str =
         match tryParseBlock str with
         | Right root ->
-            match runParserOnString parseExprs { Root = root; Limiter = root } "" str with
+            match runParserOnString (parseExprs { Root = root; Limiter = root }) () "" str with
             | Success (exprs, _, _) -> Right exprs
             | Failure (error, _, _) -> Left error
         | Left error -> Left error
