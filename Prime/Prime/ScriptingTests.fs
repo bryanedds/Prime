@@ -1,5 +1,5 @@
 ﻿// Nu Game Engine.
-// Copyright (C) Bryan Edds, 2013-2018.
+// Copyright (C) Bryan Edds, 2013-2019.
 
 namespace Prime.Tests
 open System
