@@ -73,6 +73,15 @@ module Chain =
     let pass : Chain<'e, unit, 'w> =
         Chain (fun world -> (world, Left (fun _ -> returnM ())))
 
+    /// React to the next event, using the event's data in the reaction.
+    // TODO: See if we can make this acceptable to F#'s type system -
+    //let [<DebuggerHidden; DebuggerStepThrough>] reactD<'a, 's, 'e, 'w when 's :> Participant and 'e :> Event<'a, 's> and 'w :> EventSystem<'w>> expr : Chain<'e, unit, 'w> =
+    //    chain {
+    //        let! e = next
+    //        let! world = get
+    //        let world = expr (e.Data) world
+    //        do! set world }
+
     /// React to the next event, using the event's value in the reaction.
     let [<DebuggerHidden; DebuggerStepThrough>] reactE expr : Chain<'e, unit, 'w> =
         chain {
