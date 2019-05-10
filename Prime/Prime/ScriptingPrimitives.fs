@@ -828,7 +828,7 @@ module ScriptingPrimitives =
             struct (Add (leftMapped, rightMapped), world)
         | Unfold (unfolder, codata) ->
             let breakpoint = { BreakEnabled = false; BreakCondition = Unit }
-            let args = [|unfolder; Binding ("state", ref UncachedBinding, ref Environmental, originOpt)|]
+            let args = [|unfolder; Binding ("state", ref UncachedBinding, ref EnvironmentalBinding, originOpt)|]
             let unfolder = Unfold (Fun ([|"state"|], 1, Apply (args, breakpoint, originOpt), false, None, None, originOpt), codata)
             struct (unfolder, world)
         | Conversion list ->
