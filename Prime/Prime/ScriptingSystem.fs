@@ -355,7 +355,28 @@ module ScriptingSystem =
         | Right success -> success
         | Left error -> error
 
-    // TODO: decompose this function - it's too hard to read
+    and evalApplyBody (pars : string array) parsCount (argsEvaled : Expr array) (body : Expr) (framesOpt : obj option) originOpt (world : 'w) : struct (Expr * 'w) =
+        let struct (framesCurrentOpt, world) =
+            match framesOpt with
+            | Some frames ->
+                let framesCurrent = getProceduralFrames world
+                setProceduralFrames (frames :?> ProceduralFrame list) world
+                struct (Some framesCurrent, world)
+            | None -> struct (None, world)
+        let struct (evaled, world) =
+            if Array.length argsEvaled = parsCount then
+                let bindings = Array.map2 (fun par argEvaled -> struct (par, argEvaled)) pars argsEvaled
+                addProceduralBindings (AddToNewFrame parsCount) bindings world
+                let struct (evaled, world) = eval body world
+                removeProceduralBindings world
+                struct (evaled, world)
+            else struct (Violation (["MalformedApplication"], "Wrong number of arguments.", originOpt), world)
+        match framesCurrentOpt with
+        | Some framesCurrent ->
+            setProceduralFrames framesCurrent world
+            struct (evaled, world)
+        | None -> struct (evaled, world)
+
     and evalApply<'w when 'w :> 'w ScriptingSystem> (exprs : Expr array) (originOpt : SymbolOrigin option) (world : 'w) : struct (Expr * 'w) =
         if Array.notEmpty exprs then
             let (exprsHead, exprsTail) = (Array.head exprs, Array.tail exprs)
@@ -387,26 +408,7 @@ module ScriptingSystem =
                     failwithumf ()
             | Fun (pars, parsCount, body, _, framesOpt, _, originOpt) ->
                 let struct (tailEvaled, world) = evalMany exprsTail world
-                let struct (framesCurrentOpt, world) =
-                    match framesOpt with
-                    | Some frames ->
-                        let framesCurrent = getProceduralFrames world
-                        setProceduralFrames (frames :?> ProceduralFrame list) world
-                        struct (Some framesCurrent, world)
-                    | None -> struct (None, world)
-                let struct (evaled, world) =
-                    if tailEvaled.Length = parsCount then
-                        let bindings = Array.map2 (fun par argEvaled -> struct (par, argEvaled)) pars tailEvaled
-                        addProceduralBindings (AddToNewFrame parsCount) bindings world
-                        let struct (evaled, world) = eval body world
-                        removeProceduralBindings world
-                        struct (evaled, world)
-                    else struct (Violation (["MalformedLambdaInvocation"], "Wrong number of arguments.", originOpt), world)
-                match framesCurrentOpt with
-                | Some framesCurrent ->
-                    setProceduralFrames framesCurrent world
-                    struct (evaled, world)
-                | None -> struct (evaled, world)
+                evalApplyBody pars parsCount tailEvaled body framesOpt originOpt world
             | _ -> struct (Violation (["MalformedApplication"], "Cannot apply the non-binding '" + scstring headEvaled + "'.", originOpt), world)
         else struct (Unit, world)
 
@@ -494,10 +496,10 @@ module ScriptingSystem =
             evalLetMany4 bindingsHead bindingsTail bindingsCount body originOpt world
         | [] -> struct (Violation (["MalformedLetOperation"], "Let operation must have at least 1 binding.", originOpt), world)
 
-    and evalIntrinsic<'w when 'w :> 'w ScriptingSystem> name pars originOpt (world : 'w) =
+    and evalIntrinsic name pars parsCount body _ (world : 'w) =
         let intrinsics = getIntrinsics<'w> ()
-        let mid _ _ _ world = struct (Violation (["UnmatchedIntrinsicDefinition"], "No overload found for user-defined intrinsic '" + name + "'", originOpt), world)
-        let intrinsic = { Fn = mid; Pars = pars; DocOpt = None }
+        let evalIntrinsic4 _ argsEvaled originOpt world = evalApplyBody pars parsCount argsEvaled body None originOpt world
+        let intrinsic = { Fn = evalIntrinsic4; Pars = pars; DocOpt = None }
         intrinsics.Add (name, intrinsic)
         struct (Unit, world)
 
@@ -614,7 +616,7 @@ module ScriptingSystem =
         | ApplyOr (exprs, _, originOpt) -> evalApplyOr exprs originOpt world
         | Let (binding, body, originOpt) -> evalLet binding body originOpt world
         | LetMany (bindings, body, originOpt) -> evalLetMany bindings body originOpt world
-        | Intrinsic (name, pars, originOpt) -> evalIntrinsic name pars originOpt world
+        | Intrinsic (name, pars, parsCount, body, originOpt) -> evalIntrinsic name pars parsCount body originOpt world
         | Fun (pars, parsCount, body, framesPushed, framesOpt, _, originOpt) as fn -> evalFun fn pars parsCount body framesPushed framesOpt originOpt world
         | If (condition, consequent, alternative, originOpt) -> evalIf condition consequent alternative originOpt world
         | Match (input, cases, originOpt) -> evalMatch input cases originOpt world

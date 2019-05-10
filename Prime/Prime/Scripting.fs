@@ -133,7 +133,7 @@ module Scripting =
         | ApplyOr of Expr array * Breakpoint * SymbolOrigin option
         | Let of Binding * Expr * SymbolOrigin option
         | LetMany of Binding list * Expr * SymbolOrigin option
-        | Intrinsic of string * string array * SymbolOrigin option
+        | Intrinsic of string * string array * int * Expr * SymbolOrigin option
         | Fun of string array * int * Expr * bool * obj option * string option * SymbolOrigin option
         | If of Expr * Expr * Expr * SymbolOrigin option
         | Match of Expr * (Expr * Expr) array * SymbolOrigin option
@@ -177,7 +177,7 @@ module Scripting =
             | ApplyOr (_, _, originOpt)
             | Let (_, _, originOpt)
             | LetMany (_, _, originOpt)
-            | Intrinsic (_, _, originOpt)
+            | Intrinsic (_, _, _, _, originOpt)
             | Fun (_, _, _, _, _, _, originOpt)
             | If (_, _, _, originOpt)
             | Match (_, _, originOpt)
@@ -219,7 +219,7 @@ module Scripting =
             | (ApplyOr (left, _, _), ApplyOr (right, _, _)) -> left = right
             | (Let (leftBinding, leftBody, _), Let (rightBinding, rightBody, _)) -> (leftBinding, leftBody) = (rightBinding, rightBody)
             | (LetMany (leftBindings, leftBody, _), LetMany (rightBindings, rightBody, _)) -> (leftBindings, leftBody) = (rightBindings, rightBody)
-            | (Intrinsic (leftName, leftPars, _), Intrinsic (rightName, rightPars, _)) -> (leftName, leftPars) = (rightName, rightPars)
+            | (Intrinsic (leftName, leftPars, _, leftBody, _), Intrinsic (rightName, rightPars, _, rightBody, _)) -> (leftName, leftPars, leftBody) = (rightName, rightPars, rightBody)
             | (Fun (leftPars, _, leftBody, _, _, _, _), Fun (rightPars, _, rightBody, _, _, _, _)) -> (leftPars, leftBody) = (rightPars, rightBody)
             | (If (leftConditional, leftConsequent, leftAlternative, _), If (rightConditional, rightConsequent, rightAlternative, _)) -> (leftConditional, leftConsequent, leftAlternative) = (rightConditional, rightConsequent, rightAlternative)
             | (Match (leftInput, leftCases, _), Match (rightInput, rightCases, _)) -> (leftInput, leftCases) = (rightInput, rightCases)
@@ -597,12 +597,13 @@ module Scripting =
                     let bindingSymbols = List.map (fun binding -> this.BindingToSymbol binding) bindings
                     let bodySymbol = this.ExprToSymbol body
                     Symbols (letSymbol :: bindingSymbols @ [bodySymbol], originOpt) :> obj
-                | Intrinsic (name, pars, originOpt) ->
+                | Intrinsic (name, pars, _, body, originOpt) ->
                     let intrinsicSymbol = Atom ("intrinsic", None)
                     let nameSymbol = Atom (name, None)
                     let parSymbols = Array.map (fun par -> Atom (par, None)) pars
                     let parsSymbol = Symbols (List.ofArray parSymbols, None)
-                    Symbols ([intrinsicSymbol; nameSymbol; parsSymbol], originOpt) :> obj
+                    let bodySymbol = this.ExprToSymbol body
+                    Symbols ([intrinsicSymbol; nameSymbol; parsSymbol; bodySymbol], originOpt) :> obj
                 | Fun (pars, _, body, _, _, _, originOpt) ->
                     let funSymbol = Atom ("fun", None)
                     let parSymbols = Array.map (fun par -> Atom (par, None)) pars
@@ -784,7 +785,7 @@ module Scripting =
                                 else Violation (["InvalidForm"; "Let"], "Invalid let form. Bindings require both a valid name and an expression.", originOpt) :> obj
                         | "intrinsic" ->
                             match tail with
-                            | [nameSymbol; parsSymbol] ->
+                            | [nameSymbol; parsSymbol; bodySymbol] ->
                                 match nameSymbol with
                                 | Atom (name, _) ->
                                     match parsSymbol with
@@ -795,7 +796,7 @@ module Scripting =
                                                 pars |>
                                                 List.map (function Atom (str, _) -> str | _ -> failwithumf ()) |>
                                                 List.toArray
-                                            Intrinsic (name, pars, originOpt) :> obj
+                                            Intrinsic (name, pars, Array.length pars, this.SymbolToExpr bodySymbol, originOpt) :> obj
                                         else Violation (["InvalidForm"; "Intrinsic"], "Invalid intrinsic form. Intrinsics require both a valid name and a parameter list.", originOpt) :> obj
                                     | _ -> Violation (["InvalidForm"; "Intrinsic"], "Invalid intrinsic form. Intrinsics require both a valid name and a parameter list.", originOpt) :> obj
                                 | _ -> Violation (["InvalidForm"; "Intrinsic"], "Invalid intrinsic form. Intrinsics require both a valid name and a parameter list.", originOpt) :> obj
