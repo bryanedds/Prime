@@ -508,12 +508,24 @@ module ScriptingSystem =
             evalLetMany4 bindingsHead bindingsTail bindingsCount body originOpt world
         | [] -> struct (Violation (["MalformedLetOperation"], "Let operation must have at least 1 binding.", originOpt), world)
 
-    and evalIntrinsic name pars parsCount body _ (world : 'w) =
+    and evalIntrinsic name pars parsCount bodyOpt originOpt (world : 'w) =
+        let fn =
+            match bodyOpt with
+            | Some body -> fun _ argsEvaled originOpt world -> evalApplyBody pars parsCount argsEvaled body None originOpt world
+            | None -> fun _ _ originOpt world -> struct (Violation (["UnmatchedIntrinsicOverload"], "No overload found for user-defined intrinsic '" + name + "'.", originOpt), world)
         let intrinsics = getIntrinsics<'w> ()
-        let evalIntrinsic4 _ argsEvaled originOpt world = evalApplyBody pars parsCount argsEvaled body None originOpt world
-        let intrinsic = { Fn = evalIntrinsic4; Pars = pars; DocOpt = None }
-        intrinsics.ForceAdd (name, intrinsic)
-        struct (Unit, world)
+        let intrinsic = { Fn = fn; Pars = pars; DocOpt = None }
+        if not (intrinsics.ContainsKey name) then
+            intrinsics.Add (name, intrinsic)
+            struct (Unit, world)
+        else
+#if DEBUG
+            ignore originOpt // not used in this static branch
+            intrinsics.ForceAdd (name, intrinsic)
+            struct (Unit, world)
+#else       
+            struct (Violation (["IntrinsicRedefinition"], "Cannot redefine intrinsics outside of debug mode.", originOpt), world)
+#endif
 
     and evalFun fn pars parsCount body framesPushed framesOpt originOpt world =
         if not framesPushed then
@@ -628,7 +640,7 @@ module ScriptingSystem =
         | ApplyOr (exprs, _, originOpt) -> evalApplyOr exprs originOpt world
         | Let (binding, body, originOpt) -> evalLet binding body originOpt world
         | LetMany (bindings, body, originOpt) -> evalLetMany bindings body originOpt world
-        | Intrinsic (name, pars, parsCount, body, originOpt) -> evalIntrinsic name pars parsCount body originOpt world
+        | Intrinsic (name, pars, parsCount, bodyOpt, originOpt) -> evalIntrinsic name pars parsCount bodyOpt originOpt world
         | Fun (pars, parsCount, body, framesPushed, framesOpt, _, originOpt) as fn -> evalFun fn pars parsCount body framesPushed framesOpt originOpt world
         | If (condition, consequent, alternative, originOpt) -> evalIf condition consequent alternative originOpt world
         | Match (input, cases, originOpt) -> evalMatch input cases originOpt world

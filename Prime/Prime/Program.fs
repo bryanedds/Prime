@@ -28,7 +28,7 @@ module Program =
         | input ->
             let expr = scvalue<Scripting.Expr> input
             try let struct (result, world) = ScriptingSystem.eval expr world
-                Console.Write "< "
+                Console.Write ": "
                 Console.WriteLine (scstring result)
                 runRepl world
             with exn ->

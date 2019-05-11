@@ -133,7 +133,7 @@ module Scripting =
         | ApplyOr of Expr array * Breakpoint * SymbolOrigin option
         | Let of Binding * Expr * SymbolOrigin option
         | LetMany of Binding list * Expr * SymbolOrigin option
-        | Intrinsic of string * string array * int * Expr * SymbolOrigin option
+        | Intrinsic of string * string array * int * Expr option * SymbolOrigin option
         | Fun of string array * int * Expr * bool * obj option * string option * SymbolOrigin option
         | If of Expr * Expr * Expr * SymbolOrigin option
         | Match of Expr * (Expr * Expr) array * SymbolOrigin option
@@ -597,13 +597,14 @@ module Scripting =
                     let bindingSymbols = List.map (fun binding -> this.BindingToSymbol binding) bindings
                     let bodySymbol = this.ExprToSymbol body
                     Symbols (letSymbol :: bindingSymbols @ [bodySymbol], originOpt) :> obj
-                | Intrinsic (name, pars, _, body, originOpt) ->
+                | Intrinsic (name, pars, _, bodyOpt, originOpt) ->
                     let intrinsicSymbol = Atom ("intrinsic", None)
                     let nameSymbol = Atom (name, None)
                     let parSymbols = Array.map (fun par -> Atom (par, None)) pars
                     let parsSymbol = Symbols (List.ofArray parSymbols, None)
-                    let bodySymbol = this.ExprToSymbol body
-                    Symbols ([intrinsicSymbol; nameSymbol; parsSymbol; bodySymbol], originOpt) :> obj
+                    match bodyOpt with
+                    | Some body -> Symbols ([intrinsicSymbol; nameSymbol; parsSymbol; this.ExprToSymbol body], originOpt) :> obj
+                    | None -> Symbols ([intrinsicSymbol; nameSymbol; parsSymbol], originOpt) :> obj
                 | Fun (pars, _, body, _, _, _, originOpt) ->
                     let funSymbol = Atom ("fun", None)
                     let parSymbols = Array.map (fun par -> Atom (par, None)) pars
@@ -785,18 +786,17 @@ module Scripting =
                                 else Violation (["InvalidForm"; "Let"], "Invalid let form. Bindings require both a valid name and an expression.", originOpt) :> obj
                         | "intrinsic" ->
                             match tail with
-                            | [nameSymbol; parsSymbol; bodySymbol] ->
+                            | [nameSymbol; parsSymbol]
+                            | [nameSymbol; parsSymbol; _] ->
                                 match nameSymbol with
                                 | Atom (name, _) ->
                                     match parsSymbol with
                                     | Symbols (parSymbols, _) ->
                                         let (pars, parErrors) = List.split (function Atom _ -> true | _ -> false) parSymbols
                                         if List.isEmpty parErrors then
-                                            let pars =
-                                                pars |>
-                                                List.map (function Atom (str, _) -> str | _ -> failwithumf ()) |>
-                                                List.toArray
-                                            Intrinsic (name, pars, Array.length pars, this.SymbolToExpr bodySymbol, originOpt) :> obj
+                                            let pars = pars |> List.map (function Atom (str, _) -> str | _ -> failwithumf ()) |> List.toArray
+                                            let bodyOpt = match tail with [_; _; bodySymbol] -> Some (this.SymbolToExpr bodySymbol) | _ -> None
+                                            Intrinsic (name, pars, Array.length pars, bodyOpt, originOpt) :> obj
                                         else Violation (["InvalidForm"; "Intrinsic"], "Invalid intrinsic form. Intrinsics require both a valid name and a parameter list.", originOpt) :> obj
                                     | _ -> Violation (["InvalidForm"; "Intrinsic"], "Invalid intrinsic form. Intrinsics require both a valid name and a parameter list.", originOpt) :> obj
                                 | _ -> Violation (["InvalidForm"; "Intrinsic"], "Invalid intrinsic form. Intrinsics require both a valid name and a parameter list.", originOpt) :> obj
@@ -974,8 +974,11 @@ module Scripting =
             let tryAddDeclarationBinding name value env =
                 let isTopLevel = List.isEmpty env.ProceduralFrames
                 if isTopLevel then
-                    env.LocalFrame.ForceAdd (name, value)
-                    true
+#if DEBUG
+                    env.LocalFrame.ForceAdd (name, value); true
+#else
+                    env.LocalFrame.TryAdd (name, value)
+#endif
                 else false
     
             let addProceduralBinding appendType name value env =
