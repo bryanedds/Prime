@@ -21,6 +21,8 @@ module Program =
         while Console.KeyAvailable do ignore (Console.ReadKey true)
         Console.Write "> "
         match Console.ReadLine () with
+        | input when input.Trim () = "exit" ->
+            world
         | input when String.IsNullOrWhiteSpace input ->
             runRepl world
         | input ->
@@ -36,9 +38,12 @@ module Program =
     let [<EntryPoint; STAThread>] main _ =
         let world = ScriptingWorld.make ()
         match ScriptingSystem.tryEvalScript id ("./Prelude.amsl") world with
-        | Left (err, _) -> Console.WriteLine ("Failed to evaluate prelude due to: " + err)
+        | Left (err, _) ->
+            Console.WriteLine ("Failed to evaluate prelude due to: " + err)
+            -1
         | Right (_, _, world) ->
             Console.WriteLine "Welcome to the Amsl Repl!"
-            Console.WriteLine "Try out a symbolic expression like [+ 2 2]"
-            runRepl world
-        0
+            Console.WriteLine "Try out a symbolic expression like [+ 2 2] or [[fun [x] [* x x]] 5]"
+            Console.WriteLine "Type exit when done."
+            runRepl world |> ignore
+            0
