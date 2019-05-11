@@ -203,22 +203,34 @@ module ScriptingSystem =
         | (true, intrinsic) -> intrinsic.Fn fnName argsEvaled originOpt world
         | (false, _) -> struct (Violation (["InvalidFunctionTargetBinding"], "Cannot apply the non-existent binding '" + fnName + "'.", originOpt), world)
 
+    and evalOverload5 targetName fnName argsEvaled originOpt world =
+        let xfnName = toOverloadName fnName targetName
+        let xfnBinding = Binding (xfnName, ref UncachedBinding, ref UnknownBindingType, None)
+        let evaleds = Array.cons xfnBinding argsEvaled
+        evalApply evaleds originOpt world
+
     and evalOverload fnName argsEvaled originOpt world =
         if Array.notEmpty argsEvaled then
             match Array.last argsEvaled with
             | Violation _ as error -> struct (error, world)
-            | Pluggable pluggable ->
-                let pluggableTypeName = pluggable.TypeName
-                let xfnName = toOverloadName fnName pluggableTypeName
-                let xfnBinding = Binding (xfnName, ref UncachedBinding, ref UnknownBindingType, None)
-                let evaleds = Array.cons xfnBinding argsEvaled
-                evalApply evaleds originOpt world
+            | Unit -> evalOverload5 "Unit" fnName argsEvaled originOpt world // TODO: use the nameof operator here once available
+            | Bool _ -> evalOverload5 "Bool" fnName argsEvaled originOpt world
+            | Int _ -> evalOverload5 "Int" fnName argsEvaled originOpt world
+            | Int64 _ -> evalOverload5 "Int64" fnName argsEvaled originOpt world
+            | Single _ -> evalOverload5 "Single" fnName argsEvaled originOpt world
+            | Double _ -> evalOverload5 "Double" fnName argsEvaled originOpt world
+            | String _ -> evalOverload5 "String" fnName argsEvaled originOpt world
+            | Tuple _ -> evalOverload5 "Tuple" fnName argsEvaled originOpt world
+            | Option _ -> evalOverload5 "Option" fnName argsEvaled originOpt world
+            | Either _ -> evalOverload5 "Either" fnName argsEvaled originOpt world
+            | Codata _ -> evalOverload5 "Codata" fnName argsEvaled originOpt world
+            | List _ -> evalOverload5 "List" fnName argsEvaled originOpt world
+            | Ring _ -> evalOverload5 "Ring" fnName argsEvaled originOpt world
+            | Table _ -> evalOverload5 "Table" fnName argsEvaled originOpt world
+            | Keyword name
             | Union (name, _)
-            | Record (name, _, _) ->
-                let xfnName = toOverloadName fnName name
-                let xfnBinding = Binding (xfnName, ref UncachedBinding, ref UnknownBindingType, None)
-                let evaleds = Array.cons xfnBinding argsEvaled
-                evalApply evaleds originOpt world
+            | Record (name, _, _) -> evalOverload5 name fnName argsEvaled originOpt world
+            | Pluggable pluggable -> evalOverload5 pluggable.TypeName fnName argsEvaled originOpt world
             | _ -> struct (Violation (["InvalidOverload"], "Could not find overload for '" + fnName + "' for target.", originOpt), world)
         else struct (Violation (["InvalidFunctionTargetBinding"], "Cannot apply the non-existent binding '" + fnName + "'.", originOpt), world)
 
@@ -500,7 +512,7 @@ module ScriptingSystem =
         let intrinsics = getIntrinsics<'w> ()
         let evalIntrinsic4 _ argsEvaled originOpt world = evalApplyBody pars parsCount argsEvaled body None originOpt world
         let intrinsic = { Fn = evalIntrinsic4; Pars = pars; DocOpt = None }
-        intrinsics.Add (name, intrinsic)
+        intrinsics.ForceAdd (name, intrinsic)
         struct (Unit, world)
 
     and evalFun fn pars parsCount body framesPushed framesOpt originOpt world =

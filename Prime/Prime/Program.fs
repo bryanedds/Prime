@@ -37,5 +37,8 @@ module Program =
         let world = ScriptingWorld.make ()
         match ScriptingSystem.tryEvalScript id ("./Prelude.amsl") world with
         | Left (err, _) -> Console.WriteLine ("Failed to evaluate prelude due to: " + err)
-        | Right (_, _, world) -> runRepl world
+        | Right (_, _, world) ->
+            Console.WriteLine "Welcome to the Amsl Repl!"
+            Console.WriteLine "Try out a symbolic expression like [+ 2 2]"
+            runRepl world
         0
