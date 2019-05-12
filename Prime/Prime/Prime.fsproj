@@ -121,6 +121,7 @@
     <Compile Include="ScriptingPrimitives.fs" />
     <Compile Include="ScriptingSystem.fs" />
     <Compile Include="Whisp.fs" />
+    <Compile Include="Timings.fs" />
     <Compile Include="ListTests.fs" />
     <Compile Include="MapTests.fs" />
     <Compile Include="SetTests.fs" />
@@ -131,7 +132,6 @@
     <Compile Include="EventTests.fs" />
     <Compile Include="ScriptingTests.fs" />
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Timings.fs" />
     <Compile Include="Program.fs" />
     <Content Include="Prelude.amsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
