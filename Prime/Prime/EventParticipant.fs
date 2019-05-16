@@ -53,6 +53,11 @@ type [<NoEquality; NoComparison>] PropertyTag<'a, 'w> =
         | (true, world) -> world
         | (false, _) -> failwith ("PropertyTag for '" + this.Name + "' is readonly.")
 
+    member this.TryUpdateEffect updater world =
+        let value = this.Get world
+        let (value', world) = updater value world
+        this.TrySet value' world
+
     member this.TryUpdateWorld updater world =
         let value = this.Get world
         let value' = updater value world
@@ -61,13 +66,20 @@ type [<NoEquality; NoComparison>] PropertyTag<'a, 'w> =
     member this.TryUpdate updater world =
         this.TryUpdateWorld (fun value _ -> updater value) world
 
+    member this.UpdateEffect updater world =
+        match this.TryUpdateEffect updater world with
+        | (true, world) -> world
+        | (false, _) -> failwithumf ()
+
     member this.UpdateWorld updater world =
         match this.TryUpdateWorld updater world with
         | (true, world) -> world
         | (false, _) -> failwithumf ()
 
     member this.Update updater world =
-        this.UpdateWorld (fun value _ -> updater value) world
+        match this.TryUpdate updater world with
+        | (true, world) -> world
+        | (false, _) -> failwithumf ()
 
     member this.Map mapper : PropertyTag<'a, 'w> =
         { This = this.This
