@@ -16,6 +16,19 @@ type [<NoComparison; NoEquality>] Chain<'e, 'a, 'w when 'w :> EventSystem<'w>> =
 /// Implements the chain monad.
 type ChainBuilder () =
 
+    /// Functor map for the chain monad.
+    [<DebuggerHidden; DebuggerStepThrough>]
+    member this.Map f (a : 'a) : Chain<'e, 'b, 'w> =
+        Chain (fun world -> (world, Right (f a)))
+
+    /// Applicative apply for the chain monad.
+    [<DebuggerHidden; DebuggerStepThrough>]
+    member this.Apply (m : Chain<'e, ('a -> 'b), 'w>) (_ : Chain<'e, 'a, 'w>) : Chain<'e, 'b, 'w> =
+        Chain (fun world ->
+            match (match m with Chain f -> f world) with
+            //                             ^--- NOTE: unbounded recursion here
+            | _ -> failwithnie ())
+
     /// Monadic return for the chain monad.
     [<DebuggerHidden; DebuggerStepThrough>]
     member this.Return (a : 'a) : Chain<'e, 'a, 'w> =
@@ -38,6 +51,9 @@ module ChainBuilder =
 
 [<RequireQualifiedAccess>]
 module Chain =
+
+    /// Functor map for the chain monad.
+    let inline map f a = chain.Map f a
 
     /// Monadic return for the chain monad.
     let inline returnM a = chain.Return a
