@@ -55,6 +55,9 @@ module Chain =
     /// Functor map for the chain monad.
     let inline map f a = chain.Map f a
 
+    /// Functor map for the chain monad.
+    let inline apply m a = chain.Apply m a
+
     /// Monadic return for the chain monad.
     let inline returnM a = chain.Return a
 
