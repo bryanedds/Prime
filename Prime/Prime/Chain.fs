@@ -22,6 +22,7 @@ type ChainBuilder () =
         Chain (fun world -> (world, Right (f a)))
 
     /// Applicative apply for the chain monad.
+    /// TODO: Implement!
     [<DebuggerHidden; DebuggerStepThrough>]
     member this.Apply (m : Chain<'e, ('a -> 'b), 'w>) (_ : Chain<'e, 'a, 'w>) : Chain<'e, 'b, 'w> =
         Chain (fun world ->
