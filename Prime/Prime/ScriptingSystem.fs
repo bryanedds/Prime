@@ -232,7 +232,7 @@ module ScriptingSystem =
             | Record (name, _, _) -> evalOverload5 name fnName argsEvaled originOpt world
             | Pluggable pluggable -> evalOverload5 pluggable.TypeName fnName argsEvaled originOpt world
             | _ -> struct (Violation (["InvalidOverload"], "Could not find overload for '" + fnName + "' for target.", originOpt), world)
-        else struct (Violation (["InvalidFunctionTargetBinding"], "Cannot apply the non-existent binding '" + fnName + "'.", originOpt), world)
+        else struct (Violation (["InvalidFunctionTargetBinding"], "Cannot apply the binding '" + fnName + "' with the given parameter(s).", originOpt), world)
 
     and evalUnionUnevaled name exprs world =
         let struct (evaleds, world) = evalMany exprs world
