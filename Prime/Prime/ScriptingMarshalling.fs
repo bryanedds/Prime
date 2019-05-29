@@ -128,6 +128,24 @@ module ScriptingMarshalling =
         | (true, items) -> Some (Table (Map.ofList items))
         | (false, _) -> None
 
+    and tryImportSymbol tryImportExt (ty : Type) (value : obj) =
+        match value with
+        | :? Symbol as symbol ->
+            match symbol with
+            | Symbol.Atom (str, _) -> Some (Union ("Atom", [|String str|]))
+            | Symbol.Number (str, _) -> Some (Union ("Number", [|String str|]))
+            | Symbol.String (str, _) -> Some (Union ("String", [|String str|]))
+            | Symbol.Quote (symbol, _) ->
+                match tryImportSymbol tryImportExt ty symbol with
+                | Some expr -> Some (Union ("Quote", [|expr|]))
+                | None -> None
+            | Symbol.Symbols (symbols, _) ->
+                let exprOpts = List.map (tryImportSymbol tryImportExt ty) symbols
+                match List.definitizePlus exprOpts with
+                | (true, exprs) -> Some (Union ("Symbols", List.toArray exprs))
+                | (false, _) -> None
+        | _ -> None
+
     and Importers : Dictionary<string, (Type -> obj -> Expr option) -> Type -> obj -> Expr option> =
         [(typeof<Void>.Name, (fun _ _ _ -> Unit |> Some))
          (typeof<unit>.Name, (fun _ _ _ -> Unit |> Some))
@@ -146,7 +164,8 @@ module ScriptingMarshalling =
          (typedefof<Either<_, _>>.Name, (fun tryImportExt ty value -> tryImportEither tryImportExt ty value))
          (typedefof<_ list>.Name, (fun tryImportExt ty value -> tryImportList tryImportExt ty value))
          (typedefof<_ Set>.Name, (fun tryImportExt ty value -> tryImportSet tryImportExt ty value))
-         (typedefof<Map<_, _>>.Name, (fun tryImportExt ty value -> tryImportMap tryImportExt ty value))] |>
+         (typedefof<Map<_, _>>.Name, (fun tryImportExt ty value -> tryImportMap tryImportExt ty value))
+         (typedefof<Symbol>.Name, (fun tryImportExt ty value -> tryImportSymbol tryImportExt ty value))] |>
         dictPlus
 
     let rec tryExport tryExportExt (ty : Type) (value : Expr) =
@@ -304,6 +323,27 @@ module ScriptingMarshalling =
             | _ -> None
         | _ -> None
 
+    and tryExportSymbol tryExportExt (ty : Type) (expr : Expr) =
+        match expr with
+        | Union (name, exprs) ->
+            match (name, exprs) with
+            | ("Atom", [|String str|]) -> Some (Symbol.Atom (str, None) :> obj)
+            | ("Number", [|String str|]) -> Some (Symbol.Number (str, None) :> obj)
+            | ("String", [|String str|]) -> Some (Symbol.String (str, None) :> obj)
+            | ("Quote", [|expr|]) ->
+                match tryExportSymbol tryExportExt ty expr with
+                | Some symbol -> Some (Symbol.Quote (symbol :?> Symbol, None) :> obj)
+                | None -> None
+            | ("Symbols", exprs) ->
+                let symbolsOpts =
+                    Array.map (tryExportSymbol tryExportExt ty) exprs |>
+                    Array.map (Option.map cast<Symbol>)
+                match Array.definitizePlus symbolsOpts with
+                | (true, symbols) -> Some (Symbols (Array.toList symbols, None) :> obj)
+                | (false, _) -> None
+            | (_, _) -> None
+        | _ -> None
+
     and Exporters : Dictionary<string, (Type -> Expr -> obj option) -> Type -> Expr -> obj option> =
         [(typeof<Void>.Name, fun _ _ _ -> () :> obj |> Some)
          (typeof<unit>.Name, fun _ _ _ -> () :> obj |> Some)
@@ -322,5 +362,6 @@ module ScriptingMarshalling =
          (typedefof<Either<_, _>>.Name, tryExportEither)
          (typedefof<_ list>.Name, tryExportList)
          (typedefof<_ Set>.Name, tryExportSet)
-         (typedefof<Map<_, _>>.Name, tryExportMap)] |>
+         (typedefof<Map<_, _>>.Name, tryExportMap)
+         (typedefof<Symbol>.Name, tryExportSymbol)] |>
         dictPlus

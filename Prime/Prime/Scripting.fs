@@ -117,9 +117,9 @@ module Scripting =
         | List of Expr list
         | Ring of Set<Expr>
         | Table of Map<Expr, Expr>
+        | Record of string * Map<string, int> * Expr array
 
         (* Intermediate Data Structures *)
-        | Record of string * Map<string, int> * Expr array
         | UnionUnevaled of string * Expr array
         | TableUnevaled of (Expr * Expr) list
         | RecordUnevaled of string * (string * Expr) list

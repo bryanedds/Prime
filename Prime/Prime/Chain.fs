@@ -18,8 +18,14 @@ type ChainBuilder () =
 
     /// Functor map for the chain monad.
     [<DebuggerHidden; DebuggerStepThrough>]
-    member this.Map f (a : 'a) : Chain<'e, 'b, 'w> =
-        Chain (fun world -> (world, Right (f a)))
+    member this.Map (f : 'a -> 'b) (a : Chain<'e, 'a, 'w>) : Chain<'e, 'b, 'w> =
+        Chain (fun w ->
+            let chainMapper eir =
+                match eir with
+                | Left c -> Left (fun w -> this.Map f (c w))
+                | Right a -> Right (f a)
+            let (w, eir) = match a with Chain b -> b w
+            (w, chainMapper eir))
 
     /// Applicative apply for the chain monad.
     /// TODO: Implement!

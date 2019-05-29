@@ -87,6 +87,10 @@ module Operators =
     /// TODO: make sure this always generates code equally fast or faster.
     let inline fastEq (a : 'a) (b : 'a) = LanguagePrimitives.GenericEquality a b
 
+    /// Cast as a function.
+    let inline cast<'a> (target : obj) =
+        target :?> 'a
+
     /// Short-hand for linq enumerable cast.
     let inline enumerable<'a> enumeratable =
         System.Linq.Enumerable.Cast<'a> enumeratable
