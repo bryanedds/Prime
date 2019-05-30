@@ -376,7 +376,7 @@ module EventSystem =
             let world = unsubscribe monitorKey world
             world
         let subscription' = fun _ eventSystem -> (Cascade, unsubscribe eventSystem)
-        let removingEventAddress = ltoa<unit> ["Unregistering"; "Event"] ->>- subscriberAddress
+        let removingEventAddress = ltoa<unit> ["Unregistering"; "Event"] --> subscriberAddress
         let world = subscribePlus<unit, 's, 'w> removalKey subscription' removingEventAddress subscriber world |> snd
         (unsubscribe, world)
 

@@ -439,7 +439,7 @@ module Stream =
     /// Terminate a stream when the subscriber is unregistered from the world.
     let [<DebuggerHidden; DebuggerStepThrough>] lifetime<'s, 'a, 'w when 's :> Participant and 'w :> EventSystem<'w>>
         (subscriber : 's) (stream_ : Stream<'a, 'w>) : Stream<'a, 'w> =
-        let unregisteringEventAddress = ltoa<unit> ["Unregistering"; "Event"] ->>- subscriber.ParticipantAddress
+        let unregisteringEventAddress = ltoa<unit> ["Unregistering"; "Event"] --> subscriber.ParticipantAddress
         let removingStream = make unregisteringEventAddress
         until removingStream stream_
 
@@ -575,12 +575,12 @@ module StreamOperators =
 
     /// Make a stream of the subscriber's change events.
     let [<DebuggerHidden; DebuggerStepThrough>] (!--) (property : PropertyTag<'b, 'w>) =
-        let changeEventAddress = ltoa<'w ParticipantChangeData> ["Change"; property.Name; "Event"] ->>- property.This.ParticipantAddress
+        let changeEventAddress = ltoa<'w ParticipantChangeData> ["Change"; property.Name; "Event"] --> property.This.ParticipantAddress
         Stream.make changeEventAddress --- Stream.mapEvent (fun _ world -> property.Get world)
 
     /// Propagate the event data of a stream to a property in the observing participant when the
     /// subscriber exists (doing nothing otherwise).
-    let [<DebuggerHidden; DebuggerStepThrough>] (-->) stream (property : PropertyTag<'b, 'w>) =
+    let [<DebuggerHidden; DebuggerStepThrough>] (-|>) stream (property : PropertyTag<'b, 'w>) =
         Stream.subscribe (fun a world ->
             if world.ParticipantExists a.Subscriber then
                 match property.SetOpt with

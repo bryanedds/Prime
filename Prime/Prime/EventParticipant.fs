@@ -101,7 +101,7 @@ type [<NoEquality; NoComparison>] PropertyTag<'a, 'w> =
 
     member this.ChangeEvent =
         let changeEventAddress = Address<'w ParticipantChangeData>.ltoa ["Change"; this.Name; "Event"]
-        let changeEvent = changeEventAddress ->>- this.This.ParticipantAddress
+        let changeEvent = changeEventAddress --> this.This.ParticipantAddress
         changeEvent
 
 [<RequireQualifiedAccess>]
