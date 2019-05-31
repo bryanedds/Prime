@@ -41,13 +41,13 @@ module BindingOperators =
         Effect (Binding.make (address |> Stream.make |> Stream.generalize) message)
 
     let (===>) stream makeMessageOpt =
-        Message (Binding.makeSimple stream makeMessageOpt)
+        Message (Binding.makeSimple (stream |> Stream.generalize) makeMessageOpt)
 
     let (==|>) stream message =
-        Message (Binding.make stream message)
+        Message (Binding.make (stream |> Stream.generalize) message)
 
     let (===>!) stream makeMessageOpt =
-        Effect (Binding.makeSimple stream makeMessageOpt)
+        Effect (Binding.makeSimple (stream |> Stream.generalize) makeMessageOpt)
 
     let (==|>!) stream message =
-        Effect (Binding.make stream message)
+        Effect (Binding.make (stream |> Stream.generalize) message)
