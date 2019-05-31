@@ -28,26 +28,26 @@ module Binding =
 [<AutoOpen>]
 module BindingOperators =
 
-    let (==>) address makeMessageOpt =
-        Message (Binding.makeSimple (address |> Stream.make |> Stream.generalize) makeMessageOpt)
-
-    let (=|>) address message =
+    let (==>) address message =
         Message (Binding.make (address |> Stream.make |> Stream.generalize) message)
 
-    let (==>!) address makeMessageOpt =
-        Effect (Binding.makeSimple (address |> Stream.make |> Stream.generalize) makeMessageOpt)
+    let (=|>) address makeMessageOpt =
+        Message (Binding.makeSimple (address |> Stream.make |> Stream.generalize) makeMessageOpt)
 
-    let (=|>!) address message =
+    let (==>!) address message =
         Effect (Binding.make (address |> Stream.make |> Stream.generalize) message)
 
-    let (===>) stream makeMessageOpt =
-        Message (Binding.makeSimple (stream |> Stream.generalize) makeMessageOpt)
+    let (=|>!) address makeMessageOpt =
+        Effect (Binding.makeSimple (address |> Stream.make |> Stream.generalize) makeMessageOpt)
 
-    let (==|>) stream message =
+    let (===>) stream message =
         Message (Binding.make (stream |> Stream.generalize) message)
 
-    let (===>!) stream makeMessageOpt =
-        Effect (Binding.makeSimple (stream |> Stream.generalize) makeMessageOpt)
+    let (==|>) stream makeMessageOpt =
+        Message (Binding.makeSimple (stream |> Stream.generalize) makeMessageOpt)
 
-    let (==|>!) stream message =
+    let (===>!) stream message =
         Effect (Binding.make (stream |> Stream.generalize) message)
+
+    let (==|>!) stream makeMessageOpt =
+        Effect (Binding.makeSimple (stream |> Stream.generalize) makeMessageOpt)
