@@ -38,10 +38,10 @@ module Program =
     let [<EntryPoint; STAThread>] main _ =
         let world = ScriptingWorld.make ()
         match ScriptingSystem.tryEvalScript id ("./Prelude.amsl") world with
-        | Left (err, _) ->
+        | Left struct (err, _) ->
             Console.WriteLine ("Failed to evaluate prelude due to: " + err)
             -1
-        | Right (_, _, world) ->
+        | Right struct (_, _, world) ->
             Console.WriteLine "Welcome to the Amsl Repl!"
             Console.WriteLine "Try out a symbolic expression like [+ 2 2] or [[fun [x] [* x x]] 5]"
             Console.WriteLine "Type exit when done."

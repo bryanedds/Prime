@@ -6,7 +6,7 @@ open Prime
 
 type [<NoEquality; NoComparison>] Binding<'m, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> =
     { Stream : Stream<obj, 'w>
-      MakeMessage : Event<obj, 's> -> 'm option }
+      MakeValueOpt : Event<obj, 's> -> 'm option }
 
 type [<NoEquality; NoComparison>] Binding<'m, 'e, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> =
     | Message of Binding<'m, 's, 'w>
@@ -15,39 +15,61 @@ type [<NoEquality; NoComparison>] Binding<'m, 'e, 's, 'w when 's :> Participant 
 [<RequireQualifiedAccess>]
 module Binding =
 
-    let make<'a, 'm, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>>
-        (stream : Stream<obj, 'w>) (message : 'm) =
-        { Stream = stream
-          MakeMessage = fun (_ : Event<obj, 's>) -> Some message }
+    let make<'a, 'v, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>>
+        (stream : Stream<'a, 'w>) (makeValueOpt : Event<'a, 's> -> 'v option) =
+        { Stream = Stream.generalize stream
+          MakeValueOpt = fun evt -> makeValueOpt (Event.specialize evt) }
 
-    let makeSimple<'a, 's, 'm, 'w when 's :> Participant and 'w :> EventSystem<'w>>
-        (stream : Stream<obj, 'w>) (makeMessage : Event<obj, 's> -> 'm option) =
-        { Stream = stream
-          MakeMessage = makeMessage }
+    let makeSimple<'a, 'v, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>>
+        (stream : Stream<'a, 'w>) (value : 'v) =
+        { Stream = Stream.generalize stream
+          MakeValueOpt = fun (_ : Event<obj, 's>) -> Some value }
+
+type Binding<'m, 'e, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> with
+
+    static member (==>) (_ : Binding<'m, 'e, 's, 'w>, source : Address<'a>) =
+        fun (message : 'm) ->
+            Message (Binding.makeSimple (Stream.make source) message)
+
+    static member (==>) (_ : Binding<'m, 'e, 's, 'w>, source : Stream<'a, 'w>) =
+        fun (message : 'm) ->
+            Message (Binding.makeSimple source message)
+
+    static member (=|>) (_ : Binding<'m, 'e, 's, 'w>, source : Address<'a>) =
+        fun (message : Event<'a, 's> -> 'm option) ->
+            Message (Binding.make (Stream.make source) message)
+
+    static member (=|>) (_ : Binding<'m, 'e, 's, 'w>, source : Stream<'a, 'w>) =
+        fun (message : Event<'a, 's> -> 'm option) ->
+            Message (Binding.make source message)
+
+    static member (==>!) (_ : Binding<'m, 'e, 's, 'w>, source : Address<'a>) =
+        fun (effect : 'e) ->
+            Effect (Binding.makeSimple (Stream.make source) effect)
+
+    static member (==>!) (_ : Binding<'m, 'e, 's, 'w>, source : Stream<'a, 'w>) =
+        fun (effect : 'e) ->
+            Effect (Binding.makeSimple source effect)
+
+    static member (=|>!) (_ : Binding<'m, 'e, 's, 'w>, source : Address<'a>) =
+        fun (effect : Event<'a, 's> -> 'e option) ->
+            Effect (Binding.make (Stream.make source) effect)
+
+    static member (=|>!) (_ : Binding<'m, 'e, 's, 'w>, source : Stream<'a, 'w>) =
+        fun (effect : Event<'a, 's> -> 'e option) ->
+            Effect (Binding.make source effect)
 
 [<AutoOpen>]
 module BindingOperators =
 
-    let (==>) address message =
-        Message (Binding.make (address |> Stream.make |> Stream.generalize) message)
+    let inline (==>) source message : Binding<'m, 'e, 's, 'w> =
+        (Unchecked.defaultof<Binding<'m, 'e, 's, 'w>> ==> source) message
 
-    let (=|>) address makeMessageOpt =
-        Message (Binding.makeSimple (address |> Stream.make |> Stream.generalize) makeMessageOpt)
+    let inline (=|>) source message : Binding<'m, 'e, 's, 'w> =
+        (Unchecked.defaultof<Binding<'m, 'e, 's, 'w>> =|> source) message
 
-    let (==>!) address message =
-        Effect (Binding.make (address |> Stream.make |> Stream.generalize) message)
+    let inline (==>!) source message : Binding<'m, 'e, 's, 'w> =
+        (Unchecked.defaultof<Binding<'m, 'e, 's, 'w>> ==>! source) message
 
-    let (=|>!) address makeMessageOpt =
-        Effect (Binding.makeSimple (address |> Stream.make |> Stream.generalize) makeMessageOpt)
-
-    let (===>) stream message =
-        Message (Binding.make (stream |> Stream.generalize) message)
-
-    let (==|>) stream makeMessageOpt =
-        Message (Binding.makeSimple (stream |> Stream.generalize) makeMessageOpt)
-
-    let (===>!) stream message =
-        Effect (Binding.make (stream |> Stream.generalize) message)
-
-    let (==|>!) stream makeMessageOpt =
-        Effect (Binding.makeSimple (stream |> Stream.generalize) makeMessageOpt)
+    let inline (=|>!) source message : Binding<'m, 'e, 's, 'w> =
+        (Unchecked.defaultof<Binding<'m, 'e, 's, 'w>> =|>! source) message

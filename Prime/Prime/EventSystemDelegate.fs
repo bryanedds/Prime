@@ -23,6 +23,17 @@ type [<Struct; NoEquality; NoComparison>] Event<'a, 's when 's :> Participant> =
       Address : 'a Address
       Trace : EventTrace }
 
+[<RequireQualifiedAccess>]
+module Event =
+
+    /// Specialize an event's data.
+    let specialize (evt : Event<obj, 's>) : Event<'a, 's> =
+        { Data = evt.Data :?> 'a
+          Subscriber = evt.Subscriber
+          Publisher = evt.Publisher
+          Address = atoa evt.Address
+          Trace = evt.Trace }
+
 /// The generalized event type (can be used to handle any event).
 type EventGeneralized = Event<obj, Participant>
 
