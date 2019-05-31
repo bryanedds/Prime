@@ -11,7 +11,6 @@ type [<ReferenceEquality>] Stream<'a, 'w when 'w :> EventSystem<'w>> =
     { Subscribe : 'w -> 'a Address * ('w -> 'w) * 'w }
 
 // TODO: document track functions.
-// TODO: figure out if Stream.track4 is just an overly complicated specialization of traverse.
 [<RequireQualifiedAccess>]
 module Stream =
 
@@ -35,6 +34,10 @@ module Stream =
             let world = EventSystem.subscribePlus<'a, Participant, 'w> subscriptionKey subscription eventAddress globalParticipant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
+
+    let [<DebuggerHidden; DebuggerStepThrough>] generalize<'a, 'w when 'w :> EventSystem<'w>>
+        (stream : Stream<'a, 'w>) : Stream<obj, 'w> =
+        { Subscribe = fun world -> let (address, unsub, world) = stream.Subscribe world in (atooa address, unsub, world) }
 
     (* Side-Effecting Combinators *)
 

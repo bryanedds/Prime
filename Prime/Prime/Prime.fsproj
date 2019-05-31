@@ -113,6 +113,7 @@
     <Compile Include="EventSystemDelegate.fs" />
     <Compile Include="EventSystem.fs" />
     <Compile Include="Stream.fs" />
+    <Compile Include="Binding.fs" />
     <Compile Include="Chain.fs" />
     <Compile Include="Scripting.fs" />
     <Compile Include="ScriptingUnary.fs" />
