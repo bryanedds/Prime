@@ -54,13 +54,23 @@ type AddressConverter (targetType : Type) =
 [<AutoOpen>]
 module Address =
 
+    /// A generalized address.
+    type Address =
+        interface
+            abstract Names : string list
+            abstract HashCode : int
+            end
+
     /// Specifies the address of an identifiable value.
     /// TODO: P1: have Address constructor throw if multiple wildcards are used.
     type [<CustomEquality; CustomComparison; TypeConverter (typeof<AddressConverter>)>] 'a Address =
-        private
-            { Names : string list
-              HashCode : int } // OPTIMIZATION: hash is cached for speed
-    
+        { Names : string list
+          HashCode : int } // OPTIMIZATION: hash is cached for speed
+
+        interface Address with
+            member this.Names = this.Names
+            member this.HashCode = this.HashCode
+
         /// Make an address from a '/' delimited string.
         /// NOTE: do not move this function as the AddressConverter's reflection code relies on it being exactly here!
         static member makeFromString<'a> (addressStr : string) : 'a Address =
@@ -80,6 +90,14 @@ module Address =
         /// Compare Addresses.
         static member compare address address2 =
             String.compareMany address.Names address2.Names
+
+        /// Convert any address to an obj Address.
+        static member generalize<'a> (address : 'a Address) : obj Address =
+            { Names = address.Names; HashCode = address.HashCode }
+
+        /// Convert an obj address to any Address.
+        static member specialize<'a> (address : obj Address) : 'a Address =
+            { Names = address.Names; HashCode = address.HashCode }
 
         /// Convert a string into an address.
         static member stoa<'a> str =
@@ -103,7 +121,7 @@ module Address =
 
         /// Convert any address to an obj Address.
         static member atooa<'a> (address : 'a Address) : obj Address =
-            { Names = address.Names; HashCode = address.HashCode }
+            Address.generalize address
 
         /// Concatenate two addresses of the same type.
         static member acat<'a> (address : 'a Address) (address2 : 'a Address) : 'a Address=

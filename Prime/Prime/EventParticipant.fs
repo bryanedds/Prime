@@ -35,6 +35,15 @@ type [<StructuralEquality; NoComparison>] GlobalParticipantGeneralized =
         member this.ParticipantAddress = atoa<GlobalParticipantGeneralized, Participant> this.GpgAddress
         end
 
+/// A generalized property tag.
+type 'w PropertyTag =
+    interface
+        abstract This : Participant
+        abstract Name : string
+        abstract Get : 'w -> obj
+        abstract SetOpt : (obj -> 'w -> 'w) option
+        end
+
 /// Describes a property of a participant.
 /// Similar to a Haskell lens, but specialized to properties.
 type [<NoEquality; NoComparison>] PropertyTag<'a, 'w> =
@@ -42,7 +51,20 @@ type [<NoEquality; NoComparison>] PropertyTag<'a, 'w> =
       Name : string
       Get : 'w -> 'a
       SetOpt : ('a -> 'w -> 'w) option }
-      
+
+    interface 'w PropertyTag with
+        member this.This = this.This
+        member this.Name = this.Name
+        member this.Get world = this.Get world :> obj
+        member this.SetOpt = Option.map (fun set -> fun (value : obj) world -> set (value :?> 'a) world) this.SetOpt
+
+    member this.Generalize () =
+        let this = this :> 'w PropertyTag
+        { This = this.This
+          Name = this.Name
+          Get = this.Get
+          SetOpt = this.SetOpt}
+
     member this.TrySet value world =
         match this.SetOpt with
         | Some setter -> (true, setter value world)
