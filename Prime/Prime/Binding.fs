@@ -10,7 +10,7 @@ type [<NoEquality; NoComparison>] Binding<'m, 's, 'w when 's :> Participant and 
 
 type [<NoEquality; NoComparison>] Binding<'m, 'e, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> =
     | Message of Binding<'m, 's, 'w>
-    | Effect of Binding<'e, 's, 'w>
+    | Command of Binding<'e, 's, 'w>
 
 [<RequireQualifiedAccess>]
 module Binding =
@@ -44,20 +44,20 @@ type Binding<'m, 'e, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> wi
             Message (Binding.make source message)
 
     static member (==>!) (_ : Binding<'m, 'e, 's, 'w>, source : Address<'a>) =
-        fun (effect : 'e) ->
-            Effect (Binding.makeSimple (Stream.make source) effect)
+        fun (command : 'e) ->
+            Command (Binding.makeSimple (Stream.make source) command)
 
     static member (==>!) (_ : Binding<'m, 'e, 's, 'w>, source : Stream<'a, 'w>) =
-        fun (effect : 'e) ->
-            Effect (Binding.makeSimple source effect)
+        fun (command : 'e) ->
+            Command (Binding.makeSimple source command)
 
     static member (=|>!) (_ : Binding<'m, 'e, 's, 'w>, source : Address<'a>) =
-        fun (effect : Event<'a, 's> -> 'e option) ->
-            Effect (Binding.make (Stream.make source) effect)
+        fun (command : Event<'a, 's> -> 'e option) ->
+            Command (Binding.make (Stream.make source) command)
 
     static member (=|>!) (_ : Binding<'m, 'e, 's, 'w>, source : Stream<'a, 'w>) =
-        fun (effect : Event<'a, 's> -> 'e option) ->
-            Effect (Binding.make source effect)
+        fun (command : Event<'a, 's> -> 'e option) ->
+            Command (Binding.make source command)
 
 [<AutoOpen>]
 module BindingOperators =
