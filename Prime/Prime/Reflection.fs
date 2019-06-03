@@ -18,13 +18,13 @@ type [<AttributeUsage (AttributeTargets.Class); AllowNullLiteral>] DefaultValueA
 /// An evaluatable expression for defining a property.
 type [<Struct; NoEquality; NoComparison>] PropertyExpr =
     | DefineExpr of DefineExpr : obj
-    | VariableExpr of VariableExpr : (unit -> obj)
+    | VariableExpr of VariableExpr : (obj -> obj)
 
     /// Evaluate a property expression.
-    static member eval expr =
+    static member eval expr context =
         match expr with
         | DefineExpr value -> value
-        | VariableExpr fn -> fn ()
+        | VariableExpr fn -> fn context
 
 /// The definition of a data-driven property.
 type [<Struct; NoEquality; NoComparison>] PropertyDefinition =
@@ -66,8 +66,8 @@ type [<Struct>] VariableDescription =
 
     /// Some magic syntax for composing variable properties.
     static member (?) (_, propertyName) =
-        fun (variable : unit -> 'v) ->
-            PropertyDefinition.makeValidated propertyName typeof<'v> (VariableExpr (fun () -> variable () :> obj))
+        fun (variable : 'w -> 'v) ->
+            PropertyDefinition.makeValidated propertyName typeof<'v> (VariableExpr (fun context -> variable (context :?> 'w) :> obj))
 
 /// In tandem with the property literal, grants a nice syntax to denote properties.
 type [<Struct>] PropertyDescription =
