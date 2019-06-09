@@ -146,3 +146,12 @@ module PropertyTag =
 
     let make this name get set =
         { This = this; Name = name; Get = get; SetOpt = Some set }
+
+[<AutoOpen>]
+module PropertySyntax =
+
+    let define (tag : PropertyTag<'a, 'w>) (value : 'a) =
+        PropertyDefinition.makeValidated tag.Name typeof<'a> (DefineExpr value)
+
+    let variable (tag : PropertyTag<'a, 'w>) (variable : 'w -> 'a) =
+        PropertyDefinition.makeValidated tag.Name typeof<'a> (VariableExpr (fun world -> variable (world :?> 'w) :> obj))
