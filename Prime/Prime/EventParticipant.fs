@@ -148,7 +148,7 @@ module PropertyTag =
         { This = this; Name = name; Get = get; SetOpt = Some set }
 
 [<AutoOpen>]
-module PropertySyntax =
+module PropertyTagOperators =
 
     let define (tag : PropertyTag<'a, 'w>) (value : 'a) =
         PropertyDefinition.makeValidated tag.Name typeof<'a> (DefineExpr value)
