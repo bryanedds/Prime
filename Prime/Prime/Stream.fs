@@ -449,7 +449,7 @@ module Stream =
     /// Subscribe to a stream, handling each event with the given subscription,
     /// returning both an unsubscription procedure as well as the world as augmented with said
     /// subscription.
-    let [<DebuggerHidden; DebuggerStepThrough>] subscribePlus subscription (subscriber : 's) stream world =
+    let [<DebuggerHidden; DebuggerStepThrough>] subscribeEffect subscription (subscriber : 's) stream world =
         let subscribe = fun world ->
             let subscriptionKey = makeGuid ()
             let subscriptionAddress = ntoa<'a> (scstring subscriptionKey)
@@ -464,17 +464,17 @@ module Stream =
 
     /// Subscribe to a stream, handling each event with the given subscription.
     let [<DebuggerHidden; DebuggerStepThrough>] subscribe subscription subscriber stream world =
-        subscribePlus (fun evt world -> (Cascade, subscription evt world)) subscriber stream world |> snd
+        subscribeEffect (fun evt world -> (Cascade, subscription evt world)) subscriber stream world |> snd
 
     /// Subscribe to a stream until the subscriber is removed from the world,
     /// returning both an unsubscription procedure as well as the world as augmented with said
     /// subscription.
-    let [<DebuggerHidden; DebuggerStepThrough>] monitorPlus subscription subscriber stream world =
-        (stream |> lifetime subscriber |> subscribePlus subscription subscriber) world
+    let [<DebuggerHidden; DebuggerStepThrough>] monitorEffect subscription subscriber stream world =
+        (stream |> lifetime subscriber |> subscribeEffect subscription subscriber) world
 
     /// Subscribe to a stream until the subscriber is removed from the world.
     let [<DebuggerHidden; DebuggerStepThrough>] monitor subscription subscriber stream world =
-        monitorPlus (fun evt world -> (Cascade, subscription evt world)) subscriber stream world |> snd
+        monitorEffect (fun evt world -> (Cascade, subscription evt world)) subscriber stream world |> snd
 
     (* Derived Combinators *)
 

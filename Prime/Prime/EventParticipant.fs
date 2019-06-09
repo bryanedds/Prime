@@ -65,6 +65,9 @@ type [<NoEquality; NoComparison>] PropertyTag<'a, 'w> =
           Get = this.Get
           SetOpt = this.SetOpt}
 
+    member this.GetBy by world =
+        by (this.Get world)
+
     member this.TrySet value world =
         match this.SetOpt with
         | Some setter -> (true, setter value world)

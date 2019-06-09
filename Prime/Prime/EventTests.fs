@@ -92,14 +92,14 @@ module EventTests =
         let world = TestWorld.make ignore false EventFilter.Empty TestParticipantSpecialized TestParticipantGeneralized
         let stream = Stream.make TestEvent
         let world = Stream.subscribe incTestState TestParticipantSpecialized stream world
-        let (unsubscribe, world) = Stream.subscribePlus incTestStateAndCascade TestParticipantSpecialized stream world
+        let (unsubscribe, world) = Stream.subscribeEffect incTestStateAndCascade TestParticipantSpecialized stream world
         let world = unsubscribe world
         let world = EventSystem.publish 0 TestEvent EventTrace.empty TestParticipantSpecialized world
         Assert.Equal (1, world.TestState)
 
     let [<Fact>] streamUnsubscribeWorks () =
         let world = TestWorld.make ignore false EventFilter.Empty TestParticipantSpecialized TestParticipantGeneralized
-        let (unsubscribe, world) = Stream.make TestEvent |> Stream.subscribePlus incTestStateAndCascade TestParticipantSpecialized <| world
+        let (unsubscribe, world) = Stream.make TestEvent |> Stream.subscribeEffect incTestStateAndCascade TestParticipantSpecialized <| world
         let world = unsubscribe world
         let world = EventSystem.publish 0 TestEvent EventTrace.empty TestParticipantSpecialized world
         Assert.True (UMap.isEmpty (EventSystem.getSubscriptions world))
@@ -162,7 +162,7 @@ module EventTests =
         let (unsubscribe, world) =
             Stream.make TestEvent |>
             Stream.reduce (+) |>
-            Stream.subscribePlus incTestStateAndCascade TestParticipantSpecialized <|
+            Stream.subscribeEffect incTestStateAndCascade TestParticipantSpecialized <|
             world
         let world = EventSystem.publish 0 TestEvent EventTrace.empty TestParticipantSpecialized world
         let world = unsubscribe world

@@ -88,12 +88,14 @@ module Either =
         List.foldBack
             (fun eir lefts -> match eir with Right _ -> lefts | Left left -> left :: lefts)
             (List.ofSeq eirs)
+            []
 
     /// Get only the Right values of a sequence of an Either value.
     let getRightValues eirs =
         List.foldBack
             (fun eir rights -> match eir with Right right -> right :: rights | Left _ -> rights)
             (List.ofSeq eirs)
+            []
 
     /// Map over the left side of an Either value.
     let mapLeft mapper eir =
