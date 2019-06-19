@@ -570,6 +570,9 @@ module Stream =
     /// Filter out the events with non-unique data from a stream.
     let [<DebuggerHidden; DebuggerStepThrough>] distinct stream = distinctBy id stream
 
+    /// Identity for streams.
+    let [<DebuggerHidden; DebuggerStepThrough>] id stream = stream
+
 [<AutoOpen>]
 module StreamOperators =
 

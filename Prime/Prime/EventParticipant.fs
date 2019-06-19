@@ -160,3 +160,12 @@ module PropertyTagOperators =
 
     let variable (tag : PropertyTag<'a, 'w>) (variable : 'w -> 'a) =
         PropertyDefinition.makeValidated tag.Name typeof<'a> (VariableExpr (fun world -> variable (world :?> 'w) :> obj))
+
+    // NOTE: failed lensing experiment - can't get the damn types to work out...
+    //
+    //let inline addEqual<'a, 'w when 'a : (static member (+) : 'a * 'a -> 'a)> (property : PropertyTag<'a, 'w>) (value : 'a) (world : 'w) : 'w =
+    //    match property.SetOpt with
+    //    | Some set -> set (property.Get world + value) world // NOTE: for some reason, F# is not forwarding the 'a constraint to the Get member...
+    //    | None -> world
+    //
+    //let inline (+=) (left, right) = addEqual left right
