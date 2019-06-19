@@ -20,8 +20,14 @@ type ParticipantOperators =
     /// Concatenate two addresses, forcing the type of first address.
     static member acatf<'a> (address : 'a Address) (participant : Participant) = acatf address (atooa participant.ParticipantAddress)
 
+    /// Concatenate two addresses, forcing the type of first address.
+    static member acatff<'a> (address : 'a Address) (participant : Participant) = acatff address participant.ParticipantAddress
+
     /// Concatenate two addresses, takings the type of first address.
     static member (->-) (address, participant : Participant) = ParticipantOperators.acatf address participant
+
+    /// Concatenate two addresses, forcing the type of first address.
+    static member (-->) (address, participant : Participant) = ParticipantOperators.acatff address participant
 
 /// The data for a change in a participant.
 type [<Struct; StructuralEquality; NoComparison>] 'w ParticipantChangeData =
