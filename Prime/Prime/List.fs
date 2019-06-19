@@ -126,6 +126,10 @@ module List =
     let trySkip (count : int) (list : _ list) =
         Seq.trySkip count list |> List.ofSeq
 
+    /// Get all but the last item from a list.
+    let allButLast list =
+        tryTake (List.length list - 1) list
+
     /// Project the first list onto the second.
     let project pred (list : 'a list) (list2 : 'b option list) =
         Seq.project pred list list2 |> List.ofSeq
@@ -143,10 +147,6 @@ module List =
     /// Foldi for lists.
     let foldi folder state (list : _ list) =
         Seq.foldi folder state list
-
-    /// Get all but the last item from a list.
-    let allButLast list =
-        List.take (List.length list - 1) list
 
     /// Convert option values to definite values.
     let definitize opts =

@@ -42,6 +42,7 @@ type 'w PropertyTag =
         abstract Name : string
         abstract Get : 'w -> obj
         abstract SetOpt : (obj -> 'w -> 'w) option
+        abstract Type : Type
         end
 
 /// Describes a property of a participant.
@@ -57,6 +58,7 @@ type [<NoEquality; NoComparison>] PropertyTag<'a, 'w> =
         member this.Name = this.Name
         member this.Get world = this.Get world :> obj
         member this.SetOpt = Option.map (fun set -> fun (value : obj) world -> set (value :?> 'a) world) this.SetOpt
+        member this.Type = typeof<'a>
 
     member this.Generalize () =
         let this = this :> 'w PropertyTag
@@ -128,6 +130,9 @@ type [<NoEquality; NoComparison>] PropertyTag<'a, 'w> =
         let changeEventAddress = Address<'w ParticipantChangeData>.ltoa ["Change"; this.Name; "Event"]
         let changeEvent = changeEventAddress --> this.This.ParticipantAddress
         changeEvent
+
+    member this.Type =
+        typeof<'a>
 
 [<RequireQualifiedAccess>]
 module PropertyTag =

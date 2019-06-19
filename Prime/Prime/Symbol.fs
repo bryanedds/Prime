@@ -7,7 +7,7 @@ open FParsec
 open Prime
 
 type SymbolSource =
-    { FileNameOpt : string option
+    { FilePathOpt : string option
       Text : string }
 
 type SymbolState =
@@ -175,12 +175,11 @@ module Symbol =
             let! userState = getUserState
             let! start = getPosition
             do! openString
-            do! skipWhitespaces
             let! escaped = readStringChars
             do! closeString
             let! stop = getPosition
             do! skipWhitespaces
-            let str = escaped |> String.implode
+            let str = String.implode escaped
             let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
             return String (str, originOpt) }
 
@@ -278,7 +277,7 @@ module Symbol =
     ///
     /// ...and so on.
     let fromString str =
-        let symbolState = { SymbolSource = { FileNameOpt = None; Text = str }}
+        let symbolState = { SymbolSource = { FilePathOpt = None; Text = str }}
         match runParserOnString (skipWhitespaces >>. readSymbol) symbolState String.Empty str with
         | Success (value, _, _) -> value
         | Failure (error, _, _) -> failwith error
