@@ -105,51 +105,51 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
         typeof<'a>
 
     (* Lensing Operators *)
-    static member inline ( += ) (property : Lens<_, _>, value) =  property.Update (flip (+) value)
-    static member inline ( -= ) (property : Lens<_, _>, value) =  property.Update (flip (-) value)
-    static member inline ( *= ) (property : Lens<_, _>, value) =  property.Update (flip (*) value)
-    static member inline ( /= ) (property : Lens<_, _>, value) =  property.Update (flip (/) value)
-    static member inline ( %= ) (property : Lens<_, _>, value) =  property.Update (flip (%) value)
-    static member inline (+)    (property : Lens<_, _>, value) =  property.GetBy  (flip (+) value)
-    static member inline (-)    (property : Lens<_, _>, value) =  property.GetBy  (flip (-) value)
-    static member inline (*)    (property : Lens<_, _>, value) =  property.GetBy  (flip (*) value)
-    static member inline (/)    (property : Lens<_, _>, value) =  property.GetBy  (flip (/) value)
-    static member inline (%)    (property : Lens<_, _>, value) =  property.GetBy  (flip (%) value)
-    static member inline ( ** ) (property : Lens<_, _>, value) =  property.GetBy  (flip ( ** ) value)
-    static member inline (<<<)  (property : Lens<_, _>, value) =  property.GetBy  (flip (<<<) value)
-    static member inline (>>>)  (property : Lens<_, _>, value) =  property.GetBy  (flip (>>>) value)
-    static member inline (&&&)  (property : Lens<_, _>, value) =  property.GetBy  (flip (&&&) value)
-    static member inline (|||)  (property : Lens<_, _>, value) =  property.GetBy  (flip (|||) value)
-    static member inline (^^^)  (property : Lens<_, _>, value) =  property.GetBy  (flip (^^^) value)
-    static member inline (=.)   (property : Lens<_, _>, value) =  property.GetBy  (flip (=) value)
-    static member inline (<>.)  (property : Lens<_, _>, value) =  property.GetBy  (flip (<>) value)
-    static member inline (<.)   (property : Lens<_, _>, value) =  property.GetBy  (flip (<) value)
-    static member inline (<=.)  (property : Lens<_, _>, value) =  property.GetBy  (flip (<=) value)
-    static member inline (>.)   (property : Lens<_, _>, value) =  property.GetBy  (flip (>) value)
-    static member inline (>=.)  (property : Lens<_, _>, value) =  property.GetBy  (flip (>=) value)
-    static member inline (&&.)  (property : Lens<_, _>, value) =  property.GetBy  (flip (&&) value)
-    static member inline (||.)  (property : Lens<_, _>, value) =  property.GetBy  (flip (||) value)
-    static member inline (.[])  (property : Lens<_, _>, value) =  property.GetBy  (flip (.[]) value)
-    static member inline (~+)   (property : Lens<_, _>) =         property.Update (~+)
-    static member inline (~-)   (property : Lens<_, _>) =         property.Update (~-)
-    static member inline (!+)   (property : Lens<_, _>) =         property.Update inc
-    static member inline (!-)   (property : Lens<_, _>) =         property.Update dec
-    static member inline (~~~)  (property : Lens<_, _>) =         property.GetBy  (~~~)
-    static member inline (-->)  (property : Lens<_, _>, mapper) = property.MapOut mapper
-    static member inline (<--)  (property : Lens<_, _>, value) =  property.Set value
-    static member inline (!.)   (property : Lens<_, _>) =         property.Get
+    static member inline ( += ) (lens : Lens<_, _>, value) =  lens.Update (flip (+) value)
+    static member inline ( -= ) (lens : Lens<_, _>, value) =  lens.Update (flip (-) value)
+    static member inline ( *= ) (lens : Lens<_, _>, value) =  lens.Update (flip (*) value)
+    static member inline ( /= ) (lens : Lens<_, _>, value) =  lens.Update (flip (/) value)
+    static member inline ( %= ) (lens : Lens<_, _>, value) =  lens.Update (flip (%) value)
+    static member inline (+)    (lens : Lens<_, _>, value) =  lens.GetBy  (flip (+) value)
+    static member inline (-)    (lens : Lens<_, _>, value) =  lens.GetBy  (flip (-) value)
+    static member inline (*)    (lens : Lens<_, _>, value) =  lens.GetBy  (flip (*) value)
+    static member inline (/)    (lens : Lens<_, _>, value) =  lens.GetBy  (flip (/) value)
+    static member inline (%)    (lens : Lens<_, _>, value) =  lens.GetBy  (flip (%) value)
+    static member inline ( ** ) (lens : Lens<_, _>, value) =  lens.GetBy  (flip ( ** ) value)
+    static member inline (<<<)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (<<<) value)
+    static member inline (>>>)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (>>>) value)
+    static member inline (&&&)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (&&&) value)
+    static member inline (|||)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (|||) value)
+    static member inline (^^^)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (^^^) value)
+    static member inline (=.)   (lens : Lens<_, _>, value) =  lens.GetBy  (flip (=) value)
+    static member inline (<>.)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (<>) value)
+    static member inline (<.)   (lens : Lens<_, _>, value) =  lens.GetBy  (flip (<) value)
+    static member inline (<=.)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (<=) value)
+    static member inline (>.)   (lens : Lens<_, _>, value) =  lens.GetBy  (flip (>) value)
+    static member inline (>=.)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (>=) value)
+    static member inline (&&.)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (&&) value)
+    static member inline (||.)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (||) value)
+    static member inline (.[])  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (.[]) value)
+    static member inline (~+)   (lens : Lens<_, _>) =         lens.Update (~+)
+    static member inline (~-)   (lens : Lens<_, _>) =         lens.Update (~-)
+    static member inline (!+)   (lens : Lens<_, _>) =         lens.Update inc
+    static member inline (!-)   (lens : Lens<_, _>) =         lens.Update dec
+    static member inline (~~~)  (lens : Lens<_, _>) =         lens.GetBy  (~~~)
+    static member inline (-->)  (lens : Lens<_, _>, mapper) = lens.MapOut mapper
+    static member inline (<--)  (lens : Lens<_, _>, value) =  lens.Set value
+    static member inline (!.)   (lens : Lens<_, _>) =         lens.Get
 
 [<RequireQualifiedAccess>]
 module Lens =
 
-    let map mapper (property : Lens<_, _>) =
-        property.Map mapper
+    let map mapper (lens : Lens<_, _>) =
+        lens.Map mapper
 
-    let map2 mapper unmapper (property : Lens<_, _>) =
-        property.Map2 mapper unmapper
+    let map2 mapper unmapper (lens : Lens<_, _>) =
+        lens.Map2 mapper unmapper
 
-    let mapOut mapper (property : Lens<_, _>) =
-        property.MapOut mapper
+    let mapOut mapper (lens : Lens<_, _>) =
+        lens.MapOut mapper
 
     let makeReadOnly this name get =
         { This = this; Name = name; Get = get; SetOpt = None }
