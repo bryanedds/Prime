@@ -218,9 +218,9 @@ module ScriptingBinary =
 
     let PowFns =
         { Bool = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Pow"], "Cannot power Bools.", originOpt)
-          Int = fun left right _ -> Int (int ^ Math.Pow (double left, double right))
-          Int64 = fun left right _ -> Int64 (int64 ^ Math.Pow (double left, double right))
-          Single = fun left right _ -> Single (single ^ Math.Pow (double left, double right))
+          Int = fun left right _ -> Int (int $ Math.Pow (double left, double right))
+          Int64 = fun left right _ -> Int64 (int64 $ Math.Pow (double left, double right))
+          Single = fun left right _ -> Single (single $ Math.Pow (double left, double right))
           Double = fun left right _ -> Double (Math.Pow (double left, double right))
           String = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Pow"], "Cannot power Strings.", originOpt)
           Keyword = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Pow"], "Cannot power Keywords.", originOpt)
@@ -235,9 +235,9 @@ module ScriptingBinary =
 
     let RootFns =
         { Bool = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Root"], "Cannot root Bools.", originOpt)
-          Int = fun left right _ -> Int (int ^ Math.Pow (double left, 1.0 / double right))
-          Int64 = fun left right _ -> Int64 (int64 ^ Math.Pow (double left, 1.0 / double right))
-          Single = fun left right _ -> Single (single ^ Math.Pow (double left, 1.0 / double right))
+          Int = fun left right _ -> Int (int $ Math.Pow (double left, 1.0 / double right))
+          Int64 = fun left right _ -> Int64 (int64 $ Math.Pow (double left, 1.0 / double right))
+          Single = fun left right _ -> Single (single $ Math.Pow (double left, 1.0 / double right))
           Double = fun left right _ -> Double (Math.Pow (double left, 1.0 / double right))
           String = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Root"], "Cannot root Strings.", originOpt)
           Keyword = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Root"], "Cannot root Keywords.", originOpt)

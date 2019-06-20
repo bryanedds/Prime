@@ -179,9 +179,9 @@ module ScriptingUnary =
 
     let SqrtFns =
         { Bool = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sqrt"], "Cannot square root a Bool.", originOpt)
-          Int = fun value _ -> Int (int ^ Math.Sqrt (double value))
-          Int64 = fun value _ -> Int64 (int64 ^ Math.Sqrt (double value))
-          Single = fun value _ -> Single (single ^ Math.Sqrt (double value))
+          Int = fun value _ -> Int (int $ Math.Sqrt (double value))
+          Int64 = fun value _ -> Int64 (int64 $ Math.Sqrt (double value))
+          Single = fun value _ -> Single (single $ Math.Sqrt (double value))
           Double = fun value _ -> Double (Math.Sqrt value)
           String = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sqrt"], "Cannot square root a String.", originOpt)
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sqrt"], "Cannot square root a Keyword.", originOpt)
@@ -196,9 +196,9 @@ module ScriptingUnary =
 
     let FloorFns =
         { Bool = fun _ originOpt -> Violation (["InvalidArgumentType"; "Floor"], "Cannot floor a Bool.", originOpt)
-          Int = fun value _ -> Int (int ^ Math.Floor (double value))
-          Int64 = fun value _ -> Int64 (int64 ^ Math.Floor (double value))
-          Single = fun value _ -> Single (single ^ Math.Floor (double value))
+          Int = fun value _ -> Int (int $ Math.Floor (double value))
+          Int64 = fun value _ -> Int64 (int64 $ Math.Floor (double value))
+          Single = fun value _ -> Single (single $ Math.Floor (double value))
           Double = fun value _ -> Double (Math.Floor value)
           String = fun _ originOpt -> Violation (["InvalidArgumentType"; "Floor"], "Cannot floor a String.", originOpt)
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Floor"], "Cannot floor a Keyword.", originOpt)
@@ -213,9 +213,9 @@ module ScriptingUnary =
 
     let CeilingFns =
         { Bool = fun _ originOpt -> Violation (["InvalidArgumentType"; "Ceiling"], "Cannot get ceiling of a Bool.", originOpt)
-          Int = fun value _ -> Int (int ^ Math.Ceiling (double value))
-          Int64 = fun value _ -> Int64 (int64 ^ Math.Ceiling (double value))
-          Single = fun value _ -> Single (single ^ Math.Ceiling (double value))
+          Int = fun value _ -> Int (int $ Math.Ceiling (double value))
+          Int64 = fun value _ -> Int64 (int64 $ Math.Ceiling (double value))
+          Single = fun value _ -> Single (single $ Math.Ceiling (double value))
           Double = fun value _ -> Double (Math.Ceiling value)
           String = fun _ originOpt -> Violation (["InvalidArgumentType"; "Ceiling"], "Cannot get ceiling of a String.", originOpt)
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Ceiling"], "Cannot get ceiling of a Keyword.", originOpt)
@@ -230,9 +230,9 @@ module ScriptingUnary =
 
     let TruncateFns =
         { Bool = fun _ originOpt -> Violation (["InvalidArgumentType"; "Truncate"], "Cannot truncate a Bool.", originOpt)
-          Int = fun value _ -> Int (int ^ Math.Truncate (double value))
-          Int64 = fun value _ -> Int64 (int64 ^ Math.Truncate (double value))
-          Single = fun value _ -> Single (single ^ Math.Truncate (double value))
+          Int = fun value _ -> Int (int $ Math.Truncate (double value))
+          Int64 = fun value _ -> Int64 (int64 $ Math.Truncate (double value))
+          Single = fun value _ -> Single (single $ Math.Truncate (double value))
           Double = fun value _ -> Double (Math.Truncate value)
           String = fun _ originOpt -> Violation (["InvalidArgumentType"; "Truncate"], "Cannot truncate a String.", originOpt)
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Truncate"], "Cannot truncate a Keyword.", originOpt)
@@ -247,9 +247,9 @@ module ScriptingUnary =
 
     let ExpFns =
         { Bool = fun _ originOpt -> Violation (["InvalidArgumentType"; "Exp"], "Cannot exponentiate a Bool.", originOpt)
-          Int = fun value _ -> Int (int ^ Math.Exp (double value))
-          Int64 = fun value _ -> Int64 (int64 ^ Math.Exp (double value))
-          Single = fun value _ -> Single (single ^ Math.Exp (double value))
+          Int = fun value _ -> Int (int $ Math.Exp (double value))
+          Int64 = fun value _ -> Int64 (int64 $ Math.Exp (double value))
+          Single = fun value _ -> Single (single $ Math.Exp (double value))
           Double = fun value _ -> Double (Math.Exp value)
           String = fun _ originOpt -> Violation (["InvalidArgumentType"; "Exp"], "Cannot exponentiate a String.", originOpt)
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Exp"], "Cannot exponentiate a Keyword.", originOpt)
@@ -264,9 +264,9 @@ module ScriptingUnary =
 
     let RoundFns =
         { Bool = fun _ originOpt -> Violation (["InvalidArgumentType"; "Round"], "Cannot round a Bool.", originOpt)
-          Int = fun value _ -> Int (int ^ Math.Round (double value))
-          Int64 = fun value _ -> Int64 (int64 ^ Math.Round (double value))
-          Single = fun value _ -> Single (single ^ Math.Round (double value))
+          Int = fun value _ -> Int (int $ Math.Round (double value))
+          Int64 = fun value _ -> Int64 (int64 $ Math.Round (double value))
+          Single = fun value _ -> Single (single $ Math.Round (double value))
           Double = fun value _ -> Double (Math.Round value)
           String = fun _ originOpt -> Violation (["InvalidArgumentType"; "Round"], "Cannot round a String.", originOpt)
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Round"], "Cannot round a Keyword.", originOpt)
@@ -281,9 +281,9 @@ module ScriptingUnary =
 
     let LogFns =
         { Bool = fun _ originOpt -> Violation (["InvalidArgumentType"; "Log"], "Cannot log a Bool.", originOpt)
-          Int = fun value originOpt -> if value = 0 then Violation (["ArgumentOutOfRange"; "Log"], "Cannot log a zero Int.", originOpt) else Int (int ^ Math.Log (double value))
-          Int64 = fun value originOpt -> if value = 0L then Violation (["ArgumentOutOfRange"; "Log"], "Cannot log a zero Int64.", originOpt) else Int64 (int64 ^ Math.Log (double value))
-          Single = fun value originOpt -> if value = 0.0f then Violation (["ArgumentOutOfRange"; "Log"], "Cannot log a zero Single.", originOpt) else Single (single ^ Math.Log (double value))
+          Int = fun value originOpt -> if value = 0 then Violation (["ArgumentOutOfRange"; "Log"], "Cannot log a zero Int.", originOpt) else Int (int $ Math.Log (double value))
+          Int64 = fun value originOpt -> if value = 0L then Violation (["ArgumentOutOfRange"; "Log"], "Cannot log a zero Int64.", originOpt) else Int64 (int64 $ Math.Log (double value))
+          Single = fun value originOpt -> if value = 0.0f then Violation (["ArgumentOutOfRange"; "Log"], "Cannot log a zero Single.", originOpt) else Single (single $ Math.Log (double value))
           Double = fun value originOpt -> if value = 0.0 then Violation (["ArgumentOutOfRange"; "Log"], "Cannot log a zero Double.", originOpt) else Double (Math.Log value)
           String = fun _ originOpt -> Violation (["InvalidArgumentType"; "Log"], "Cannot log a String.", originOpt)
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Log"], "Cannot log a Keyword.", originOpt)
@@ -298,9 +298,9 @@ module ScriptingUnary =
 
     let SinFns =
         { Bool = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sin"], "Cannot sin a Bool.", originOpt)
-          Int = fun value _ -> Int (int ^ Math.Sin (double value))
-          Int64 = fun value _ -> Int64 (int64 ^ Math.Sin (double value))
-          Single = fun value _ -> Single (single ^ Math.Sin (double value))
+          Int = fun value _ -> Int (int $ Math.Sin (double value))
+          Int64 = fun value _ -> Int64 (int64 $ Math.Sin (double value))
+          Single = fun value _ -> Single (single $ Math.Sin (double value))
           Double = fun value _ -> Double (Math.Sin value)
           String = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sin"], "Cannot sin a String.", originOpt)
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Sin"], "Cannot sin a Keyword.", originOpt)
@@ -315,9 +315,9 @@ module ScriptingUnary =
 
     let CosFns =
         { Bool = fun _ originOpt -> Violation (["InvalidArgumentType"; "Cos"], "Cannot cos a Bool.", originOpt)
-          Int = fun value _ -> Int (int ^ Math.Cos (double value))
-          Int64 = fun value _ -> Int64 (int64 ^ Math.Cos (double value))
-          Single = fun value _ -> Single (single ^ Math.Cos (double value))
+          Int = fun value _ -> Int (int $ Math.Cos (double value))
+          Int64 = fun value _ -> Int64 (int64 $ Math.Cos (double value))
+          Single = fun value _ -> Single (single $ Math.Cos (double value))
           Double = fun value _ -> Double (Math.Cos value)
           String = fun _ originOpt -> Violation (["InvalidArgumentType"; "Cos"], "Cannot cos a String.", originOpt)
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Cos"], "Cannot cos a Keyword.", originOpt)
@@ -332,9 +332,9 @@ module ScriptingUnary =
 
     let TanFns =
         { Bool = fun _ originOpt -> Violation (["InvalidArgumentType"; "Tan"], "Cannot tan a Bool.", originOpt)
-          Int = fun value _ -> Int (int ^ Math.Tan (double value))
-          Int64 = fun value _ -> Int64 (int64 ^ Math.Tan (double value))
-          Single = fun value _ -> Single (single ^ Math.Tan (double value))
+          Int = fun value _ -> Int (int $ Math.Tan (double value))
+          Int64 = fun value _ -> Int64 (int64 $ Math.Tan (double value))
+          Single = fun value _ -> Single (single $ Math.Tan (double value))
           Double = fun value _ -> Double (Math.Tan value)
           String = fun _ originOpt -> Violation (["InvalidArgumentType"; "Tan"], "Cannot tan a String.", originOpt)
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Tan"], "Cannot tan a Keyword.", originOpt)
@@ -349,9 +349,9 @@ module ScriptingUnary =
 
     let AsinFns =
         { Bool = fun _ originOpt -> Violation (["InvalidArgumentType"; "Asin"], "Cannot asin a Bool.", originOpt)
-          Int = fun value _ -> Int (int ^ Math.Asin (double value))
-          Int64 = fun value _ -> Int64 (int64 ^ Math.Asin (double value))
-          Single = fun value _ -> Single (single ^ Math.Asin (double value))
+          Int = fun value _ -> Int (int $ Math.Asin (double value))
+          Int64 = fun value _ -> Int64 (int64 $ Math.Asin (double value))
+          Single = fun value _ -> Single (single $ Math.Asin (double value))
           Double = fun value _ -> Double (Math.Asin value)
           String = fun _ originOpt -> Violation (["InvalidArgumentType"; "Asin"], "Cannot asin a String.", originOpt)
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Asin"], "Cannot asin a Keyword.", originOpt)
@@ -366,9 +366,9 @@ module ScriptingUnary =
 
     let AcosFns =
         { Bool = fun _ originOpt -> Violation (["InvalidArgumentType"; "Acos"], "Cannot acos a Bool.", originOpt)
-          Int = fun value _ -> Int (int ^ Math.Acos (double value))
-          Int64 = fun value _ -> Int64 (int64 ^ Math.Acos (double value))
-          Single = fun value _ -> Single (single ^ Math.Acos (double value))
+          Int = fun value _ -> Int (int $ Math.Acos (double value))
+          Int64 = fun value _ -> Int64 (int64 $ Math.Acos (double value))
+          Single = fun value _ -> Single (single $ Math.Acos (double value))
           Double = fun value _ -> Double (Math.Acos value)
           String = fun _ originOpt -> Violation (["InvalidArgumentType"; "Acos"], "Cannot acos a String.", originOpt)
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Acos"], "Cannot acos a Keyword.", originOpt)
@@ -383,9 +383,9 @@ module ScriptingUnary =
 
     let AtanFns =
         { Bool = fun _ originOpt -> Violation (["InvalidArgumentType"; "Atan"], "Cannot atan a Bool.", originOpt)
-          Int = fun value _ -> Int (int ^ Math.Atan (double value))
-          Int64 = fun value _ -> Int64 (int64 ^ Math.Atan (double value))
-          Single = fun value _ -> Single (single ^ Math.Atan (double value))
+          Int = fun value _ -> Int (int $ Math.Atan (double value))
+          Int64 = fun value _ -> Int64 (int64 $ Math.Atan (double value))
+          Single = fun value _ -> Single (single $ Math.Atan (double value))
           Double = fun value _ -> Double (Math.Atan value)
           String = fun _ originOpt -> Violation (["InvalidArgumentType"; "Atan"], "Cannot atan a String.", originOpt)
           Keyword = fun _ originOpt -> Violation (["InvalidArgumentType"; "Atan"], "Cannot atan a Keyword.", originOpt)

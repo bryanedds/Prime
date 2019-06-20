@@ -580,18 +580,18 @@ module StreamOperators =
     let (---) = (|>)
 
     /// Make a stream of the subscriber's change events.
-    let [<DebuggerHidden; DebuggerStepThrough>] (!--) (property : PropertyTag<'b, 'w>) =
-        let changeEventAddress = ltoa<'w ParticipantChangeData> ["Change"; property.Name; "Event"] --> property.This.ParticipantAddress
-        Stream.make changeEventAddress --- Stream.mapEvent (fun _ world -> property.Get world)
+    let [<DebuggerHidden; DebuggerStepThrough>] (!--) (lens : Lens<'b, 'w>) =
+        let changeEventAddress = ltoa<'w ParticipantChangeData> ["Change"; lens.Name; "Event"] --> lens.This.ParticipantAddress
+        Stream.make changeEventAddress --- Stream.mapEvent (fun _ world -> lens.Get world)
 
     /// Propagate the event data of a stream to a property in the observing participant when the
     /// subscriber exists (doing nothing otherwise).
-    let [<DebuggerHidden; DebuggerStepThrough>] (-|>) stream (property : PropertyTag<'b, 'w>) =
+    let [<DebuggerHidden; DebuggerStepThrough>] (-|>) stream (lens : Lens<'b, 'w>) =
         Stream.subscribe (fun a world ->
             if world.ParticipantExists a.Subscriber then
-                match property.SetOpt with
+                match lens.SetOpt with
                 | Some set -> set a.Data world
                 | None -> world // TODO: log info here about property not being set-able?
             else world)
-            property.This
+            lens.This
             stream

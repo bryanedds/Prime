@@ -139,9 +139,9 @@ module Operators =
         let fileName = frame.GetFileName ()
         raise (NotImplementedException (sprintf "Not implemented exception in '%s' on line %i in file %s." meth.Name line fileName))
 
-    /// Sequences two functions like Haskell ($).
-    let inline (^) f g = f g
-    
     /// The implicit conversion operator.
     /// Same as the (!!) operator found in Prime, but placed here to expose it directly from Nu.
     let inline (!!) (arg : ^a) : ^b = ((^a or ^b) : (static member op_Implicit : ^a -> ^b) arg)
+
+    /// Sequences two functions like Haskell ($).
+    let inline ($) f g = f g

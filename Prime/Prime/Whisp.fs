@@ -202,7 +202,7 @@ module Whisp =
         skipMany1 skipWhitespace<'a>
 
     let recur parser =
-        attempt ^ parse {
+        attempt $ parse {
             do! eof
             return None } <|>
             parser
@@ -330,7 +330,7 @@ module Whisp =
         parse {
             let! scope = pushScope scope
             let! fn = parseApplyFragment scope
-            let! args = many1 ^ parse {
+            let! args = many1 $ parse {
                 let! position = getPosition
                 let block = Block.fromIndex position.Index scope.Root
                 return!

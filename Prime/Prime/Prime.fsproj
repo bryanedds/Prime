@@ -110,6 +110,7 @@
     <Compile Include="EventTrace.fs" />
     <Compile Include="EventFilter.fs" />
     <Compile Include="EventParticipant.fs" />
+    <Compile Include="EventParticipantLens.fs" />
     <Compile Include="EventSystemDelegate.fs" />
     <Compile Include="EventSystem.fs" />
     <Compile Include="Stream.fs" />

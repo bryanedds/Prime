@@ -49,7 +49,7 @@ module ScriptingMarshalling =
                 elif FSharpType.IsUnion ty then
                     let (unionCase, unionFields) = FSharpValue.GetUnionFields (value, ty)
                     let unionFieldInfos = unionCase.GetFields ()
-                    if not ^ Array.isEmpty unionFields then
+                    if not (Array.isEmpty unionFields) then
                         let unionFieldOpts = Array.mapi (fun i unionField -> tryImport tryImportExt unionFieldInfos.[i].PropertyType unionField) unionFields
                         match Array.definitizePlus unionFieldOpts with
                         | (true, unionFields) ->
