@@ -140,28 +140,37 @@ type [<NoEquality; NoComparison>] PropertyTag<'a, 'w> =
     member this.Type =
         typeof<'a>
 
-    static member inline ( += ) (property : PropertyTag<_, _>, value) = property.Update (flip (+) value)
-    static member inline ( -= ) (property : PropertyTag<_, _>, value) = property.Update (flip (-) value)
-    static member inline ( *= ) (property : PropertyTag<_, _>, value) = property.Update (flip (*) value)
-    static member inline ( /= ) (property : PropertyTag<_, _>, value) = property.Update (flip (/) value)
-    static member inline ( %= ) (property : PropertyTag<_, _>, value) = property.Update (flip (%) value)
-    static member inline (+)    (property : PropertyTag<_, _>, value) = property.GetBy  (flip (+) value)
-    static member inline (-)    (property : PropertyTag<_, _>, value) = property.GetBy  (flip (-) value)
-    static member inline (*)    (property : PropertyTag<_, _>, value) = property.GetBy  (flip (*) value)
-    static member inline (/)    (property : PropertyTag<_, _>, value) = property.GetBy  (flip (/) value)
-    static member inline (%)    (property : PropertyTag<_, _>, value) = property.GetBy  (flip (%) value)
-    static member inline ( ** ) (property : PropertyTag<_, _>, value) = property.GetBy  (flip ( ** ) value)
-    static member inline (<<<)  (property : PropertyTag<_, _>, value) = property.GetBy  (flip (<<<) value)
-    static member inline (>>>)  (property : PropertyTag<_, _>, value) = property.GetBy  (flip (>>>) value)
-    static member inline (&&&)  (property : PropertyTag<_, _>, value) = property.GetBy  (flip (&&&) value)
-    static member inline (|||)  (property : PropertyTag<_, _>, value) = property.GetBy  (flip (|||) value)
-    static member inline (^^^)  (property : PropertyTag<_, _>, value) = property.GetBy  (flip (^^^) value)
-    static member inline (.[])  (property : PropertyTag<_, _>, value) = property.GetBy  (flip (.[]) value)
-    static member inline (!+)   (property : PropertyTag<_, _>) =        property.Update inc
-    static member inline (!-)   (property : PropertyTag<_, _>) =        property.Update dec
-    static member inline (~+)   (property : PropertyTag<_, _>) =        property.Update (~+)
-    static member inline (~-)   (property : PropertyTag<_, _>) =        property.Update (~-)
-    static member inline (~~~)  (property : PropertyTag<_, _>) =        property.GetBy  (~~~)
+    static member inline ( += ) (property : PropertyTag<_, _>, value) =  property.Update (flip (+) value)
+    static member inline ( -= ) (property : PropertyTag<_, _>, value) =  property.Update (flip (-) value)
+    static member inline ( *= ) (property : PropertyTag<_, _>, value) =  property.Update (flip (*) value)
+    static member inline ( /= ) (property : PropertyTag<_, _>, value) =  property.Update (flip (/) value)
+    static member inline ( %= ) (property : PropertyTag<_, _>, value) =  property.Update (flip (%) value)
+    static member inline (+)    (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (+) value)
+    static member inline (-)    (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (-) value)
+    static member inline (*)    (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (*) value)
+    static member inline (/)    (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (/) value)
+    static member inline (%)    (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (%) value)
+    static member inline ( ** ) (property : PropertyTag<_, _>, value) =  property.GetBy  (flip ( ** ) value)
+    static member inline (<<<)  (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (<<<) value)
+    static member inline (>>>)  (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (>>>) value)
+    static member inline (&&&)  (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (&&&) value)
+    static member inline (|||)  (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (|||) value)
+    static member inline (^^^)  (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (^^^) value)
+    static member inline (.[])  (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (.[]) value)
+    static member inline (=.)   (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (=) value)
+    static member inline (<>.)  (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (<>) value)
+    static member inline (<.)   (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (<) value)
+    static member inline (<=.)  (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (<=) value)
+    static member inline (>.)   (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (>) value)
+    static member inline (>=.)  (property : PropertyTag<_, _>, value) =  property.GetBy  (flip (>=) value)
+    static member inline (~~~)  (property : PropertyTag<_, _>) =         property.GetBy  (~~~)
+    static member inline (~+)   (property : PropertyTag<_, _>) =         property.Update (~+)
+    static member inline (~-)   (property : PropertyTag<_, _>) =         property.Update (~-)
+    static member inline (!+)   (property : PropertyTag<_, _>) =         property.Update inc
+    static member inline (!-)   (property : PropertyTag<_, _>) =         property.Update dec
+    static member inline (-->)  (property : PropertyTag<_, _>, mapper) = property.MapOut mapper
+    static member inline (<--)  (property : PropertyTag<_, _>, value) =  property.Set value
+    static member inline (!.)   (property : PropertyTag<_, _>) =         property.Get
 
 [<RequireQualifiedAccess>]
 module PropertyTag =
