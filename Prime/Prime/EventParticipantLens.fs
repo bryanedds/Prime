@@ -8,8 +8,8 @@ open Prime
 /// A generalized participant lens.
 type 'w Lens =
     interface
-        abstract This : Participant
         abstract Name : string
+        abstract This : Participant
         abstract Get : 'w -> obj
         abstract SetOpt : (obj -> 'w -> 'w) option
         abstract Type : Type
@@ -18,24 +18,24 @@ type 'w Lens =
 /// Describes a property of a participant.
 /// Similar to a Haskell lens, but specialized to participant properties.
 type [<NoEquality; NoComparison>] Lens<'a, 'w> =
-    { This : Participant
-      Name : string
+    { Name : string
       Get : 'w -> 'a
-      SetOpt : ('a -> 'w -> 'w) option }
+      SetOpt : ('a -> 'w -> 'w) option
+      This : Participant }
 
     interface 'w Lens with
-        member this.This = this.This
         member this.Name = this.Name
         member this.Get world = this.Get world :> obj
         member this.SetOpt = Option.map (fun set -> fun (value : obj) world -> set (value :?> 'a) world) this.SetOpt
+        member this.This = this.This
         member this.Type = typeof<'a>
 
     member this.Generalize () =
         let this = this :> 'w Lens
-        { This = this.This
-          Name = this.Name
+        { Name = this.Name
           Get = this.Get
-          SetOpt = this.SetOpt}
+          SetOpt = this.SetOpt
+          This = this.This }
 
     member this.GetBy by world =
         by (this.Get world)
@@ -79,22 +79,22 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
         | (false, _) -> failwithumf ()
 
     member this.Map mapper : Lens<'a, 'w> =
-        { This = this.This
-          Name = this.Name
+        { Name = this.Name
           Get = fun world -> mapper (this.Get world)
-          SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (mapper value)) | None -> None }
+          SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (mapper value)) | None -> None
+          This = this.This }
 
     member this.Map2 mapper unmapper : Lens<'b, 'w> =
-        { This = this.This
-          Name = this.Name
+        { Name = this.Name
           Get = fun world -> mapper (this.Get world)
-          SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (unmapper value)) | None -> None }
+          SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (unmapper value)) | None -> None
+          This = this.This }
 
     member this.MapOut mapper : Lens<'b, 'w> =
-        { This = this.This
-          Name = this.Name
+        { Name = this.Name
           Get = fun world -> mapper (this.Get world)
-          SetOpt = None }
+          SetOpt = None
+          This = this.This }
 
     member this.ChangeEvent =
         let changeEventAddress = Address<'w ParticipantChangeData>.ltoa ["Change"; this.Name; "Event"]
@@ -105,57 +105,57 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
         typeof<'a>
 
     (* Lensing Operators *)
-    static member inline ( += ) (lens : Lens<_, _>, value) =  lens.Update (flip (+) value)
-    static member inline ( -= ) (lens : Lens<_, _>, value) =  lens.Update (flip (-) value)
-    static member inline ( *= ) (lens : Lens<_, _>, value) =  lens.Update (flip (*) value)
-    static member inline ( /= ) (lens : Lens<_, _>, value) =  lens.Update (flip (/) value)
-    static member inline ( %= ) (lens : Lens<_, _>, value) =  lens.Update (flip (%) value)
-    static member inline (+)    (lens : Lens<_, _>, value) =  lens.GetBy  (flip (+) value)
-    static member inline (-)    (lens : Lens<_, _>, value) =  lens.GetBy  (flip (-) value)
-    static member inline (*)    (lens : Lens<_, _>, value) =  lens.GetBy  (flip (*) value)
-    static member inline (/)    (lens : Lens<_, _>, value) =  lens.GetBy  (flip (/) value)
-    static member inline (%)    (lens : Lens<_, _>, value) =  lens.GetBy  (flip (%) value)
-    static member inline ( ** ) (lens : Lens<_, _>, value) =  lens.GetBy  (flip ( ** ) value)
-    static member inline (<<<)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (<<<) value)
-    static member inline (>>>)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (>>>) value)
-    static member inline (&&&)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (&&&) value)
-    static member inline (|||)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (|||) value)
-    static member inline (^^^)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (^^^) value)
-    static member inline (=.)   (lens : Lens<_, _>, value) =  lens.GetBy  (flip (=) value)
-    static member inline (<>.)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (<>) value)
-    static member inline (<.)   (lens : Lens<_, _>, value) =  lens.GetBy  (flip (<) value)
-    static member inline (<=.)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (<=) value)
-    static member inline (>.)   (lens : Lens<_, _>, value) =  lens.GetBy  (flip (>) value)
-    static member inline (>=.)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (>=) value)
-    static member inline (&&.)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (&&) value)
-    static member inline (||.)  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (||) value)
-    static member inline (.[])  (lens : Lens<_, _>, value) =  lens.GetBy  (flip (.[]) value)
-    static member inline (~+)   (lens : Lens<_, _>) =         lens.Update (~+)
-    static member inline (~-)   (lens : Lens<_, _>) =         lens.Update (~-)
-    static member inline (!+)   (lens : Lens<_, _>) =         lens.Update inc
-    static member inline (!-)   (lens : Lens<_, _>) =         lens.Update dec
-    static member inline (~~~)  (lens : Lens<_, _>) =         lens.GetBy  (~~~)
-    static member inline (-->)  (lens : Lens<_, _>, mapper) = lens.MapOut mapper
-    static member inline (<--)  (lens : Lens<_, _>, value) =  lens.Set value
-    static member inline (!.)   (lens : Lens<_, _>) =         lens.Get
+    static member inline ( += ) (lens : Lens<_, 'w>, value) =  lens.Update (flip (+) value)
+    static member inline ( -= ) (lens : Lens<_, 'w>, value) =  lens.Update (flip (-) value)
+    static member inline ( *= ) (lens : Lens<_, 'w>, value) =  lens.Update (flip (*) value)
+    static member inline ( /= ) (lens : Lens<_, 'w>, value) =  lens.Update (flip (/) value)
+    static member inline ( %= ) (lens : Lens<_, 'w>, value) =  lens.Update (flip (%) value)
+    static member inline (+)    (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (+) value)
+    static member inline (-)    (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (-) value)
+    static member inline (*)    (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (*) value)
+    static member inline (/)    (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (/) value)
+    static member inline (%)    (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (%) value)
+    static member inline ( ** ) (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip ( ** ) value)
+    static member inline (<<<)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (<<<) value)
+    static member inline (>>>)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (>>>) value)
+    static member inline (&&&)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (&&&) value)
+    static member inline (|||)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (|||) value)
+    static member inline (^^^)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (^^^) value)
+    static member inline (=.)   (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (=) value)
+    static member inline (<>.)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (<>) value)
+    static member inline (<.)   (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (<) value)
+    static member inline (<=.)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (<=) value)
+    static member inline (>.)   (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (>) value)
+    static member inline (>=.)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (>=) value)
+    static member inline (&&.)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (&&) value)
+    static member inline (||.)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (||) value)
+    static member inline (.[])  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (.[]) value)
+    static member inline (~+)   (lens : Lens<_, 'w>) =         lens.Update (~+)
+    static member inline (~-)   (lens : Lens<_, 'w>) =         lens.Update (~-)
+    static member inline (!+)   (lens : Lens<_, 'w>) =         lens.Update inc
+    static member inline (!-)   (lens : Lens<_, 'w>) =         lens.Update dec
+    static member inline (~~~)  (lens : Lens<_, 'w>) =         lens.GetBy  (~~~)
+    static member inline (-->)  (lens : Lens<_, 'w>, mapper) = lens.MapOut mapper
+    static member inline (<--)  (lens : Lens<_, 'w>, value) =  lens.Set value
+    static member inline (!.)   (lens : Lens<_, 'w>) =         lens.Get
 
 [<RequireQualifiedAccess>]
 module Lens =
 
-    let map mapper (lens : Lens<_, _>) =
+    let map<'a, 'w> mapper (lens : Lens<'a, 'w>) =
         lens.Map mapper
 
-    let map2 mapper unmapper (lens : Lens<_, _>) =
+    let map2<'a, 'w> mapper unmapper (lens : Lens<'a, 'w>) =
         lens.Map2 mapper unmapper
 
-    let mapOut mapper (lens : Lens<_, _>) =
+    let mapOut<'a, 'w> mapper (lens : Lens<'a, 'w>) =
         lens.MapOut mapper
 
-    let makeReadOnly this name get =
-        { This = this; Name = name; Get = get; SetOpt = None }
+    let makeReadOnly<'a, 'w> name get this : Lens<'a, 'w> =
+        { Name = name; Get = get; SetOpt = None; This = this }
 
-    let make this name get set =
-        { This = this; Name = name; Get = get; SetOpt = Some set }
+    let make<'a, 'w> name get set this : Lens<'a, 'w> =
+        { Name = name; Get = get; SetOpt = Some set; This = this }
 
 [<AutoOpen>]
 module LensOperators =
