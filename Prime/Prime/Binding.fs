@@ -27,11 +27,11 @@ module Binding =
 
 type Binding<'m, 'e, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> with
 
-    static member (==>) (_ : Binding<'m, 'e, 's, 'w>, source : Address<'a>) =
+    static member (=>) (_ : Binding<'m, 'e, 's, 'w>, source : Address<'a>) =
         fun (message : 'm) ->
             Message (Binding.makeSimple (Stream.make source) message)
 
-    static member (==>) (_ : Binding<'m, 'e, 's, 'w>, source : Stream<'a, 'w>) =
+    static member (=>) (_ : Binding<'m, 'e, 's, 'w>, source : Stream<'a, 'w>) =
         fun (message : 'm) ->
             Message (Binding.makeSimple source message)
 
@@ -43,11 +43,11 @@ type Binding<'m, 'e, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> wi
         fun (message : Event<'a, 's> -> 'm option) ->
             Message (Binding.make source message)
 
-    static member (==>!) (_ : Binding<'m, 'e, 's, 'w>, source : Address<'a>) =
+    static member (=>!) (_ : Binding<'m, 'e, 's, 'w>, source : Address<'a>) =
         fun (command : 'e) ->
             Command (Binding.makeSimple (Stream.make source) command)
 
-    static member (==>!) (_ : Binding<'m, 'e, 's, 'w>, source : Stream<'a, 'w>) =
+    static member (=>!) (_ : Binding<'m, 'e, 's, 'w>, source : Stream<'a, 'w>) =
         fun (command : 'e) ->
             Command (Binding.makeSimple source command)
 
@@ -62,14 +62,14 @@ type Binding<'m, 'e, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> wi
 [<AutoOpen>]
 module BindingOperators =
 
-    let inline (==>) source message : Binding<'m, 'e, 's, 'w> =
-        (Unchecked.defaultof<Binding<'m, 'e, 's, 'w>> ==> source) message
+    let inline (=>) source message : Binding<'m, 'e, 's, 'w> =
+        (Unchecked.defaultof<Binding<'m, 'e, 's, 'w>> => source) message
 
     let inline (=|>) source message : Binding<'m, 'e, 's, 'w> =
         (Unchecked.defaultof<Binding<'m, 'e, 's, 'w>> =|> source) message
 
-    let inline (==>!) source message : Binding<'m, 'e, 's, 'w> =
-        (Unchecked.defaultof<Binding<'m, 'e, 's, 'w>> ==>! source) message
+    let inline (=>!) source message : Binding<'m, 'e, 's, 'w> =
+        (Unchecked.defaultof<Binding<'m, 'e, 's, 'w>> =>! source) message
 
     let inline (=|>!) source message : Binding<'m, 'e, 's, 'w> =
         (Unchecked.defaultof<Binding<'m, 'e, 's, 'w>> =|>! source) message
