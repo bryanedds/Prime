@@ -476,6 +476,12 @@ module Stream =
     let [<DebuggerHidden; DebuggerStepThrough>] monitor subscription subscriber stream world =
         monitorEffect (fun evt world -> (Cascade, subscription evt world)) subscriber stream world |> snd
 
+    /// Insert a persistent state value into the stream.
+    let [<DebuggerHidden; DebuggerStepThrough>] insert state stream =
+        stream |>
+        fold (fun (stateOpt, _) a -> (Some (Option.getOrDefault state stateOpt), a)) (None, Unchecked.defaultof<_>) |>
+        map (mapFst Option.get)
+
     (* Derived Combinators *)
 
     /// Transform a stream into a running average of its event's numeric data.
@@ -515,6 +521,24 @@ module Stream =
     /// Transform a stream into a running set of its event's unique data.
     let [<DebuggerHidden; DebuggerStepThrough>] group (stream : Stream<'a, 'w>) : Stream<'a * bool * 'a Set, 'w> =
         groupBy id stream
+
+    /// Filter a stream of options for actual values.
+    let [<DebuggerHidden; DebuggerStepThrough>] definitize (stream : Stream<'a option, 'w>) =
+        stream |>
+        filter Option.isSome |>
+        map Option.get
+
+    /// Filter events with unchanging data.
+    let [<DebuggerHidden; DebuggerStepThrough>] optimize (stream : Stream<_, 'w>) =
+        fold
+            (fun (_, l) a ->
+                match l with
+                | [] -> (Some a, [a])
+                | x :: _ -> if a = x then (None, [a]) else (Some a, [a]))
+            (None, [])
+            stream |>
+        map fst |>
+        definitize
 
     /// Transform a stream into a running sum of its data.
     let [<DebuggerHidden; DebuggerStepThrough>] inline sumN stream = reduce (+) stream

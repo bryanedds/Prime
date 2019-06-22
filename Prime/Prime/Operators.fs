@@ -121,6 +121,15 @@ module Operators =
         let bytes = Array.create<byte> 8 (byte 0)
         Guid (m, int16 (n >>> 16), int16 n, bytes)
 
+    /// Make a Guid deterministically.
+    /// HACK: this is an ugly hack to create a deterministic sequance of guids.
+    /// Limited to creating 65,536 guids.
+    let makeGuidDeterministic offset (guid : Guid) =
+        let arr = guid.ToByteArray ()
+        if arr.[15] + byte offset < arr.[15] then arr.[14] <- arr.[14] + byte 1
+        arr.[15] <- arr.[15] + byte offset                    
+        Guid arr
+
     /// Fail with an unexpected match failure.
     let failwithumf () =
         let stackTrace = StackTrace ()
