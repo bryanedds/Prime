@@ -12,8 +12,11 @@ module Generics =
     /// The generic one value.
     let inline one () = LanguagePrimitives.GenericOne
 
-    /// The generic monoidal empty value.
-    let inline empty () = LanguagePrimitives.GenericZero
+    /// Check a value for equality with zero.
+    let inline isZero a = a = zero ()
+
+    /// Check a value for non-equality with zero.
+    let inline isNonZero a = a <> zero ()
 
     /// The generic monoidal append operation.
     let inline append a b = a + b

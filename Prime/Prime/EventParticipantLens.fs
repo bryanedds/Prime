@@ -13,7 +13,7 @@ type 'w Lens =
         abstract Get : 'w -> obj
         abstract SetOpt : (obj -> 'w -> 'w) option
         abstract Type : Type
-        abstract ChangeEvent : Participant Address
+        abstract ChangeEvent : 'w ParticipantChangeData Address
         end
 
 /// Describes a property of a participant.
@@ -30,7 +30,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
         member this.SetOpt = Option.map (fun set -> fun (value : obj) world -> set (value :?> 'a) world) this.SetOpt
         member this.This = this.This
         member this.Type = typeof<'a>
-        member this.ChangeEvent = atoa this.ChangeEvent
+        member this.ChangeEvent = this.ChangeEvent
 
     member this.Generalize () =
         let this = this :> 'w Lens
