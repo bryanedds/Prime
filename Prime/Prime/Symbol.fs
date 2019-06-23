@@ -18,16 +18,13 @@ type SymbolOrigin =
       Start : Position
       Stop : Position }
 
-[<RequireQualifiedAccess>]
-module SymbolOrigin =
-
-    let printStart origin =
+    static member printStart origin =
         "[Ln: " + string origin.Start.Line + ", Col: " + string origin.Start.Column + "]"
 
-    let printStop origin =
+    static member printStop origin =
         "[Ln: " + string origin.Stop.Line + ", Col: " + string origin.Stop.Column + "]"
 
-    let printContext origin =
+    static member printContext origin =
         try // there's more than one thing that can go wrong in here...
             let sourceLines = origin.Source.Text.Split '\n'
             let problemLineIndex = int origin.Start.Line - 1
@@ -54,23 +51,33 @@ module SymbolOrigin =
             // ...and I don't feel like dealing with all the specifics.
             "Error creating violation context."
 
-    let print origin =
-        "At location: " + printStart origin + " thru " + printStop origin + "\n" +
+    static member print origin =
+        "At location: " + SymbolOrigin.printStart origin + " thru " + SymbolOrigin.printStop origin + "\n" +
         "In context:\n" +
         "\n" +
-        printContext origin
+        SymbolOrigin.printContext origin
 
-    let tryPrint originOpt =
+    static member tryPrint originOpt =
         match originOpt with
-        | Some origin -> print origin
+        | Some origin -> SymbolOrigin.print origin
         | None -> "Error origin unknown or not applicable."
 
+/// A lisp-style symbolic type.
 type Symbol =
     | Atom of string * SymbolOrigin option
     | Number of string * SymbolOrigin option
     | String of string * SymbolOrigin option
     | Quote of Symbol * SymbolOrigin option
     | Symbols of Symbol list * SymbolOrigin option
+
+    /// Try to get the Origin of the symbol if it has one.
+    static member tryGetOrigin symbol =
+        match symbol with
+        | Atom (_, originOpt)
+        | Number (_, originOpt)
+        | String (_, originOpt)
+        | Quote (_, originOpt)
+        | Symbols (_, originOpt) -> originOpt
 
 [<RequireQualifiedAccess>]
 module Symbol =
@@ -251,6 +258,68 @@ module Symbol =
             | _ ->
                 OpenSymbolsStr + String.concat " " (List.map writeSymbol symbols) + CloseSymbolsStr
 
+    let readAtomFromCsv =
+        parse {
+            let! userState = getUserState
+            let! start = getPosition
+            let! chars = many1 (noneOf (StructureChars + "\r\n,"))
+            let! stop = getPosition
+            let str = chars |> String.implode |> fun str -> str.TrimEnd ()
+            let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
+            return Atom (str, originOpt) }
+
+    let readNumberFromCsv =
+        parse {
+            let! userState = getUserState
+            let! start = getPosition
+            let! number = numberLiteral NumberFormat "number"
+            do! nextCharSatisfies (function '\r' | '\n' | ',' -> true | _ -> false) <|> eof
+            let! stop = getPosition
+            let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
+            let suffix =
+                (if number.SuffixChar1 <> (char)65535 then string number.SuffixChar1 else "") + 
+                (if number.SuffixChar2 <> (char)65535 then string number.SuffixChar2 else "") + 
+                (if number.SuffixChar3 <> (char)65535 then string number.SuffixChar3 else "") + 
+                (if number.SuffixChar4 <> (char)65535 then string number.SuffixChar4 else "")
+            return Number (number.String + suffix, originOpt) }
+    
+    let readStringFromCsv =
+        parse {
+            let! userState = getUserState
+            let! start = getPosition
+            do! openString
+            let! escaped = many (noneOf CloseStringStr)
+            do! closeString
+            let! stop = getPosition
+            let str = String.implode escaped
+            let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
+            return String (str, originOpt) }
+
+    let readFieldFromCsv =
+        attempt readStringFromCsv <|>
+        attempt readNumberFromCsv <|>
+        attempt readAtomFromCsv
+
+    let readRowFromCsv =
+        parse {
+            let! userState = getUserState
+            let! start = getPosition
+            let! symbols = sepBy readFieldFromCsv (skipChar ',')
+            let! stop = getPosition
+            let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
+            return Symbols (symbols, originOpt) }
+
+    let readRowsFromCsv stripHeader =
+        parse {
+            let! userState = getUserState
+            let! start = getPosition
+            let! symbols = sepBy readRowFromCsv skipNewline
+            let symbols = List.trySkip (if stripHeader then 1 else 0) symbols
+            let symbols = List.allButLast symbols // NOTE: assumes that all CSV files end with an empty new-line.
+            let! stop = getPosition
+            let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
+            return Symbols (symbols, originOpt) }
+
     /// Convert a string to a symbol, with the following parses:
     /// 
     /// (* Atom values *)
@@ -276,11 +345,18 @@ module Symbol =
     /// [Gem `[Some 1]]
     ///
     /// ...and so on.
-    let fromString str =
-        let symbolState = { SymbolSource = { FilePathOpt = None; Text = str }}
+    let fromString str filePathOpt =
+        let symbolState = { SymbolSource = { FilePathOpt = filePathOpt; Text = str }}
         match runParserOnString (skipWhitespaces >>. readSymbol) symbolState String.Empty str with
         | Success (value, _, _) -> value
         | Failure (error, _, _) -> failwith error
+
+    /// Read a symbol from a CSV (comma-separated value) string.
+    let fromStringCsv stripHeader csvStr filePathOpt =
+        let symbolSource = { SymbolSource = { FilePathOpt = filePathOpt; Text = csvStr }}
+        match runParserOnString (readRowsFromCsv stripHeader) symbolSource "" csvStr with
+        | Success (symbol, _, _) -> symbol
+        | Failure (_, error, _) -> failwithf "Csv parse error at %s." (string error.Position)
 
     /// Convert a symbol to a string, with the following unparses:
     /// 
@@ -308,15 +384,6 @@ module Symbol =
     ///
     /// ...and so on.
     let rec toString symbol = writeSymbol symbol
-
-    /// Try to get the Origin of the symbol if it has one.
-    let tryGetOrigin symbol =
-        match symbol with
-        | Atom (_, originOpt)
-        | Number (_, originOpt)
-        | String (_, originOpt)
-        | Quote (_, originOpt)
-        | Symbols (_, originOpt) -> originOpt
 
 type ConversionException (message : string, symbolOpt : Symbol option) =
     inherit Exception (message)

@@ -389,7 +389,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                         failconv ("Expected Atom, Number, or String value for conversion to vanilla .NET type '" + destType.Name + "'.") (Some symbol)
 
     let fromString (destType : Type) (source : string) =
-        let symbol = Symbol.fromString source
+        let symbol = Symbol.fromString source None
         fromSymbol destType symbol
 
     override this.CanConvertTo (_, destType) =
