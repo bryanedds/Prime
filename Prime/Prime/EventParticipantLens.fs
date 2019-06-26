@@ -137,8 +137,17 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
     static member inline (!+)   (lens : Lens<_, 'w>) =         lens.Update inc
     static member inline (!-)   (lens : Lens<_, 'w>) =         lens.Update dec
     static member inline (~~~)  (lens : Lens<_, 'w>) =         lens.GetBy  (~~~)
+
+    /// Map over a lens (read-only).
     static member inline (-->)  (lens : Lens<_, 'w>, mapper) = lens.MapOut mapper
+
+    /// Map over a lens (both read and write).
+    static member inline (<^>)  (lens : Lens<_, 'w>, mapper) = lens.Map mapper
+
+    /// Set a lensed property.
     static member inline (<--)  (lens : Lens<_, 'w>, value) =  lens.Set value
+
+    /// Get a lensed property.
     static member inline (!.)   (lens : Lens<_, 'w>) =         lens.Get
 
 [<RequireQualifiedAccess>]
