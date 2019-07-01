@@ -20,12 +20,11 @@ module HMap =
             end
 
     /// Hash map node.
-    type [<CompilationRepresentation (CompilationRepresentationFlags.UseNullAsTrueValue); NoComparison>]
-        private HNode<'k, 'v when 'k :> 'k IEquatable> =
+    type [<Struct; NoComparison>] private HNode<'k, 'v when 'k :> 'k IEquatable> =
         | Nil
-        | Singleton of Hkv<'k, 'v>
-        | Multiple of HNode<'k, 'v> array
-        | Gutter of Hkv<'k, 'v> array
+        | Singleton of singleton : Hkv<'k, 'v>
+        | Multiple of multiple : HNode<'k, 'v> array
+        | Gutter of gutter : Hkv<'k, 'v> array
 
     [<RequireQualifiedAccess>]
     module private HNode =

@@ -8,10 +8,10 @@ open System.Collections.Generic
 [<AutoOpen>]
 module TList =
 
-    type [<NoEquality; NoComparison>] private 'a Log =
-        | Add of 'a
-        | Remove of 'a
-        | Set of int * 'a
+    type [<Struct; NoEquality; NoComparison>] private 'a Log =
+        | Add of add : 'a
+        | Remove of remove : 'a
+        | Set of index : int * value : 'a
         | Clear
         
     type [<NoEquality; NoComparison>] 'a TList =

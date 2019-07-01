@@ -8,9 +8,9 @@ open System.Collections.Generic
 [<AutoOpen>]
 module TMap =
 
-    type private Log<'k, 'v when 'k : equality> =
-        | Add of 'k * 'v
-        | Remove of 'k
+    type [<Struct>] private Log<'k, 'v when 'k : equality> =
+        | Add of key : 'k * value : 'v
+        | Remove of remove : 'k
         | Clear
 
     type [<NoEquality; NoComparison>] TMap<'k, 'v when 'k : equality> =
