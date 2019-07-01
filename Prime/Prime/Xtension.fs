@@ -101,8 +101,11 @@ module Xtension =
         /// An Xtension that cannot default, isn't sealed, and isn't imperative.
         let makeMixed () = make (UMap.makeEmpty Config) false false false
 
-        /// Whether the extension uses mutation.
+        /// Check whether the extension uses mutation.
         let getImperative xtension = xtension.Imperative
+
+        /// Set whether the extension uses mutation.
+        let setImperative imperative xtension = { xtension with Xtension.Imperative = imperative }
 
         /// Try to get a property from an xtension.
         let tryGetProperty name xtension = UMap.tryFind name xtension.Properties
