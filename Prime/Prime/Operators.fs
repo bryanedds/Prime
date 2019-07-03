@@ -74,11 +74,11 @@ module Operators =
     /// Get the properties of a type.
     let inline getProperties (t : Type) = t.GetProperties (BindingFlags.Instance ||| BindingFlags.Public)
 
-    /// Test for string equality.
-    let inline strEq str str2 = String.Equals (str, str2, StringComparison.Ordinal)
-
     /// Compare two strings.
-    let inline strCmp str str2 = String.Compare (str, str2, StringComparison.Ordinal)
+    let inline strCmp str str2 = String.CompareOrdinal (str, str2)
+
+    /// Test for string equality.
+    let inline strEq str str2 = strCmp str str2 = 0
 
     /// Test for reference equality.
     let inline refEq (a : 'a) (b : 'a) = obj.ReferenceEquals (a, b)
