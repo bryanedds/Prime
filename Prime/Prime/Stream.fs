@@ -595,7 +595,7 @@ module Stream =
     let [<DebuggerHidden; DebuggerStepThrough>] distinct stream = distinctBy id stream
 
     /// Identity for streams.
-    let [<DebuggerHidden; DebuggerStepThrough>] id (stream : Stream<_, _>) = stream
+    let [<DebuggerHidden; DebuggerStepThrough>] id (stream : Stream<_, _>) = stream        
 
 [<AutoOpen>]
 module StreamOperators =
