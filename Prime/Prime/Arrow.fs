@@ -5,18 +5,20 @@ namespace Prime
 open System
 open Prime
 
-/// Arrows defined in terms of streams.
+/// Arrow and ArrowChoice defined in terms of streams.
 type [<NoEquality; NoComparison>]
     Arrow<'a, 'b, 'w when 'w :> EventSystem<'w>> =
     Arrow of (Stream<'a, 'w> -> Stream<'b, 'w>) with
 
-    static member rrr () : Arrow<'a, 'b, 'w> -> Arrow<'b, 'c, 'w> -> Arrow<'a, 'c, 'w> =
+    static member compose () : Arrow<'a, 'b, 'w> -> Arrow<'b, 'c, 'w> -> Arrow<'a, 'c, 'w> =
         function Arrow arrow ->
                  function Arrow arrow2 ->
                           Arrow (fun stream -> arrow2 (arrow stream))
 
+    static member composeFlip () : Arrow<'b, 'c, 'w> -> Arrow<'a, 'b, 'w> -> Arrow<'a, 'c, 'w> =
+        flip (Arrow.compose ())
 
-    static member sss () : Arrow<'a, 'b, 'w> -> Arrow<'a2, 'b2, 'w> -> Arrow<'a * 'a2, 'b * 'b2, 'w> =
+    static member split () : Arrow<'a, 'b, 'w> -> Arrow<'a2, 'b2, 'w> -> Arrow<'a * 'a2, 'b * 'b2, 'w> =
         function Arrow arrow ->
                  function Arrow arrow2 ->
                           Arrow (fun stream ->
@@ -24,7 +26,7 @@ type [<NoEquality; NoComparison>]
                             let streamB2 = arrow2 (Stream.second stream)
                             Stream.product streamB streamB2)
 
-    static member aaa () : Arrow<'a, 'b, 'w> -> Arrow<'a, 'b2, 'w> -> Arrow<'a, 'b * 'b2, 'w> =
+    static member fanOut () : Arrow<'a, 'b, 'w> -> Arrow<'a, 'b2, 'w> -> Arrow<'a, 'b * 'b2, 'w> =
         function Arrow arrow ->
                  function Arrow arrow2 ->
                           Arrow (fun stream ->
@@ -32,7 +34,7 @@ type [<NoEquality; NoComparison>]
                             let streamB2 = arrow2 stream
                             Stream.product streamB streamB2)
 
-    static member ppp () : Arrow<'a, 'b, 'w> -> Arrow<'a2, 'b2, 'w> -> Arrow<Either<'a, 'a2>, Either<'b, 'b2>, 'w> =
+    static member choose () : Arrow<'a, 'b, 'w> -> Arrow<'a2, 'b2, 'w> -> Arrow<Either<'a, 'a2>, Either<'b, 'b2>, 'w> =
         function (Arrow arrow : Arrow<'a, 'b, 'w>) ->
                  function (Arrow arrow2 : Arrow<'a2, 'b2, 'w>) ->
                            Arrow (fun (stream : Stream<Either<'a, 'a2>, 'w>) ->
@@ -40,7 +42,7 @@ type [<NoEquality; NoComparison>]
                             let streamB2 = arrow2 (Stream.filterRight stream)
                             Stream.sum streamB streamB2)
 
-    static member ooo () : Arrow<'a, 'c, 'w> -> Arrow<'b, 'c, 'w> -> Arrow<Either<'a, 'b>, 'c, 'w> =
+    static member fanIn () : Arrow<'a, 'c, 'w> -> Arrow<'b, 'c, 'w> -> Arrow<Either<'a, 'b>, 'c, 'w> =
         function (Arrow arrow : Arrow<'a, 'c, 'w>) ->
                  function (Arrow arrow2 : Arrow<'b, 'c, 'w>) ->
                            Arrow (fun (stream : Stream<Either<'a, 'b>, 'w>) ->
@@ -48,11 +50,12 @@ type [<NoEquality; NoComparison>]
                             let streamR = arrow2 (Stream.filterRight stream)
                             Stream.append streamL streamR)
 
-    static member inline ( >>> ) (a, b) = Arrow.rrr () a b
-    static member inline ( *** ) (a, b) = Arrow.sss () a b
-    static member inline ( &&& ) (a, b) = Arrow.aaa () a b
-    static member inline ( +++ ) (a, b) = Arrow.ppp () a b
-    static member inline ( ||| ) (a, b) = Arrow.ooo () a b
+    static member inline ( >>> ) (a, b) = Arrow.compose () a b
+    static member inline ( <<< ) (a, b) = Arrow.composeFlip () a b
+    static member inline ( *** ) (a, b) = Arrow.split () a b
+    static member inline ( &&& ) (a, b) = Arrow.fanOut () a b
+    static member inline ( +++ ) (a, b) = Arrow.choose () a b
+    static member inline ( ||| ) (a, b) = Arrow.fanIn () a b
 
 [<RequireQualifiedAccess>]
 module Arrow =
@@ -62,7 +65,6 @@ module Arrow =
 
     let arr (f : 'a -> 'b) : Arrow<'a, 'b, 'w> =
         Arrow (function stream -> Stream.map f stream)
-
 
     let first : Arrow<'a, 'b, 'w> -> Arrow<'a * 'c, 'b * 'c, 'w> =
         function Arrow arrow ->
