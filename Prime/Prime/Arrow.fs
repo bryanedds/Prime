@@ -6,6 +6,7 @@ open System
 open Prime
 
 /// Arrow and ArrowChoice defined in terms of streams.
+/// TODO: see if we can also implement ArrowLoop and ArrowApply with streams.
 type [<NoEquality; NoComparison>]
     Arrow<'a, 'b, 'w when 'w :> EventSystem<'w>> =
     Arrow of (Stream<'a, 'w> -> Stream<'b, 'w>) with
