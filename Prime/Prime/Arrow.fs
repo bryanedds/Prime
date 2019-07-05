@@ -63,7 +63,7 @@ module Arrow =
     let returnA : Arrow<'a, 'a, 'w> =
         Arrow (fun stream -> stream)
 
-    let arr (f : 'a -> 'b) : Arrow<'a, 'b, 'w> =
+    let arrow (f : 'a -> 'b) : Arrow<'a, 'b, 'w> =
         Arrow (function stream -> Stream.map f stream)
 
     let first : Arrow<'a, 'b, 'w> -> Arrow<'a * 'c, 'b * 'c, 'w> =
