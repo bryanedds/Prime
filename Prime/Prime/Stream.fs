@@ -484,6 +484,18 @@ module Stream =
 
     (* Derived Combinators *)
 
+    /// Append a stream.
+    let [<DebuggerHidden; DebuggerStepThrough>] inline append streamL streamR =
+        map Either.amb (sum streamL streamR)
+
+    /// Filter the left values out from the stream.
+    let [<DebuggerHidden; DebuggerStepThrough>] inline filterLeft stream =
+        filter Either.isLeft stream |> map Either.getLeftValue
+
+    /// Filter the right values out from the stream.
+    let [<DebuggerHidden; DebuggerStepThrough>] inline filterRight stream =
+        filter Either.isRight stream |> map Either.getRightValue
+
     /// Transform a stream into a running average of its event's numeric data.
     let [<DebuggerHidden; DebuggerStepThrough>] inline average (stream : Stream<'a, 'w>) : Stream<'a, 'w> =
         foldMap
