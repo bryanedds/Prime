@@ -10,52 +10,52 @@ type [<NoEquality; NoComparison>]
     Arrow<'a, 'b, 'w when 'w :> EventSystem<'w>> =
     Arrow of (Stream<'a, 'w> -> Stream<'b, 'w>) with
 
-    static member compose () : Arrow<'a, 'b, 'w> -> Arrow<'b, 'c, 'w> -> Arrow<'a, 'c, 'w> =
-        function Arrow arrow ->
-                 function Arrow arrow2 ->
-                          Arrow (fun stream -> arrow2 (arrow stream))
+    static member compose (arrow : Arrow<'a, 'b, 'w>) (arrow2 : Arrow<'b, 'c, 'w>) : Arrow<'a, 'c, 'w> =
+        match (arrow, arrow2) with
+        | (Arrow arrow, Arrow arrow2) ->
+            Arrow (fun stream -> arrow2 (arrow stream))
 
-    static member composeFlip () : Arrow<'b, 'c, 'w> -> Arrow<'a, 'b, 'w> -> Arrow<'a, 'c, 'w> =
-        flip (Arrow.compose ())
+    static member composeFlip (arrow : Arrow<'b, 'c, 'w>) (arrow2 : Arrow<'a, 'b, 'w>) : Arrow<'a, 'c, 'w> =
+        Arrow.compose arrow2 arrow
 
-    static member split () : Arrow<'a, 'b, 'w> -> Arrow<'a2, 'b2, 'w> -> Arrow<'a * 'a2, 'b * 'b2, 'w> =
-        function Arrow arrow ->
-                 function Arrow arrow2 ->
-                          Arrow (fun stream ->
-                            let streamB = arrow (Stream.first stream)
-                            let streamB2 = arrow2 (Stream.second stream)
-                            Stream.product streamB streamB2)
+    static member split (arrow : Arrow<'a, 'b, 'w>) (arrow2 : Arrow<'a2, 'b2, 'w>) : Arrow<'a * 'a2, 'b * 'b2, 'w> =
+        match (arrow, arrow2) with
+        | (Arrow arrow, Arrow arrow2) ->
+            Arrow (fun stream ->
+                let streamB = arrow (Stream.first stream)
+                let streamB2 = arrow2 (Stream.second stream)
+                Stream.product streamB streamB2)
 
-    static member fanOut () : Arrow<'a, 'b, 'w> -> Arrow<'a, 'b2, 'w> -> Arrow<'a, 'b * 'b2, 'w> =
-        function Arrow arrow ->
-                 function Arrow arrow2 ->
-                          Arrow (fun stream ->
-                            let streamB = arrow stream
-                            let streamB2 = arrow2 stream
-                            Stream.product streamB streamB2)
+    static member fanOut (arrow : Arrow<'a, 'b, 'w>) (arrow2 : Arrow<'a, 'b2, 'w>) : Arrow<'a, 'b * 'b2, 'w> =
+        match (arrow, arrow2) with
+        | (Arrow arrow, Arrow arrow2) ->
+            Arrow (fun stream ->
+                let streamB = arrow stream
+                let streamB2 = arrow2 stream
+                Stream.product streamB streamB2)
 
-    static member choose () : Arrow<'a, 'b, 'w> -> Arrow<'a2, 'b2, 'w> -> Arrow<Either<'a, 'a2>, Either<'b, 'b2>, 'w> =
-        function (Arrow arrow : Arrow<'a, 'b, 'w>) ->
-                 function (Arrow arrow2 : Arrow<'a2, 'b2, 'w>) ->
-                           Arrow (fun (stream : Stream<Either<'a, 'a2>, 'w>) ->
-                            let streamB = arrow (Stream.filterLeft stream)
-                            let streamB2 = arrow2 (Stream.filterRight stream)
-                            Stream.sum streamB streamB2)
+    static member choose (arrow : Arrow<'a, 'b, 'w>) (arrow2 : Arrow<'a2, 'b2, 'w>) : Arrow<Either<'a, 'a2>, Either<'b, 'b2>, 'w> =
+        match (arrow, arrow2) with
+        | (Arrow arrow, Arrow arrow2) ->
+            Arrow (fun (stream : Stream<Either<'a, 'a2>, 'w>) ->
+                let streamB = arrow (Stream.filterLeft stream)
+                let streamB2 = arrow2 (Stream.filterRight stream)
+                Stream.sum streamB streamB2)
 
-    static member fanIn () : Arrow<'a, 'c, 'w> -> Arrow<'b, 'c, 'w> -> Arrow<Either<'a, 'b>, 'c, 'w> =
-        function (Arrow arrow : Arrow<'a, 'c, 'w>) ->
-                 function (Arrow arrow2 : Arrow<'b, 'c, 'w>) ->
-                           Arrow (fun (stream : Stream<Either<'a, 'b>, 'w>) ->
-                            let streamL = arrow (Stream.filterLeft stream)
-                            let streamR = arrow2 (Stream.filterRight stream)
-                            Stream.append streamL streamR)
+    static member fanIn (arrow : Arrow<'a, 'c, 'w>) (arrow2 : Arrow<'b, 'c, 'w>) : Arrow<Either<'a, 'b>, 'c, 'w> =
+        match (arrow, arrow2) with
+        | (Arrow arrow, Arrow arrow2) ->
+            Arrow (fun (stream : Stream<Either<'a, 'b>, 'w>) ->
+                let streamL = arrow (Stream.filterLeft stream)
+                let streamR = arrow2 (Stream.filterRight stream)
+                Stream.append streamL streamR)
 
-    static member inline ( >>> ) (a, b) = Arrow.compose () a b
-    static member inline ( <<< ) (a, b) = Arrow.composeFlip () a b
-    static member inline ( *** ) (a, b) = Arrow.split () a b
-    static member inline ( &&& ) (a, b) = Arrow.fanOut () a b
-    static member inline ( +++ ) (a, b) = Arrow.choose () a b
-    static member inline ( ||| ) (a, b) = Arrow.fanIn () a b
+    static member inline ( >>> ) (a, b) = Arrow.compose a b
+    static member inline ( <<< ) (a, b) = Arrow.composeFlip a b
+    static member inline ( *** ) (a, b) = Arrow.split a b
+    static member inline ( &&& ) (a, b) = Arrow.fanOut a b
+    static member inline ( +++ ) (a, b) = Arrow.choose a b
+    static member inline ( ||| ) (a, b) = Arrow.fanIn a b
 
 [<RequireQualifiedAccess>]
 module Arrow =
