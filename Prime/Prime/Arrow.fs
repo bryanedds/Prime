@@ -6,7 +6,8 @@ open System
 open Prime
 
 /// Arrow and ArrowChoice defined in terms of streams.
-/// TODO: see if we can also implement ArrowLoop and ArrowApply with streams.
+/// TODO: see if we can also implement ArrowLoop and ArrowApply with streams. If we can get ArrowApply,
+/// we'll have a monad that we can expose as a computation expression!
 type [<NoEquality; NoComparison>]
     Arrow<'a, 'b, 'w when 'w :> EventSystem<'w>> =
     Arrow of (Stream<'a, 'w> -> Stream<'b, 'w>) with
