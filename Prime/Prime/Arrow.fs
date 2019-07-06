@@ -52,6 +52,17 @@ type [<NoEquality; NoComparison>]
                 let streamR = arrow2 (Stream.filterRight stream)
                 Stream.append streamL streamR)
 
+    // NOTE: bind does not appear implementable with Arrows, perhaps due to the fact that the underlying Streams are
+    // contravariant (push rather than pull).
+    static member private bind (arrow : Arrow<'a, 'b, 'w>) (fn : 'b -> Arrow<'a, 'c, 'w>) : (Arrow<'a, 'c, 'w>) =
+        match arrow with
+        | Arrow arrow ->
+            Arrow (fun stream ->
+                let arrowToStream = function Arrow arrow -> arrow stream
+                let streamToC : Stream<'c, 'w> -> 'c = failwithnie () // no possible implementation here!?
+                let (streamB : Stream<'b, 'w>) = arrow stream
+                Stream.map (fn >> arrowToStream >> streamToC) streamB)
+
     static member inline ( >>> ) (a, b) = Arrow.compose a b
     static member inline ( <<< ) (a, b) = Arrow.composeFlip a b
     static member inline ( *** ) (a, b) = Arrow.split a b
