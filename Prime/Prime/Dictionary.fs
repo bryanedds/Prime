@@ -23,6 +23,12 @@ module Dictionary =
         | (true, value) -> Some value
         | (false, _) -> None
 
+    /// Try to find a value in a dictonary.
+    let inline tryFindFast key (dictionary : Dictionary<'k, 'v>) =
+        match dictionary.TryGetValue key with
+        | (true, value) -> FOption.some value
+        | (false, _) -> FOption.none ()
+
 [<AutoOpen>]
 module DictionaryExtension =
 
