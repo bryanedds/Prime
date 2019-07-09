@@ -139,13 +139,6 @@ module String =
             .Replace("\t", "\\t")
             .Replace("\v", "\\v")
 
-    /// Check that a name ends with a Guid.
-    let endsWithGuid str =
-        if String.length str >= 36 then
-            let last36 = str.Substring (str.Length - 36, 36)
-            Guid.TryParse last36 |> fst
-        else false
-    
     /// Check for equality a list of string lexicographically.
     let rec equateMany (strs : string list) (strs2 : string list) =
         match (strs, strs2) with
