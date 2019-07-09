@@ -104,26 +104,27 @@ module Xtension =
         /// Check whether the extension uses mutation.
         let getImperative xtension = xtension.Imperative
 
-        /// Set whether the extension uses mutation.
-        let setImperative imperative xtension = { xtension with Xtension.Imperative = imperative }
-
         /// Try to get a property from an xtension.
         let tryGetProperty name xtension = UMap.tryFind name xtension.Properties
+
+        /// Try to get a property from an xtension.
+        let tryGetPropertyFast name xtension = UMap.tryFindFast name xtension.Properties
 
         /// Get a property from an xtension.
         let getProperty name xtension = UMap.find name xtension.Properties
 
         /// Set a property on an Xtension.
         let trySetProperty name property xtension =
-            match UMap.tryFind name xtension.Properties with
-            | Some property' ->
+            let propertyOpt = UMap.tryFindFast name xtension.Properties
+            if FOption.isSome propertyOpt then
+                let property' = FOption.get propertyOpt
                 if xtension.Imperative then
                     let mutable property' = property' // rebind as mutable
                     property'.PropertyType <- property.PropertyType
                     property'.PropertyValue <- property.PropertyValue
                     (true, xtension)
                 else (true, { xtension with Properties = UMap.add name property xtension.Properties })
-            | None ->
+            else
                 if not xtension.Sealed
                 then (true, { xtension with Properties = UMap.add name property xtension.Properties })
                 else (false, xtension)
