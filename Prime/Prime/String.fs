@@ -3,6 +3,7 @@
 
 namespace Prime
 open System
+open System.Collections.Generic
 open System.Text
 
 [<RequireQualifiedAccess>]
@@ -139,30 +140,46 @@ module String =
             .Replace("\t", "\\t")
             .Replace("\v", "\\v")
 
-    /// Check for equality a list of string lexicographically.
-    let rec equateMany (strs : string list) (strs2 : string list) =
-        match (strs, strs2) with
-        | ([], []) -> true
-        | (_ :: _, []) -> false
-        | ([], _ :: _) -> false
-        | (head :: tail, head2 :: tail2) ->
-            let result = strEq head head2
-            if result then equateMany tail tail2
-            else result
+    /// Check for equality an array of strings lexicographically.
+    let rec equateMany (strs : string array) (strs2 : string array) =
+        if strs.Length = strs2.Length then
+            let enr = (strs :> IEnumerable<string>).GetEnumerator ()
+            let enr2 = (strs2 :> IEnumerable<string>).GetEnumerator ()
+            let mutable result = true
+            while result && enr.MoveNext () do
+                enr2.MoveNext () |> ignore
+                result <- strEq enr.Current enr2.Current
+            result
+         else false
+
+    /// Check for equality an array of strings lexicographically.
+    let rec equateManyOpts (strs : string option array) (strs2 : string option array) =
+        if strs.Length = strs2.Length then
+            let enr = (strs :> IEnumerable<string option>).GetEnumerator ()
+            let enr2 = (strs2 :> IEnumerable<string option>).GetEnumerator ()
+            let mutable result = true
+            while result && enr.MoveNext () do
+                enr2.MoveNext () |> ignore
+                result <- enr.Current = enr2.Current // generic eq is slower here, but it probably won't matter
+            result
+         else false
     
-    /// Compare a list of string lexicographically.
-    let rec compareMany (strs : string list) (strs2 : string list) =
-        match (strs, strs2) with
-        | ([], []) -> 0
-        | (_ :: _, []) -> 1
-        | ([], _ :: _) -> -1
-        | (head :: tail, head2 :: tail2) ->
-            let result = strCmp head head2
-            if result = 0 then compareMany tail tail2
-            else result
+    /// Compare an array of strings lexicographically.
+    let rec compareMany (strs : string array) (strs2 : string array) =
+        let length = strs.Length // avoid copy warning
+        let lengthCmp = length.CompareTo strs2.Length
+        if lengthCmp = 0 then
+            let enr = (strs :> IEnumerable<string>).GetEnumerator ()
+            let enr2 = (strs2 :> IEnumerable<string>).GetEnumerator ()
+            let mutable result = 0
+            while result = 0 && enr.MoveNext () do
+                enr2.MoveNext () |> ignore
+                result <- strCmp enr.Current enr2.Current
+            result
+         else lengthCmp
     
-    /// Hash a list of names.
-    let hashMany (strs : string list) =
+    /// Hash an array of names.
+    let hashMany (strs : string array) =
         let mutable hashValue = 0 // OPTIMIZATION: mutation for speed
         for name in strs do hashValue <- hashValue ^^^ hash name
         hashValue

@@ -90,3 +90,11 @@ module Array =
     /// Perform a sort on elements, preserving order of equal elements.
     let sortStable (arr : _ array) =
         arr |> Seq.sort |> Array.ofSeq
+
+    /// Hash an array.
+    /// NOTE: May be a pessimization.
+    let inline hash list =
+        Array.fold
+            (fun hashValue name -> hashValue ^^^ name.GetHashCode ())
+            0
+            list

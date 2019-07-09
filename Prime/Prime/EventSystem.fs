@@ -127,7 +127,7 @@ module EventSystem =
     let private getEventAddresses1 (eventAddress : 'a Address) =
         
         // create target event address array
-        let eventAddressNames = eventAddress |> Address.getNames |> Array.ofList
+        let eventAddressNames = Address.getNames eventAddress
         let eventAddressNamesLength = eventAddressNames.Length
         let eventAddresses = Array.zeroCreate (inc eventAddressNamesLength)
 
@@ -139,7 +139,7 @@ module EventSystem =
             let eventAddressNamesAny = Array.zeroCreate eventAddressNamesLength
             Array.Copy (eventAddressNames, 0, eventAddressNamesAny, 0, eventAddressNamesLength)
             eventAddressNamesAny.[i] <- Address.head Events.Wildcard
-            let eventAddressAny = eventAddressNamesAny |> List.ofArray |> Address.ltoa
+            let eventAddressAny = Address.rtoa eventAddressNamesAny
             eventAddresses.[i] <- eventAddressAny)
             eventAddressNames
 
@@ -153,9 +153,9 @@ module EventSystem =
                 | (false, _) ->
                     let eventAddressNames = Address.getNames eventAddress
                     let eventAddresses = getEventAddresses1 eventAddress
-                    let eventTargetIndex = List.findIndex (fun name -> name = "Event") eventAddressNames + 1
-                    if eventTargetIndex < List.length eventAddressNames then
-                        let eventTarget = eventAddressNames |> List.skip eventTargetIndex |> Address.makeFromList
+                    let eventTargetIndex = Array.findIndex (fun name -> name = "Event") eventAddressNames + 1
+                    if eventTargetIndex < Array.length eventAddressNames then
+                        let eventTarget = eventAddressNames |> Array.skip eventTargetIndex |> Address.makeFromArray
                         match EventAddressListCache.TryGetValue eventTarget with
                         | (false, _) -> EventAddressListCache.Add (eventTarget, List [eventAddress :> obj]) |> ignore
                         | (true, list) -> list.Add eventAddress
@@ -313,7 +313,9 @@ module EventSystem =
             if FOption.isSome subscriptionsArrayOpt then
                 let subscriptionsArray =
                     FOption.get subscriptionsArrayOpt |>
-                    Array.remove (fun subscription -> subscription.SubscriptionKey = subscriptionKey && subscription.SubscriberEntry = subscriber)
+                    Array.remove (fun subscription ->
+                        Console.Write ""
+                        subscription.SubscriptionKey = subscriptionKey && subscription.SubscriberEntry = subscriber)
                 let subscriptions = 
                     match subscriptionsArray with
                     | [||] -> UMap.remove eventAddress subscriptions
@@ -323,7 +325,7 @@ module EventSystem =
                 let world = setUnsubscriptions unsubscriptions world
                 publish<_, _, 'w>
                     eventAddress
-                    (ltoa<obj Address> ["Unsubscribe"; "Event"])
+                    (rtoa<obj Address> [|"Unsubscribe"; "Event"|])
                     (EventTrace.record "EventSystem" "unsubscribe" EventTrace.empty)
                     (getGlobalParticipantSpecialized world)
                     world
@@ -352,7 +354,7 @@ module EventSystem =
             let world =
                 publish
                     objEventAddress
-                    (ltoa<obj Address> ["Subscribe"; "Event"])
+                    (rtoa<obj Address> [|"Subscribe"; "Event"|])
                     (EventTrace.record "EventSystem" "subscribePlus5" EventTrace.empty)
                     (getGlobalParticipantSpecialized world)
                     world
@@ -376,7 +378,7 @@ module EventSystem =
             let world = unsubscribe monitorKey world
             world
         let subscription' = fun _ eventSystem -> (Cascade, unsubscribe eventSystem)
-        let removingEventAddress = ltoa<unit> ["Unregistering"; "Event"] --> subscriberAddress
+        let removingEventAddress = rtoa<unit> [|"Unregistering"; "Event"|] --> subscriberAddress
         let world = subscribePlus<unit, 's, 'w> removalKey subscription' removingEventAddress subscriber world |> snd
         (unsubscribe, world)
 

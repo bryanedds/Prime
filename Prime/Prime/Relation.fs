@@ -57,43 +57,47 @@ module Relation =
     /// A relation that can be resolved to an address via contextual resolution.
     type [<CustomEquality; NoComparison; TypeConverter (typeof<RelationConverter>)>] 'a Relation =
         private
-            { NameOpts : string option list }
+            { NameOpts : string option array }
+
+        /// Make a relation from an array of names where "?" names are empty.
+        static member makeFromArray<'a> (names : string array) : 'a Relation =
+            let nameOpts = Array.map (fun name -> match name with Constants.Relation.SlotStr -> None | _ -> Some name) names
+            { NameOpts = nameOpts }
 
         /// Make a relation from a list of names where "?" names are empty.
         static member makeFromList<'a> (names : string list) : 'a Relation =
-            let nameOpts = List.map (fun name -> match name with Constants.Relation.SlotStr -> None | _ -> Some name) names
-            { NameOpts = nameOpts }
+            Relation.makeFromArray<'a> (List.toArray names)
 
         /// Make a relation from an address where "?" names are empty.
         static member makeFromAddress<'a> (address : 'a Address) : 'a Relation =
             let names = Address.getNames address
-            Relation.makeFromList<'a> names
+            Relation.makeFromArray<'a> names
     
         /// Make a relation from a '/' delimited string where '?' names are empty.
         /// NOTE: do not move this function as the RelationConverter's reflection code relies on it being exactly here!
         static member makeFromString<'a> (relationStr : string) : 'a Relation =
-            let names = relationStr.Split Constants.Address.Separator |> List.ofSeq
-            Relation.makeFromList<'a> names
+            let names = relationStr.Split Constants.Address.Separator
+            Relation.makeFromArray<'a> names
 
         /// Hash a Relation.
         static member hash (relation : 'a Relation) =
-            List.hash relation.NameOpts
+            Array.hash relation.NameOpts
                 
         /// Equate Relations.
         static member equals relation relation2 =
-            relation.NameOpts = relation2.NameOpts
+            String.equateManyOpts relation.NameOpts relation2.NameOpts
 
         /// Resolve a relationship to an address.
         static member resolve<'a, 'b> (address : 'a Address) (relation : 'b Relation) =
             // OPTIMIZATION: using array for speed.
-            let addressNames = Array.ofList (Address.getNames address)
-            let nameOpts = Array.ofList relation.NameOpts
+            let addressNames = Address.getNames address
+            let nameOpts = relation.NameOpts
             for i in 0 .. Math.Min (addressNames.Length, nameOpts.Length) - 1 do
                 match nameOpts.[i] with
                 | None -> nameOpts.[i] <- Some addressNames.[i]
                 | Some _ -> ()
             match Array.definitizePlus nameOpts with
-            | (true, names) -> Address.makeFromList<'b> (List.ofArray names)
+            | (true, names) -> Address.makeFromArray<'b> names
             | (false, _) -> failwith ("Invalid relation resolution for address '" + string address + "' and relation '" + string relation + "'.")
 
         /// Unresolve an address to the most general form in the context of another address.
@@ -108,8 +112,8 @@ module Relation =
                     if enr.Current = enr2.Current then
                         namesMatching <- inc namesMatching
                 namesMatching
-            let names2' = List.trySkip namesMatching names2
-            { NameOpts = (List.append (List.init namesMatching (fun _ -> None)) (List.map Some names2')) }
+            let names2' = Array.trySkip namesMatching names2
+            { NameOpts = (Array.append (Array.init namesMatching (fun _ -> None)) (Array.map Some names2')) }
 
         interface 'a Relation IEquatable with
             member this.Equals that =
@@ -124,15 +128,19 @@ module Relation =
             Relation<'a>.hash this
         
         override this.ToString () =
-            let names = List.map (fun nameOpt -> match nameOpt with Some name -> name | None -> Constants.Relation.SlotStr) this.NameOpts
+            let names = Array.map (fun nameOpt -> match nameOpt with Some name -> name | None -> Constants.Relation.SlotStr) this.NameOpts
             String.concat Constants.Address.SeparatorStr names
 
     [<RequireQualifiedAccess>]
     module Relation =
 
         /// Make a relation from a list of option names.
-        let makeFromList<'a> nameOptsList : 'a Relation =
-            { NameOpts = nameOptsList }
+        let makeFromArray<'a> nameOpts : 'a Relation =
+            { NameOpts = nameOpts }
+
+        /// Make a relation from a list of option names.
+        let makeFromList<'a> nameOpts : 'a Relation =
+            { NameOpts = List.toArray nameOpts }
 
         /// Make a relation from a '/' delimited string.
         let makeFromString<'a> relationStr =

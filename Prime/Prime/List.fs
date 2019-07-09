@@ -327,11 +327,3 @@ module List =
         Array.ofList |>
         Array.groupBy id |>
         Array.exists (fun (_, group) -> group.Length >= 3)
-
-    /// Hash a list.
-    /// NOTE: May be a pessimization.
-    let inline hash list =
-        List.fold
-            (fun hashValue name -> hashValue ^^^ name.GetHashCode ())
-            0
-            list

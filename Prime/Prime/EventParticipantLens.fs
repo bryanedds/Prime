@@ -99,7 +99,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
           This = this.This }
 
     member this.ChangeEvent =
-        let changeEventAddress = Address<'w ParticipantChangeData>.ltoa ["Change"; this.Name; "Event"]
+        let changeEventAddress = rtoa<'w ParticipantChangeData> [|"Change"; this.Name; "Event"|]
         let changeEvent = changeEventAddress --> this.This.ParticipantAddress
         changeEvent
 

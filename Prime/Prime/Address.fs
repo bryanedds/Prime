@@ -57,14 +57,14 @@ module Address =
     /// A generalized address.
     type Address =
         interface
-            abstract Names : string list
+            abstract Names : string array
             abstract HashCode : int
             end
 
     /// Specifies the address of an identifiable value.
     /// TODO: P1: have Address constructor throw if multiple wildcards are used.
     type [<CustomEquality; CustomComparison; TypeConverter (typeof<AddressConverter>)>] 'a Address =
-        { Names : string list
+        { Names : string array
           HashCode : int } // OPTIMIZATION: hash is cached for speed
 
         interface Address with
@@ -74,7 +74,7 @@ module Address =
         /// Make an address from a '/' delimited string.
         /// NOTE: do not move this function as the AddressConverter's reflection code relies on it being exactly here!
         static member makeFromString<'a> (addressStr : string) : 'a Address =
-            let names = List.ofArray (addressStr.Split Constants.Address.Separator)
+            let names = addressStr.Split Constants.Address.Separator
             { Names = names; HashCode = String.hashMany names }
 
         /// Hash an Address.
@@ -103,13 +103,17 @@ module Address =
         static member stoa<'a> str =
             Address<'a>.makeFromString<'a> str
 
+        /// Convert a names array into an address.
+        static member rtoa<'a> (names : string array) : 'a Address =
+            { Names = names; HashCode = String.hashMany names }
+
         /// Convert a names list into an address.
         static member ltoa<'a> (names : string list) : 'a Address =
-            { Names = names; HashCode = String.hashMany names }
+            Address.rtoa<'a> (List.toArray names)
 
         /// Convert a single name into an address.
         static member ntoa<'a> name : 'a Address =
-            Address.ltoa<'a> [name]
+            Address.rtoa<'a> [|name|]
 
         /// Convert a string into an address.
         static member atos<'a> (address : 'a Address) =
@@ -125,11 +129,11 @@ module Address =
 
         /// Concatenate two addresses of the same type.
         static member acat<'a> (address : 'a Address) (address2 : 'a Address) : 'a Address=
-            Address.ltoa<'a> (address.Names @ address2.Names)
+            Address.rtoa<'a> (Array.append address.Names address2.Names)
 
         /// Concatenate two addresses, taking the type of first address.
         static member acatf<'a> (address : 'a Address) (address2 : obj Address) : 'a Address =
-            Address.ltoa<'a> (address.Names @ address2.Names)
+            Address.rtoa<'a> (Array.append address.Names address2.Names)
     
         /// Concatenate two addresses, forcing the type of first address.
         static member acatff<'a, 'b> (address : 'a Address) (address2 : 'b Address) : 'a Address =
@@ -137,7 +141,7 @@ module Address =
 
         /// Concatenate two addresses, taking the type of the second address.
         static member acats<'a> (address : obj Address) (address2 : 'a Address) : 'a Address =
-            Address.ltoa<'a> (address.Names @ address2.Names)
+            Address.rtoa<'a> (Array.append address.Names address2.Names)
     
         /// Concatenate two addresses, forcing the type of second address.
         static member acatsf<'a, 'b> (address : 'a Address) (address2 : 'b Address) : 'b Address  =
@@ -188,7 +192,11 @@ module Address =
 
         /// The empty address.
         let empty<'a> : 'a Address =
-            { Names = []; HashCode = String.hashMany [] }
+            { Names = [||]; HashCode = String.hashMany [||] }
+
+        /// Make an address from a list of names.
+        let makeFromArray<'a> names : 'a Address =
+            Address.rtoa<'a> names
 
         /// Make an address from a list of names.
         let makeFromList<'a> names : 'a Address =
@@ -208,7 +216,7 @@ module Address =
 
         /// Get the name of an address.
         let getName address =
-            getNames address |> List.last
+            getNames address |> Array.last
 
         /// Get the address's hash code.
         let getHashCode address =
@@ -216,51 +224,51 @@ module Address =
 
         /// Take the head of an address.
         let head address =
-            List.head address.Names
+            Array.head address.Names
             
         /// Take the tail of an address.
         let tail<'a, 'b> (address : 'a Address) =
-            makeFromList<'b> (List.tail address.Names)
+            makeFromArray<'b> (Array.tail address.Names)
 
         /// Take a name of an address.
         let item index address =
-            List.item index address.Names
+            Array.item index address.Names
 
         /// Take an address composed of the name of an address minus a skipped amount of names.
         let skip<'a, 'b> n (address : 'a Address) =
-            makeFromList<'b> (List.skip n address.Names)
+            makeFromArray<'b> (Array.skip n address.Names)
 
         /// Take an address composed of the given number of names of an address.
         let take<'a, 'b> n (address : 'a Address) =
-            makeFromList<'b> (List.take n address.Names)
+            makeFromArray<'b> (Array.take n address.Names)
 
         /// Take an address composed of the given number of names of an address.
         let tryTake<'a, 'b> n (address : 'a Address) =
-            makeFromList<'b> (List.tryTake n address.Names)
+            makeFromArray<'b> (Array.tryTake n address.Names)
 
         /// Take the last name of an address.
         let last address =
-            List.last address.Names
+            Array.last address.Names
 
         /// Take an address composed of all but the last name of an address.
         let allButLast<'a, 'b> (address : 'a Address) =
-            makeFromList<'b> (List.allButLast address.Names)
+            makeFromArray<'b> (Array.allButLast address.Names)
 
         /// Find the index of a name
         let findIndex finder address =
-            List.findIndex finder address.Names
+            Array.findIndex finder address.Names
 
         /// Get the length of an address by its names.
         let length address =
-            List.length address.Names
+            Array.length address.Names
 
         /// Check that an address is devoid of names.
         let isEmpty address =
-            List.isEmpty address.Names
+            Array.isEmpty address.Names
 
         /// Check that an address has one or more names.
         let notEmpty address =
-            List.notEmpty address.Names
+            Array.notEmpty address.Names
 
 [<AutoOpen>]
 module AddressOperators =
@@ -270,6 +278,9 @@ module AddressOperators =
 
     /// Convert a string into an address.
     let inline stoa<'a> str = Address<'a>.stoa<'a> str
+
+    /// Convert a names array into an address.
+    let inline rtoa<'a> names : 'a Address  = Address<'a>.rtoa<'a> names
 
     /// Convert a names list into an address.
     let inline ltoa<'a> names : 'a Address  = Address<'a>.ltoa<'a> names
