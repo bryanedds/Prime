@@ -10,12 +10,12 @@ module UList =
 
     type [<NoEquality; NoComparison>] 'a UList =
         private
-            { ListRef : 'a TList ref }
+            { mutable List : 'a TList }
     
         interface 'a IEnumerable with
             member this.GetEnumerator () =
-                let struct (seq, tlist) = TList.toSeq !this.ListRef
-                this.ListRef := tlist
+                let struct (seq, tlist) = TList.toSeq this.List
+                this.List <- tlist
                 seq.GetEnumerator ()
     
         interface IEnumerable with
@@ -23,119 +23,119 @@ module UList =
                 (this :> 'a IEnumerable).GetEnumerator () :> IEnumerator
 
         member this.Item index =
-            let struct (result, tlist) = TList.get index !this.ListRef
-            this.ListRef := tlist
+            let struct (result, tlist) = TList.get index this.List
+            this.List <- tlist
             result
 
     [<RequireQualifiedAccess>]
     module UList =
 
         let makeFromSeq config items =
-            { ListRef = ref (TList.makeFromSeq config items) }
+            { List = TList.makeFromSeq config items }
 
         let makeFromArray config items =
-            { ListRef = ref (TList.makeFromArray config items) }
+            { List = TList.makeFromArray config items }
 
         let makeEmpty<'a> config =
-            { ListRef = ref (TList.makeEmpty<'a> config) }
+            { List = TList.makeEmpty<'a> config }
 
         let getConfig list =
-            let struct (result, tlist) = TList.getConfig !list.ListRef
-            list.ListRef := tlist
+            let struct (result, tlist) = TList.getConfig list.List
+            list.List <- tlist
             result
 
         let get (index : int) (list : 'a UList) =
             list.[index]
 
         let set index value list =
-            { ListRef = ref (TList.set index value !list.ListRef) }
+            { List = TList.set index value list.List }
 
         let add value list =
-            { ListRef = ref (TList.add value !list.ListRef) }
+            { List = TList.add value list.List }
 
         let remove value list =
-            { ListRef = ref (TList.remove value !list.ListRef) }
+            { List = TList.remove value list.List }
 
         let clear list =
-            { ListRef = ref (TList.clear !list.ListRef) }
+            { List = TList.clear list.List }
 
         let isEmpty list =
-            let struct (result, tlist) = TList.isEmpty !list.ListRef
-            list.ListRef := tlist
+            let struct (result, tlist) = TList.isEmpty list.List
+            list.List <- tlist
             result
 
         let notEmpty list =
             not (isEmpty list)
 
         let length list =
-            let struct (result, tlist) = TList.length !list.ListRef
-            list.ListRef := tlist
+            let struct (result, tlist) = TList.length list.List
+            list.List <- tlist
             result
 
         let contains value list =
-            let struct (result, tlist) = TList.contains value !list.ListRef
-            list.ListRef := tlist
+            let struct (result, tlist) = TList.contains value list.List
+            list.List <- tlist
             result
 
         let toArray (list : _ UList) =
-            let struct (arr, tlist) = TList.toArray !list.ListRef
-            list.ListRef := tlist
+            let struct (arr, tlist) = TList.toArray list.List
+            list.List <- tlist
             arr
 
         let toSeq (list : _ UList) =
             list :> _ seq
 
         let map mapper list =
-            let struct (result, tlist) = TList.map mapper !list.ListRef
-            list.ListRef := tlist
-            { ListRef = ref result }
+            let struct (result, tlist) = TList.map mapper list.List
+            list.List <- tlist
+            { List = result }
 
         let filter pred list =
-            let struct (result, tlist) = TList.filter pred !list.ListRef
-            list.ListRef := tlist
-            { ListRef = ref result }
+            let struct (result, tlist) = TList.filter pred list.List
+            list.List <- tlist
+            { List = result }
 
         let rev list =
-            let struct (result, tlist) = TList.rev !list.ListRef
-            list.ListRef := tlist
-            { ListRef = ref result }
+            let struct (result, tlist) = TList.rev list.List
+            list.List <- tlist
+            { List = result }
 
         let sortWith comparison list =
-            let struct (result, tlist) = TList.sortWith comparison !list.ListRef
-            list.ListRef := tlist
-            { ListRef = ref result }
+            let struct (result, tlist) = TList.sortWith comparison list.List
+            list.List <- tlist
+            { List = result }
 
         let sortBy by list =
-            let struct (result, tlist) = TList.sortBy by !list.ListRef
-            list.ListRef := tlist
-            { ListRef = ref result }
+            let struct (result, tlist) = TList.sortBy by list.List
+            list.List <- tlist
+            { List = result }
 
         let sort list =
-            let struct (result, tlist) = TList.sort !list.ListRef
-            list.ListRef := tlist
-            { ListRef = ref result }
+            let struct (result, tlist) = TList.sort list.List
+            list.List <- tlist
+            { List = result }
 
         let fold folder state list =
-            let struct (result, tlist) = TList.fold folder state !list.ListRef
-            list.ListRef := tlist
+            let struct (result, tlist) = TList.fold folder state list.List
+            list.List <- tlist
             result
 
         let definitize list =
-            let struct (result, tlist) = TList.definitize !list.ListRef
-            list.ListRef := tlist
-            { ListRef = ref result }
+            let struct (result, tlist) = TList.definitize list.List
+            list.List <- tlist
+            { List = result }
 
         let makeFromLists config lists =
-            let tlists = !(map (fun (list : 'a UList) -> !list.ListRef) lists).ListRef
+            let tlists = (map (fun (list : 'a UList) -> list.List) lists).List
             let tlist = TList.makeFromLists config tlists
-            { ListRef = ref tlist }
+            { List = tlist }
 
         /// Add all the given values to the list.
         let addMany values list =
-            { ListRef = ref (TList.addMany values !list.ListRef) }
+            { List = TList.addMany values list.List }
 
         /// Remove all the given values from the list.
         let removeMany values list =
-            { ListRef = ref (TList.removeMany values !list.ListRef) }
+            { List = TList.removeMany values list.List }
 
 type 'a UList = 'a UList.UList

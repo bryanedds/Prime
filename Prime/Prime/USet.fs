@@ -11,12 +11,12 @@ module USet =
 
     type [<NoEquality; NoComparison>] USet<'a when 'a : equality> =
         private
-            { SetRef : 'a TSet ref }
+            { mutable Set : 'a TSet }
     
         interface IEnumerable<'a> with
             member this.GetEnumerator () =
-                let struct (seq, tset) = TSet.toSeq !this.SetRef
-                this.SetRef := tset
+                let struct (seq, tset) = TSet.toSeq this.Set
+                this.Set <- tset
                 seq.GetEnumerator ()
     
         interface IEnumerable with
@@ -27,62 +27,62 @@ module USet =
     module USet =
 
         let makeFromSeq<'a when 'a : equality> config items =
-            { SetRef = ref (TSet.makeFromSeq<'a> config items) }
+            { Set = TSet.makeFromSeq<'a> config items }
 
         let makeEmpty<'a when 'a : equality> config =
-            { SetRef = ref (TSet.makeEmpty<'a> config) }
+            { Set = TSet.makeEmpty<'a> config }
 
         let getConfig set =
-            let struct (result, tset) = TSet.getConfig !set.SetRef
-            set.SetRef := tset
+            let struct (result, tset) = TSet.getConfig set.Set
+            set.Set <- tset
             result
 
         let add value set =
-            { SetRef = ref (TSet.add value !set.SetRef) }
+            { Set = TSet.add value set.Set }
 
         let remove value set =
-            { SetRef = ref (TSet.remove value !set.SetRef) }
+            { Set = TSet.remove value set.Set }
 
         let clear set =
-            { SetRef = ref (TSet.clear !set.SetRef) }
+            { Set = TSet.clear set.Set }
     
         /// Add all the given values to the set.
         let addMany values set =
-            { SetRef = ref (TSet.addMany values !set.SetRef) }
+            { Set = TSet.addMany values set.Set }
     
         /// Remove all the given values from the set.
         let removeMany values set =
-            { SetRef = ref (TSet.removeMany values !set.SetRef) }
+            { Set = TSet.removeMany values set.Set }
 
         let isEmpty set =
-            let struct (result, tset) = TSet.isEmpty !set.SetRef
-            set.SetRef := tset
+            let struct (result, tset) = TSet.isEmpty set.Set
+            set.Set <- tset
             result
 
         let notEmpty set =
             not (isEmpty set)
 
         let contains value set =
-            let struct (result, tset) = TSet.contains value !set.SetRef
-            set.SetRef := tset
+            let struct (result, tset) = TSet.contains value set.Set
+            set.Set <- tset
             result
 
         let toSeq (set : _ USet) =
             set :> _ seq
 
         let fold folder state set =
-            let struct (result, tset) = TSet.fold folder state !set.SetRef
-            set.SetRef := tset
+            let struct (result, tset) = TSet.fold folder state set.Set
+            set.Set <- tset
             result
 
         let map mapper set =
-            let struct (result, tset) = TSet.map mapper !set.SetRef
-            set.SetRef := tset
-            { SetRef = ref result }
+            let struct (result, tset) = TSet.map mapper set.Set
+            set.Set <- tset
+            { Set = result }
 
         let filter pred set =
-            let struct (result, tset) = TSet.filter pred !set.SetRef
-            set.SetRef := tset
-            { SetRef = ref result }
+            let struct (result, tset) = TSet.filter pred set.Set
+            set.Set <- tset
+            { Set = result }
 
 type USet<'a when 'a : equality> = USet.USet<'a>

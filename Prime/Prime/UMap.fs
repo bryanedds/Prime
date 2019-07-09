@@ -11,12 +11,12 @@ module UMap =
 
     type [<NoEquality; NoComparison>] UMap<'k, 'v when 'k : equality> =
         private
-            { MapRef : TMap<'k, 'v> ref }
+            { mutable Map : TMap<'k, 'v> }
     
         interface IEnumerable<'k * 'v> with
             member this.GetEnumerator () =
-                let struct (seq, tmap) = TMap.toSeq !this.MapRef
-                this.MapRef := tmap
+                let struct (seq, tmap) = TMap.toSeq this.Map
+                this.Map <- tmap
                 seq.GetEnumerator ()
     
         interface IEnumerable with
@@ -27,74 +27,74 @@ module UMap =
     module UMap =
 
         let makeFromSeq<'k, 'v when 'k : equality> config entries =
-            { MapRef = ref (TMap.makeFromSeq<'k, 'v> config entries) }
+            { Map = TMap.makeFromSeq<'k, 'v> config entries }
 
         let makeEmpty<'k, 'v when 'k : equality> config =
-            { MapRef = ref (TMap.makeEmpty<'k, 'v> config) }
+            { Map = TMap.makeEmpty<'k, 'v> config }
 
         let getConfig map =
-            let struct (result, tmap) = TMap.getConfig !map.MapRef
-            map.MapRef := tmap
+            let struct (result, tmap) = TMap.getConfig map.Map
+            map.Map <- tmap
             result
 
         let add key value map =
-            { MapRef = ref (TMap.add key value !map.MapRef) }
+            { Map = TMap.add key value map.Map }
 
         let remove key map =
-            { MapRef = ref (TMap.remove key !map.MapRef) }
+            { Map = TMap.remove key map.Map }
 
         let isEmpty map =
-            let struct (result, tmap) = TMap.isEmpty !map.MapRef
-            map.MapRef := tmap
+            let struct (result, tmap) = TMap.isEmpty map.Map
+            map.Map <- tmap
             result
 
         let notEmpty map =
             not (isEmpty map)
 
         let tryFindFast key map =
-            let struct (valueOpt, tmap) = TMap.tryFindFast key !map.MapRef
-            map.MapRef := tmap
+            let struct (valueOpt, tmap) = TMap.tryFindFast key map.Map
+            map.Map <- tmap
             valueOpt
 
         let tryFind key map =
-            let struct (valueOpt, tmap) = TMap.tryFind key !map.MapRef
-            map.MapRef := tmap
+            let struct (valueOpt, tmap) = TMap.tryFind key map.Map
+            map.Map <- tmap
             valueOpt
 
         let find key map =
-            let struct (item, tmap) = TMap.find key !map.MapRef
-            map.MapRef := tmap
+            let struct (item, tmap) = TMap.find key map.Map
+            map.Map <- tmap
             item
 
         let containsKey key map =
-            let struct (result, tmap) = TMap.containsKey key !map.MapRef
-            map.MapRef := tmap
+            let struct (result, tmap) = TMap.containsKey key map.Map
+            map.Map <- tmap
             result
 
         /// Add all the given entries to the map.
         let addMany entries map =
-            { MapRef = ref (TMap.addMany entries !map.MapRef) }
+            { Map = TMap.addMany entries map.Map }
     
         /// Remove all values with the given keys from the map.
         let removeMany keys map =
-            { MapRef = ref (TMap.removeMany keys !map.MapRef) }
+            { Map = TMap.removeMany keys map.Map }
 
         let toSeq (map : UMap<_, _>) =
             map :> _ seq
 
         let fold folder state map =
-            let struct (result, tmap) = TMap.fold folder state !map.MapRef
-            map.MapRef := tmap
+            let struct (result, tmap) = TMap.fold folder state map.Map
+            map.Map <- tmap
             result
 
         let map mapper map =
-            let struct (result, tmap) = TMap.map mapper !map.MapRef
-            map.MapRef := tmap
-            { MapRef = ref result }
+            let struct (result, tmap) = TMap.map mapper map.Map
+            map.Map <- tmap
+            { Map = result }
 
         let filter pred map =
-            let struct (result, tmap) = TMap.filter pred !map.MapRef
-            map.MapRef := tmap
-            { MapRef = ref result }
+            let struct (result, tmap) = TMap.filter pred map.Map
+            map.Map <- tmap
+            { Map = result }
 
 type UMap<'k, 'v when 'k : equality> = UMap.UMap<'k, 'v>
