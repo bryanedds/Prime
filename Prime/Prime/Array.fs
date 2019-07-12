@@ -75,6 +75,10 @@ module Array =
     let trySkip (count : int) (arr : _ array) =
         Seq.trySkip count arr |> Array.ofSeq
 
+    /// Try to find a value.
+    let rec tryFindPlus pred (arr : _ seq) =
+        Seq.tryFindPlus pred arr
+
     /// Get all but the last item from a list.
     let allButLast arr =
         tryTake (Array.length arr - 1) arr

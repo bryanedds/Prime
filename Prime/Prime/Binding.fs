@@ -6,7 +6,7 @@ open Prime
 
 type [<NoEquality; NoComparison>] Binding<'m, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> =
     { Stream : Stream<obj, 'w>
-      MakeValueOpt : Event<obj, 's> -> 'm option }
+      MakeValue : Event<obj, 's> -> 'm }
 
 type [<NoEquality; NoComparison>] Binding<'m, 'e, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> =
     | Message of Binding<'m, 's, 'w>
@@ -16,14 +16,14 @@ type [<NoEquality; NoComparison>] Binding<'m, 'e, 's, 'w when 's :> Participant 
 module Binding =
 
     let make<'a, 'v, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>>
-        (stream : Stream<'a, 'w>) (makeValueOpt : Event<'a, 's> -> 'v option) =
+        (stream : Stream<'a, 'w>) (makeValue : Event<'a, 's> -> 'v) =
         { Stream = Stream.generalize stream
-          MakeValueOpt = fun evt -> makeValueOpt (Event.specialize evt) }
+          MakeValue = fun evt -> makeValue (Event.specialize evt) }
 
     let makeSimple<'a, 'v, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>>
         (stream : Stream<'a, 'w>) (value : 'v) =
         { Stream = Stream.generalize stream
-          MakeValueOpt = fun (_ : Event<obj, 's>) -> Some value }
+          MakeValue = fun (_ : Event<obj, 's>) -> value }
 
 type Binding<'m, 'e, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> with
 
@@ -52,11 +52,11 @@ type Binding<'m, 'e, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> wi
             Command (Binding.makeSimple source command)
 
     static member (=|>!) (_ : Binding<'m, 'e, 's, 'w>, source : Address<'a>) =
-        fun (command : Event<'a, 's> -> 'e option) ->
+        fun (command : Event<'a, 's> -> 'e) ->
             Command (Binding.make (Stream.make source) command)
 
     static member (=|>!) (_ : Binding<'m, 'e, 's, 'w>, source : Stream<'a, 'w>) =
-        fun (command : Event<'a, 's> -> 'e option) ->
+        fun (command : Event<'a, 's> -> 'e) ->
             Command (Binding.make source command)
 
 [<AutoOpen>]

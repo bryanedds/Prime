@@ -68,6 +68,16 @@ module Seq =
     let trySkip (count : int) (seq : _ seq) =
         System.Linq.Enumerable.Skip (seq, count)
 
+    /// Try to find a value.
+    let rec tryFindPlus (pred : 'a -> 'b option) (seq : 'a seq) : 'b option =
+        let mutable result = None
+        let enr = seq.GetEnumerator ()
+        while Option.isNone result && enr.MoveNext () do
+            match pred enr.Current with
+            | Some _ as found -> result <- found
+            | None -> ()
+        result
+
     /// Project the first sequence onto the second.
     let project projector (seq_ : 'a seq) (seq2 : 'b option seq) =
         use enr = seq_.GetEnumerator ()
