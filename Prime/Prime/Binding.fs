@@ -36,11 +36,11 @@ type Binding<'m, 'e, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> wi
             Message (Binding.makeSimple source message)
 
     static member (=|>) (_ : Binding<'m, 'e, 's, 'w>, source : Address<'a>) =
-        fun (message : Event<'a, 's> -> 'm option) ->
+        fun (message : Event<'a, 's> -> 'm) ->
             Message (Binding.make (Stream.make source) message)
 
     static member (=|>) (_ : Binding<'m, 'e, 's, 'w>, source : Stream<'a, 'w>) =
-        fun (message : Event<'a, 's> -> 'm option) ->
+        fun (message : Event<'a, 's> -> 'm) ->
             Message (Binding.make source message)
 
     static member (=>!) (_ : Binding<'m, 'e, 's, 'w>, source : Address<'a>) =
