@@ -30,9 +30,9 @@ type ParticipantOperators =
     static member (-->) (address, participant : Participant) = ParticipantOperators.acatff address participant
 
 /// The data for a change in a participant.
-type [<Struct; StructuralEquality; NoComparison>] 'w ParticipantChangeData =
-    { PropertyName : string
-      OldWorld : 'w }
+type [<Struct; StructuralEquality; NoComparison>] ChangeData =
+    { Name : string
+      Value : obj }
 
 /// A participant in the event system that is globalized and compatible with generalized events.
 type [<StructuralEquality; NoComparison>] GlobalParticipantGeneralized =

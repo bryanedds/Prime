@@ -13,7 +13,7 @@ type 'w Lens =
         abstract Get : 'w -> obj
         abstract SetOpt : (obj -> 'w -> 'w) option
         abstract Type : Type
-        abstract ChangeEvent : 'w ParticipantChangeData Address
+        abstract ChangeEvent : ChangeData Address
         end
 
 /// Describes a property of a participant.
@@ -99,7 +99,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
           This = this.This }
 
     member this.ChangeEvent =
-        let changeEventAddress = rtoa<'w ParticipantChangeData> [|"Change"; this.Name; "Event"|]
+        let changeEventAddress = rtoa<ChangeData> [|"Change"; this.Name; "Event"|]
         let changeEvent = changeEventAddress --> this.This.ParticipantAddress
         changeEvent
 

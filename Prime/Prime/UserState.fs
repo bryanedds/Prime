@@ -33,12 +33,12 @@ module UserState =
             | :? Symbol as symbol ->
                 match symbol with
                 | Symbols ([String (typeName, _); valueSymbol; imperativeSymbol], _) ->
-                    let valueType = Type.GetType (typeName, true, false)
-                    let valueConverter = SymbolicConverter valueType
+                    let ty = Type.GetType (typeName, true, false)
+                    let valueConverter = SymbolicConverter ty
                     let value = valueConverter.ConvertFrom valueSymbol; 
                     let imperativeConverter = SymbolicConverter typeof<bool>
                     let imperative = imperativeConverter.ConvertFrom imperativeSymbol :?> bool
-                    { Type = valueType; Value = value; Imperative = imperative } :> obj
+                    { Type = ty; Value = value; Imperative = imperative } :> obj
                 | _ -> failconv "Invalid UserState conversion from source." (Some symbol)
             | :? UserState -> source
             | _ -> failconv "Invalid UserState conversion from source." None

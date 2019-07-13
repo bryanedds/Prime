@@ -9,7 +9,7 @@ open Prime
 type Propertied = interface end
 
 /// Handles property changes.
-type PropertyChangeHandler<'w when 'w :> PropertySystem<'w>> = 'w -> 'w -> 'w
+type PropertyChangeHandler<'w when 'w :> PropertySystem<'w>> = obj -> 'w -> 'w
 
 /// Detaches a property change handler.
 and PropertyChangeUnhandler<'w when 'w :> PropertySystem<'w>> = 'w -> 'w
