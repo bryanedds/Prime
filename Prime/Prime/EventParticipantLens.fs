@@ -98,6 +98,12 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
           SetOpt = None
           This = this.This }
 
+    member this.MapWorld mapper : Lens<'b, 'w> =
+        { Name = this.Name
+          Get = fun world -> mapper (this.Get world) world
+          SetOpt = None
+          This = this.This }
+
     member this.ChangeEvent =
         let changeEventAddress = rtoa<ChangeData> [|"Change"; this.Name; "Event"|]
         let changeEvent = changeEventAddress --> this.This.ParticipantAddress
@@ -138,6 +144,9 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
     static member inline (!-)   (lens : Lens<_, 'w>) =         lens.Update dec
     static member inline (~~~)  (lens : Lens<_, 'w>) =         lens.GetBy  (~~~)
 
+    /// Map over a lens in the given world context (read-only).
+    static member inline (->>)  (lens : Lens<_, 'w>, mapper) = lens.MapWorld mapper
+
     /// Map over a lens (read-only).
     static member inline (-->)  (lens : Lens<_, 'w>, mapper) = lens.MapOut mapper
 
@@ -156,7 +165,7 @@ module Lens =
     let map<'a, 'w> mapper (lens : Lens<'a, 'w>) =
         lens.Map mapper
 
-    let map2<'a, 'w> mapper unmapper (lens : Lens<'a, 'w>) =
+    let map2<'a, 'b, 'w> mapper unmapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
         lens.Map2 mapper unmapper
 
     let mapOut<'a, 'w> mapper (lens : Lens<'a, 'w>) =
