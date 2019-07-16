@@ -83,10 +83,12 @@ type [<Struct>] Signal<'message, 'command> =
 [<RequireQualifiedAccess>]
 module Signal =
 
-    let message message = Message message
-    let command command = Command command
-    let many nexts = Signals nexts
-    let empty = Signals []
+    let msg message = Message message
+    let msgs messages = List.map Message messages
+    let cmd command = Command command
+    let cmds commands = List.map Command commands
+    let many signals = Signals signals
+    let none = Signals []
 
     let rec private processModelInternal<'model, 'message, 'command, 'p, 'w when 'p :> Participant>
         processMessage
@@ -111,12 +113,12 @@ module Signal =
             match binding with
             | MessageBinding binding ->
                 Stream.monitor (fun evt world ->
-                    let next = message (binding.MakeValue evt)
+                    let next = msg (binding.MakeValue evt)
                     processModelInternal processMessage processCommand model participant next world)
                     participant binding.Stream world
             | CommandBinding binding ->
                 Stream.monitor (fun evt world ->
-                    let next = command (binding.MakeValue evt)
+                    let next = cmd (binding.MakeValue evt)
                     processModelInternal processMessage processCommand model participant next world)
                     participant binding.Stream world)
             world bindings
@@ -124,7 +126,9 @@ module Signal =
 [<AutoOpen>]
 module SignalOperators =
 
-    let withMessage value message = (value, Message message)
-    let withCommand value command = (value, Command command)
-    let withSignals value command = (value, Signals command)
-    let just value = (value, Signal.empty)
+    let withMsg value message = (value, Message message)
+    let withMsgs value messages = (value, Signal.msgs messages)
+    let withCmd value command = (value, Command command)
+    let withCmds value commands = (value, Signal.cmds commands)
+    let withSigs value command = (value, Signals command)
+    let just value = (value, Signal.none)
