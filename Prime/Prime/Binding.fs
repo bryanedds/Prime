@@ -75,10 +75,10 @@ module BindingOperators =
         (Unchecked.defaultof<Binding<'m, 'c, 's, 'w>> =|>! source) message
 
 /// A model-message-command signal.
-type Signal<'message, 'command> =
-    | Message of 'message
-    | Command of 'command
-    | Signals of Signal<'message, 'command> list
+type [<Struct>] Signal<'message, 'command> =
+    | Message of message : 'message
+    | Command of command : 'command
+    | Signals of signals : Signal<'message, 'command> list
 
 [<RequireQualifiedAccess>]
 module Signal =
