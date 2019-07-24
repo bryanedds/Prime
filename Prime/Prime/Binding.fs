@@ -75,18 +75,22 @@ module BindingOperators =
         (Unchecked.defaultof<Binding<'m, 'c, 's, 'w>> =|>! source) message
 
 /// A model-message-command signal.
-type [<Struct>] Signal<'message, 'command> =
+type Signal<'message, 'command> =
     | Message of message : 'message
     | Command of command : 'command
     | Signals of signals : Signal<'message, 'command> list
+    
+    static member add (left : Signal<'message, 'command>) (right : Signal<'message, 'command>) = Signals [left; right]
+    static member (+) (left, right) = Signal.add left right
 
 [<RequireQualifiedAccess>]
 module Signal =
 
+    let add left right = Signal<_, _>.add left right
     let msg message = Message message
-    let msgs messages = List.map Message messages
+    let msgs messages = Signals (List.map Message messages)
     let cmd command = Command command
-    let cmds commands = List.map Command commands
+    let cmds commands = Signals (List.map Command commands)
     let many signals = Signals signals
     let none = Signals []
 
@@ -130,5 +134,6 @@ module SignalOperators =
     let withMsgs value messages = (value, Signal.msgs messages)
     let withCmd value command = (value, Command command)
     let withCmds value commands = (value, Signal.cmds commands)
-    let withSigs value command = (value, Signals command)
+    let withSig value (signal : Signal<_, _>) = (value, signal)
+    let withSigs value signals = (value, Signals signals)
     let just value = (value, Signal.none)

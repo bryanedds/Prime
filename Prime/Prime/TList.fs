@@ -8,7 +8,7 @@ open System.Collections.Generic
 [<AutoOpen>]
 module TList =
 
-    type [<Struct; NoEquality; NoComparison>] private 'a Log =
+    type [<NoEquality; NoComparison>] private 'a Log =
         | Add of add : 'a
         | Remove of remove : 'a
         | Set of index : int * value : 'a

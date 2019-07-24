@@ -16,7 +16,7 @@ type [<AttributeUsage (AttributeTargets.Class); AllowNullLiteral>] DefaultValueA
     member this.DefaultValue = defaultValue
 
 /// An evaluatable expression for defining a property.
-type [<Struct; NoEquality; NoComparison>] PropertyExpr =
+type [<NoEquality; NoComparison>] PropertyExpr =
     | DefineExpr of DefineExpr : obj
     | VariableExpr of VariableExpr : (obj -> obj)
 
@@ -27,7 +27,7 @@ type [<Struct; NoEquality; NoComparison>] PropertyExpr =
         | VariableExpr fn -> fn context
 
 /// The definition of a data-driven property.
-type [<Struct; NoEquality; NoComparison>] PropertyDefinition =
+type [<NoEquality; NoComparison>] PropertyDefinition =
     { PropertyName : string
       PropertyType : Type
       PropertyExpr : PropertyExpr }
@@ -52,7 +52,7 @@ type [<Struct; NoEquality; NoComparison>] PropertyDefinition =
         result
 
 /// In tandem with the define literal, grants a nice syntax to define value properties.
-type [<Struct>] ValueDescription =
+type ValueDescription =
     { ValueDescription : unit }
     
     /// Some magic syntax for composing value properties.
@@ -61,7 +61,7 @@ type [<Struct>] ValueDescription =
             PropertyDefinition.makeValidated propertyName typeof<'v> (DefineExpr value)
 
 /// In tandem with the variable literal, grants a nice syntax to define variable properties.
-type [<Struct>] VariableDescription =
+type VariableDescription =
     { VariableDescription : unit }
 
     /// Some magic syntax for composing variable properties.
@@ -70,7 +70,7 @@ type [<Struct>] VariableDescription =
             PropertyDefinition.makeValidated propertyName typeof<'v> (VariableExpr (fun context -> variable (context :?> 'w) :> obj))
 
 /// In tandem with the property literal, grants a nice syntax to denote properties.
-type [<Struct>] PropertyDescription =
+type PropertyDescription =
     { PropertyDescription : unit }
     
     /// Some magic syntax for composing value properties.
@@ -78,12 +78,12 @@ type [<Struct>] PropertyDescription =
         propertyName
     
 /// Describes a property.
-type [<Struct; StructuralEquality; NoComparison>] PropertyDescriptor =
+type [<StructuralEquality; NoComparison>] PropertyDescriptor =
     { PropertyName : string
       PropertyType : Type }
 
 /// A vanilla property.
-type [<Struct; StructuralEquality; NoComparison>] Property =
+type [<StructuralEquality; NoComparison>] Property =
     { mutable PropertyType : Type
       mutable PropertyValue : obj }
 

@@ -5,7 +5,7 @@ namespace Prime
 open System
 
 /// Allow for a pair of values to be partially-compared.
-type [<Struct; CustomEquality; CustomComparison>] PartialComparable<'a, 'b when 'a : comparison> =
+type [<CustomEquality; CustomComparison>] PartialComparable<'a, 'b when 'a : comparison> =
     { Comparable : 'a
       Noncomparable : 'b }
 

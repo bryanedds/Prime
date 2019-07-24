@@ -6,17 +6,17 @@ open System
 open Prime
 
 /// Describes whether an in-flight event has been resolved or should cascade to down-stream handlers.
-type [<Struct>] Handling =
+type Handling =
     | Resolve
     | Cascade
 
 /// Specifies whether an event-based application is running or exiting.
-type [<Struct>] Liveness =
+type Liveness =
     | Running
     | Exiting
 
 /// An event used by the event system.
-type [<Struct; NoEquality; NoComparison>] Event<'a, 's when 's :> Participant> =
+type [<NoEquality; NoComparison>] Event<'a, 's when 's :> Participant> =
     { Data : 'a
       Subscriber : 's
       Publisher : Participant
@@ -38,7 +38,7 @@ module Event =
 type EventGeneralized = Event<obj, Participant>
 
 /// An entry in the subscription map.
-type [<Struct; NoEquality; NoComparison>] SubscriptionEntry =
+type [<NoEquality; NoComparison>] SubscriptionEntry =
     { SubscriptionKey : Guid
       SubscriberEntry : Participant
       Callback : obj }

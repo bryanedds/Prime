@@ -23,6 +23,9 @@ module Program =
         match Console.ReadLine () with
         | input when input.Trim () = "exit" ->
             world
+        | input when input.Trim () = "timings" ->
+            Timings.runTimings ()
+            world
         | input when String.IsNullOrWhiteSpace input ->
             runRepl world
         | input ->
@@ -44,6 +47,7 @@ module Program =
         | Right struct (_, _, world) ->
             Console.WriteLine "Welcome to the Amsl Repl!"
             Console.WriteLine "Try out a symbolic expression like [+ 2 2] or [[fun [x] [* x x]] 5]"
-            Console.WriteLine "Type exit when done."
+            Console.WriteLine "Type 'timings' to run Prime collection timings."
+            Console.WriteLine "Type 'exit' when done."
             runRepl world |> ignore
             0

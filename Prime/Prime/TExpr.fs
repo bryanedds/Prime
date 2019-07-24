@@ -4,7 +4,7 @@
 namespace Prime
 open System
 
-type [<Struct>] TConfig =
+type TConfig =
     | BasedOnBuild
     | Functional
     | Imperative

@@ -30,7 +30,7 @@ type ParticipantOperators =
     static member (-->) (address, participant : Participant) = ParticipantOperators.acatff address participant
 
 /// The data for a change in a participant.
-type [<Struct; StructuralEquality; NoComparison>] ChangeData =
+type [<StructuralEquality; NoComparison>] ChangeData =
     { Name : string
       Value : obj }
 

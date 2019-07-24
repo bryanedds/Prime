@@ -15,22 +15,22 @@ module Scripting =
         abstract member FSharpType : Type
         abstract member ToSymbol : unit -> Symbol
 
-    and [<Struct; NoComparison>] CachedBinding =
+    and [<NoComparison>] CachedBinding =
         | UncachedBinding
         | DeclarationBinding of Expr
         | ProceduralBinding of int * int
 
-    and [<Struct; NoComparison>] BindingType =
+    and [<NoComparison>] BindingType =
         | UnknownBindingType
         | IntrinsicBinding
         | ExtrinsicBinding
         | EnvironmentalBinding
 
-    and [<Struct; NoComparison>] Binding =
+    and [<NoComparison>] Binding =
         | VariableBinding of VarName : string * VarValue : Expr
         | FunctionBinding of FunName : string * FunArgs : string array * FunLambda : Expr
 
-    and [<Struct; NoComparison>] Breakpoint =
+    and [<NoComparison>] Breakpoint =
         { mutable BreakEnabled : bool
           mutable BreakCondition : Expr }
 

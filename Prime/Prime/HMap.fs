@@ -20,7 +20,7 @@ module HMap =
             end
 
     /// Hash map node.
-    type [<Struct; NoComparison>] private HNode<'k, 'v when 'k :> 'k IEquatable> =
+    type [<NoComparison>] private HNode<'k, 'v when 'k :> 'k IEquatable> =
         | Nil
         | Singleton of singleton : Hkv<'k, 'v>
         | Multiple of multiple : HNode<'k, 'v> array
