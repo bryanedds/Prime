@@ -11,7 +11,7 @@ module ScriptingTests =
         { ScriptingEnv : Scripting.Env }
         interface TestWorld ScriptingSystem with
             member this.GetEnv () = this.ScriptingEnv
-            member this.TryGetExtrinsic _ = FOption.none ()
+            member this.TryGetExtrinsic _ = None
             member this.TryImport _ _ = failwithnie ()
             member this.TryExport _ _ = failwithnie ()
         static member make () = { ScriptingEnv = Scripting.Env.Env.make () }

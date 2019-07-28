@@ -59,8 +59,8 @@ module HMap =
 
         let private tryFindInGutter (k : 'k) (gutter : Hkv<'k, 'v> array) =
             match Array.FindLastIndex (gutter, fun (entry2 : Hkv<'k, 'v>) -> entry2.K.Equals k) with
-            | -1 -> FOption.none ()
-            | index -> FOption.some gutter.[index].V
+            | -1 -> None
+            | index -> Some gutter.[index].V
 
         let empty =
             Nil
@@ -145,11 +145,11 @@ module HMap =
                 let gutter = removeFromGutter k gutter
                 if Array.isEmpty gutter then Nil else Gutter gutter
     
-        let rec tryFindFast (h : int) (k : 'k) (dep : int) (node : HNode<'k, 'v>) : 'v FOption =
+        let rec tryFind (h : int) (k : 'k) (dep : int) (node : HNode<'k, 'v>) : 'v option =
             match node with
-            | Nil -> FOption.none ()
-            | Singleton hkv -> if hkv.K.Equals k then FOption.some hkv.V else FOption.none ()
-            | Multiple arr -> let idx = hashToIndex h dep in tryFindFast h k (dep + 1) arr.[idx]
+            | Nil -> None
+            | Singleton hkv -> if hkv.K.Equals k then Some hkv.V else None
+            | Multiple arr -> let idx = hashToIndex h dep in tryFind h k (dep + 1) arr.[idx]
             | Gutter gutter -> tryFindInGutter k gutter
     
         let rec find (h : int) (k : 'k) (dep : int) (node : HNode<'k, 'v>) : 'v =
@@ -157,7 +157,7 @@ module HMap =
             | Nil -> failwithKeyNotFound k
             | Singleton hkv -> if hkv.K.Equals k then hkv.V else failwithKeyNotFound k
             | Multiple arr -> let idx = hashToIndex h dep in find h k (dep + 1) arr.[idx]
-            | Gutter gutter -> FOption.get (tryFindInGutter k gutter)
+            | Gutter gutter -> Option.get (tryFindInGutter k gutter)
     
         let rec fold folder state node =
             match node with
@@ -225,15 +225,9 @@ module HMap =
     
         /// Try to find a value with the given key in an HMap.
         /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.
-        let tryFindFast (key : 'k) map : 'v FOption =
-            let h = key.GetHashCode ()
-            HNode.tryFindFast h key 0 map.Node
-
-        /// Try to find a value with the given key in an HMap.
-        /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.
         let tryFind (key : 'k) map : 'v option =
-            let fopt = tryFindFast key map
-            FOption.toOpt fopt
+            let h = key.GetHashCode ()
+            HNode.tryFind h key 0 map.Node
 
         /// Find a value with the given key in an HMap.
         /// Constant-time complexity with approx. 1/3 speed of Dictionary.GetValue.
@@ -243,8 +237,7 @@ module HMap =
     
         /// Check that an HMap contains a value with the given key.
         let containsKey key map =
-            let opt = tryFindFast key map
-            FOption.isSome opt
+            Option.isSome (tryFind key map)
             
         /// Combine the contents of two HMaps, taking an item from the second map in the case of a key conflict.
         let concat map map2 =

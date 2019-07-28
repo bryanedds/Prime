@@ -28,11 +28,10 @@ module Xtension =
         static member (?) (xtension, propertyName) : 'a =
 
             // check if dynamic member is an existing property
-            let propertyOpt = UMap.tryFindFast propertyName xtension.Properties
-            if FOption.isSome propertyOpt then
+            match UMap.tryFind propertyName xtension.Properties with
+            | Some property ->
                 
                 // return property directly if the return type matches, otherwise the default value for that type
-                let property = FOption.get propertyOpt
                 match property.PropertyValue with
                 | :? DesignerProperty as dp ->
                     match dp.DesignerValue with
@@ -41,7 +40,7 @@ module Xtension =
                 | :? 'a as value -> value
                 | _ -> failwith ("Xtension property '" + propertyName + "' of type '" + property.PropertyType.Name + "' is not of the expected type '" + typeof<'a>.Name + "'.")
 
-            else
+            | None ->
 
                 // presume we're looking for a property that doesn't exist, so try to get the default value
                 Xtension.tryGetDefaultValue xtension propertyName
@@ -51,9 +50,8 @@ module Xtension =
         ///     let xtn = xtn.Position <- Vector2 (4.0, 5.0).
         static member (?<-) (xtension, propertyName, value : 'a) =
             if typeof<'a> = typeof<DesignerProperty> then failwith "Cannot directly set an Xtension property to a DesignerProperty."
-            let propertyOpt = UMap.tryFindFast propertyName xtension.Properties
-            if FOption.isSome propertyOpt then
-                let mutable property = FOption.get propertyOpt
+            match UMap.tryFind propertyName xtension.Properties with
+            | Some property ->
                 if xtension.Sealed && property.PropertyType <> typeof<'a> then failwith "Cannot change the type of a sealed Xtension's property."
                 if xtension.Imperative then
                     match property.PropertyValue with
@@ -70,7 +68,7 @@ module Xtension =
                         let property = { property with PropertyValue = value :> obj }
                         let properties = UMap.add propertyName property xtension.Properties
                         { xtension with Properties = properties }
-            else
+            | None ->
                 if xtension.Sealed then failwith "Cannot add property to a sealed Xtension."
                 let property = { PropertyType = typeof<'a>; PropertyValue = value :> obj }
                 let properties = UMap.add propertyName property xtension.Properties
@@ -107,24 +105,20 @@ module Xtension =
         /// Try to get a property from an xtension.
         let tryGetProperty name xtension = UMap.tryFind name xtension.Properties
 
-        /// Try to get a property from an xtension.
-        let tryGetPropertyFast name xtension = UMap.tryFindFast name xtension.Properties
-
         /// Get a property from an xtension.
         let getProperty name xtension = UMap.find name xtension.Properties
 
         /// Set a property on an Xtension.
         let trySetProperty name property xtension =
-            let propertyOpt = UMap.tryFindFast name xtension.Properties
-            if FOption.isSome propertyOpt then
-                let property' = FOption.get propertyOpt
+            match UMap.tryFind name xtension.Properties with
+            | Some property' ->
                 if xtension.Imperative then
                     let mutable property' = property' // rebind as mutable
                     property'.PropertyType <- property.PropertyType
                     property'.PropertyValue <- property.PropertyValue
                     (true, xtension)
                 else (true, { xtension with Properties = UMap.add name property xtension.Properties })
-            else
+            | None ->
                 if not xtension.Sealed
                 then (true, { xtension with Properties = UMap.add name property xtension.Properties })
                 else (false, xtension)

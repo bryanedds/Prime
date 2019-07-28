@@ -17,7 +17,7 @@ open Prime.ScriptingPrimitives
 type ScriptingSystem<'w when 'w :> 'w ScriptingSystem> =
     interface
         abstract member GetEnv : unit -> Env
-        abstract member TryGetExtrinsic : string -> 'w ScriptingTrinsic FOption
+        abstract member TryGetExtrinsic : string -> 'w ScriptingTrinsic option
         abstract member TryImport : Type -> obj -> Expr option
         abstract member TryExport : Type -> Expr -> obj option
         end
@@ -267,7 +267,7 @@ module ScriptingSystem =
             match !bindingType with
             | UnknownBindingType ->
                 if (getIntrinsics<'w> ()).ContainsKey name then bindingType := IntrinsicBinding; struct (expr, world)
-                elif FOption.isSome (world.TryGetExtrinsic name) then bindingType := ExtrinsicBinding; struct (expr, world)
+                elif Option.isSome (world.TryGetExtrinsic name) then bindingType := ExtrinsicBinding; struct (expr, world)
                 else struct (Violation (["NonexistentBinding"], "Non-existent binding '" + name + "'.", originOpt), world)
             | IntrinsicBinding -> struct (expr, world)
             | ExtrinsicBinding -> struct (expr, world)
@@ -281,7 +281,7 @@ module ScriptingSystem =
             match Dictionary.tryFind name (getIntrinsics<'w> ()) with
             | Some trinsic -> struct (String ("[fun [" + String.Join (" ", trinsic.Pars) + "] '" + (Option.getOrDefault "" trinsic.DocOpt) + "']"), world)
             | None ->
-                match world.TryGetExtrinsic name |> FOption.toOpt with
+                match world.TryGetExtrinsic name with
                 | Some trinsic -> struct (String ("[fun [" + String.Join (" ", trinsic.Pars) + "] '" + (Option.getOrDefault "" trinsic.DocOpt) + "']"), world)
                 | None -> struct (Violation (["NonExistentBinding/Function"], "Could not find function binding '" + name + "' for use with '" + fnName + "'.", originOpt), world)
         | Fun (args, _, _, _, _, _, _) -> struct (String ("[fun [" + String.Join (" ", args) + "] ...]"), world)
@@ -412,10 +412,9 @@ module ScriptingSystem =
                     | success -> success
                 | ExtrinsicBinding -> 
                     let args = Array.tail exprs
-                    let extrinsicOpt = world.TryGetExtrinsic fnName
-                    if FOption.isSome extrinsicOpt
-                    then extrinsicOpt.Value.Fn fnName args originOpt world
-                    else failwithumf ()
+                    match world.TryGetExtrinsic fnName with
+                    | Some extrinsic -> extrinsic.Fn fnName args originOpt world
+                    | None -> failwithumf ()
                 | EnvironmentalBinding ->
                     failwithumf ()
             | Fun (pars, parsCount, body, _, framesOpt, _, originOpt) ->

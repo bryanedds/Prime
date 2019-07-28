@@ -199,9 +199,9 @@ module EventSystem =
         let eventDeleage = getEventSystemDelegate world
         let eventSubscriptions = EventSystemDelegate.getSubscriptions eventDeleage
         let eventAddresses = getEventAddresses2 eventAddress allowWildcard
-        let subscriptionOpts = Array.map (fun eventAddress -> UMap.tryFindFast eventAddress eventSubscriptions) eventAddresses
-        let subscriptionOpts = Array.filter FOption.isSome subscriptionOpts
-        let subscriptions = Array.map FOption.get subscriptionOpts // TODO: consider fusing with filter by using filterBy
+        let subscriptionOpts = Array.map (fun eventAddress -> UMap.tryFind eventAddress eventSubscriptions) eventAddresses
+        let subscriptionOpts = Array.filter Option.isSome subscriptionOpts
+        let subscriptions = Array.map Option.get subscriptionOpts // TODO: consider fusing with filter by using filterBy
         let subscriptions = Array.concat subscriptions
         publishSorter subscriptions world
 
@@ -306,16 +306,15 @@ module EventSystem =
     /// Unsubscribe from an event.
     let unsubscribe<'w when 'w :> EventSystem<'w>> subscriptionKey (world : 'w) =
         let (subscriptions, unsubscriptions) = (getSubscriptions world, getUnsubscriptions world)
-        let unsubscriptionOpt = UMap.tryFindFast subscriptionKey unsubscriptions
-        if FOption.isSome unsubscriptionOpt then
-            let (eventAddress, subscriber) = FOption.get unsubscriptionOpt
-            let subscriptionsArrayOpt = UMap.tryFindFast eventAddress subscriptions
-            if FOption.isSome subscriptionsArrayOpt then
+        match UMap.tryFind subscriptionKey unsubscriptions with
+        | Some (eventAddress, subscriber) ->
+            match UMap.tryFind eventAddress subscriptions with
+            | Some subscriptionsArray ->
                 let subscriptionsArray =
-                    FOption.get subscriptionsArrayOpt |>
                     Array.remove (fun subscription ->
                         Console.Write ""
                         subscription.SubscriptionKey = subscriptionKey && subscription.SubscriberEntry = subscriber)
+                        subscriptionsArray
                 let subscriptions = 
                     match subscriptionsArray with
                     | [||] -> UMap.remove eventAddress subscriptions
@@ -329,8 +328,8 @@ module EventSystem =
                     (EventTrace.record "EventSystem" "unsubscribe" EventTrace.empty)
                     (getGlobalParticipantSpecialized world)
                     world
-            else world
-        else world
+            | None -> world
+        | None -> world
 
     /// Subscribe to an event using the given subscriptionKey, and be provided with an unsubscription callback.
     let subscribePlus<'a, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>>
@@ -343,11 +342,11 @@ module EventSystem =
                     { SubscriptionKey = subscriptionKey
                       SubscriberEntry = subscriber :> Participant
                       Callback = boxSubscription subscription }
-                let subscriptionEntriesOpt = UMap.tryFindFast objEventAddress subscriptions
-                if FOption.isSome subscriptionEntriesOpt then
-                    let subscriptionEntries = FOption.get subscriptionEntriesOpt
+                match UMap.tryFind objEventAddress subscriptions with
+                | Some subscriptionEntries ->
                     UMap.add objEventAddress (Array.add subscriptionEntry subscriptionEntries) subscriptions
-                else UMap.add objEventAddress [|subscriptionEntry|] subscriptions
+                | None ->
+                    UMap.add objEventAddress [|subscriptionEntry|] subscriptions
             let unsubscriptions = UMap.add subscriptionKey (objEventAddress, subscriber :> Participant) unsubscriptions
             let world = setSubscriptions subscriptions world
             let world = setUnsubscriptions unsubscriptions world
