@@ -94,36 +94,38 @@ module Signal =
     let many signals = Signals signals
     let none = Signals []
 
-    let rec private processModelInternal<'model, 'message, 'command, 'p, 'w when 'p :> Participant>
+    let rec processSignal<'model, 'message, 'command, 'p, 'w when 'p :> Participant>
+        (signal : Signal<'message, 'command>)
         processMessage
         processCommand
         (model : Lens<'model, 'w>)
         (participant : 'p)
-        (next : Signal<'message, 'command>)
         (world : 'w) =
-        match next with
+        match signal with
         | Message message ->
-            let (modelValue, next) = processMessage (message, model.Get world, participant, world)
+            let (modelValue, signal) = processMessage (message, model.Get world, participant, world)
             let world = model.Set modelValue world
-            processModelInternal processMessage processCommand model participant next world
+            processSignal signal processMessage processCommand model participant world
         | Command command ->
-            let (world, next) = processCommand (command, model.Get world, participant, world)
-            processModelInternal processMessage processCommand model participant next world
-        | Signals nexts ->
-            List.fold (flip (processModelInternal processMessage processCommand model participant)) world nexts
+            let (world, signal) = processCommand (command, model.Get world, participant, world)
+            processSignal signal processMessage processCommand model participant world
+        | Signals signals ->
+            List.fold
+                (fun world signal -> processSignal signal processMessage processCommand model participant world)
+                world signals
 
-    let processModel processMessage processCommand model participant bindings world =
+    let processBindings bindings processMessage processCommand model participant world =
         List.fold (fun world binding ->
             match binding with
             | MessageBinding binding ->
                 Stream.monitor (fun evt world ->
-                    let next = msg (binding.MakeValue evt)
-                    processModelInternal processMessage processCommand model participant next world)
+                    let signal = msg (binding.MakeValue evt)
+                    processSignal signal processMessage processCommand model participant world)
                     participant binding.Stream world
             | CommandBinding binding ->
                 Stream.monitor (fun evt world ->
-                    let next = cmd (binding.MakeValue evt)
-                    processModelInternal processMessage processCommand model participant next world)
+                    let signal = cmd (binding.MakeValue evt)
+                    processSignal signal processMessage processCommand model participant world)
                     participant binding.Stream world)
             world bindings
 

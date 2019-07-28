@@ -182,7 +182,7 @@ module Address =
             | _ -> false
     
         override this.GetHashCode () =
-            Address<'a>.hash this
+            this.HashCode
         
         override this.ToString () =
             Address.atos<'a> this
