@@ -67,20 +67,26 @@ module Events =
 [<AutoOpen>]
 module EventSystemDelegate =
 
+    /// OPTIMIZATION: these were pulled out from EventSystemDelegate in order to fit its structure
+    /// inside a cache line.
+    let mutable GlobalParticipantSpecialized : Participant = Unchecked.defaultof<_>
+    let mutable GlobalParticipantGeneralized : GlobalParticipantGeneralized = Unchecked.defaultof<_>
+
     /// The implementation portion of EventSystem.
-    /// OPTIMIZATION: EventContext mutable for speed.
+    /// OPTIMIZATION: EventContext is mutable for speed.
     type [<ReferenceEquality>] 'w EventSystemDelegate =
         private
-            { Subscriptions : SubscriptionEntries
+            { // cache line begin
+              Subscriptions : SubscriptionEntries
               Unsubscriptions : UnsubscriptionEntries
-              GlobalParticipantSpecialized : Participant
-              GlobalParticipantGeneralized : GlobalParticipantGeneralized
               mutable EventContext : Participant
               EventStates : UMap<Guid, obj>
               EventTracer : string -> unit
               EventTracing : bool
+              // 2 free cache line bytes here
               EventFilter : EventFilter.Filter
               EventAddresses : obj Address list }
+              // cache line end
 
     [<RequireQualifiedAccess>]
     module EventSystemDelegate =
@@ -138,12 +144,12 @@ module EventSystemDelegate =
             esd.EventContext
 
         /// Get the specialized global participant of the event system.
-        let getGlobalParticipantSpecialized (esd : 'w EventSystemDelegate) =
-            esd.GlobalParticipantSpecialized
+        let getGlobalParticipantSpecialized (_ : 'w EventSystemDelegate) =
+            GlobalParticipantSpecialized
 
         /// Get the generalized global participant of the event system.
-        let getGlobalParticipantGeneralized (esd : 'w EventSystemDelegate) =
-            esd.GlobalParticipantGeneralized
+        let getGlobalParticipantGeneralized (_ : 'w EventSystemDelegate) =
+            GlobalParticipantGeneralized
 
         /// Qualify the event context of the world.
         let qualifyEventContext (address : obj Address) (esd : 'w EventSystemDelegate) =
@@ -186,16 +192,18 @@ module EventSystemDelegate =
 
         /// Make an event delegate.
         let make eventTracer eventTracing eventFilter globalParticipantSpecialized globalParticipantGeneralized =
-            { Subscriptions = UMap.makeEmpty Config
-              Unsubscriptions = UMap.makeEmpty Config
-              GlobalParticipantSpecialized = globalParticipantSpecialized
-              GlobalParticipantGeneralized = globalParticipantGeneralized
-              EventContext = globalParticipantSpecialized
-              EventStates = UMap.makeEmpty Config
-              EventTracer = eventTracer
-              EventTracing = eventTracing
-              EventFilter = eventFilter
-              EventAddresses = [] }
-              
+            let esd =
+                { Subscriptions = UMap.makeEmpty Config
+                  Unsubscriptions = UMap.makeEmpty Config
+                  EventContext = globalParticipantSpecialized
+                  EventStates = UMap.makeEmpty Config
+                  EventTracer = eventTracer
+                  EventTracing = eventTracing
+                  EventFilter = eventFilter
+                  EventAddresses = [] }
+            GlobalParticipantSpecialized <- globalParticipantSpecialized
+            GlobalParticipantGeneralized <- globalParticipantGeneralized
+            esd
+
 /// The implementation portion of EventSystem.
 type 'w EventSystemDelegate = 'w EventSystemDelegate.EventSystemDelegate

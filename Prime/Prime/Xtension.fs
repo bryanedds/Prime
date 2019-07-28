@@ -8,14 +8,23 @@ open Prime
 [<AutoOpen>]
 module Xtension =
 
+    // OPTIMIZATION: Xtension flag bit-masks; only for use by internal facilities.
+    let [<Literal>] internal CanDefaultMask =   0b0000000001
+    let [<Literal>] internal SealedMask =       0b0000000010
+    let [<Literal>] internal ImperativeMask =   0b0000000100
+
     /// Xtensions are a dynamic, functional, and convenient way to implement both dynamic properties
     /// and designer properties.
+    /// OPTIMIZATION: Booleans are packed into the Flags field.
     type [<NoEquality; NoComparison>] Xtension =
         private
             { Properties : PropertyMap
-              CanDefault : bool
-              Sealed : bool
-              Imperative : bool }
+              Flags : int }
+
+            // Member properties; only for use by internal facilities.
+            member this.CanDefault with get () = this.Flags &&& CanDefaultMask <> 0
+            member this.Sealed with get () = this.Flags &&& SealedMask <> 0
+            member this.Imperative with get () = this.Flags &&& ImperativeMask <> 0
 
         /// Try to get the default value for a given xtension member, returning None when defaulting is disallowed.
         static member private tryGetDefaultValue (this : Xtension) propertyName : 'a =
@@ -24,7 +33,7 @@ module Xtension =
 
         /// The dynamic look-up operator for an Xtension.
         /// Example:
-        ///     let parallax = xtn?Parallax : single
+        ///     let parallax : single = xtn?Parallax
         static member (?) (xtension, propertyName) : 'a =
 
             // check if dynamic member is an existing property
@@ -83,10 +92,11 @@ module Xtension =
         /// Make an extension.
         let make properties canDefault isSealed imperative =
             { Properties = properties
-              CanDefault = canDefault
-              Sealed = isSealed
-              Imperative = imperative }
-    
+              Flags =
+                (if canDefault then CanDefaultMask else 0) |||
+                (if isSealed then SealedMask else 0) |||
+                (if imperative then ImperativeMask else 0) }
+
         /// An Xtension that cannot default, is sealed, and is imperative.
         let makeImperative () = make (UMap.makeEmpty Config) false true true
     
@@ -100,7 +110,7 @@ module Xtension =
         let makeMixed () = make (UMap.makeEmpty Config) false false false
 
         /// Check whether the extension uses mutation.
-        let getImperative xtension = xtension.Imperative
+        let getImperative (xtension : Xtension) = xtension.Imperative
 
         /// Try to get a property from an xtension.
         let tryGetProperty name xtension = UMap.tryFind name xtension.Properties

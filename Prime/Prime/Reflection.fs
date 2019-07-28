@@ -92,10 +92,7 @@ type [<StructuralEquality; NoComparison>] DesignerProperty =
     { mutable DesignerType : Type
       mutable DesignerValue : obj }
 
-/// A map of propertyies.
-/// NOTE: Xtension uses UMap because it's slightly faster when used in the Nu game engine, but
-/// it's not necessarily the right decision in other contexts. However, I'm sticking with this
-/// choice since the performance of Nu trumps other usages for now.
+/// A map of properties.
 type PropertyMap = UMap<string, Property>
 
 [<AutoOpen>]
