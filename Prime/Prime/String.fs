@@ -72,7 +72,13 @@ module String =
         let sb = StringBuilder ()
         List.iter (fun (chr : char) -> sb.Append chr |> ignore) chars
         sb.ToString ()
-
+        
+    let join delim strings =
+        List.fold (fun res str -> res + delim + str) String.Empty strings
+    
+    let joinWithChar (delim: char) strings =
+        join (string delim) strings
+        
     /// Capitalize a string.
     let capitalize (str : string) =
         match str.ToCharArray () |> List.ofArray with
