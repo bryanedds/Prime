@@ -2,7 +2,6 @@
 // Copyright (C) Bryan Edds, 2013-2019.
 
 #I __SOURCE_DIRECTORY__
-#r "../../packages/System.ValueTuple.4.5.0/lib/portable-net40+sl4+win8+wp8/System.ValueTuple.dll"
 #r "../../packages/FParsec.1.0.3/lib/net40-client/FParsecCS.dll" // MUST be referenced BEFORE FParsec.dll!
 #r "../../packages/FParsec.1.0.3/lib/net40-client/FParsec.dll"
 //#r "../../packages/xunit.core.2.3.1/xunit.core.2.3.1.nupkg"
