@@ -243,6 +243,13 @@ module Molder =
           InstantiationRules = instantiationRules
           Cache = Dictionary<MemberPath option * Type, Mold ref> () }
 
+    let activate2 ty molder =
+        let mold = Molder.typeToMold2 ty molder
+        moldToInstance mold molder
+
+    let activate<'a> molder =
+        activate2 typeof<'a> molder :?> 'a
+
     let makeEmpty () =
         make false false 0 Map.empty
 
