@@ -23,7 +23,7 @@ type AddressConverter (targetType : Type) =
         elif destType = typeof<Symbol> then
             let toStringMethod = targetType.GetMethod "ToString"
             let addressStr = toStringMethod.Invoke (source, null) :?> string
-            if Symbol.shouldBeExplicit addressStr then String (addressStr, None) :> obj
+            if Symbol.shouldBeExplicit addressStr then Text (addressStr, None) :> obj
             else Atom (addressStr, None) :> obj
         elif destType = targetType then source
         else failconv "Invalid AddressConverter conversion to source." None
@@ -41,7 +41,7 @@ type AddressConverter (targetType : Type) =
             makeFromStringFunctionGeneric.Invoke (null, [|fullName|])
         | :? Symbol as addressSymbol ->
             match addressSymbol with
-            | Atom (fullName, _) | String (fullName, _) ->
+            | Atom (fullName, _) | Text (fullName, _) ->
                 let makeFromStringFunction = targetType.GetMethod ("makeFromString", BindingFlags.Static ||| BindingFlags.Public)
                 let makeFromStringFunctionGeneric = makeFromStringFunction.MakeGenericMethod ((targetType.GetGenericArguments ()).[0])
                 makeFromStringFunctionGeneric.Invoke (null, [|fullName|])

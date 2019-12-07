@@ -66,7 +66,7 @@ module PrettyPrinter =
                  str,
                  symbol)
         | Number (str, _) -> PrettyNumber (str, symbol)
-        | String (str, _) -> PrettyString (str, symbol)
+        | Text (str, _) -> PrettyString (str, symbol)
         | Quote (quoted, _) ->
             let prettyQuoted = symbolToPrettySymbol quoted prettyPrinter
             let maxDepth = getMaxDepth prettyQuoted

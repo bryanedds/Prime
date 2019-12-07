@@ -179,7 +179,7 @@ module EventTests =
                 do! Chain.react incTestStateNoEvent
                 do! Chain.reactEvent incTestState
                 do! Chain.pass
-                do! Chain.loop 0 inc (fun i -> i < 2) (fun _ -> Chain.update incTestStateTwiceNoEvent) }
+                do! Chain.loop 0 inc (fun i -> i < 1) (fun _ -> Chain.update incTestStateTwiceNoEvent) }
         let stream = Stream.make TestEvent
         let world = Chain.runAssumingCascade chain stream world |> snd
         Assert.Equal (0, world.TestState)
@@ -198,7 +198,12 @@ module EventTests =
         
         // and so on...
         let world = EventSystem.publish 4 TestEvent EventTrace.empty TestParticipantSpecialized world
-        Assert.Equal (7, world.TestState)
+        Assert.Equal (3, world.TestState)
+        
+        // and so on...
+        let world = EventSystem.publish 5 TestEvent EventTrace.empty TestParticipantSpecialized world
+        let world = EventSystem.publish 6 TestEvent EventTrace.empty TestParticipantSpecialized world
+        Assert.Equal (5, world.TestState)
         
         // assert no garbage is left over after chained computation is concluded
         Assert.True (UMap.isEmpty (EventSystem.getSubscriptions world))

@@ -494,7 +494,7 @@ module Scripting =
                 | Int64 int64 -> Number (String.int64ToCodeString int64, None) :> obj
                 | Single single -> Number (String.singleToCodeString single, None) :> obj
                 | Double double -> Number (String.doubleToCodeString double, None) :> obj
-                | String string -> Symbol.String (string, None) :> obj
+                | String string -> Symbol.Text (string, None) :> obj
                 | Keyword string -> Atom ((if String.isEmpty string then "nil" else string), None) :> obj
                 | Pluggable pluggable -> pluggable.ToSymbol () :> obj
                 | Tuple elems ->
@@ -701,7 +701,7 @@ module Scripting =
                                 | (false, _) -> Violation (["InvalidForm"; "Number"], "Unexpected numeric parse failure.", originOpt) :> obj
                         | (true, int64) -> Int64 int64 :> obj
                     | (true, int) -> Int int :> obj
-                | Prime.String (str, _) -> String str :> obj
+                | Prime.Text (str, _) -> String str :> obj
                 | Prime.Quote (quoted, originOpt) -> Quote (this.SymbolToExpr quoted, originOpt) :> obj
                 | Prime.Symbols (symbols, originOpt) ->
                     match symbols with
@@ -719,11 +719,11 @@ module Scripting =
                         | "violation" ->
                             match tail with
                             | [Atom (tagStr, _)]
-                            | [Prime.String (tagStr, _)] ->
+                            | [Prime.Text (tagStr, _)] ->
                                 try let tagName = tagStr in Violation (tagName.Split Constants.Scripting.ViolationSeparator |> List.ofArray, "User-defined Violation.", originOpt) :> obj
                                 with exn -> Violation (["InvalidForm"; "Violation"], "Invalid Violation form. Violation tag must be composed of 1 or more valid names.", originOpt) :> obj
-                            | [Atom (tagStr, _); Prime.String (errorMsg, _)]
-                            | [Prime.String (tagStr, _); Prime.String (errorMsg, _)] ->
+                            | [Atom (tagStr, _); Prime.Text (errorMsg, _)]
+                            | [Prime.Text (tagStr, _); Prime.Text (errorMsg, _)] ->
                                 try let tagName = tagStr in Violation (tagName.Split Constants.Scripting.ViolationSeparator |> List.ofArray, errorMsg, originOpt) :> obj
                                 with exn -> Violation (["InvalidForm"; "Violation"], "Invalid Violation form. Violation tag must be composed of 1 or more valid names.", originOpt) :> obj
                             | _ -> Violation (["InvalidForm"; "Violation"], "Invalid Violation form. Requires 1 tag.", originOpt) :> obj

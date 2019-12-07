@@ -42,7 +42,7 @@ module SymbolTests =
     let [<Fact>] canConvertStringToString () =
         let converter = SymbolicConverter (true, None, typeof<Symbol>)
         match converter.ConvertFromString "\"str\"" :?> Symbol with
-        | String (str, _) -> Assert.Equal<string> ("str", str)
+        | Text (str, _) -> Assert.Equal<string> ("str", str)
         | _ -> Assert.True false
 
     let [<Fact>] canConvertStringToInt () =

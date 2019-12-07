@@ -21,7 +21,7 @@ type RexprConverter () =
             string source :> obj
         elif destType = typeof<Symbol> then
             let rexpr = source :?> Rexpr
-            Symbol.String (string rexpr, None) :> obj
+            Text (string rexpr, None) :> obj
         elif destType = typeof<Rexpr> then source
         else failconv "Invalid RexprConverter conversion to source." None
 
@@ -35,7 +35,7 @@ type RexprConverter () =
         | :? string as str -> scvalue<Rexpr> str :> obj
         | :? Symbol as symbol ->
             match symbol with
-            | Atom (pattern, _) | String (pattern, _) -> Rexpr pattern :> obj
+            | Atom (pattern, _) | Text (pattern, _) -> Rexpr pattern :> obj
             | Number (_, _) | Quote (_, _) | Symbols (_, _) -> failconv "Expected Symbol or String for conversion to Rexpr." (Some symbol)
         | :? Rexpr -> source
         | _ -> failconv "Invalid RexprConverter conversion from source." None

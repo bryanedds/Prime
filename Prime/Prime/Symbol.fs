@@ -66,7 +66,7 @@ type SymbolOrigin =
 type Symbol =
     | Atom of string * SymbolOrigin option
     | Number of string * SymbolOrigin option
-    | String of string * SymbolOrigin option
+    | Text of string * SymbolOrigin option
     | Quote of Symbol * SymbolOrigin option
     | Symbols of Symbol list * SymbolOrigin option
 
@@ -75,7 +75,7 @@ type Symbol =
         match symbol with
         | Atom (_, originOpt)
         | Number (_, originOpt)
-        | String (_, originOpt)
+        | Text (_, originOpt)
         | Quote (_, originOpt)
         | Symbols (_, originOpt) -> originOpt
 
@@ -188,7 +188,7 @@ module Symbol =
             do! skipWhitespaces
             let str = String.implode escaped
             let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
-            return String (str, originOpt) }
+            return Text (str, originOpt) }
 
     let readQuote =
         parse {
@@ -247,7 +247,7 @@ module Symbol =
             elif isExplicit str && not (shouldBeExplicit str) then str.Substring (1, str.Length - 2)
             else str
         | Number (str, _) -> distill str
-        | String (str, _) -> OpenStringStr + distill str + CloseStringStr
+        | Text (str, _) -> OpenStringStr + distill str + CloseStringStr
         | Quote (symbol, _) -> QuoteStr + writeSymbol symbol
         | Symbols (symbols, _) ->
             match symbols with
@@ -293,7 +293,7 @@ module Symbol =
             let! stop = getPosition
             let str = String.implode escaped
             let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
-            return String (str, originOpt) }
+            return Text (str, originOpt) }
 
     let readFieldFromCsv =
         attempt readStringFromCsv <|>

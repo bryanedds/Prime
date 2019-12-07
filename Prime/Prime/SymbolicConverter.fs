@@ -49,13 +49,13 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             if sourceType.IsPrimitive then
                 let converted = (TypeDescriptor.GetConverter sourceType).ConvertTo (source, typeof<string>) :?> string
                 if sourceType = typeof<bool> then Atom (converted, None)
-                elif sourceType = typeof<char> then String (converted, None)
+                elif sourceType = typeof<char> then Text (converted, None)
                 else Number (converted, None)
 
             // symbolize string
             elif sourceType = typeof<string> then
                 let sourceStr = string source
-                if printing && sourceType = typeof<string> || Symbol.shouldBeExplicit sourceStr then String (sourceStr, None)
+                if printing && sourceType = typeof<string> || Symbol.shouldBeExplicit sourceStr then Text (sourceStr, None)
                 elif Symbol.isNumber sourceStr then Number (sourceStr, None)
                 else Atom (sourceStr, None)
 
@@ -74,7 +74,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             // symbolize DesignerProperty
             elif sourceType = typeof<DesignerProperty> then
                 let property = source :?> DesignerProperty
-                let nameString = String (property.DesignerType.AssemblyQualifiedName, None)
+                let nameString = Text (property.DesignerType.AssemblyQualifiedName, None)
                 let valueSymbol = toSymbol property.DesignerType property.DesignerValue
                 if Option.isSome designTypeOpt then valueSymbol
                 else Symbols ([nameString; valueSymbol], None)
@@ -162,7 +162,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 | :? DateTimeConverter ->
                     // HACK: we do not want to use this converter here as it strips the time when converting to string!
                     let dateTimeStr = string source
-                    String (dateTimeStr, None)
+                    Text (dateTimeStr, None)
                 | _ ->
                     if typeConverter.CanConvertTo typeof<Symbol>
                     then typeConverter.ConvertTo (source, typeof<Symbol>) :?> Symbol
@@ -177,7 +177,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
         // desymbolize .NET primitive
         if destType.IsPrimitive then
             match symbol with
-            | Atom (str, _) | String (str, _) ->
+            | Atom (str, _) | Text (str, _) ->
                 (TypeDescriptor.GetConverter destType).ConvertFromString str
             | Number (str, _) ->
                 // allow for numbers with single-character suffixes
@@ -198,7 +198,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 else str :> obj
             | Number (str, _) ->
                 str :> obj
-            | String (str, _) ->
+            | Text (str, _) ->
                 if printing
                 then Symbol.OpenStringStr + Symbol.distill str + Symbol.CloseStringStr :> obj
                 else str :> obj
@@ -229,7 +229,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                         let value = fromSymbol ty valueSymbol
                         let property = { DesignerType = ty; DesignerValue = value }
                         property :> obj
-                    | (None, Symbols ([String (aqTypeName, _); valueSymbol], _)) ->
+                    | (None, Symbols ([Text (aqTypeName, _); valueSymbol], _)) ->
                         let ty = Type.GetType aqTypeName
                         let value = fromSymbol ty valueSymbol
                         let property = { DesignerType = ty; DesignerValue = value }
@@ -243,7 +243,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     | Symbols (symbols, _) ->
                         let elements = List.map (fromSymbol (destType.GetElementType ())) symbols
                         Reflection.objsToArray destType elements
-                    | Atom (_, _) | Number (_, _) | String (_, _) | Quote (_, _) ->
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to array." (Some symbol)
 
                 // desymbolize unit
@@ -260,7 +260,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                         let elementType = gargs.[0]
                         let elements = List.map (fromSymbol elementType) symbols
                         Reflection.objsToList destType elements
-                    | Atom (_, _) | Number (_, _) | String (_, _) | Quote (_, _) ->
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to list." (Some symbol)
 
                 // desymbolize Set
@@ -271,7 +271,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                         let elementType = gargs.[0]
                         let elements = List.map (fromSymbol elementType) symbols
                         Reflection.objsToSet destType elements
-                    | Atom (_, _) | Number (_, _) | String (_, _) | Quote (_, _) ->
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to Set." (Some symbol)
 
                 // desymbolize Map
@@ -285,7 +285,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                             let pairs = List.map (fromSymbol pairType) symbols
                             Reflection.pairsToMap destType pairs
                         | _ -> failwithumf ()
-                    | Atom (_, _) | Number (_, _) | String (_, _) | Quote (_, _) ->
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to Map." (Some symbol)
 
                 // desymbolize SymbolicCompression
@@ -308,7 +308,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                                 let compressionUnion = (FSharpType.GetUnionCases destType).[1]
                                 FSharpValue.MakeUnion (compressionUnion, [|b|])
                         | _ -> failconv "Expected Atom value for SymbolicCompression union name." (Some symbol)
-                    | Atom (_, _) | Number (_, _) | String (_, _) | Quote (_, _) ->
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to SymbolicCompression." (Some symbol)
 
                 // desymbolize Tuple
@@ -319,7 +319,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                         let elements = symbols |> Array.ofList |> Array.mapi (fun i elementSymbol -> fromSymbol elementTypes.[i] elementSymbol)
                         let elements = padWithDefaults' elementTypes elements
                         FSharpValue.MakeTuple (elements, destType)
-                    | Atom (_, _) | Number (_, _) | String (_, _) | Quote (_, _) ->
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to Tuple." (Some symbol)
 
                 // desymbolize Record
@@ -347,7 +347,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                             let fields = symbols |> Array.ofList |> Array.mapi (fun i fieldSymbol -> fromSymbol fieldInfos.[i].PropertyType fieldSymbol)
                             let fields = padWithDefaults fieldInfos fields
                             FSharpValue.MakeRecord (destType, fields)
-                    | Atom (_, _) | Number (_, _) | String (_, _) | Quote (_, _) ->
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to unexpanded Record." (Some symbol)
 
                 // desymbolize Union
@@ -373,17 +373,17 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                             | None ->
                                 let unionNames = unionCases |> Array.map (fun unionCase -> unionCase.Name) |> String.concat " | "
                                 failconv ("Expected one of the following Atom values for Union name: '" + unionNames + "'.") (Some symbol)
-                        | (Number (_, _) | String (_, _) | Quote (_, _) | Symbols (_, _)) :: _ ->
+                        | (Number (_, _) | Text (_, _) | Quote (_, _) | Symbols (_, _)) :: _ ->
                             failconv "Expected Atom value for Union name." (Some symbol)
                         | [] ->
                             failconv "Expected Atom value for Union name." (Some symbol)
-                    | Number (_, _) | String (_, _) | Quote (_, _) ->
+                    | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Atom or Symbols value for conversion to Union." (Some symbol)
 
                 // desymbolize vanilla .NET type
                 else
                     match symbol with
-                    | Atom (str, _) | Number (str, _) | String (str, _) ->
+                    | Atom (str, _) | Number (str, _) | Text (str, _) ->
                         (TypeDescriptor.GetConverter destType).ConvertFromString str
                     | Quote (_, _) | Symbols (_, _) ->
                         failconv ("Expected Atom, Number, or String value for conversion to vanilla .NET type '" + destType.Name + "'.") (Some symbol)

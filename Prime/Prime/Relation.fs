@@ -23,7 +23,7 @@ type RelationConverter (targetType : Type) =
         elif destType = typeof<Symbol> then
             let toStringMethod = targetType.GetMethod "ToString"
             let relationStr = toStringMethod.Invoke (source, null) :?> string
-            if Symbol.shouldBeExplicit relationStr then String (relationStr, None) :> obj
+            if Symbol.shouldBeExplicit relationStr then Text (relationStr, None) :> obj
             else Atom (relationStr, None) :> obj
         elif destType = targetType then source
         else failconv "Invalid RelationConverter conversion to source." None
@@ -41,7 +41,7 @@ type RelationConverter (targetType : Type) =
             makeFromStringFunctionGeneric.Invoke (null, [|fullName|])
         | :? Symbol as relationSymbol ->
             match relationSymbol with
-            | Atom (fullName, _) | String (fullName, _) ->
+            | Atom (fullName, _) | Text (fullName, _) ->
                 let makeFromStringFunction = targetType.GetMethod ("makeFromString", BindingFlags.Static ||| BindingFlags.Public)
                 let makeFromStringFunctionGeneric = makeFromStringFunction.MakeGenericMethod ((targetType.GetGenericArguments ()).[0])
                 makeFromStringFunctionGeneric.Invoke (null, [|fullName|])

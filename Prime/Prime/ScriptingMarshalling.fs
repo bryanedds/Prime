@@ -132,9 +132,9 @@ module ScriptingMarshalling =
         match value with
         | :? Symbol as symbol ->
             match symbol with
-            | Symbol.Atom (str, _) -> Some (Union ("Atom", [|String str|]))
-            | Symbol.Number (str, _) -> Some (Union ("Number", [|String str|]))
-            | Symbol.String (str, _) -> Some (Union ("String", [|String str|]))
+            | Atom (str, _) -> Some (Union ("Atom", [|String str|]))
+            | Number (str, _) -> Some (Union ("Number", [|String str|]))
+            | Text (str, _) -> Some (Union ("String", [|String str|]))
             | Symbol.Quote (symbol, _) ->
                 match tryImportSymbol tryImportExt ty symbol with
                 | Some expr -> Some (Union ("Quote", [|expr|]))
@@ -329,7 +329,7 @@ module ScriptingMarshalling =
             match (name, exprs) with
             | ("Atom", [|String str|]) -> Some (Symbol.Atom (str, None) :> obj)
             | ("Number", [|String str|]) -> Some (Symbol.Number (str, None) :> obj)
-            | ("String", [|String str|]) -> Some (Symbol.String (str, None) :> obj)
+            | ("String", [|String str|]) -> Some (Symbol.Text (str, None) :> obj)
             | ("Quote", [|expr|]) ->
                 match tryExportSymbol tryExportExt ty expr with
                 | Some symbol -> Some (Symbol.Quote (symbol :?> Symbol, None) :> obj)
