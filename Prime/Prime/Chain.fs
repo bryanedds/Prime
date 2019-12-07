@@ -101,7 +101,7 @@ module Chain =
 
     /// React to the next event, using the event's data in the reaction.
     // TODO: See if we can make this acceptable to F#'s type system -
-    //let [<DebuggerHidden; DebuggerStepThrough>] reactD<'a, 's, 'e, 'w when 's :> Participant and 'e :> Event<'a, 's> and 'w :> EventSystem<'w>> expr : Chain<'e, unit, 'w> =
+    //let [<DebuggerHidden; DebuggerStepThrough>] reactData<'a, 's, 'e, 'w when 's :> Participant and 'e :> Event<'a, 's> and 'w :> EventSystem<'w>> expr : Chain<'e, unit, 'w> =
     //    chain {
     //        let! e = next
     //        let! world = get
@@ -109,7 +109,7 @@ module Chain =
     //        do! set world }
 
     /// React to the next event, using the event's value in the reaction.
-    let [<DebuggerHidden; DebuggerStepThrough>] reactE expr : Chain<'e, unit, 'w> =
+    let [<DebuggerHidden; DebuggerStepThrough>] reactEvent expr : Chain<'e, unit, 'w> =
         chain {
             let! e = next
             let! world = get
@@ -124,20 +124,25 @@ module Chain =
             let world = expr world
             do! set world }
 
-    /// Loop in a chain context while 'pred' evaluate to true.
-    let rec [<DebuggerHidden; DebuggerStepThrough>] loop (i : 'i) (next : 'i -> 'i) (pred : 'i -> 'w -> bool) (m : 'i -> Chain<'e, unit, 'w>) =
+    /// Loop in a chain context while 'pred' evaluate to true considering the loop data, event, and world state.
+    let rec [<DebuggerHidden; DebuggerStepThrough>] spin (i : 'i) (step : 'i -> 'i) (pred : 'i -> 'e -> 'w -> bool) (m : 'i -> Chain<'e, unit, 'w>) =
         chain {
+            let! e = next
             let! world = get
-            do! if pred i world then
+            do! if pred i e world then
                     chain {
                         do! m i
-                        let i = next i
-                        do! loop i next pred m }
+                        let i = step i
+                        do! spin i step pred m }
                 else returnM () }
 
-    /// Loop in a chain context while 'pred' evaluates to true.
+    /// Loop in a chain context while 'pred' evaluate to true considering only the loop data.
+    let rec [<DebuggerHidden; DebuggerStepThrough>] loop (i : 'i) (step : 'i -> 'i) (pred : 'i -> bool) (m : 'i -> Chain<'e, unit, 'w>) =
+        spin i step (fun i _ _ -> pred i) m
+
+    /// Loop in a chain context while 'pred' evaluates to true considering only the world state.
     let [<DebuggerHidden; DebuggerStepThrough>] during (pred : 'w -> bool) (m : Chain<'e, unit, 'w>) =
-        loop () id (fun _ -> pred) (fun _ -> m)
+        spin () id (fun _ _ -> pred) (fun _ -> m)
 
     /// Step once into a chain.
     let [<DebuggerHidden; DebuggerStepThrough>] step (m : Chain<'e, 'a, 'w>) (world : 'w) : 'w * Either<'e -> Chain<'e, 'a, 'w>, 'a> =
