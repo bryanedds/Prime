@@ -168,7 +168,7 @@ module Lens =
     let map2<'a, 'b, 'w> mapper unmapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
         lens.Map2 mapper unmapper
 
-    let mapOut<'a, 'w> mapper (lens : Lens<'a, 'w>) =
+    let mapOut<'a, 'b, 'w> mapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
         lens.MapOut mapper
 
     let makeReadOnly<'a, 'w> name get this : Lens<'a, 'w> =
