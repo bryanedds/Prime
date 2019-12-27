@@ -117,9 +117,14 @@ module Reflection =
             (fun (assembly : Assembly) -> assembly.FullName.StartsWith ("FSharp.Core,", StringComparison.Ordinal))
             (AppDomain.CurrentDomain.GetAssemblies ())
 
+    let objToObjSeq (source : obj) =
+        enumerable<obj> (source :?> IEnumerable)
+
+    let objToObjArray (source : obj) =
+        Seq.toArray (objToObjSeq source)
+
     let objToObjList (source : obj) =
-        let iEnumerable = source :?> IEnumerable
-        List.ofSeq (enumerable<obj> iEnumerable)
+        Seq.toList (objToObjSeq source)
 
     let objToKeyValuePair (source : obj) =
         let kvpType = source.GetType ()

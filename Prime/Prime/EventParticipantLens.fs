@@ -162,6 +162,32 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
 [<RequireQualifiedAccess>]
 module Lens =
 
+    let name<'a, 'w> (lens : Lens<'a, 'w>) =
+        lens.Name
+
+    let get<'a, 'w> (lens : Lens<'a, 'w>) world =
+        lens.Get world
+
+    let setOpt<'a, 'w> a (lens : Lens<'a, 'w>) world =
+        match lens.SetOpt with
+        | Some set -> set a world
+        | None -> world
+
+    let this (lens : Lens<'a, 'w>) =
+        lens.This
+
+    let generalize (lens : Lens<'a, 'w>) =
+        lens.Generalize ()
+
+    let getBy<'a, 'b, 'w> mapper (lens : Lens<'a, 'w>) world : 'b =
+        lens.GetBy mapper world
+
+    let trySet<'a, 'w> a (lens : Lens<'a, 'w>) world =
+        lens.TrySet a world
+
+    let set<'a, 'w> a (lens : Lens<'a, 'w>) world =
+        lens.Set a world
+
     let map<'a, 'w> mapper (lens : Lens<'a, 'w>) =
         lens.Map mapper
 
@@ -170,6 +196,25 @@ module Lens =
 
     let mapOut<'a, 'b, 'w> mapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
         lens.MapOut mapper
+
+    let mapWorld<'a, 'b, 'w> mapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
+        lens.MapWorld mapper
+
+    let changeEvent<'a, 'w> (lens : Lens<'a, 'w>) =
+        lens.ChangeEvent
+
+    let ty<'a, 'w> (lens : Lens<'a, 'w>) =
+        lens.Type
+
+    let tryIndex i (lens : Lens<'a seq, 'w>) : Lens<'a option, 'w> =
+        lens.MapOut (Seq.tryItem i)
+
+    let explode (lens : Lens<'a seq, 'w>) : Lens<'a option, 'w> seq =
+        Seq.initInfinite id |>
+        Seq.map (flip tryIndex lens)
+
+    let dereferenceOut (lens : Lens<'a option, 'w>) : Lens<'a, 'w> =
+        lens.MapOut (Option.get)
 
     let makeReadOnly<'a, 'w> name get this : Lens<'a, 'w> =
         { Name = name; Get = get; SetOpt = None; This = this }
