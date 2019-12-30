@@ -163,7 +163,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
 [<RequireQualifiedAccess>]
 module Lens =
 
-    let name<'a, 'w> (lens : Lens<'a, 'w>) world =
+    let name<'a, 'w> (lens : Lens<'a, 'w>) =
         lens.Name
 
     let get<'a, 'w> (lens : Lens<'a, 'w>) world =
