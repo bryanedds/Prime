@@ -145,19 +145,19 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
     static member inline (~~~)  (lens : Lens<_, 'w>) =         lens.GetBy  (~~~)
 
     /// Map over a lens in the given world context (read-only).
-    static member inline (->>)  (lens : Lens<_, 'w>, mapper) = lens.MapWorld mapper
+    static member inline (->>) (lens : Lens<_, 'w>, mapper) = lens.MapWorld mapper
 
     /// Map over a lens (read-only).
-    static member inline (-->)  (lens : Lens<_, 'w>, mapper) = lens.MapOut mapper
+    static member inline (-->) (lens : Lens<_, 'w>, mapper) = lens.MapOut mapper
 
     /// Map over a lens (both read and write).
-    static member inline (<^>)  (lens : Lens<_, 'w>, mapper) = lens.Map mapper
+    static member inline (<^>) (lens : Lens<_, 'w>, mapper) = lens.Map mapper
 
     /// Set a lensed property.
-    static member inline (<--)  (lens : Lens<_, 'w>, value) =  lens.Set value
+    static member inline (<--) (lens : Lens<_, 'w>, value) =  lens.Set value
 
     /// Get a lensed property.
-    static member inline (!.)   (lens : Lens<_, 'w>) =         lens.Get
+    static member inline (!.) (lens : Lens<_, 'w>) = lens.Get
 
 [<RequireQualifiedAccess>]
 module Lens =

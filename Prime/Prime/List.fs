@@ -297,6 +297,17 @@ module List =
             list
             []
 
+    /// Replace an item in a list if that index exists.
+    let replace index item list =
+        let rec replaceInner index indexCurrent item left right =
+            match right with
+            | head :: tail ->
+                if indexCurrent = index
+                then (true, List.rev left @ item :: tail)
+                else replaceInner index (inc index) item (head :: left) tail
+            | [] -> (false, list)
+        replaceInner index 0 item [] list
+
     /// Compute the 'power set' of a list.
     /// Example - [0, 1, 2] becomes [[]; [0]; [0; 1]; [0; 1; 2]]
     let power list =

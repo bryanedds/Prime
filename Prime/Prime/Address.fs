@@ -218,6 +218,10 @@ module Address =
         let getName address =
             getNames address |> Array.last
 
+        /// Attempt to get the name of an address if it exists.
+        let tryGetName address =
+            address |> getNames |> Array.tryLast
+
         /// Get the address's hash code.
         let getHashCode address =
             Address.hash address
