@@ -157,12 +157,13 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
     static member inline (<--) (lens : Lens<_, 'w>, value) =  lens.Set value
 
     /// Get a lensed property.
+    /// TODO: see if this operator is actually useful / understandable.
     static member inline (!.) (lens : Lens<_, 'w>) = lens.Get
 
 [<RequireQualifiedAccess>]
 module Lens =
 
-    let name<'a, 'w> (lens : Lens<'a, 'w>) =
+    let name<'a, 'w> (lens : Lens<'a, 'w>) world =
         lens.Name
 
     let get<'a, 'w> (lens : Lens<'a, 'w>) world =
