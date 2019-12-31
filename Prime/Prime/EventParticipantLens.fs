@@ -226,6 +226,12 @@ module Lens =
 [<AutoOpen>]
 module LensOperators =
 
+    let lens<'a, 'w> name get set this =
+        Lens.make name get set this
+
+    let lensOut<'a, 'w> name get this =
+        Lens.makeReadOnly name get this
+
     let define (lens : Lens<'a, 'w>) (value : 'a) =
         PropertyDefinition.makeValidated lens.Name typeof<'a> (DefineExpr value)
 
