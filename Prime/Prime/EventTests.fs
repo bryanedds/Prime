@@ -179,7 +179,7 @@ module EventTests =
                 do! Chain.react incTestStateNoEvent
                 do! Chain.reactEvent incTestState
                 do! Chain.pass
-                do! Chain.loop 0 inc (fun i -> i < 1) (fun _ -> Chain.update incTestStateTwiceNoEvent) }
+                do! Chain.loop 0 inc (fun i _ -> i < 1) (fun _ -> Chain.update incTestStateTwiceNoEvent) }
         let stream = Stream.make TestEvent
         let world = Chain.runAssumingCascade chain stream world |> snd
         Assert.Equal (0, world.TestState)

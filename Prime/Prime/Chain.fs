@@ -124,25 +124,20 @@ module Chain =
             let world = expr world
             do! set world }
 
-    /// Loop in a chain context while 'pred' evaluate to true considering the loop data, event, and world state.
-    let rec [<DebuggerHidden; DebuggerStepThrough>] spin (i : 'i) (step : 'i -> 'i) (pred : 'i -> 'e -> 'w -> bool) (m : 'i -> Chain<'e, unit, 'w>) =
+    /// Loop in a chain context while 'pred' evaluate to true considering only the loop data.
+    let rec [<DebuggerHidden; DebuggerStepThrough>] loop (i : 'i) (step : 'i -> 'i) (pred : 'i -> 'w -> bool) (m : 'i -> Chain<'e, unit, 'w>) =
         chain {
-            let! e = next
             let! world = get
-            do! if pred i e world then
+            do! if pred i world then
                     chain {
                         do! m i
                         let i = step i
-                        do! spin i step pred m }
+                        do! loop i step pred m }
                 else returnM () }
-
-    /// Loop in a chain context while 'pred' evaluate to true considering only the loop data.
-    let rec [<DebuggerHidden; DebuggerStepThrough>] loop (i : 'i) (step : 'i -> 'i) (pred : 'i -> bool) (m : 'i -> Chain<'e, unit, 'w>) =
-        spin i step (fun i _ _ -> pred i) m
 
     /// Loop in a chain context while 'pred' evaluates to true considering only the world state.
     let [<DebuggerHidden; DebuggerStepThrough>] during (pred : 'w -> bool) (m : Chain<'e, unit, 'w>) =
-        spin () id (fun _ _ -> pred) (fun _ -> m)
+        loop () id (fun _ -> pred) (fun _ -> m)
 
     /// Step once into a chain.
     let [<DebuggerHidden; DebuggerStepThrough>] step (m : Chain<'e, 'a, 'w>) (world : 'w) : 'w * Either<'e -> Chain<'e, 'a, 'w>, 'a> =

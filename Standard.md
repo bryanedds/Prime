@@ -13,37 +13,37 @@ Correctness, Consistency, Simplicity
 
 4) Prefer immutable types and referentially-transparent functions.
 
-5) Make illegal states unrepresentable when feasible [*Here's our friend Scott Wlaschin on the subject :)*](http://fsharpforfunandprofit.com/posts/designing-with-types-making-illegal-states-unrepresentable/).
+5) Make illegal states unrepresentable when feasible [*Here's our friend Scott Wlaschin on the subject*](http://fsharpforfunandprofit.com/posts/designing-with-types-making-illegal-states-unrepresentable/).
 
 6) Avoid trading away exhaustiveness checking unless you have a specific need.
 
 7) Avoid trading away type inference unless you have a specific need.
 
-8) Avoid creating object and struct types, as well as instance members and properties, unless you have a specific need for them (such as for a plug-in, interop, efficiency, or a DSL, etc).
+8) Avoid creating object and struct types, as well as instance members and properties, unless you have a specific need (such as for creating a plug-in, a DSL, for interop, for efficiency, or etc).
 
 9) Try to preserve debuggability of code by -
 
 -   introducing local bindings to potentially-interesting intermediate results,
--   avoiding unnecessary laziness and asynchrony (but since async being strewn throughout code is rarely avoidable, consider using the [*Vsync monad*](https://github.com/bryanedds/Nu/blob/master/Prime/Prime/Vsync.fs) instead!)
+-   avoiding unnecessary laziness and asynchrony (but since async being strewn throughout code is rarely avoidable, consider using the [*Vsync monad*](https://github.com/bryanedds/Nu/blob/master/Prime/Prime/Vsync.fs) instead).
 
 10) Suffix option bindings, choice bindings, either bindings, and bindings to potentially null values with `Opt`.
 
-11) Strongly consider prefixing functions that return an option, choice, either, or potential null with `try`.
+11) Consider prefixing functions that return an option, choice, either, or potential null with `try`.
 
-12) Try to use unique names for public fields and discriminated union cases to avoid inference ambiguity. For example, `Id` is not a good public field name, but `ProductId` might be.
+12) Try to use unique names for public fields and discriminated union cases to avoid ambiguating type inference. For example, `Id` is not a good public field name, but `ProductId` might be.
 
 **B) Consistency**
 
 1) Use 4 spaces for indentation, not 2, nor 3. [*5 is right out.*](https://www.youtube.com/watch?v=xOrgLj9lOwk&t=1m48s)
 
-2) Use column 120 as the line length limit where practicable. Column 120 is not a hard limit, but is elegantly achievable in most cases. An exception to this rule is code that constructs error messages.
+2) Use column 120 as the line length limit where practicable. Column 120 is not a hard limit, but is elegantly achievable in most cases. A common exception to this rule is for code that constructs error messages.
 
 3) Use the standard F\# naming conventions by -
 
 -   using `UpperCamelCasing` for `Namespaces`, `Modules`, `Types`, `Fields`, `Constants`, `Properties`, and `InstanceMembers`.
 -   using `lowerCamelCasing` for `variables`, `functions`, `staticMembers`, `parameters`, and `'typeParameters`.
 
-4) Use shadowing on different bindings with the same conceptual identity rather than `'` suffixes (this helps correctness significantly).
+4) Use shadowing on different bindings with the same conceptual identity rather than `'` suffixes (this helps correctness significantly). Conversely, avoid shadowing on different binding with different conceptual identities.
 
 5) Place `open` statements at the top of each file, right below the current namespace declaration.
 
