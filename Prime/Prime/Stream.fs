@@ -6,18 +6,13 @@ open System
 open System.Diagnostics
 open Prime
 
-/// A stream in the functional reactive style.
+/// The Stream comonad.
 type [<ReferenceEquality>] Stream<'a, 'w when 'w :> EventSystem<'w>> =
     { Subscribe : 'w -> 'a Address * ('w -> 'w) * 'w }
 
 // TODO: document track functions.
 [<RequireQualifiedAccess>]
 module Stream =
-
-    /// The empty stream.
-    let [<DebuggerHidden; DebuggerStepThrough>] makeEmpty<'a, 'w when 'w :> EventSystem<'w>> :
-        Stream<'a, 'w> =
-        { Subscribe = fun world -> (Address.empty, id, world) }
 
     /// Make a stream of an event at the given address.
     let [<DebuggerHidden; DebuggerStepThrough>] make<'a, 'w when 'w :> EventSystem<'w>>
@@ -411,6 +406,10 @@ module Stream =
             let world = EventSystem.subscribePlus<'a, Participant, 'w> subscriptionKey subscription subscriptionAddress globalParticipant world |> snd
             (subscriptionAddress'', unsubscribe, world)
         { Subscribe = subscribe }
+
+    /// Take events from a stream while predicate is true.
+    let [<DebuggerHidden; DebuggerStepThrough>] during pred stream =
+        trackEffect (fun () world -> ((), pred world, world)) () stream
 
     /// Terminate a stream when a given stream receives a value.
     let [<DebuggerHidden; DebuggerStepThrough>] until

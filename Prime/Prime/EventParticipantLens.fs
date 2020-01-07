@@ -215,7 +215,7 @@ module Lens =
         Seq.map (flip tryIndex lens)
 
     let dereference (lens : Lens<'a option, 'w>) : Lens<'a, 'w> =
-        lens.MapOut (Option.get)
+        lens.MapOut Option.get
 
     let makeReadOnly<'a, 'w> name get this : Lens<'a, 'w> =
         { Name = name; Get = get; SetOpt = None; This = this }
