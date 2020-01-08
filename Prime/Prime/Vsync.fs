@@ -254,6 +254,7 @@ type [<Sealed>] VsyncBuilder () =
     static member inline AwaitTask (t : Task) = Vsync.AwaitTask t
     static member inline Catch v = Vsync.Catch v
     static member inline Parallel s = Vsync.Parallel s
+    static member inline Sequential s = Vsync.Sequential s
     static member inline Map f v = Vsync.Map f v
 
 [<AutoOpen>]
