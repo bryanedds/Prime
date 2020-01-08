@@ -8,7 +8,7 @@ open System.Threading
 open System.Threading.Tasks
 open Prime
 
-/// Async extensions.
+/// Async extension type.
 module Async =
 
     /// Create an asynchronous operation that runs 'f' over computation of 'a'.
@@ -20,8 +20,18 @@ module Async =
     /// Apply an asynchronous operation to an asynchronous value.
     let Apply f a =
         async
-             { let! b = f (async.ReturnFrom a)
-               return b }
+            { let! b = f (async.ReturnFrom a)
+              return b }
+
+    /// Combine all asyncs in one, chaining them in sequence order.
+    /// TODO: P1: remove this when upgrading to later version of F#.
+    let Sequential (t : _ Async seq) : _ seq Async =
+        async {
+            use enum = t.GetEnumerator ()
+            let rec loop () =
+                if enum.MoveNext () then async.Bind (enum.Current, fun x -> async.Bind (loop (), fun y -> async.Return (seq { yield x; yield! y })))
+                else async.Return Seq.empty
+            return! loop () }
 
 [<AutoOpen>]
 module Vsync =
@@ -39,23 +49,7 @@ module Vsync =
     
         /// Configures whether to use synchronized processing.
         let mutable private SyncOpt = None
-    
-        /// Initialize Vsync to use synchronized or asynchronous processing.
-        let init sync =
-            match SyncOpt with
-            | Some _ -> Log.debug "Cannot init Vsync.sync once it's been set. Consider calling init earlier in your program."
-            | None -> SyncOpt <- Some sync
-    
-        /// Check whether Vsync is using synchronized or asynchronous processing.
-        let isSync () =
-            match SyncOpt with
-            | Some sync -> sync
-            | None ->
-                Log.debug "Sync not set manually before first invocation; automatically setting to false."
-                let result = false
-                SyncOpt <- Some result
-                result
-    
+
         let [<DebuggerHidden; DebuggerStepThrough>] private Extract v =
             match v with
             | Sync _ -> failwithumf ()
@@ -63,6 +57,28 @@ module Vsync =
 
         let [<DebuggerHidden; DebuggerStepThrough>] private ExtractFn f =
             fun a -> Extract (f (Async a))
+
+        /// Initialize Vsync to use synchronized or asynchronous processing.
+        let Init sync =
+            match SyncOpt with
+            | Some _ -> Log.debug "Cannot init Vsync.sync once it's been set. Consider calling init earlier in your program."
+            | None -> SyncOpt <- Some sync
+
+        /// Check whether Vsync is using synchronized or asynchronous processing.
+        let IsSync () =
+            match SyncOpt with
+            | Some sync -> sync
+            | None ->
+                Log.debug "Sync not set manually before first invocation; automatically setting to false."
+                let result = false
+                SyncOpt <- Some result
+                result
+
+        /// Convert an Async value to a Vsync value.
+        let [<DebuggerHidden; DebuggerStepThrough>] Convert async =
+            if IsSync ()
+            then Sync (fun () -> Async.RunSynchronously async)
+            else Async async
 
         /// Create a potentially asynchronous operation that runs computation, and when computation results, runs binder resolution.
         let [<DebuggerHidden; DebuggerStepThrough>] Bind v f =
@@ -72,7 +88,7 @@ module Vsync =
     
         /// Create a potentially asynchronous operation that returns the result 'a'.
         let [<DebuggerHidden; DebuggerStepThrough>] Return a =
-            if isSync ()
+            if IsSync ()
             then Sync (fun () -> a)
             else Async (async.Return a)
     
@@ -85,19 +101,19 @@ module Vsync =
         /// Create a potentially asynchronous computation that runs binder 'f' over resource 'd'.
         /// Dispose is executed as this computation yields its result or if the asynchronous computation raises or by cancellation.
         let [<DebuggerHidden; DebuggerStepThrough>] Using d f =
-            if isSync ()
+            if IsSync ()
             then Sync (fun () -> use u = d in match f u with Sync b -> b () | Async _ -> failwithumf ())
             else Async (async.Using (d, f >> Extract))
     
         /// Create a potentially asynchronous computation that runs generator 'f'.
         let [<DebuggerHidden; DebuggerStepThrough>] Delay f =
-            if isSync ()
+            if IsSync ()
             then Sync (fun () -> match f () with Sync a -> a () | _ -> failwithumf ())
             else Async (async.Delay (f >> Extract))
     
         /// Create a potentially asynchronous computation that just returns unit.
         let [<DebuggerHidden; DebuggerStepThrough>] Zero () =
-            if isSync ()
+            if IsSync ()
             then Sync (fun () -> ())
             else Async (async.Zero ())
     
@@ -109,7 +125,7 @@ module Vsync =
     
         /// Create a potentially asynchronous computation that enumerates the sequence 's', and runs the body 'f' for each item.
         let [<DebuggerHidden; DebuggerStepThrough>] For s f =
-            if isSync ()
+            if IsSync ()
             then Sync (fun () -> Seq.iter (f >> ignore) s)
             else Async (async.For (s, f >> Extract))
     
@@ -144,7 +160,7 @@ module Vsync =
         /// The operation will not block operating system threads for the duration of the wait when running asynchronously.
         /// The operation will block operating system thread for the duration of the wait otherwise.
         let [<DebuggerHidden; DebuggerStepThrough>] Sleep (t : int) =
-            if isSync ()
+            if IsSync ()
             then Sync (fun () -> Thread.Sleep t)
             else Async (Async.Sleep t)
     
@@ -170,13 +186,13 @@ module Vsync =
     
         /// Return a potentially asynchronous computation that will wait for the given task to complete and return its result.
         let [<DebuggerHidden; DebuggerStepThrough>] AwaitTaskT (t : _ Task) =
-            if isSync ()
+            if IsSync ()
             then Sync (fun () -> t.Result)
             else Async (Async.AwaitTask t)
     
         /// Return a potentially asynchronous computation that will wait for the given task to complete and return its result.
         let [<DebuggerHidden; DebuggerStepThrough>] AwaitTask (t : Task) =
-            if isSync ()
+            if IsSync ()
             then Sync (fun () -> t.Wait ())
             else Async (Async.AwaitTask t)
     
@@ -188,14 +204,21 @@ module Vsync =
             | Sync a -> Sync (fun () -> try Choice1Of2 (a ()) with exn -> Choice2Of2 exn)
             | Async a -> Async (Async.Catch a)
     
-        /// Create a potentially asynchronous computation that executes all the given computations
+        /// Create a potentially asynchronous computation that executes all the given computations.
         /// Initially queues each as work item using a fork/join pattern when asynchronous.
         /// Executes each work item sequentially on the same thread otherwise.
         let [<DebuggerHidden; DebuggerStepThrough>] Parallel s =
-            if isSync ()
+            if IsSync ()
             then Sync (fun () -> Array.ofSeq (Seq.map (function Sync a -> a () | Async _ -> failwithumf ()) s))
             else Async (Async.Parallel (Seq.map Extract s))
     
+        /// Create a potentially asynchronous computation that executes all the given computations in order on the same
+        /// thread.
+        let [<DebuggerHidden; DebuggerStepThrough>] Sequential s =
+            if IsSync ()
+            then Sync (fun () -> Seq.map (function Sync a -> a () | Async _ -> failwithumf ()) s |> Seq.toArray |> seq)
+            else Async (Async.Sequential (Seq.map Extract s))
+
         /// Create a potentially asynchronous operation that runs 'f' over computation of 'a'.
         let [<DebuggerHidden; DebuggerStepThrough>] Map f v =
             match v with
