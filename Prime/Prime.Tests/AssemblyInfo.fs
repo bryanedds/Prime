@@ -1,14 +1,14 @@
 // Prime - A PRIMitivEs code library.
 // Copyright (C) Bryan Edds, 2013-2019.
 
-namespace Prime.AssemblyInfo
+namespace Prime.Tests.AssemblyInfo
 open System.Reflection
 open System.Runtime.InteropServices
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[<assembly: AssemblyTitle("Prime")>]
+[<assembly: AssemblyTitle("Prime.Tests")>]
 [<assembly: AssemblyDescription("")>]
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("Bryan Edds")>]
@@ -23,11 +23,11 @@ open System.Runtime.InteropServices
 [<assembly: ComVisible(false)>]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[<assembly: Guid("ee462c6e-67d0-4a00-8311-4955eb70c314")>]
+[<assembly: Guid("ee462c6e-67d0-4a00-8311-4955eb70c315")>]
 
 // Version information for assembly.
-[<assembly: AssemblyVersion("3.9.0.0")>]
-[<assembly: AssemblyFileVersion("3.9.0.0")>]
+[<assembly: AssemblyVersion("0.0.0.0")>]
+[<assembly: AssemblyFileVersion("0.0.0.0")>]
 
 // Attribute target.
 do ()

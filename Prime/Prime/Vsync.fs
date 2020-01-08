@@ -51,8 +51,8 @@ module Vsync =
             match SyncOpt with
             | Some sync -> sync
             | None ->
-                Log.debug "Sync not set manually before first invocation; automatically setting to true."
-                let result = true
+                Log.debug "Sync not set manually before first invocation; automatically setting to false."
+                let result = false
                 SyncOpt <- Some result
                 result
     
