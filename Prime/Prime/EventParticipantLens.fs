@@ -233,12 +233,14 @@ module Lens =
         Seq.initInfinite id |>
         Seq.map (fun index ->
             mapOut (fun models ->
-                match Seq.tryItem index models with
-                | Some model ->
-                    match indexerOpt with
-                    | Some indexer -> Some (indexer model, model)
-                    | None -> Some (index, model)
-                | None -> None)
+                match indexerOpt with
+                | Some indexer ->
+                    let modelsIndexed = Seq.map (fun model -> (indexer model, model)) models
+                    Seq.tryFind (fun (index2, _) -> index = index2) modelsIndexed
+                | None ->
+                    match Seq.tryItem index models with
+                    | Some model -> Some (index, model)
+                    | None -> None)
                 lens)
 
     let explodeIndexed indexer (lens : Lens<'a seq, 'w>) : Lens<(int * 'a) option, 'w> seq =
