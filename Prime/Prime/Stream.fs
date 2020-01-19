@@ -540,16 +540,21 @@ module Stream =
         map Option.get
 
     /// Filter events with unchanging data.
-    let [<DebuggerHidden; DebuggerStepThrough>] optimize (stream : Stream<_, 'w>) =
+    let optimizeBy (by : 'a -> 'b) (stream : Stream<'a, 'w>) =
         fold
-            (fun (_, l) a ->
-                match l with
-                | [] -> (Some a, [a])
-                | x :: _ -> if a = x then (None, [a]) else (Some a, [a]))
-            (None, [])
+            (fun (s, _) a ->
+                let n = by a
+                match s with
+                | None -> (Some n, Some a)
+                | Some b -> if b = n then (Some n, None) else (Some n, Some a))
+            (None, None)
             stream |>
-        map fst |>
+        map snd |>
         definitize
+
+    /// Filter events with unchanging data.
+    let [<DebuggerHidden; DebuggerStepThrough>] optimize (stream : Stream<'a, 'w>) =
+        stream |> optimizeBy id
 
     /// Transform a stream into a running sum of its data.
     let [<DebuggerHidden; DebuggerStepThrough>] inline sumN stream = reduce (+) stream
