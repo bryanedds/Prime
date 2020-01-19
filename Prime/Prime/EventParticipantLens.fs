@@ -229,6 +229,21 @@ module Lens =
     let tryIndex i (lens : Lens<'a seq, 'w>) : Lens<'a option, 'w> =
         lens.MapOut (Seq.tryItem i)
 
+    let explodeIndexedOpt indexerOpt (lens : Lens<'a seq, 'w>) : Lens<(int * 'a) option, 'w> seq =
+        Seq.initInfinite id |>
+        Seq.map (fun index ->
+            mapOut (fun models ->
+                match Seq.tryItem index models with
+                | Some model ->
+                    match indexerOpt with
+                    | Some indexer -> Some (indexer model, model)
+                    | None -> Some (index, model)
+                | None -> None)
+                lens)
+
+    let explodeIndexed indexer (lens : Lens<'a seq, 'w>) : Lens<(int * 'a) option, 'w> seq =
+        explodeIndexedOpt (Some indexer) lens
+
     let explode (lens : Lens<'a seq, 'w>) : Lens<'a option, 'w> seq =
         Seq.initInfinite id |>
         Seq.map (flip tryIndex lens)
