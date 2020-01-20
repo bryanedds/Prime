@@ -4,6 +4,15 @@
 namespace Prime
 open Prime
 
+/// A model-message-command signal.
+type Signal<'message, 'command> =
+    | Message of message : 'message
+    | Command of command : 'command
+    | Signals of signals : Signal<'message, 'command> list
+    
+    static member add (left : Signal<'message, 'command>) (right : Signal<'message, 'command>) = Signals [left; right]
+    static member (+) (left, right) = Signal.add left right
+
 type [<NoEquality; NoComparison>] BindingValue<'a, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> =
     { Stream : Stream<obj, 'w>
       MakeValue : Event<obj, 's> -> 'a }
@@ -28,36 +37,20 @@ module Binding =
 type Binding<'m, 'c, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> with
 
     static member (=>) (_ : Binding<'m, 'c, 's, 'w>, source : Address<'a>) =
-        fun (message : 'm) ->
-            MessageBinding (Binding.makeSimple (Stream.make source) message)
+        fun (signal : Signal<'m, 'c>) ->
+            MessageBinding (Binding.makeSimple (Stream.make source) signal)
 
     static member (=>) (_ : Binding<'m, 'c, 's, 'w>, source : Stream<'a, 'w>) =
-        fun (message : 'm) ->
-            MessageBinding (Binding.makeSimple source message)
+        fun (signal : Signal<'m, 'c>) ->
+            MessageBinding (Binding.makeSimple source signal)
 
     static member (=|>) (_ : Binding<'m, 'c, 's, 'w>, source : Address<'a>) =
-        fun (message : Event<'a, 's> -> 'm) ->
-            MessageBinding (Binding.make (Stream.make source) message)
+        fun (signal : Event<'a, 's> -> Signal<'m, 'c>) ->
+            MessageBinding (Binding.make (Stream.make source) signal)
 
     static member (=|>) (_ : Binding<'m, 'c, 's, 'w>, source : Stream<'a, 'w>) =
-        fun (message : Event<'a, 's> -> 'm) ->
-            MessageBinding (Binding.make source message)
-
-    static member (=>!) (_ : Binding<'m, 'c, 's, 'w>, source : Address<'a>) =
-        fun (command : 'c) ->
-            CommandBinding (Binding.makeSimple (Stream.make source) command)
-
-    static member (=>!) (_ : Binding<'m, 'c, 's, 'w>, source : Stream<'a, 'w>) =
-        fun (command : 'c) ->
-            CommandBinding (Binding.makeSimple source command)
-
-    static member (=|>!) (_ : Binding<'m, 'c, 's, 'w>, source : Address<'a>) =
-        fun (command : Event<'a, 's> -> 'c) ->
-            CommandBinding (Binding.make (Stream.make source) command)
-
-    static member (=|>!) (_ : Binding<'m, 'c, 's, 'w>, source : Stream<'a, 'w>) =
-        fun (command : Event<'a, 's> -> 'c) ->
-            CommandBinding (Binding.make source command)
+        fun (signal : Event<'a, 's> -> Signal<'m, 'c>) ->
+            MessageBinding (Binding.make source signal)
 
 [<AutoOpen>]
 module BindingOperators =
@@ -67,21 +60,6 @@ module BindingOperators =
 
     let inline (=|>) source message : Binding<'m, 'c, 's, 'w> =
         (Unchecked.defaultof<Binding<'m, 'c, 's, 'w>> =|> source) message
-
-    let inline (=>!) source message : Binding<'m, 'c, 's, 'w> =
-        (Unchecked.defaultof<Binding<'m, 'c, 's, 'w>> =>! source) message
-
-    let inline (=|>!) source message : Binding<'m, 'c, 's, 'w> =
-        (Unchecked.defaultof<Binding<'m, 'c, 's, 'w>> =|>! source) message
-
-/// A model-message-command signal.
-type Signal<'message, 'command> =
-    | Message of message : 'message
-    | Command of command : 'command
-    | Signals of signals : Signal<'message, 'command> list
-    
-    static member add (left : Signal<'message, 'command>) (right : Signal<'message, 'command>) = Signals [left; right]
-    static member (+) (left, right) = Signal.add left right
 
 [<RequireQualifiedAccess>]
 module Signal =

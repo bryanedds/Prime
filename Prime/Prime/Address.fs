@@ -57,6 +57,7 @@ module Address =
     /// A generalized address.
     type Address =
         interface
+            inherit IComparable
             abstract Names : string array
             abstract HashCode : int
             end

@@ -15,8 +15,11 @@ type Liveness =
     | Running
     | Exiting
 
+/// The generalized event type (can be used to handle any event).
+type Event = Event<obj, Participant>
+
 /// An event used by the event system.
-type [<NoEquality; NoComparison>] Event<'a, 's when 's :> Participant> =
+and [<NoEquality; NoComparison>] Event<'a, 's when 's :> Participant> =
     { Data : 'a
       Subscriber : 's
       Publisher : Participant
@@ -26,16 +29,21 @@ type [<NoEquality; NoComparison>] Event<'a, 's when 's :> Participant> =
 [<RequireQualifiedAccess>]
 module Event =
 
-    /// Specialize an event's data.
-    let specialize (evt : Event<obj, 's>) : Event<'a, 's> =
+    /// Specialize an event.
+    let specialize<'a, 's when 's :> Participant> (evt : Event) : Event<'a, 's> =
         { Data = evt.Data :?> 'a
-          Subscriber = evt.Subscriber
+          Subscriber = evt.Subscriber :?> 's
           Publisher = evt.Publisher
           Address = atoa evt.Address
           Trace = evt.Trace }
 
-/// The generalized event type (can be used to handle any event).
-type EventGeneralized = Event<obj, Participant>
+    // Generalize an event.
+    let generalize (evt : Event<'a, 's>) : Event =
+        { Data = evt.Data :> obj
+          Subscriber = evt.Subscriber
+          Publisher = evt.Publisher
+          Address = atoa evt.Address
+          Trace = evt.Trace }
 
 /// An entry in the subscription map.
 type [<NoEquality; NoComparison>] SubscriptionEntry =
