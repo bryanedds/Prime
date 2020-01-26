@@ -13,62 +13,60 @@ type Signal<'message, 'command> =
     static member add (left : Signal<'message, 'command>) (right : Signal<'message, 'command>) = Signals [left; right]
     static member (+) (left, right) = Signal.add left right
 
-type [<NoEquality; NoComparison>] BindingValue<'a, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> =
-    { Stream : Stream<obj, 'w>
-      MakeValue : Event<obj, 's> -> 'a }
-
 type [<NoEquality; NoComparison>] Binding<'m, 'c, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> =
-    | MessageBinding of BindingValue<'m, 's, 'w>
-    | CommandBinding of BindingValue<'c, 's, 'w>
-
-[<RequireQualifiedAccess>]
-module Binding =
-
-    let make<'a, 'v, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>>
-        (stream : Stream<'a, 'w>) (makeValue : Event<'a, 's> -> 'v) =
-        { Stream = Stream.generalize stream
-          MakeValue = fun evt -> makeValue (Event.specialize evt) }
-
-    let makeSimple<'a, 'v, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>>
-        (stream : Stream<'a, 'w>) (value : 'v) =
-        { Stream = Stream.generalize stream
-          MakeValue = fun (_ : Event<obj, 's>) -> value }
+    { Stream : Stream<obj, 'w>
+      MakeValue : Event<obj, 's> -> Signal<'m, 'c> }
 
 type Binding<'m, 'c, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> with
 
     static member (=>) (_ : Binding<'m, 'c, 's, 'w>, source : Address<'a>) =
         fun (signal : Signal<'m, 'c>) ->
-            MessageBinding (Binding.makeSimple (Stream.make source) signal)
+            { Stream = source |> Stream.make |> Stream.generalize
+              MakeValue = fun (_ : Event<obj, 's>) -> signal }
 
     static member (=>) (_ : Binding<'m, 'c, 's, 'w>, source : Stream<'a, 'w>) =
         fun (signal : Signal<'m, 'c>) ->
-            MessageBinding (Binding.makeSimple source signal)
+            { Stream = source |> Stream.generalize
+              MakeValue = fun (_ : Event<obj, 's>) -> signal }
 
     static member (=|>) (_ : Binding<'m, 'c, 's, 'w>, source : Address<'a>) =
-        fun (signal : Event<'a, 's> -> Signal<'m, 'c>) ->
-            MessageBinding (Binding.make (Stream.make source) signal)
+        fun (handler : Event<'a, 's> -> Signal<'m, 'c>) ->
+            { Stream = source |> Stream.make |> Stream.generalize
+              MakeValue = fun evt -> Event.generalize evt |> Event.specialize |> handler }
 
     static member (=|>) (_ : Binding<'m, 'c, 's, 'w>, source : Stream<'a, 'w>) =
-        fun (signal : Event<'a, 's> -> Signal<'m, 'c>) ->
-            MessageBinding (Binding.make source signal)
+        fun (handler : Event<'a, 's> -> Signal<'m, 'c>) ->
+            { Stream = source |> Stream.generalize
+              MakeValue = fun evt -> Event.generalize evt |> Event.specialize |> handler }
 
 [<AutoOpen>]
 module BindingOperators =
 
-    let inline (=>) source message : Binding<'m, 'c, 's, 'w> =
-        (Unchecked.defaultof<Binding<'m, 'c, 's, 'w>> => source) message
+    let inline (=>) source signal : Binding<'m, 'c, 's, 'w> =
+        (Unchecked.defaultof<Binding<'m, 'c, 's, 'w>> => source) signal
 
-    let inline (=|>) source message : Binding<'m, 'c, 's, 'w> =
-        (Unchecked.defaultof<Binding<'m, 'c, 's, 'w>> =|> source) message
+    let inline (=|>) source signal : Binding<'m, 'c, 's, 'w> =
+        (Unchecked.defaultof<Binding<'m, 'c, 's, 'w>> =|> source) signal
+
+[<AutoOpen>]
+module SignalOperators =
+
+    let msg message = Message message
+    let msgs messages = Signals (List.map Message messages)
+    let cmd command = Command command
+    let cmds commands = Signals (List.map Command commands)
+    let withMsg value message = (value, Message message)
+    let withMsgs value messages = (value, msgs messages)
+    let withCmd value command = (value, Command command)
+    let withCmds value commands = (value, cmds commands)
+    let withSig value (signal : Signal<_, _>) = (value, signal)
+    let withSigs value signals = (value, Signals signals)
+    let just value = (value, Signals [])
 
 [<RequireQualifiedAccess>]
 module Signal =
 
     let add left right = Signal<_, _>.add left right
-    let msg message = Message message
-    let msgs messages = Signals (List.map Message messages)
-    let cmd command = Command command
-    let cmds commands = Signals (List.map Command commands)
     let many signals = Signals signals
     let none = Signals []
 
@@ -94,26 +92,8 @@ module Signal =
 
     let processBindings bindings processMessage processCommand model participant world =
         List.fold (fun world binding ->
-            match binding with
-            | MessageBinding binding ->
-                Stream.monitor (fun evt world ->
-                    let signal = msg (binding.MakeValue evt)
-                    processSignal signal processMessage processCommand model participant world)
-                    participant binding.Stream world
-            | CommandBinding binding ->
-                Stream.monitor (fun evt world ->
-                    let signal = cmd (binding.MakeValue evt)
-                    processSignal signal processMessage processCommand model participant world)
-                    participant binding.Stream world)
+            Stream.monitor (fun evt world ->
+                let signal = binding.MakeValue evt
+                processSignal signal processMessage processCommand model participant world)
+                participant binding.Stream world)
             world bindings
-
-[<AutoOpen>]
-module SignalOperators =
-
-    let withMsg value message = (value, Message message)
-    let withMsgs value messages = (value, Signal.msgs messages)
-    let withCmd value command = (value, Command command)
-    let withCmds value commands = (value, Signal.cmds commands)
-    let withSig value (signal : Signal<_, _>) = (value, signal)
-    let withSigs value signals = (value, Signals signals)
-    let just value = (value, Signal.none)
