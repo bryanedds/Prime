@@ -368,7 +368,6 @@ module EventSystem =
     /// Keep active a subscription for the life span of a simulant, and be provided with an unsubscription callback.
     let monitorPlus<'a, 's, 'w when 's :> Simulant and 'w :> EventSystem<'w>>
         (subscription : Event<'a, 's> -> 'w -> Handling * 'w) (eventAddress : 'a Address) (subscriber : 's) (world : 'w) =
-        let subscriberAddress = subscriber.SimulantAddress
         let monitorKey = makeGuid ()
         let removalKey = makeGuid ()
         let world = subscribePlus<'a, 's, 'w> monitorKey subscription eventAddress subscriber world |> snd
@@ -377,8 +376,8 @@ module EventSystem =
             let world = unsubscribe monitorKey world
             world
         let subscription' = fun _ eventSystem -> (Cascade, unsubscribe eventSystem)
-        let removingEventAddress = rtoa<unit> [|"Unregistering"; "Event"|] --> subscriberAddress
-        let world = subscribePlus<unit, 's, 'w> removalKey subscription' removingEventAddress subscriber world |> snd
+        let removingEventAddress = rtoa<obj> [|"Unregistering"; "Event"|] --> subscriber.SimulantAddress
+        let world = subscribePlus<obj, Simulant, 'w> removalKey subscription' removingEventAddress subscriber world |> snd
         (unsubscribe, world)
 
     /// Keep active a subscription for the life span of a simulant.

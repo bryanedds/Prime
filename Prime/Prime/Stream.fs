@@ -622,7 +622,7 @@ module StreamOperators =
     /// Make a stream of the subscriber's change events.
     let [<DebuggerHidden; DebuggerStepThrough>] (!--) (lens : Lens<'b, 'w>) =
         let changeEventAddress = rtoa<ChangeData> [|"Change"; lens.Name; "Event"|] --> lens.This.SimulantAddress
-        Stream.make changeEventAddress --- Stream.mapEvent (fun _ world -> lens.GetWithoutValidation world)
+        Stream.make changeEventAddress --- Stream.mapEvent (fun _ world -> lens.Get world)
 
     /// Propagate the event data of a stream to a property in the observing simulant when the
     /// subscriber exists (doing nothing otherwise).
