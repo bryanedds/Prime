@@ -5,11 +5,11 @@ namespace Prime
 open System
 open Prime
 
-/// A generalized participant lens.
+/// A generalized simulant lens.
 type 'w Lens =
     interface
         abstract Name : string
-        abstract This : Participant
+        abstract This : Simulant
         abstract GetWithoutValidation : 'w -> obj
         abstract SetOpt : (obj -> 'w -> 'w) option
         abstract Validate : 'w -> bool
@@ -17,14 +17,14 @@ type 'w Lens =
         abstract ChangeEvent : ChangeData Address
         end
 
-/// Describes a property of a participant.
-/// Similar to a Haskell lens, but specialized to participant properties.
+/// Describes a property of a simulant.
+/// Similar to a Haskell lens, but specialized to simulant properties.
 type [<NoEquality; NoComparison>] Lens<'a, 'w> =
     { Name : string
       GetWithoutValidation : 'w -> 'a
       SetOpt : ('a -> 'w -> 'w) option
       Validate : 'w -> bool
-      This : Participant }
+      This : Simulant }
 
     interface 'w Lens with
         member this.Name = this.Name
@@ -121,7 +121,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
 
     member this.ChangeEvent =
         let changeEventAddress = rtoa<ChangeData> [|"Change"; this.Name; "Event"|]
-        let changeEvent = changeEventAddress --> this.This.ParticipantAddress
+        let changeEvent = changeEventAddress --> this.This.SimulantAddress
         changeEvent
 
     member this.Type =

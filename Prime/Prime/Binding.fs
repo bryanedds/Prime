@@ -13,11 +13,11 @@ type Signal<'message, 'command> =
     static member add (left : Signal<'message, 'command>) (right : Signal<'message, 'command>) = Signals [left; right]
     static member (+) (left, right) = Signal.add left right
 
-type [<NoEquality; NoComparison>] Binding<'m, 'c, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> =
+type [<NoEquality; NoComparison>] Binding<'m, 'c, 's, 'w when 's :> Simulant and 'w :> EventSystem<'w>> =
     { Stream : Stream<obj, 'w>
       MakeValue : Event<obj, 's> -> Signal<'m, 'c> }
 
-type Binding<'m, 'c, 's, 'w when 's :> Participant and 'w :> EventSystem<'w>> with
+type Binding<'m, 'c, 's, 'w when 's :> Simulant and 'w :> EventSystem<'w>> with
 
     static member (=>) (_ : Binding<'m, 'c, 's, 'w>, source : Address<'a>) =
         fun (signal : Signal<'m, 'c>) ->
@@ -70,30 +70,30 @@ module Signal =
     let many signals = Signals signals
     let none = Signals []
 
-    let rec processSignal<'model, 'message, 'command, 'p, 'w when 'p :> Participant>
+    let rec processSignal<'model, 'message, 'command, 's, 'w when 's :> Simulant>
         (signal : Signal<'message, 'command>)
         processMessage
         processCommand
         (model : Lens<'model, 'w>)
-        (participant : 'p)
+        (simulant : 's)
         (world : 'w) =
         match signal with
         | Message message ->
-            let (modelValue, signal) = processMessage (message, model.Get world, participant, world)
+            let (modelValue, signal) = processMessage (message, model.Get world, simulant, world)
             let world = model.Set modelValue world
-            processSignal signal processMessage processCommand model participant world
+            processSignal signal processMessage processCommand model simulant world
         | Command command ->
-            let (world, signal) = processCommand (command, model.Get world, participant, world)
-            processSignal signal processMessage processCommand model participant world
+            let (world, signal) = processCommand (command, model.Get world, simulant, world)
+            processSignal signal processMessage processCommand model simulant world
         | Signals signals ->
             List.fold
-                (fun world signal -> processSignal signal processMessage processCommand model participant world)
+                (fun world signal -> processSignal signal processMessage processCommand model simulant world)
                 world signals
 
-    let processBindings bindings processMessage processCommand model participant world =
+    let processBindings bindings processMessage processCommand model simulant world =
         List.fold (fun world binding ->
             Stream.monitor (fun evt world ->
                 let signal = binding.MakeValue evt
-                processSignal signal processMessage processCommand model participant world)
-                participant binding.Stream world)
+                processSignal signal processMessage processCommand model simulant world)
+                simulant binding.Stream world)
             world bindings

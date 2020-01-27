@@ -16,13 +16,13 @@ type Liveness =
     | Exiting
 
 /// The generalized event type (can be used to handle any event).
-type Event = Event<obj, Participant>
+type Event = Event<obj, Simulant>
 
 /// An event used by the event system.
-and [<NoEquality; NoComparison>] Event<'a, 's when 's :> Participant> =
+and [<NoEquality; NoComparison>] Event<'a, 's when 's :> Simulant> =
     { Data : 'a
       Subscriber : 's
-      Publisher : Participant
+      Publisher : Simulant
       Address : 'a Address
       Trace : EventTrace }
 
@@ -30,7 +30,7 @@ and [<NoEquality; NoComparison>] Event<'a, 's when 's :> Participant> =
 module Event =
 
     /// Specialize an event.
-    let specialize<'a, 's when 's :> Participant> (evt : Event) : Event<'a, 's> =
+    let specialize<'a, 's when 's :> Simulant> (evt : Event) : Event<'a, 's> =
         { Data = evt.Data :?> 'a
           Subscriber = evt.Subscriber :?> 's
           Publisher = evt.Publisher
@@ -48,7 +48,7 @@ module Event =
 /// An entry in the subscription map.
 type [<NoEquality; NoComparison>] SubscriptionEntry =
     { SubscriptionKey : Guid
-      SubscriberEntry : Participant
+      SubscriberEntry : Simulant
       Callback : obj }
 
 /// Abstracts over a subscription sorting procedure.
@@ -65,7 +65,7 @@ type SubscriptionEntries =
 
 /// A map of subscription keys to unsubscription data.
 type UnsubscriptionEntries =
-    UMap<Guid, obj Address * Participant>
+    UMap<Guid, obj Address * Simulant>
 
 module Events =
 
@@ -77,8 +77,8 @@ module EventSystemDelegate =
 
     /// OPTIMIZATION: these were pulled out from EventSystemDelegate in order to fit its structure
     /// inside a cache line.
-    let mutable GlobalParticipantSpecialized : Participant = Unchecked.defaultof<_>
-    let mutable GlobalParticipantGeneralized : GlobalParticipantGeneralized = Unchecked.defaultof<_>
+    let mutable GlobalSimulantSpecialized : Simulant = Unchecked.defaultof<_>
+    let mutable GlobalSimulantGeneralized : GlobalSimulantGeneralized = Unchecked.defaultof<_>
 
     /// The implementation portion of EventSystem.
     /// OPTIMIZATION: EventContext is mutable for speed.
@@ -87,7 +87,7 @@ module EventSystemDelegate =
             { // cache line begin
               Subscriptions : SubscriptionEntries
               Unsubscriptions : UnsubscriptionEntries
-              mutable EventContext : Participant
+              mutable EventContext : Simulant
               EventStates : UMap<Guid, obj>
               EventTracer : string -> unit
               EventTracing : bool
@@ -151,18 +151,18 @@ module EventSystemDelegate =
         let getEventContext (esd : 'w EventSystemDelegate) =
             esd.EventContext
 
-        /// Get the specialized global participant of the event system.
-        let getGlobalParticipantSpecialized (_ : 'w EventSystemDelegate) =
-            GlobalParticipantSpecialized
+        /// Get the specialized global simulant of the event system.
+        let getGlobalSimulantSpecialized (_ : 'w EventSystemDelegate) =
+            GlobalSimulantSpecialized
 
-        /// Get the generalized global participant of the event system.
-        let getGlobalParticipantGeneralized (_ : 'w EventSystemDelegate) =
-            GlobalParticipantGeneralized
+        /// Get the generalized global simulant of the event system.
+        let getGlobalSimulantGeneralized (_ : 'w EventSystemDelegate) =
+            GlobalSimulantGeneralized
 
         /// Qualify the event context of the world.
         let qualifyEventContext (address : obj Address) (esd : 'w EventSystemDelegate) =
             let context = getEventContext esd
-            let contextAddress = context.ParticipantAddress
+            let contextAddress = context.SimulantAddress
             let contextAddressLength = Address.length contextAddress
             let addressLength = Address.length address
             if contextAddressLength = addressLength then
@@ -199,18 +199,18 @@ module EventSystemDelegate =
             esd.EventAddresses
 
         /// Make an event delegate.
-        let make eventTracer eventTracing eventFilter globalParticipantSpecialized globalParticipantGeneralized =
+        let make eventTracer eventTracing eventFilter globalSimulantSpecialized globalSimulantGeneralized =
             let esd =
                 { Subscriptions = UMap.makeEmpty Config
                   Unsubscriptions = UMap.makeEmpty Config
-                  EventContext = globalParticipantSpecialized
+                  EventContext = globalSimulantSpecialized
                   EventStates = UMap.makeEmpty Config
                   EventTracer = eventTracer
                   EventTracing = eventTracing
                   EventFilter = eventFilter
                   EventAddresses = [] }
-            GlobalParticipantSpecialized <- globalParticipantSpecialized
-            GlobalParticipantGeneralized <- globalParticipantGeneralized
+            GlobalSimulantSpecialized <- globalSimulantSpecialized
+            GlobalSimulantGeneralized <- globalSimulantGeneralized
             esd
 
 /// The implementation portion of EventSystem.

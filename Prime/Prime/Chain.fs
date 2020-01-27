@@ -101,7 +101,7 @@ module Chain =
 
     /// React to the next event, using the event's data in the reaction.
     // TODO: See if we can make this acceptable to F#'s type system -
-    //let [<DebuggerHidden; DebuggerStepThrough>] reactData<'a, 's, 'e, 'w when 's :> Participant and 'e :> Event<'a, 's> and 'w :> EventSystem<'w>> expr : Chain<'e, unit, 'w> =
+    //let [<DebuggerHidden; DebuggerStepThrough>] reactData<'a, 's, 'e, 'w when 's :> Simulant and 'e :> Event<'a, 's> and 'w :> EventSystem<'w>> expr : Chain<'e, unit, 'w> =
     //    chain {
     //        let! e = next
     //        let! world = get
@@ -161,18 +161,18 @@ module Chain =
     let [<DebuggerHidden; DebuggerStepThrough>] run (m : Chain<unit, 'a, 'w>) (world : 'w) : 'w =
         run2 m world |> fst
 
-    let private run4 handling (chain : Chain<Event<'a, Participant>, unit, 'w>) (stream : Stream<'a, 'w>) (world : 'w) =
-        let globalParticipant = EventSystem.getGlobalParticipantGeneralized world
+    let private run4 handling (chain : Chain<Event<'a, Simulant>, unit, 'w>) (stream : Stream<'a, 'w>) (world : 'w) =
+        let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
         let stateKey = makeGuid ()
         let subscriptionKey = makeGuid ()
-        let world = EventSystem.addEventState stateKey (fun (_ : Event<'a, Participant>) -> chain) world
+        let world = EventSystem.addEventState stateKey (fun (_ : Event<'a, Simulant>) -> chain) world
         let (eventAddress, unsubscribe, world) = stream.Subscribe world
         let unsubscribe = fun world ->
             let world = EventSystem.removeEventState stateKey world
             let world = unsubscribe world
             EventSystem.unsubscribe subscriptionKey world
         let advance = fun evt world ->
-            let chain = EventSystem.getEventState stateKey world : Event<'a, Participant> -> Chain<Event<'a, Participant>, unit, 'w>
+            let chain = EventSystem.getEventState stateKey world : Event<'a, Simulant> -> Chain<Event<'a, Simulant>, unit, 'w>
             let (world, advanceResult) = advance chain evt world
             match advanceResult with
             | Right () -> unsubscribe world
@@ -180,8 +180,8 @@ module Chain =
         let subscription = fun evt world ->
             let world = advance evt world
             (handling, world)
-        let world = advance Unchecked.defaultof<Event<'a, Participant>> world
-        let world = EventSystem.subscribePlus<'a, Participant, 'w> subscriptionKey subscription eventAddress globalParticipant world |> snd
+        let world = advance Unchecked.defaultof<Event<'a, Simulant>> world
+        let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionKey subscription eventAddress globalSimulant world |> snd
         (unsubscribe, world)
 
     /// Run a chain over Prime's event system.

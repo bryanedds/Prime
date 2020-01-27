@@ -106,8 +106,8 @@
     <Compile Include="PropertySystem.fs" />
     <Compile Include="EventTrace.fs" />
     <Compile Include="EventFilter.fs" />
-    <Compile Include="EventParticipant.fs" />
-    <Compile Include="EventParticipantLens.fs" />
+    <Compile Include="EventSimulant.fs" />
+    <Compile Include="EventSimulantLens.fs" />
     <Compile Include="EventSystemDelegate.fs" />
     <Compile Include="EventSystem.fs" />
     <Compile Include="Stream.fs" />

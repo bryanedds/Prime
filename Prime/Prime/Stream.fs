@@ -18,15 +18,15 @@ module Stream =
     let [<DebuggerHidden; DebuggerStepThrough>] make<'a, 'w when 'w :> EventSystem<'w>>
         (eventAddress : 'a Address) : Stream<'a, 'w> =
         let subscribe = fun (world : 'w) ->
-            let globalParticipant = EventSystem.getGlobalParticipantGeneralized world
+            let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
             let subscriptionKey = makeGuid ()
             let subscriptionAddress = ntoa<'a> (scstring subscriptionKey)
             let unsubscribe = fun world -> EventSystem.unsubscribe<'w> subscriptionKey world
             let subscription = fun evt world ->
                 let eventTrace = EventTrace.record "Stream" "stream" evt.Trace
-                let world = EventSystem.publishPlus<'a, Participant, 'w> EventSystem.sortSubscriptionsNone evt.Data subscriptionAddress eventTrace globalParticipant false world
+                let world = EventSystem.publishPlus<'a, Simulant, 'w> EventSystem.sortSubscriptionsNone evt.Data subscriptionAddress eventTrace globalSimulant false world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'a, Participant, 'w> subscriptionKey subscription eventAddress globalParticipant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionKey subscription eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -37,13 +37,13 @@ module Stream =
     (* Side-Effecting Combinators *)
 
     let [<DebuggerHidden; DebuggerStepThrough>] trackEffect4
-        (tracker : 'c -> Event<'a, Participant> -> 'w -> 'c * bool * 'w)
+        (tracker : 'c -> Event<'a, Simulant> -> 'w -> 'c * bool * 'w)
         (transformer : 'c -> 'b)
         (state : 'c)
         (stream : Stream<'a, 'w>) :
         Stream<'b, 'w> =
         let subscribe = fun (world : 'w) ->
-            let globalParticipant = EventSystem.getGlobalParticipantGeneralized world
+            let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
             let stateKey = makeGuid ()
             let world = EventSystem.addEventState stateKey state world
             let subscriptionKey = makeGuid ()
@@ -61,19 +61,19 @@ module Stream =
                     if tracked then
                         let eventData = transformer state
                         let eventTrace = EventTrace.record "Stream" "trackEvent4" evt.Trace
-                        EventSystem.publishPlus<'b, Participant, 'w> EventSystem.sortSubscriptionsNone eventData subscriptionAddress eventTrace globalParticipant false world
+                        EventSystem.publishPlus<'b, Simulant, 'w> EventSystem.sortSubscriptionsNone eventData subscriptionAddress eventTrace globalSimulant false world
                     else world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'a, Participant, 'w> subscriptionKey subscription eventAddress globalParticipant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionKey subscription eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
     let [<DebuggerHidden; DebuggerStepThrough>] trackEffect2
-        (tracker : 'a -> Event<'a, Participant> -> 'w -> 'a * bool * 'w)
+        (tracker : 'a -> Event<'a, Simulant> -> 'w -> 'a * bool * 'w)
         (stream : Stream<'a, 'w>) :
         Stream<'a, 'w> =
         let subscribe = fun (world : 'w) ->
-            let globalParticipant = EventSystem.getGlobalParticipantGeneralized world
+            let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
             let stateKey = makeGuid ()
             let world = EventSystem.addEventState stateKey None world
             let subscriptionKey = makeGuid ()
@@ -91,17 +91,17 @@ module Stream =
                 let world =
                     if tracked then
                         let eventTrace = EventTrace.record "Stream" "trackEvent2" evt.Trace
-                        EventSystem.publishPlus<'a, Participant, 'w> EventSystem.sortSubscriptionsNone state subscriptionAddress eventTrace globalParticipant false world
+                        EventSystem.publishPlus<'a, Simulant, 'w> EventSystem.sortSubscriptionsNone state subscriptionAddress eventTrace globalSimulant false world
                     else world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'a, Participant, 'w> subscriptionKey subscription eventAddress globalParticipant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionKey subscription eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
     let [<DebuggerHidden; DebuggerStepThrough>] trackEffect
         (tracker : 'b -> 'w -> 'b * bool * 'w) (state : 'b) (stream : Stream<'a, 'w>) : Stream<'a, 'w> =
         let subscribe = fun (world : 'w) ->
-            let globalParticipant = EventSystem.getGlobalParticipantGeneralized world
+            let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
             let stateKey = makeGuid ()
             let world = EventSystem.addEventState stateKey state world
             let subscriptionKey = makeGuid ()
@@ -118,30 +118,30 @@ module Stream =
                 let world =
                     if tracked then
                         let eventTrace = EventTrace.record "Stream" "trackEvent" evt.Trace
-                        EventSystem.publishPlus<'a, Participant, 'w> EventSystem.sortSubscriptionsNone evt.Data subscriptionAddress eventTrace globalParticipant false world
+                        EventSystem.publishPlus<'a, Simulant, 'w> EventSystem.sortSubscriptionsNone evt.Data subscriptionAddress eventTrace globalSimulant false world
                     else world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'a, Participant, 'w> subscriptionKey subscription eventAddress globalParticipant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionKey subscription eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
     /// Fold over a stream, then map the result.
-    let [<DebuggerHidden; DebuggerStepThrough>] foldMapEffect (f : 'b -> Event<'a, Participant> -> 'w -> 'b * 'w) g s (stream : Stream<'a, 'w>) : Stream<'c, 'w> =
+    let [<DebuggerHidden; DebuggerStepThrough>] foldMapEffect (f : 'b -> Event<'a, Simulant> -> 'w -> 'b * 'w) g s (stream : Stream<'a, 'w>) : Stream<'c, 'w> =
         trackEffect4 (fun b a w -> (Triple.insert true (f b a w))) g s stream
 
     /// Fold over a stream, aggegating the result.
-    let [<DebuggerHidden; DebuggerStepThrough>] foldEffect (f : 'b -> Event<'a, Participant> -> 'w -> 'b * 'w) s (stream : Stream<'a, 'w>) : Stream<'b, 'w> =
+    let [<DebuggerHidden; DebuggerStepThrough>] foldEffect (f : 'b -> Event<'a, Simulant> -> 'w -> 'b * 'w) s (stream : Stream<'a, 'w>) : Stream<'b, 'w> =
         trackEffect4 (fun b a w -> (Triple.insert true (f b a w))) id s stream
 
     /// Reduce over a stream, accumulating the result.
-    let [<DebuggerHidden; DebuggerStepThrough>] reduceEffect (f : 'a -> Event<'a, Participant> -> 'w -> 'a * 'w) (stream : Stream<'a, 'w>) : Stream<'a, 'w> =
+    let [<DebuggerHidden; DebuggerStepThrough>] reduceEffect (f : 'a -> Event<'a, Simulant> -> 'w -> 'a * 'w) (stream : Stream<'a, 'w>) : Stream<'a, 'w> =
         trackEffect2 (fun a a2 w -> (Triple.insert true (f a a2 w))) stream
 
     /// Filter a stream by the given 'pred' procedure.
     let [<DebuggerHidden; DebuggerStepThrough>] filterEffect
-        (pred : Event<'a, Participant> -> 'w -> bool * 'w) (stream : Stream<'a, 'w>) =
+        (pred : Event<'a, Simulant> -> 'w -> bool * 'w) (stream : Stream<'a, 'w>) =
         let subscribe = fun (world : 'w) ->
-            let globalParticipant = EventSystem.getGlobalParticipantGeneralized world
+            let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
             let subscriptionKey = makeGuid ()
             let subscriptionAddress = ntoa<'a> (scstring subscriptionKey)
             let (eventAddress, unsubscribe, world) = stream.Subscribe world
@@ -153,18 +153,18 @@ module Stream =
                 let world =
                     if passed then
                         let eventTrace = EventTrace.record "Stream" "filterEvent" evt.Trace
-                        EventSystem.publishPlus<'a, Participant, 'w> EventSystem.sortSubscriptionsNone evt.Data subscriptionAddress eventTrace globalParticipant false world
+                        EventSystem.publishPlus<'a, Simulant, 'w> EventSystem.sortSubscriptionsNone evt.Data subscriptionAddress eventTrace globalSimulant false world
                     else world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'a, Participant, 'w> subscriptionKey subscription eventAddress globalParticipant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionKey subscription eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
     /// Map over a stream by the given 'mapper' procedure.
     let [<DebuggerHidden; DebuggerStepThrough>] mapEffect
-        (mapper : Event<'a, Participant> -> 'w -> 'b * 'w) (stream : Stream<'a, 'w>) : Stream<'b, 'w> =
+        (mapper : Event<'a, Simulant> -> 'w -> 'b * 'w) (stream : Stream<'a, 'w>) : Stream<'b, 'w> =
         let subscribe = fun (world : 'w) ->
-            let globalParticipant = EventSystem.getGlobalParticipantGeneralized world
+            let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
             let subscriptionKey = makeGuid ()
             let subscriptionAddress = ntoa<'b> (scstring subscriptionKey)
             let (eventAddress, unsubscribe, world) = stream.Subscribe world
@@ -174,22 +174,22 @@ module Stream =
             let subscription = fun evt world ->
                 let (eventData, world) = mapper evt world
                 let eventTrace = EventTrace.record "Stream" "mapEvent" evt.Trace
-                let world = EventSystem.publishPlus<'b, Participant, 'w> EventSystem.sortSubscriptionsNone eventData subscriptionAddress eventTrace globalParticipant false world
+                let world = EventSystem.publishPlus<'b, Simulant, 'w> EventSystem.sortSubscriptionsNone eventData subscriptionAddress eventTrace globalSimulant false world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'a, Participant, 'w> subscriptionKey subscription eventAddress globalParticipant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionKey subscription eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
     /// Map over two streams.
     let [<DebuggerHidden; DebuggerStepThrough>] map2Effect
-        (mapper : Event<'a, Participant> -> Event<'b, Participant> -> 'w -> 'c * 'w)
+        (mapper : Event<'a, Simulant> -> Event<'b, Simulant> -> 'w -> 'c * 'w)
         (stream : Stream<'a, 'w>) (stream2 : Stream<'b, 'w>) : Stream<'c, 'w> =
         let subscribe = fun (world : 'w) ->
 
             // initialize event state, subscription keys and addresses
-            let globalParticipant = EventSystem.getGlobalParticipantGeneralized world
+            let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
             let stateKey = makeGuid ()
-            let state = (List.empty<Event<'a, Participant>>, List.empty<Event<'b, Participant>>)
+            let state = (List.empty<Event<'a, Simulant>>, List.empty<Event<'b, Simulant>>)
             let world = EventSystem.addEventState stateKey state world
             let subscriptionKey = makeGuid ()
             let subscriptionKey' = makeGuid ()
@@ -208,14 +208,14 @@ module Stream =
             // subscription for 'a events
             let subscription = fun evt world ->
                 let eventTrace = EventTrace.record4 "Stream" "product" "'a" evt.Trace
-                let (aList : Event<'a, Participant> list, bList : Event<'b, Participant> list) = EventSystem.getEventState stateKey world
+                let (aList : Event<'a, Simulant> list, bList : Event<'b, Simulant> list) = EventSystem.getEventState stateKey world
                 let aList = evt :: aList
                 let (state, world) =
                     match (List.rev aList, List.rev bList) with
                     | (a :: aList, b :: bList) ->
                         let state = (aList, bList)
                         let (eventData, world) = mapper a b world
-                        let world = EventSystem.publishPlus<'c, Participant, _> EventSystem.sortSubscriptionsNone eventData subscriptionAddress'' eventTrace globalParticipant false world
+                        let world = EventSystem.publishPlus<'c, Simulant, _> EventSystem.sortSubscriptionsNone eventData subscriptionAddress'' eventTrace globalSimulant false world
                         (state, world)
                     | state -> (state, world)
                 let world = EventSystem.addEventState stateKey state world
@@ -224,22 +224,22 @@ module Stream =
             // subscription for 'b events
             let subscription' = fun evt world ->
                 let eventTrace = EventTrace.record4 "Stream" "product" "'b" evt.Trace
-                let (aList : Event<'a, Participant> list, bList : Event<'b, Participant> list) = EventSystem.getEventState stateKey world
+                let (aList : Event<'a, Simulant> list, bList : Event<'b, Simulant> list) = EventSystem.getEventState stateKey world
                 let bList = evt :: bList
                 let (state, world) =
                     match (List.rev aList, List.rev bList) with
                     | (a :: aList, b :: bList) ->
                         let state = (aList, bList)
                         let (eventData, world) = mapper a b world
-                        let world = EventSystem.publishPlus<'c, Participant, _> EventSystem.sortSubscriptionsNone eventData subscriptionAddress'' eventTrace globalParticipant false world
+                        let world = EventSystem.publishPlus<'c, Simulant, _> EventSystem.sortSubscriptionsNone eventData subscriptionAddress'' eventTrace globalSimulant false world
                         (state, world)
                     | state -> (state, world)
                 let world = EventSystem.addEventState stateKey state world
                 (Cascade, world)
 
             // subscripe 'a and 'b events
-            let world = EventSystem.subscribePlus<'a, Participant, 'w> subscriptionKey subscription subscriptionAddress globalParticipant world |> snd
-            let world = EventSystem.subscribePlus<'b, Participant, 'w> subscriptionKey subscription' subscriptionAddress' globalParticipant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionKey subscription subscriptionAddress globalSimulant world |> snd
+            let world = EventSystem.subscribePlus<'b, Simulant, 'w> subscriptionKey subscription' subscriptionAddress' globalSimulant world |> snd
             (subscriptionAddress'', unsubscribe, world)
 
         // fin
@@ -248,7 +248,7 @@ module Stream =
     (* Event-Accessing Combinators *)
 
     let [<DebuggerHidden; DebuggerStepThrough>] trackEvent4
-        (tracker : 'c -> Event<'a, Participant> -> 'w -> 'c * bool)
+        (tracker : 'c -> Event<'a, Simulant> -> 'w -> 'c * bool)
         (transformer : 'c -> 'b)
         (state : 'c)
         (stream : Stream<'a, 'w>) :
@@ -256,7 +256,7 @@ module Stream =
         trackEffect4 (fun state evt world -> Triple.append world (tracker state evt world)) transformer state stream
 
     let [<DebuggerHidden; DebuggerStepThrough>] trackEvent2
-        (tracker : 'a -> Event<'a, Participant> -> 'w -> 'a * bool)
+        (tracker : 'a -> Event<'a, Simulant> -> 'w -> 'a * bool)
         (stream : Stream<'a, 'w>) :
         Stream<'a, 'w> =
         trackEffect2 (fun state evt world -> Triple.append world (tracker state evt world)) stream
@@ -266,30 +266,30 @@ module Stream =
         trackEffect (fun state world -> Triple.append world (tracker state world)) state stream
 
     /// Fold over a stream, then map the result.
-    let [<DebuggerHidden; DebuggerStepThrough>] foldMapEvent (f : 'b -> Event<'a, Participant> -> 'w -> 'b) g s (stream : Stream<'a, 'w>) : Stream<'c, 'w> =
+    let [<DebuggerHidden; DebuggerStepThrough>] foldMapEvent (f : 'b -> Event<'a, Simulant> -> 'w -> 'b) g s (stream : Stream<'a, 'w>) : Stream<'c, 'w> =
         foldMapEffect (fun state evt world -> (f state evt world, world)) g s stream
 
     /// Fold over a stream, aggegating the result.
-    let [<DebuggerHidden; DebuggerStepThrough>] foldEvent (f : 'b -> Event<'a, Participant> -> 'w -> 'b) s (stream : Stream<'a, 'w>) : Stream<'b, 'w> =
+    let [<DebuggerHidden; DebuggerStepThrough>] foldEvent (f : 'b -> Event<'a, Simulant> -> 'w -> 'b) s (stream : Stream<'a, 'w>) : Stream<'b, 'w> =
         foldEffect (fun state evt world -> (f state evt world, world)) s stream
 
     /// Reduce over a stream, accumulating the result.
-    let [<DebuggerHidden; DebuggerStepThrough>] reduceEvent (f : 'a -> Event<'a, Participant> -> 'w -> 'a) (stream : Stream<'a, 'w>) : Stream<'a, 'w> =
+    let [<DebuggerHidden; DebuggerStepThrough>] reduceEvent (f : 'a -> Event<'a, Simulant> -> 'w -> 'a) (stream : Stream<'a, 'w>) : Stream<'a, 'w> =
         reduceEffect (fun value evt world -> (f value evt world, world)) stream
 
     /// Filter a stream by the given 'pred' procedure.
     let [<DebuggerHidden; DebuggerStepThrough>] filterEvent
-        (pred : Event<'a, Participant> -> 'w -> bool) (stream : Stream<'a, 'w>) =
+        (pred : Event<'a, Simulant> -> 'w -> bool) (stream : Stream<'a, 'w>) =
         filterEffect (fun evt world -> (pred evt world, world)) stream
 
     /// Map over a stream by the given 'mapper' procedure.
     let [<DebuggerHidden; DebuggerStepThrough>] mapEvent
-        (mapper : Event<'a, Participant> -> 'w -> 'b) (stream : Stream<'a, 'w>) : Stream<'b, 'w> =
+        (mapper : Event<'a, Simulant> -> 'w -> 'b) (stream : Stream<'a, 'w>) : Stream<'b, 'w> =
         mapEffect (fun evt world -> (mapper evt world, world)) stream
 
     /// Map over two streams by the given 'mapper' procedure.
     let [<DebuggerHidden; DebuggerStepThrough>] map2Event
-        (mapper : Event<'a, Participant> -> Event<'b, Participant> -> 'w -> 'c) (stream : Stream<'a, 'w>) (stream2 : Stream<'b, 'w>) : Stream<'c, 'w> =
+        (mapper : Event<'a, Simulant> -> Event<'b, Simulant> -> 'w -> 'c) (stream : Stream<'a, 'w>) (stream2 : Stream<'b, 'w>) : Stream<'c, 'w> =
         map2Effect (fun evtA evtB world -> (mapper evtA evtB world, world)) stream stream2
 
     (* World-Accessing Combinators *)
@@ -387,7 +387,7 @@ module Stream =
             let (subscriptionAddress, unsubscribe, world) = stream.Subscribe world
             let (subscriptionAddress', unsubscribe', world) = stream2.Subscribe world
             let subscriptionAddress'' = ntoa<Either<'a, 'b>> (scstring subscriptionKey'')
-            let globalParticipant = EventSystem.getGlobalParticipantGeneralized world
+            let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
             let unsubscribe = fun world ->
                 let world = unsubscribe (unsubscribe' world)
                 let world = EventSystem.unsubscribe<'w> subscriptionKey world
@@ -395,15 +395,15 @@ module Stream =
             let subscription = fun evt world ->
                 let eventData = Left evt.Data
                 let eventTrace = EventTrace.record "Stream" "sum" evt.Trace
-                let world = EventSystem.publishPlus<Either<'a, 'b>, Participant, _> EventSystem.sortSubscriptionsNone eventData subscriptionAddress'' eventTrace globalParticipant false world
+                let world = EventSystem.publishPlus<Either<'a, 'b>, Simulant, _> EventSystem.sortSubscriptionsNone eventData subscriptionAddress'' eventTrace globalSimulant false world
                 (Cascade, world)
             let subscription' = fun evt world ->
                 let eventData = Right evt.Data
                 let eventTrace = EventTrace.record "Stream" "sum" evt.Trace
-                let world = EventSystem.publishPlus<Either<'a, 'b>, Participant, _> EventSystem.sortSubscriptionsNone eventData subscriptionAddress'' eventTrace globalParticipant false world
+                let world = EventSystem.publishPlus<Either<'a, 'b>, Simulant, _> EventSystem.sortSubscriptionsNone eventData subscriptionAddress'' eventTrace globalSimulant false world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'b, Participant, 'w> subscriptionKey' subscription' subscriptionAddress' globalParticipant world |> snd
-            let world = EventSystem.subscribePlus<'a, Participant, 'w> subscriptionKey subscription subscriptionAddress globalParticipant world |> snd
+            let world = EventSystem.subscribePlus<'b, Simulant, 'w> subscriptionKey' subscription' subscriptionAddress' globalSimulant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionKey subscription subscriptionAddress globalSimulant world |> snd
             (subscriptionAddress'', unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -415,7 +415,7 @@ module Stream =
     let [<DebuggerHidden; DebuggerStepThrough>] until
         (stream : Stream<'b, 'w>) (stream2 : Stream<'a, 'w>) : Stream<'a, 'w> =
         let subscribe = fun (world : 'w) ->
-            let globalParticipant = EventSystem.getGlobalParticipantGeneralized world
+            let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
             let subscriptionKey = makeGuid ()
             let subscriptionKey' = makeGuid ()
             let subscriptionKey'' = makeGuid ()
@@ -431,17 +431,17 @@ module Stream =
                 (Cascade, world)
             let subscription' = fun evt world ->
                 let eventTrace = EventTrace.record "Stream" "until" evt.Trace
-                let world = EventSystem.publishPlus<'a, Participant, 'w> EventSystem.sortSubscriptionsNone evt.Data subscriptionAddress'' eventTrace globalParticipant false world
+                let world = EventSystem.publishPlus<'a, Simulant, 'w> EventSystem.sortSubscriptionsNone evt.Data subscriptionAddress'' eventTrace globalSimulant false world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'a, Participant, 'w> subscriptionKey' subscription' subscriptionAddress' globalParticipant world |> snd
-            let world = EventSystem.subscribePlus<'b, Participant, 'w> subscriptionKey subscription subscriptionAddress globalParticipant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionKey' subscription' subscriptionAddress' globalSimulant world |> snd
+            let world = EventSystem.subscribePlus<'b, Simulant, 'w> subscriptionKey subscription subscriptionAddress globalSimulant world |> snd
             (subscriptionAddress'', unsubscribe, world)
         { Subscribe = subscribe }
 
     /// Terminate a stream when the subscriber is unregistered from the world.
-    let [<DebuggerHidden; DebuggerStepThrough>] lifetime<'s, 'a, 'w when 's :> Participant and 'w :> EventSystem<'w>>
+    let [<DebuggerHidden; DebuggerStepThrough>] lifetime<'s, 'a, 'w when 's :> Simulant and 'w :> EventSystem<'w>>
         (subscriber : 's) (stream_ : Stream<'a, 'w>) : Stream<'a, 'w> =
-        let unregisteringEventAddress = rtoa<unit> [|"Unregistering"; "Event"|] --> subscriber.ParticipantAddress
+        let unregisteringEventAddress = rtoa<unit> [|"Unregistering"; "Event"|] --> subscriber.SimulantAddress
         let removingStream = make unregisteringEventAddress
         until removingStream stream_
 
@@ -621,14 +621,14 @@ module StreamOperators =
 
     /// Make a stream of the subscriber's change events.
     let [<DebuggerHidden; DebuggerStepThrough>] (!--) (lens : Lens<'b, 'w>) =
-        let changeEventAddress = rtoa<ChangeData> [|"Change"; lens.Name; "Event"|] --> lens.This.ParticipantAddress
+        let changeEventAddress = rtoa<ChangeData> [|"Change"; lens.Name; "Event"|] --> lens.This.SimulantAddress
         Stream.make changeEventAddress --- Stream.mapEvent (fun _ world -> lens.GetWithoutValidation world)
 
-    /// Propagate the event data of a stream to a property in the observing participant when the
+    /// Propagate the event data of a stream to a property in the observing simulant when the
     /// subscriber exists (doing nothing otherwise).
     let [<DebuggerHidden; DebuggerStepThrough>] (-|>) stream (lens : Lens<'b, 'w>) =
         Stream.subscribe (fun a world ->
-            if world.ParticipantExists a.Subscriber then
+            if world.SimulantExists a.Subscriber then
                 match lens.SetOpt with
                 | Some set -> set a.Data world
                 | None -> world // TODO: log info here about property not being set-able?
