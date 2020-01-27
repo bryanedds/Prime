@@ -48,6 +48,12 @@ module BindingOperators =
     let inline (=|>) source signal : Binding<'m, 'c, 's, 'w> =
         (Unchecked.defaultof<Binding<'m, 'c, 's, 'w>> =|> source) signal
 
+    let inline bind source signal : Binding<'m, 'c, 's, 'w> =
+        source => signal
+
+    let inline react source signal : Binding<'m, 'c, 's, 'w> =
+        source =|> signal
+
 [<AutoOpen>]
 module SignalOperators =
 
