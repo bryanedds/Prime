@@ -12,22 +12,20 @@ type Simulant =
         abstract member SimulantAddress : Simulant Address
         end
 
-/// Operators for the Simulant type.
-type SimulantOperators =
-    private
-        | SimulantOperators
+[<AutoOpen>]
+module SimulantOperators =
 
-    /// Concatenate two addresses, forcing the type of first address.
-    static member acatf<'a> (address : 'a Address) (simulant : Simulant) = acatf address (atooa simulant.SimulantAddress)
+    /// Operators for the Simulant type.
+    type Simulant with
+        
+        /// Concatenate an address with a simulant's address, forcing the type of first address.
+        static member acatff<'a> (address : 'a Address) (simulant : Simulant) =
+            match box simulant with
+            | null -> address // HACK: this case is a hack to be able to insert events into an elmish event handler
+            | _ -> acatff address simulant.SimulantAddress
 
-    /// Concatenate two addresses, forcing the type of first address.
-    static member acatff<'a> (address : 'a Address) (simulant : Simulant) = acatff address simulant.SimulantAddress
-
-    /// Concatenate two addresses, takings the type of first address.
-    static member (->-) (address, simulant : Simulant) = SimulantOperators.acatf address simulant
-
-    /// Concatenate two addresses, forcing the type of first address.
-    static member (-->) (address, simulant : Simulant) = SimulantOperators.acatff address simulant
+        /// Concatenate an address with a simulant's address, forcing the type of first address.
+        // Disabled due to extension types not supporting operators: static member (-->) (address, simulant : Simulant) = Simulant.acatff address simulant
 
 /// The data for a change in a simulant.
 type [<StructuralEquality; NoComparison>] ChangeData =
