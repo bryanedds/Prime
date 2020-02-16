@@ -540,7 +540,7 @@ module Stream =
         map Option.get
 
     /// Filter events with unchanging data.
-    let optimizeBy (by : 'a -> 'b) (stream : Stream<'a, 'w>) =
+    let [<DebuggerHidden; DebuggerStepThrough>] optimizeBy (by : 'a -> 'b) (stream : Stream<'a, 'w>) =
         fold
             (fun (s, _) a ->
                 let n = by a
@@ -617,7 +617,7 @@ module Stream =
 module StreamOperators =
 
     /// Stream sequencing operator.
-    let (---) = (|>)
+    let [<DebuggerHidden; DebuggerStepThrough>] (---) = (|>)
 
     /// Make a stream of the subscriber's change events.
     let [<DebuggerHidden; DebuggerStepThrough>] (!--) (lens : Lens<'b, 'w>) =
