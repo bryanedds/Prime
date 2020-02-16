@@ -12,11 +12,11 @@ type FSharpMap<'k, 'v when 'k : comparison> = Map<'k, 'v>
 module Map =
 
     /// Check that a map is not empty.
-    let rec notEmpty map =
+    let inline notEmpty map =
         not (Map.isEmpty map)
 
     /// Make a singleton map.
-    let singleton key value =
+    let inline singleton key value =
         Map.add key value Map.empty
     
     /// Add multiple values to a map.
@@ -84,5 +84,5 @@ module Map =
 module MapOperators =
 
     /// Combine the contents of two maps, taking an item from the second map in case of a key overlap.
-    let (@@) map map2 =
+    let inline (@@) map map2 =
         Map.concat map map2

@@ -9,7 +9,7 @@ open Prime
 module Seq =
 
     /// Check that a sequence is not empty.
-    let rec notEmpty seq =
+    let inline notEmpty seq =
         not (Seq.isEmpty seq)
 
     /// Get Some head of the seq or None.
@@ -69,7 +69,7 @@ module Seq =
         System.Linq.Enumerable.Skip (seq, count)
 
     /// Try to find a value.
-    let rec tryFindPlus (pred : 'a -> 'b option) (seq : 'a seq) : 'b option =
+    let tryFindPlus (pred : 'a -> 'b option) (seq : 'a seq) : 'b option =
         let mutable result = None
         let enr = seq.GetEnumerator ()
         while Option.isNone result && enr.MoveNext () do
@@ -135,7 +135,7 @@ module Seq =
         state
 
     /// Check that a predicate passes for NO items in a sequence.
-    let rec notExists pred seq =
+    let inline notExists pred seq =
         not (Seq.exists pred seq)
 
     /// Split a sequence on a predicate.

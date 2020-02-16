@@ -10,11 +10,11 @@ open System.Text
 module String =
 
     /// Check that a string is empty.
-    let isEmpty str =
+    let inline isEmpty str =
         String.length str = 0
 
     /// Check that a string is not empty.
-    let notEmpty str =
+    let inline notEmpty str =
         String.length str > 0
 
     /// Check that a string is a guid.
@@ -82,7 +82,7 @@ module String =
 
     /// Textualize a string for usage as text.
     let textualize (str : string) =
-        str.Replace('_', '\"')
+        str.Replace ('_', '\"')
 
     /// Get the string with the given ending.
     let withEnd str target =
@@ -96,10 +96,12 @@ module String =
             (endStr = target, beginStr)
     
     /// Convert a string to an array of characters.
-    let toArray str = Array.ofList (explode str)
+    let inline toArray str =
+        Array.ofList (explode str)
     
     /// Surround a string with another surrounding string.
-    let surround (sur : string) (str : string) = sur + str + sur
+    let inline surround (sur : string) (str : string) =
+        sur + str + sur
 
     /// Contract escaped characters in a string.
     let unescape (str : string) =
@@ -141,7 +143,7 @@ module String =
             .Replace("\v", "\\v")
 
     /// Check for equality an array of strings lexicographically.
-    let rec equateMany (strs : string array) (strs2 : string array) =
+    let equateMany (strs : string array) (strs2 : string array) =
         if strs.Length = strs2.Length then
             let enr = (strs :> IEnumerable<string>).GetEnumerator ()
             let enr2 = (strs2 :> IEnumerable<string>).GetEnumerator ()
@@ -153,7 +155,7 @@ module String =
          else false
 
     /// Check for equality an array of strings lexicographically.
-    let rec equateManyOpts (strs : string option array) (strs2 : string option array) =
+    let equateManyOpts (strs : string option array) (strs2 : string option array) =
         if strs.Length = strs2.Length then
             let enr = (strs :> IEnumerable<string option>).GetEnumerator ()
             let enr2 = (strs2 :> IEnumerable<string option>).GetEnumerator ()
@@ -165,7 +167,7 @@ module String =
          else false
     
     /// Compare an array of strings lexicographically.
-    let rec compareMany (strs : string array) (strs2 : string array) =
+    let compareMany (strs : string array) (strs2 : string array) =
         let length = strs.Length // avoid copy warning
         let lengthCmp = length.CompareTo strs2.Length
         if lengthCmp = 0 then

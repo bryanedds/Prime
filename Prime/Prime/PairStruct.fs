@@ -34,5 +34,5 @@ module PairStructOperators =
 module PairStruct =
 
     /// Make a pair.
-    let make a b =
+    let inline make a b =
         (a, b)

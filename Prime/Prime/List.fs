@@ -149,7 +149,7 @@ module List =
         Seq.foldi folder state list
 
     /// Convert option values to definite values.
-    let definitize opts =
+    let inline definitize opts =
         List.choose id opts
 
     /// Convert option values to definite values, returning an additional flag to indicate that all value were some.
@@ -291,7 +291,7 @@ module List =
         Seq.split pred list
 
     /// Remove all items from a list that satisfy a predicate.
-    let rec remove pred list =
+    let remove pred list =
         List.foldBack
             (fun item listAcc -> if pred item then listAcc else item :: listAcc)
             list
@@ -314,7 +314,7 @@ module List =
         [for x in 0 .. List.length list do yield List.take x list]
 
     /// Compare a list of strings lexicographically.
-    let rec inline compareStrings (list : string list) (list2 : string list) =
+    let compareStrings (list : string list) (list2 : string list) =
         match (list, list2) with
         | ([], []) -> 0
         | (_ :: _, []) -> 1
@@ -333,7 +333,7 @@ module List =
         | head :: tail -> List.contains head tail || containsDuplicates tail
 
     /// Check that a list contains triplicate entries.
-    let rec containsTriplicates list =
+    let containsTriplicates list =
         list |>
         Array.ofList |>
         Array.groupBy id |>

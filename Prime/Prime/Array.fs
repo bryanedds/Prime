@@ -51,15 +51,15 @@ module Array =
         Seq.foldUntilRight folder state arr
 
     /// Check that an array is not empty.
-    let rec notEmpty arr =
+    let inline notEmpty arr =
         not (Array.isEmpty arr)
 
     /// Check that a predicate passes for NO items in an array.
-    let rec notExists pred arr =
+    let inline notExists pred arr =
         not (Array.exists pred arr)
 
     /// Convert option values to definite values.
-    let definitize opts =
+    let inline definitize opts =
         Array.choose id opts
 
     /// Convert option values to definite values, returning an additional flag to indicate that all values were some.
@@ -97,8 +97,5 @@ module Array =
 
     /// Hash an array.
     /// NOTE: May be a pessimization.
-    let inline hash list =
-        Array.fold
-            (fun hashValue name -> hashValue ^^^ name.GetHashCode ())
-            0
-            list
+    let hash list =
+        Array.fold (fun hashValue name -> hashValue ^^^ name.GetHashCode ()) 0 list

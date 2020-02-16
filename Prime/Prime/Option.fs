@@ -10,7 +10,7 @@ type 'a FSharpOption = 'a option
 module Option =
 
     /// Flatten an option option.
-    let inline flatten opt =
+    let flatten opt =
         match opt with
         | Some (Some s) -> Some s
         | Some None -> None

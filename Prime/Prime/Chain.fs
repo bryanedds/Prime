@@ -54,25 +54,25 @@ type ChainBuilder () =
 module ChainBuilder =
 
     /// Builds the chain monad.
-    let chain = ChainBuilder ()
+    let [<DebuggerHidden; DebuggerStepThrough>] chain = ChainBuilder ()
 
 [<RequireQualifiedAccess>]
 module Chain =
 
     /// Functor map for the chain monad.
-    let inline map f a = chain.Map f a
+    let [<DebuggerHidden; DebuggerStepThrough>] inline map f a = chain.Map f a
 
     /// Functor map for the chain monad.
-    let inline apply m a = chain.Apply m a
+    let [<DebuggerHidden; DebuggerStepThrough>] inline apply m a = chain.Apply m a
 
     /// Monadic return for the chain monad.
-    let inline returnM a = chain.Return a
+    let [<DebuggerHidden; DebuggerStepThrough>] inline returnM a = chain.Return a
 
     /// Monadic bind for the chain monad.
-    let inline bind m a = chain.Bind (m, a)
+    let [<DebuggerHidden; DebuggerStepThrough>] inline bind m a = chain.Bind (m, a)
 
     /// Get the world.
-    let get : Chain<'e, 'w, 'w> =
+    let [<DebuggerHidden; DebuggerStepThrough>] get : Chain<'e, 'w, 'w> =
         Chain (fun world -> (world, Right world))
 
     /// Get the world as transformed via 'by'.
@@ -92,11 +92,11 @@ module Chain =
         Chain (fun world -> (expr world, Right ()))
 
     /// Get the next event.
-    let next : Chain<'e, 'e, 'w> =
+    let [<DebuggerHidden; DebuggerStepThrough>] next : Chain<'e, 'e, 'w> =
         Chain (fun world -> (world, Left returnM))
 
     /// Pass over the next event.
-    let pass : Chain<'e, unit, 'w> =
+    let [<DebuggerHidden; DebuggerStepThrough>] pass : Chain<'e, unit, 'w> =
         Chain (fun world -> (world, Left (fun _ -> returnM ())))
 
     /// React to the next event, using the event's data in the reaction.
@@ -161,7 +161,7 @@ module Chain =
     let [<DebuggerHidden; DebuggerStepThrough>] run (m : Chain<unit, 'a, 'w>) (world : 'w) : 'w =
         run2 m world |> fst
 
-    let private run4 handling (chain : Chain<Event<'a, Simulant>, unit, 'w>) (stream : Stream<'a, 'w>) (world : 'w) =
+    let [<DebuggerHidden; DebuggerStepThrough>] private run4 handling (chain : Chain<Event<'a, Simulant>, unit, 'w>) (stream : Stream<'a, 'w>) (world : 'w) =
         let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
         let stateKey = makeGuid ()
         let subscriptionKey = makeGuid ()

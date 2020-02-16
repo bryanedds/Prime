@@ -85,5 +85,5 @@ module Triple =
         (a, b, mapper c)
 
     /// Make a triple.
-    let make a b c =
+    let inline make a b c =
         (a, b, c)

@@ -12,11 +12,11 @@ type FSharpSet<'a when 'a : comparison> = Set<'a>
 module Set =
 
     /// Check that a set is not empty.
-    let rec notEmpty set =
+    let inline notEmpty set =
         not (Set.isEmpty set)
 
     /// Make a singleton set.
-    let singleton value =
+    let inline singleton value =
         Set.add value Set.empty
 
     /// Add multiple values to a set.

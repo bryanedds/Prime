@@ -8,7 +8,7 @@ open System.Collections.Generic
 module HashSet =
 
     /// Make a hash set with a single item.
-    let singleton item =
+    let inline singleton item =
         List.toHashSet [item]
 
 [<AutoOpen>]
@@ -18,7 +18,7 @@ module HashSetExtension =
     type HashSet<'a> with
 
         /// Try to add an item, returning false upon failure.
-        member this.TryAdd item =
+        member inline this.TryAdd item =
             if not (this.Contains item)
             then this.Add item
             else false

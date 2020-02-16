@@ -8,7 +8,7 @@ open System.Collections.Generic
 module Dictionary =
 
     /// Make a dictionary with a single entry.
-    let singleton key value =
+    let inline singleton key value =
         List.toDict [(key, value)]
 
     /// Map over a dictionary. A new dictionary is produced.
@@ -30,11 +30,11 @@ module DictionaryExtension =
     type Dictionary<'k, 'v> with
 
         /// Force the addition of an entry, replacing the existing one if necessary.
-        member this.ForceAdd (key, value) =
+        member inline this.ForceAdd (key, value) =
             this.[key] <- value
 
         /// Try to add an entry, returning false upon failure.
-        member this.TryAdd (key, value) =
+        member inline this.TryAdd (key, value) =
             if not (this.ContainsKey key)
             then this.Add (key, value); true
             else false
