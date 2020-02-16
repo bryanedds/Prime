@@ -80,19 +80,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
         | (true, world) -> world
         | (false, _) -> failwithumf ()
 
-    member this.Map mapper : Lens<'a, 'w> =
-        { Name = this.Name
-          Get = fun world -> mapper (this.Get world)
-          SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (mapper value)) | None -> None
-          This = this.This }
-
-    member this.Map2 mapper unmapper : Lens<'b, 'w> =
-        { Name = this.Name
-          Get = fun world -> mapper (this.Get world)
-          SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (unmapper value)) | None -> None
-          This = this.This }
-
-    member this.MapOut mapper : Lens<'b, 'w> =
+    member this.Map mapper : Lens<'b, 'w> =
         { Name = this.Name
           Get = fun world -> mapper (this.Get world)
           SetOpt = None
@@ -102,6 +90,12 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
         { Name = this.Name
           Get = fun world -> mapper (this.Get world) world
           SetOpt = None
+          This = this.This }
+
+    member this.Bimap mapper unmapper : Lens<'b, 'w> =
+        { Name = this.Name
+          Get = fun world -> mapper (this.Get world)
+          SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (unmapper value)) | None -> None
           This = this.This }
 
     member this.ChangeEvent =
@@ -118,40 +112,37 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
     static member inline ( *= ) (lens : Lens<_, 'w>, value) =  lens.Update (flip (*) value)
     static member inline ( /= ) (lens : Lens<_, 'w>, value) =  lens.Update (flip (/) value)
     static member inline ( %= ) (lens : Lens<_, 'w>, value) =  lens.Update (flip (%) value)
-    static member inline (+)    (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (+) value)
-    static member inline (-)    (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (-) value)
-    static member inline (*)    (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (*) value)
-    static member inline (/)    (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (/) value)
-    static member inline (%)    (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (%) value)
-    static member inline ( ** ) (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip ( ** ) value)
-    static member inline (<<<)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (<<<) value)
-    static member inline (>>>)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (>>>) value)
-    static member inline (&&&)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (&&&) value)
-    static member inline (|||)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (|||) value)
-    static member inline (^^^)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (^^^) value)
-    static member inline (=.)   (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (=) value)
-    static member inline (<>.)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (<>) value)
-    static member inline (<.)   (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (<) value)
-    static member inline (<=.)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (<=) value)
-    static member inline (>.)   (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (>) value)
-    static member inline (>=.)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (>=) value)
-    static member inline (&&.)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (&&) value)
-    static member inline (||.)  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (||) value)
-    static member inline (.[])  (lens : Lens<_, 'w>, value) =  lens.GetBy  (flip (.[]) value)
     static member inline (~+)   (lens : Lens<_, 'w>) =         lens.Update (~+)
     static member inline (~-)   (lens : Lens<_, 'w>) =         lens.Update (~-)
     static member inline (!+)   (lens : Lens<_, 'w>) =         lens.Update inc
     static member inline (!-)   (lens : Lens<_, 'w>) =         lens.Update dec
-    static member inline (~~~)  (lens : Lens<_, 'w>) =         lens.GetBy  (~~~)
+    static member inline (+)    (lens : Lens<_, 'w>, value) =  lens.Map (flip (+) value)
+    static member inline (-)    (lens : Lens<_, 'w>, value) =  lens.Map (flip (-) value)
+    static member inline (*)    (lens : Lens<_, 'w>, value) =  lens.Map (flip (*) value)
+    static member inline (/)    (lens : Lens<_, 'w>, value) =  lens.Map (flip (/) value)
+    static member inline (%)    (lens : Lens<_, 'w>, value) =  lens.Map (flip (%) value)
+    static member inline ( ** ) (lens : Lens<_, 'w>, value) =  lens.Map (flip ( ** ) value)
+    static member inline (<<<)  (lens : Lens<_, 'w>, value) =  lens.Map (flip (<<<) value)
+    static member inline (>>>)  (lens : Lens<_, 'w>, value) =  lens.Map (flip (>>>) value)
+    static member inline (&&&)  (lens : Lens<_, 'w>, value) =  lens.Map (flip (&&&) value)
+    static member inline (|||)  (lens : Lens<_, 'w>, value) =  lens.Map (flip (|||) value)
+    static member inline (^^^)  (lens : Lens<_, 'w>, value) =  lens.Map (flip (^^^) value)
+    static member inline (=.)   (lens : Lens<_, 'w>, value) =  lens.Map (flip (=) value)
+    static member inline (<>.)  (lens : Lens<_, 'w>, value) =  lens.Map (flip (<>) value)
+    static member inline (<.)   (lens : Lens<_, 'w>, value) =  lens.Map (flip (<) value)
+    static member inline (<=.)  (lens : Lens<_, 'w>, value) =  lens.Map (flip (<=) value)
+    static member inline (>.)   (lens : Lens<_, 'w>, value) =  lens.Map (flip (>) value)
+    static member inline (>=.)  (lens : Lens<_, 'w>, value) =  lens.Map (flip (>=) value)
+    static member inline (&&.)  (lens : Lens<_, 'w>, value) =  lens.Map (flip (&&) value)
+    static member inline (||.)  (lens : Lens<_, 'w>, value) =  lens.Map (flip (||) value)
+    static member inline (.[])  (lens : Lens<_, 'w>, value) =  lens.Map (flip (.[]) value)
+    static member inline (~~~)  (lens : Lens<_, 'w>) =         lens.Map (~~~)
 
     /// Map over a lens in the given world context (read-only).
     static member inline (->>) (lens : Lens<_, 'w>, mapper) = lens.MapWorld mapper
 
     /// Map over a lens (read-only).
-    static member inline (-->) (lens : Lens<_, 'w>, mapper) = lens.MapOut mapper
-
-    /// Map over a lens (both read and write).
-    static member inline (<^>) (lens : Lens<_, 'w>, mapper) = lens.Map mapper
+    static member inline (-->) (lens : Lens<_, 'w>, mapper) = lens.Map mapper
 
     /// Set a lensed property.
     static member inline (<--) (lens : Lens<_, 'w>, value) =  lens.Set value
@@ -191,17 +182,14 @@ module Lens =
     let set<'a, 'w> a (lens : Lens<'a, 'w>) world =
         lens.Set a world
 
-    let map<'a, 'w> mapper (lens : Lens<'a, 'w>) =
+    let map<'a, 'b, 'w> mapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
         lens.Map mapper
-
-    let map2<'a, 'b, 'w> mapper unmapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
-        lens.Map2 mapper unmapper
-
-    let mapOut<'a, 'b, 'w> mapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
-        lens.MapOut mapper
 
     let mapWorld<'a, 'b, 'w> mapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
         lens.MapWorld mapper
+
+    let bimap<'a, 'b, 'w> mapper unmapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
+        lens.Bimap mapper unmapper
 
     let changeEvent<'a, 'w> (lens : Lens<'a, 'w>) =
         lens.ChangeEvent
@@ -210,12 +198,12 @@ module Lens =
         lens.Type
 
     let tryIndex i (lens : Lens<'a seq, 'w>) : Lens<'a option, 'w> =
-        lens.MapOut (Seq.tryItem i)
+        lens.Map (Seq.tryItem i)
 
     let explodeIndexedOpt indexerOpt (lens : Lens<'a seq, 'w>) : Lens<(int * 'a) option, 'w> seq =
         Seq.initInfinite id |>
         Seq.map (fun index ->
-            mapOut (fun models ->
+            map (fun models ->
                 match indexerOpt with
                 | Some indexer ->
                     let modelsIndexed = Seq.map (fun model -> (indexer model, model)) models
@@ -234,7 +222,7 @@ module Lens =
         Seq.map (flip tryIndex lens)
 
     let dereference (lens : Lens<'a option, 'w>) : Lens<'a, 'w> =
-        lens.MapOut Option.get
+        lens.Map Option.get
 
     let makeReadOnly<'a, 'w> name get this : Lens<'a, 'w> =
         { Name = name; Get = get; SetOpt = None; This = this }

@@ -77,29 +77,29 @@ module Signal =
     let none = Signals []
 
     let rec processSignal<'model, 'message, 'command, 's, 'w when 's :> Simulant>
-        (signal : Signal<'message, 'command>)
         processMessage
         processCommand
         (model : Lens<'model, 'w>)
+        (signal : Signal<'message, 'command>)
         (simulant : 's)
         (world : 'w) =
         match signal with
         | Message message ->
-            let (modelValue, signal) = processMessage (message, model.Get world, simulant, world)
+            let (modelValue, signal) = processMessage (model.Get world, message, simulant, world)
             let world = model.Set modelValue world
-            processSignal signal processMessage processCommand model simulant world
+            processSignal processMessage processCommand model signal simulant world
         | Command command ->
-            let (world, signal) = processCommand (command, model.Get world, simulant, world)
-            processSignal signal processMessage processCommand model simulant world
+            let (world, signal) = processCommand (model.Get world, command, simulant, world)
+            processSignal processMessage processCommand model signal simulant world
         | Signals signals ->
             List.fold
-                (fun world signal -> processSignal signal processMessage processCommand model simulant world)
+                (fun world signal -> processSignal processMessage processCommand model signal simulant world)
                 world signals
 
-    let processBindings bindings processMessage processCommand model simulant world =
+    let processBindings processMessage processCommand model bindings simulant world =
         List.fold (fun world binding ->
             Stream.monitor (fun evt world ->
                 let signal = binding.MakeValue evt
-                processSignal signal processMessage processCommand model simulant world)
+                processSignal processMessage processCommand model signal simulant world)
                 simulant binding.Stream world)
             world bindings
