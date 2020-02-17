@@ -133,7 +133,7 @@ module Reflection =
         KeyValuePair (key, value)
 
     let objToOption (source : obj) =
-        if isNotNull source then
+        if notNull source then
             let optType = source.GetType ()
             let value = (optType.GetProperty "Value").GetValue (source, null)
             Some value
@@ -234,7 +234,7 @@ module TypeExtension =
                 if (unionCases.[0].GetFields ()).Length = 0
                 then Some (FSharpValue.MakeUnion (unionCases.[0], [||]))
                 else None
-            elif isNotNull (this.GetConstructor [||]) then Some (Activator.CreateInstance ())
+            elif notNull (this.GetConstructor [||]) then Some (Activator.CreateInstance ())
             else None
 
         /// Get the default value for a type.
@@ -315,7 +315,7 @@ module TypeExtension =
                 Array.map
                     (fun (_, properties) -> Type.GetPropertyByPreference (preference, properties))
                     propertiesLayered
-            Array.filter isNotNull propertieOpts
+            Array.filter notNull propertieOpts
 
         /// Get all the properties, preferring those that can be written to if there is a name clash.
         member this.GetPropertiesPreferWritable () =

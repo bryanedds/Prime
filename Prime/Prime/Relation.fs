@@ -100,8 +100,8 @@ module Relation =
             | (true, names) -> Address.makeFromArray<'b> names
             | (false, _) -> failwith ("Invalid relation resolution for address '" + string address + "' and relation '" + string relation + "'.")
 
-        /// Unresolve an address to the most general form in the context of another address.
-        static member unresolve<'a, 'b> (address : 'a Address) (address2 : 'b Address) : 'b Relation =
+        /// Relate an address to another address.
+        static member relate<'a, 'b> (address : 'a Address) (address2 : 'b Address) : 'b Relation =
             let names = Address.getNames address
             let names2 = Address.getNames address2
             let namesMatching =

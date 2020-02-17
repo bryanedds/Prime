@@ -57,7 +57,7 @@ module Operators =
     let inline isNull a = match a with null -> true | _ -> false
 
     /// Test for non-null.
-    let inline isNotNull a = match a with null -> false | _ -> true
+    let inline notNull a = match a with null -> false | _ -> true
 
     /// Test that the given type has null as an actual value.
     let isNullTrueValue (ty : Type) =
