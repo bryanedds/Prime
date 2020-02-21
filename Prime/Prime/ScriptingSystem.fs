@@ -689,6 +689,6 @@ module ScriptingSystem =
             Log.info ("Successfully evaluated script '" + scriptFilePath + "'.")
             Right struct (scriptStr, evaleds, world)
         with exn ->
-            let error = "Failed to evaluate script '" + scriptFilePath + "' due to: " + scstring exn
+            let error = "Failed to evaluate script '" + scriptFilePath + "' due to: " + exn.Message
             Log.info error
             Left struct (error, choose world)

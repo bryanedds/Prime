@@ -38,14 +38,19 @@ module Program =
 
     let [<EntryPoint; STAThread>] main _ =
         let world = ScriptingWorld.make ()
-        match ScriptingSystem.tryEvalScript id ("./Prelude.amsl") world with
-        | Left struct (err, _) ->
-            Console.WriteLine ("Failed to evaluate prelude due to: " + err)
-            -1
-        | Right struct (_, _, world) ->
-            Console.WriteLine "Welcome to the Amsl Repl!"
-            Console.WriteLine "Try out a symbolic expression like [+ 2 2] or [[fun [x] [* x x]] 5]"
-            Console.WriteLine "Type 'timings' to run Prime collection timings."
-            Console.WriteLine "Type 'exit' when done."
-            runRepl world |> ignore
-            0
+        Console.Write "Attempting to evaluate Amsl prelude... "
+        let world =
+            match ScriptingSystem.tryEvalScript id Constants.Scripting.PreludeFilePath world with
+            | Left struct (err, _) ->
+                Console.WriteLine "Error!"
+                Console.WriteLine err
+                world
+            | Right struct (_, _, world) ->
+                Console.WriteLine "Success!"
+                world
+        Console.WriteLine "Welcome to the Amsl Repl!"
+        Console.WriteLine "Try writing a symbolic expression like [+ 2 2] or [[fun [x] [* x x]] 5]"
+        Console.WriteLine "Type 'timings' to run Prime collection timings."
+        Console.WriteLine "Type 'exit' when done!"
+        runRepl world |> ignore
+        0
