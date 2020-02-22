@@ -10,7 +10,8 @@ type 'w Lens =
     interface
         abstract Name : string
         abstract This : Simulant
-        abstract Get : 'w -> obj
+        abstract Validate : 'w -> bool
+        abstract GetWithoutValidation : 'w -> obj
         abstract SetOpt : (obj -> 'w -> 'w) option
         abstract Type : Type
         abstract ChangeEvent : ChangeData Address
@@ -20,13 +21,15 @@ type 'w Lens =
 /// Similar to a Haskell lens, but specialized to simulant properties.
 type [<NoEquality; NoComparison>] Lens<'a, 'w> =
     { Name : string
-      Get : 'w -> 'a
+      Validate : 'w -> bool
+      GetWithoutValidation : 'w -> 'a
       SetOpt : ('a -> 'w -> 'w) option
       This : Simulant }
 
     interface 'w Lens with
         member this.Name = this.Name
-        member this.Get world = this.Get world :> obj
+        member this.Validate world = this.Validate world
+        member this.GetWithoutValidation world = this.GetWithoutValidation world :> obj
         member this.SetOpt = Option.map (fun set -> fun (value : obj) world -> set (value :?> 'a) world) this.SetOpt
         member this.This = this.This
         member this.Type = typeof<'a>
@@ -35,12 +38,18 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
     member this.Generalize () =
         let this = this :> 'w Lens
         { Name = this.Name
-          Get = this.Get
+          Validate = this.Validate
+          GetWithoutValidation = this.GetWithoutValidation
           SetOpt = this.SetOpt
           This = this.This }
 
+    member this.Get world =
+        if not (this.Validate world) then failwith "Invalid lens."
+        this.GetWithoutValidation world
+
     member this.GetBy by world =
-        by (this.Get world)
+        if not (this.Validate world) then failwith "Invalid lens."
+        by (this.GetWithoutValidation world)
 
     member this.TrySet value world =
         match this.SetOpt with
@@ -53,12 +62,14 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
         | (false, _) -> failwith ("PropertyTag for '" + this.Name + "' is readonly.")
 
     member this.TryUpdateEffect updater world =
-        let value = this.Get world
+        if not (this.Validate world) then failwith "Invalid lens."
+        let value = this.GetWithoutValidation world
         let (value', world) = updater value world
         this.TrySet value' world
 
     member this.TryUpdateWorld updater world =
-        let value = this.Get world
+        if not (this.Validate world) then failwith "Invalid lens."
+        let value = this.GetWithoutValidation world
         let value' = updater value world
         this.TrySet value' world
 
@@ -82,19 +93,22 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
 
     member this.Map mapper : Lens<'b, 'w> =
         { Name = this.Name
-          Get = fun world -> mapper (this.Get world)
+          Validate = this.Validate
+          GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world)
           SetOpt = None
           This = this.This }
 
     member this.MapWorld mapper : Lens<'b, 'w> =
         { Name = this.Name
-          Get = fun world -> mapper (this.Get world) world
+          Validate = this.Validate
+          GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world) world
           SetOpt = None
           This = this.This }
 
     member this.Bimap mapper unmapper : Lens<'b, 'w> =
         { Name = this.Name
-          Get = fun world -> mapper (this.Get world)
+          Validate = this.Validate
+          GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world)
           SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (unmapper value)) | None -> None
           This = this.This }
 
@@ -151,7 +165,8 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
     /// TODO: see if this operator is actually useful / understandable.
     static member inline (!.) (lens : Lens<_, 'w>) =
         fun world ->
-            lens.Get world
+            if not (lens.Validate world) then failwith "Invalid lens."
+            lens.GetWithoutValidation world
 
 [<RequireQualifiedAccess>]
 module Lens =
@@ -160,7 +175,8 @@ module Lens =
         lens.Name
 
     let get<'a, 'w> (lens : Lens<'a, 'w>) world =
-        lens.Get world
+        if not (lens.Validate world) then failwith "Invalid lens."
+        lens.GetWithoutValidation world
 
     let setOpt<'a, 'w> a (lens : Lens<'a, 'w>) world =
         match lens.SetOpt with
@@ -225,10 +241,10 @@ module Lens =
         lens.Map Option.get
 
     let makeReadOnly<'a, 'w> name get this : Lens<'a, 'w> =
-        { Name = name; Get = get; SetOpt = None; This = this }
+        { Name = name; Validate = tautology; GetWithoutValidation = get; SetOpt = None; This = this }
 
     let make<'a, 'w> name get set this : Lens<'a, 'w> =
-        { Name = name; Get = get; SetOpt = Some set; This = this }
+        { Name = name; Validate = tautology; GetWithoutValidation = get; SetOpt = Some set; This = this }
 
 [<AutoOpen>]
 module LensOperators =
