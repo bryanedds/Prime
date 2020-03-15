@@ -401,8 +401,8 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
         if destType = typeof<string> then
             match source with
             | null ->
-                if FSharpType.IsUnion pointType
-                then (FSharpType.GetUnionCases pointType).[0].Name :> obj
+                if pointType = typeof<unit> then "[]" :> obj
+                elif FSharpType.IsUnion pointType then (FSharpType.GetUnionCases pointType).[0].Name :> obj
                 // here we are totally fucked because PropertyGrid passes typeof<obj> to the converter's ctor and we
                 // have no information about what the fuck to do...
                 else source
