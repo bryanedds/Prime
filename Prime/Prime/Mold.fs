@@ -30,7 +30,7 @@ module Mold =
         | Double
         | Decimal
         | Enum of string * string array
-        | DateTime
+        | DateTimeOffset
         | IPAddress
         | Guid
 

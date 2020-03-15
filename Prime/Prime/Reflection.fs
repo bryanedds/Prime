@@ -15,16 +15,35 @@ type [<AttributeUsage (AttributeTargets.Class); AllowNullLiteral>] DefaultValueA
     inherit Attribute ()
     member this.DefaultValue = defaultValue
 
+/// A computed property.
+type [<NoEquality; NoComparison>] ComputedProperty =
+    { ComputedType : Type
+      ComputedGet : obj -> obj -> obj
+      ComputedSetOpt : (obj -> obj -> obj -> obj) option }
+
+[<RequireQualifiedAccess>]
+module ComputedProperty =
+
+    let make ty get setOpt =
+        { ComputedType = ty
+          ComputedGet = get
+          ComputedSetOpt = setOpt }
+
+    let makeReadOnly ty get =
+        make ty get None
+
 /// An evaluatable expression for defining a property.
 type [<NoEquality; NoComparison>] PropertyExpr =
     | DefineExpr of DefineExpr : obj
     | VariableExpr of VariableExpr : (obj -> obj)
+    | ComputedExpr of ComputedProperty : ComputedProperty
 
     /// Evaluate a property expression.
     static member eval expr context =
         match expr with
         | DefineExpr value -> value
         | VariableExpr fn -> fn context
+        | ComputedExpr cp -> cp :> obj
 
 /// The definition of a data-driven property.
 type [<NoEquality; NoComparison>] PropertyDefinition =

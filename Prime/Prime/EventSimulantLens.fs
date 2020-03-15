@@ -260,3 +260,13 @@ module LensOperators =
 
     let variable (lens : Lens<'a, 'w>) (variable : 'w -> 'a) =
         PropertyDefinition.makeValidated lens.Name typeof<'a> (VariableExpr (fun world -> variable (world :?> 'w) :> obj))
+
+    let computed (lens : Lens<'a, 'w>) (get : 't -> 'w -> 'a) (setOpt : ('a -> 't -> 'w -> 'w) option) =
+        let computedProperty =
+            ComputedProperty.make
+                typeof<'a>
+                (fun (target : obj) (world : obj) -> get (target :?> 't) (world :?> 'w) :> obj)
+                (match setOpt with
+                 | Some set -> Some (fun value (target : obj) (world : obj) -> set (value :?> 'a) (target :?> 't) (world :?> 'w) :> obj)
+                 | None -> None)
+        PropertyDefinition.makeValidated lens.Name computedProperty.ComputedType (ComputedExpr computedProperty)

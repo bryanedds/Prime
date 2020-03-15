@@ -58,7 +58,7 @@ module Molder =
         | Mold.Double -> if molder.Randomizing then double (molder.Random.NextDouble ()) :> obj else double 0 :> obj
         | Mold.Decimal -> if molder.Randomizing then decimal (molder.Random.NextDouble ()) :> obj else decimal 0 :> obj
         | Mold.Enum (name, cases) -> let ty = Type.GetType name in if molder.Randomizing then Enum.Parse (ty, cases.[molder.Random.Next cases.Length]) else Activator.CreateInstance ty
-        | Mold.DateTime -> if molder.Randomizing then DateTime.UtcNow :> obj else DateTime.MinValue :> obj
+        | Mold.DateTimeOffset -> if molder.Randomizing then DateTimeOffset.UtcNow :> obj else DateTimeOffset.MinValue :> obj
         | Mold.IPAddress -> if molder.Randomizing then new IPAddress (int64 (molder.Random.Next ())) :> obj else Guid.Empty :> obj
         | Mold.Guid -> if molder.Randomizing then Guid.NewGuid () :> obj else Guid.Empty :> obj
 
@@ -79,7 +79,7 @@ module Molder =
             elif ty = typeof<System.Double> then moldRef := Mold.Primitive (pathOpt, Mold.Double)
             elif ty = typeof<System.Decimal> then moldRef := Mold.Primitive (pathOpt, Mold.Decimal)
             elif ty.IsEnum then moldRef := Mold.Primitive (pathOpt, Mold.Enum (ty.AssemblyQualifiedName, Enum.GetNames ty))
-            elif ty = typeof<System.DateTime> then moldRef := Mold.Primitive (pathOpt, Mold.DateTime)
+            elif ty = typeof<System.DateTimeOffset> then moldRef := Mold.Primitive (pathOpt, Mold.DateTimeOffset)
             elif ty = typeof<System.Net.IPAddress> then moldRef := Mold.Primitive (pathOpt, Mold.IPAddress)
             elif ty = typeof<System.Guid> then moldRef := Mold.Primitive (pathOpt, Mold.Guid)
             elif FSharpType.IsTuple ty then
@@ -148,7 +148,7 @@ module Molder =
         | Mold.Double -> typeof<System.Double>
         | Mold.Decimal -> typeof<System.Decimal>
         | Mold.Enum (name, _) -> Type.GetType name
-        | Mold.DateTime -> typeof<System.DateTime>
+        | Mold.DateTimeOffset -> typeof<System.DateTimeOffset>
         | Mold.IPAddress -> typeof<System.Net.IPAddress>
         | Mold.Guid -> typeof<System.Guid>
 

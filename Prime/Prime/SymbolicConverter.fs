@@ -159,10 +159,10 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             else
                 let typeConverter = TypeDescriptor.GetConverter sourceType
                 match typeConverter with
-                | :? DateTimeConverter ->
+                | :? DateTimeOffsetConverter ->
                     // HACK: we do not want to use this converter here as it strips the time when converting to string!
-                    let dateTimeStr = string source
-                    Text (dateTimeStr, None)
+                    let dateTimeOffsetStr = string source
+                    Text (dateTimeOffsetStr, None)
                 | _ ->
                     if typeConverter.CanConvertTo typeof<Symbol>
                     then typeConverter.ConvertTo (source, typeof<Symbol>) :?> Symbol
