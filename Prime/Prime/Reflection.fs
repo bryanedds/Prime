@@ -15,23 +15,6 @@ type [<AttributeUsage (AttributeTargets.Class); AllowNullLiteral>] DefaultValueA
     inherit Attribute ()
     member this.DefaultValue = defaultValue
 
-/// A computed property.
-type [<NoEquality; NoComparison>] ComputedProperty =
-    { ComputedType : Type
-      ComputedGet : obj -> obj -> obj
-      ComputedSetOpt : (obj -> obj -> obj -> obj) option }
-
-[<RequireQualifiedAccess>]
-module ComputedProperty =
-
-    let make ty get setOpt =
-        { ComputedType = ty
-          ComputedGet = get
-          ComputedSetOpt = setOpt }
-
-    let makeReadOnly ty get =
-        make ty get None
-
 /// An evaluatable expression for defining a property.
 type [<NoEquality; NoComparison>] PropertyExpr =
     | DefineExpr of DefineExpr : obj
@@ -46,7 +29,7 @@ type [<NoEquality; NoComparison>] PropertyExpr =
         | ComputedExpr cp -> cp :> obj
 
 /// The definition of a data-driven property.
-type [<NoEquality; NoComparison>] PropertyDefinition =
+and [<NoEquality; NoComparison>] PropertyDefinition =
     { PropertyName : string
       PropertyType : Type
       PropertyExpr : PropertyExpr }
@@ -71,7 +54,7 @@ type [<NoEquality; NoComparison>] PropertyDefinition =
         result
 
 /// In tandem with the define literal, grants a nice syntax to define value properties.
-type ValueDescription =
+and ValueDescription =
     { ValueDescription : unit }
     
     /// Some magic syntax for composing value properties.
@@ -80,7 +63,7 @@ type ValueDescription =
             PropertyDefinition.makeValidated propertyName typeof<'v> (DefineExpr value)
 
 /// In tandem with the variable literal, grants a nice syntax to define variable properties.
-type VariableDescription =
+and VariableDescription =
     { VariableDescription : unit }
 
     /// Some magic syntax for composing variable properties.
@@ -89,7 +72,7 @@ type VariableDescription =
             PropertyDefinition.makeValidated propertyName typeof<'v> (VariableExpr (fun context -> variable (context :?> 'w) :> obj))
 
 /// In tandem with the property literal, grants a nice syntax to denote properties.
-type PropertyDescription =
+and PropertyDescription =
     { PropertyDescription : unit }
     
     /// Some magic syntax for composing value properties.
@@ -97,22 +80,36 @@ type PropertyDescription =
         propertyName
     
 /// Describes a property.
-type [<StructuralEquality; NoComparison>] PropertyDescriptor =
+and [<StructuralEquality; NoComparison>] PropertyDescriptor =
     { PropertyName : string
       PropertyType : Type }
 
 /// A vanilla property.
-type [<StructuralEquality; NoComparison>] Property =
+and [<StructuralEquality; NoComparison>] Property =
     { mutable PropertyType : Type
       mutable PropertyValue : obj }
 
 /// A designer-defined property.
-type [<StructuralEquality; NoComparison>] DesignerProperty =
+and [<StructuralEquality; NoComparison>] DesignerProperty =
     { mutable DesignerType : Type
       mutable DesignerValue : obj }
 
-/// A map of properties.
-type PropertyMap = UMap<string, Property>
+/// A computed property.
+and [<NoEquality; NoComparison>] ComputedProperty =
+    { ComputedType : Type
+      ComputedGet : obj -> obj -> obj
+      ComputedSetOpt : (obj -> obj -> obj -> obj) option }
+
+[<RequireQualifiedAccess>]
+module ComputedProperty =
+
+    let make ty get setOpt =
+        { ComputedType = ty
+          ComputedGet = get
+          ComputedSetOpt = setOpt }
+
+    let makeReadOnly ty get =
+        make ty get None
 
 [<AutoOpen>]
 module ReflectionSyntax =
