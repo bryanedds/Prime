@@ -109,6 +109,12 @@ module Either =
         | Right r -> Right (mapper r)
         | Left l -> Left l
 
+    /// Map both sides of an either value.
+    let map fnl fnr eir =
+        eir |>
+        mapLeft fnl |>
+        mapRight fnr
+
     /// Split a sequences of Either values into a pair of left and right value lists.
     let split eirs =
         List.foldBack
