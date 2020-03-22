@@ -1,12 +1,12 @@
 ﻿// Prime - A PRIMitivEs code library.
 // Copyright (C) Bryan Edds, 2013-2020.
 
-namespace Prime
+namespace Prime.Tests
 open System
 open System.Collections.Generic
 open System.Diagnostics
 open Prime
-module Timings =
+module TimingTests =
 
     /// The number of samples taken for each timing.
     let [<Literal>] private Samples = 3
@@ -37,8 +37,8 @@ module Timings =
             watch2.Stop ()
             printfn "Make time: %A\tLookup time: %A\tRun time: %A" watch.Elapsed watch2.Elapsed (watch.Elapsed + watch2.Elapsed)
 
-    /// Run timings.
-    let runTimings () =
+    /// Run timing tests.
+    let run () =
 
         // run array timings
         let array = [|0 .. 10000000|]

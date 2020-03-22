@@ -73,6 +73,7 @@
     <Compile Include="XtensionTests.fs" />
     <Compile Include="EventTests.fs" />
     <Compile Include="ScriptingTests.fs" />
+    <Compile Include="TimingTests.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Program.fs" />
     <Content Include="Prelude.amsl">

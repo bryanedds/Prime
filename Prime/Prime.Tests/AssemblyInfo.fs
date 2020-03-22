@@ -1,5 +1,5 @@
 // Prime - A PRIMitivEs code library.
-// Copyright (C) Bryan Edds, 2013-2019.
+// Copyright (C) Bryan Edds, 2013-2020.
 
 namespace Prime.Tests.AssemblyInfo
 open System.Reflection
@@ -13,7 +13,7 @@ open System.Runtime.InteropServices
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("Bryan Edds")>]
 [<assembly: AssemblyProduct("Prime")>]
-[<assembly: AssemblyCopyright("Copyright © Bryan Edds 2019")>]
+[<assembly: AssemblyCopyright("Copyright © Bryan Edds 2020")>]
 [<assembly: AssemblyTrademark("")>]
 [<assembly: AssemblyCulture("")>]
 
