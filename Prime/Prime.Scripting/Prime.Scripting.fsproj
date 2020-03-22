@@ -63,7 +63,9 @@
     <Compile Include="ScriptingSystem.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Program.fs" />
-    <None Include="Prelude.amsl" />
+    <Content Include="Prelude.amsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="App.config" />
     <Content Include="Packages.config" />
   </ItemGroup>
