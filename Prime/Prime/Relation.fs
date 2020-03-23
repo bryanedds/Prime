@@ -87,8 +87,8 @@ module Relation =
         static member equals relation relation2 =
             String.equateManyOpts relation.NameOpts relation2.NameOpts
 
-        /// Resolve a relationship to an address.
-        static member resolve<'a, 'b> (address : 'a Address) (relation : 'b Relation) =
+        /// Resolve a relation from an address.
+        static member resolve<'a, 'b> (address : 'a Address) (relation : 'b Relation) : 'b Address =
             // OPTIMIZATION: using array for speed.
             let addressNames = Address.getNames address
             let nameOpts = relation.NameOpts
@@ -100,7 +100,7 @@ module Relation =
             | (true, names) -> Address.makeFromArray<'b> names
             | (false, _) -> failwith ("Invalid relation resolution for address '" + string address + "' and relation '" + string relation + "'.")
 
-        /// Relate an address to another address.
+        /// Relate the second address to the first.
         static member relate<'a, 'b> (address : 'a Address) (address2 : 'b Address) : 'b Relation =
             let names = Address.getNames address
             let names2 = Address.getNames address2
@@ -112,8 +112,8 @@ module Relation =
                     if enr.Current = enr2.Current then
                         namesMatching <- inc namesMatching
                 namesMatching
-            let names2' = Array.trySkip namesMatching names2
-            { NameOpts = (Array.append (Array.init namesMatching (fun _ -> None)) (Array.map Some names2')) }
+            let names3 = Array.trySkip namesMatching names2
+            { NameOpts = (Array.append (Array.init namesMatching (fun _ -> None)) (Array.map Some names3)) }
 
         interface 'a Relation IEquatable with
             member this.Equals that =
