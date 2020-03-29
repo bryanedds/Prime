@@ -86,9 +86,6 @@ module Xtension =
     [<RequireQualifiedAccess>]
     module Xtension =
     
-        /// The TConfig of Xtension's T/U structures.
-        let Config = Functional
-    
         /// Make an extension.
         let make properties canDefault isSealed imperative =
             { Properties = properties
@@ -98,16 +95,16 @@ module Xtension =
                 (if imperative then ImperativeMask else 0) }
 
         /// An Xtension that cannot default, is sealed, and is imperative.
-        let makeImperative () = make (UMap.makeEmpty Config) false true true
+        let makeImperative () = make (UMap.makeEmpty Imperative) false true true
     
         /// An Xtension that can default, isn't sealed, and isn't imperative.
-        let makeEmpty () = make (UMap.makeEmpty Config) true false false
+        let makeEmpty () = make (UMap.makeEmpty Functional) true false false
     
         /// An Xtension that cannot default, is sealed, and isn't imperative.
-        let makeSafe () = make (UMap.makeEmpty Config) false true false
+        let makeSafe () = make (UMap.makeEmpty Functional) false true false
     
         /// An Xtension that cannot default, isn't sealed, and isn't imperative.
-        let makeMixed () = make (UMap.makeEmpty Config) false false false
+        let makeMixed () = make (UMap.makeEmpty Functional) false false false
 
         /// Check whether the extension uses mutation.
         let getImperative (xtension : Xtension) = xtension.Imperative
