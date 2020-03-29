@@ -1,4 +1,7 @@
-﻿namespace Prime
+﻿// Prime - A PRIMitivEs code library.
+// Copyright (C) Bryan Edds, 2013-2020.
+
+namespace Prime
 open System
 open System.Net
 open System.Collections.Generic

@@ -1,5 +1,5 @@
 // Prime - A PRIMitivEs code library.
-// Copyright (C) Bryan Edds, 2013-2019.
+// Copyright (C) Bryan Edds, 2013-2020.
 
 namespace Prime.AssemblyInfo
 open System.Reflection
@@ -13,7 +13,7 @@ open System.Runtime.InteropServices
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("Bryan Edds")>]
 [<assembly: AssemblyProduct("Prime")>]
-[<assembly: AssemblyCopyright("Copyright © Bryan Edds 2019")>]
+[<assembly: AssemblyCopyright("Copyright © Bryan Edds 2020")>]
 [<assembly: AssemblyTrademark("")>]
 [<assembly: AssemblyCulture("")>]
 
@@ -26,8 +26,8 @@ open System.Runtime.InteropServices
 [<assembly: Guid("ee462c6e-67d0-4a00-8311-4955eb70c314")>]
 
 // Version information for assembly.
-[<assembly: AssemblyVersion("4.6.0.0")>]
-[<assembly: AssemblyFileVersion("4.6.0.0")>]
+[<assembly: AssemblyVersion("5.0.0.0")>]
+[<assembly: AssemblyFileVersion("5.0.0.0")>]
 
 // Attribute target.
 do ()

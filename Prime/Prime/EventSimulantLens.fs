@@ -1,5 +1,5 @@
 ﻿// Prime - A PRIMitivEs code library.
-// Copyright (C) Bryan Edds, 2013-2019.
+// Copyright (C) Bryan Edds, 2013-2020.
 
 namespace Prime
 open System
@@ -269,4 +269,4 @@ module LensOperators =
                 (match setOpt with
                  | Some set -> Some (fun value (target : obj) (world : obj) -> set (value :?> 'a) (target :?> 't) (world :?> 'w) :> obj)
                  | None -> None)
-        PropertyDefinition.makeValidated lens.Name computedProperty.ComputedType (ComputedExpr computedProperty)
+        PropertyDefinition.makeValidated lens.Name typeof<ComputedProperty> (ComputedExpr computedProperty)

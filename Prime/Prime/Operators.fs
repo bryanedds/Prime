@@ -1,5 +1,5 @@
 ﻿// Prime - A PRIMitivEs code library.
-// Copyright (C) Bryan Edds, 2013-2019.
+// Copyright (C) Bryan Edds, 2013-2020.
 
 namespace Prime
 open System
@@ -60,15 +60,13 @@ module Operators =
     let inline notNull a = match a with null -> false | _ -> true
 
     /// Test that the given type has null as an actual value.
-    /// TODO: check if this works with .NET Nullable types.
     let isNullTrueValue (ty : Type) =
         let isUnit = ty = typeof<unit>
-        let isString = ty = typeof<string>
         let isNullTrueValueByAttribute =
             ty.GetCustomAttributes(typeof<CompilationRepresentationAttribute>, true) |>
             Array.map (fun (attr : obj) -> attr :?> CompilationRepresentationAttribute) |>
             Array.exists (fun attr -> int attr.Flags &&& int CompilationRepresentationFlags.UseNullAsTrueValue <> 0)
-        let result = isUnit || isString || isNullTrueValueByAttribute
+        let result = isUnit || isNullTrueValueByAttribute
         result
 
     /// Get the .NET type of a target.
