@@ -99,9 +99,6 @@ module EventSystemDelegate =
     [<RequireQualifiedAccess>]
     module EventSystemDelegate =
 
-        /// The TConfig of Xtension's T/U structures.
-        let Config = Functional
-
         /// Add event state.
         let addEventState<'a, 'w> key (state : 'a) (esd : 'w EventSystemDelegate) =
             { esd with EventStates = UMap.add key (state :> obj) esd.EventStates }
@@ -201,10 +198,10 @@ module EventSystemDelegate =
         /// Make an event delegate.
         let make eventTracer eventTracing eventFilter globalSimulantSpecialized globalSimulantGeneralized =
             let esd =
-                { Subscriptions = UMap.makeEmpty Config
-                  Unsubscriptions = UMap.makeEmpty Config
+                { Subscriptions = UMap.makeEmpty Functional
+                  Unsubscriptions = UMap.makeEmpty Functional
                   EventContext = globalSimulantSpecialized
-                  EventStates = UMap.makeEmpty Config
+                  EventStates = UMap.makeEmpty Functional
                   EventTracer = eventTracer
                   EventTracing = eventTracing
                   EventFilter = eventFilter

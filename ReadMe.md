@@ -3,7 +3,6 @@ The Prime F# Code Library [![License](https://img.shields.io/badge/license-MIT-b
 
 ## Features
 
-- A powerful and reusable scripting language, AMSL, with the types in the **Scripting** module.
 - A metaprogramming system based on symbolic expressions with the **Symbol** and **SymbolicConverter** types.
 - A generalized serialization system based on the above **Symbol** types.
 - A purely functional, publisher-neutral event system with **EventSystem** and related types.
@@ -14,6 +13,7 @@ The Prime F# Code Library [![License](https://img.shields.io/badge/license-MIT-b
 - The fastest-known persistent hash map in F#, **VMap** - over twice as fast as Map, and 1/3 look-up speed of Dictionary!
 - Fastest pure functional **UList**, **UMap**, and **USet** collections rivaling the speed of .NET List, Dictionary and HashSet.
 - Innovative pure-functional wrappers for arbitrary impure objects, **KeyedCache** and **MutantCache**.
+- A powerful and reusable scripting language, AMSL, with the types in the **Scripting** module.
 - So many extension primitives I couldn't hope to mention them all!
 
 Prime is built with clean and modular **Abstract Data Type** programming style as presented here - https://vimeo.com/128464151
