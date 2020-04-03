@@ -58,10 +58,12 @@ module Xtension =
         /// Example:
         ///     let xtn = xtn.Position <- Vector2 (4.0, 5.0).
         static member (?<-) (xtension, propertyName, value : 'a) =
-            if typeof<'a> = typeof<DesignerProperty> then failwith "Cannot directly set an Xtension property to a DesignerProperty."
+            if typeof<'a> = typeof<DesignerProperty> then
+                failwith "Cannot directly set an Xtension property to a DesignerProperty."
             match UMap.tryFind propertyName xtension.Properties with
             | Some property ->
-                if xtension.Sealed && property.PropertyType <> typeof<'a> then failwith "Cannot change the type of a sealed Xtension's property."
+                if xtension.Sealed && property.PropertyType <> typeof<'a> then
+                    failwith "Cannot change the type of a sealed Xtension's property."
                 if xtension.Imperative then
                     match property.PropertyValue with
                     | :? DesignerProperty as dp -> dp.DesignerValue <- value :> obj
