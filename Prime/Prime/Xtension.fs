@@ -39,7 +39,7 @@ module Xtension =
             // check if dynamic member is an existing property
             match UMap.tryFind propertyName xtension.Properties with
             | Some property ->
-                
+
                 // return property directly if the return type matches, otherwise the default value for that type
                 match property.PropertyValue with
                 | :? DesignerProperty as dp ->
@@ -87,7 +87,7 @@ module Xtension =
 
     [<RequireQualifiedAccess>]
     module Xtension =
-    
+
         /// Make an extension.
         let make properties canDefault isSealed imperative =
             { Properties = properties
@@ -98,13 +98,13 @@ module Xtension =
 
         /// An Xtension that cannot default, is sealed, and is imperative.
         let makeImperative () = make (UMap.makeEmpty Imperative) false true true
-    
+
         /// An Xtension that can default, isn't sealed, and isn't imperative.
         let makeEmpty () = make (UMap.makeEmpty Functional) true false false
-    
+
         /// An Xtension that cannot default, is sealed, and isn't imperative.
         let makeSafe () = make (UMap.makeEmpty Functional) false true false
-    
+
         /// An Xtension that cannot default, isn't sealed, and isn't imperative.
         let makeMixed () = make (UMap.makeEmpty Functional) false false false
 
@@ -140,16 +140,16 @@ module Xtension =
 
         /// Attach a property to an Xtension.
         let attachProperty name property xtension = { xtension with Properties = UMap.add name property xtension.Properties }
-    
+
         /// Attach multiple properties to an Xtension.
         let attachProperties namesAndProperties xtension = { xtension with Properties = UMap.addMany namesAndProperties xtension.Properties }
-    
+
         /// Detach a property from an Xtension.
         let detachProperty name xtension = { xtension with Properties = UMap.remove name xtension.Properties }
-    
+
         /// Detach multiple properties from an Xtension.
         let detachProperties names xtension = { xtension with Properties = UMap.removeMany names xtension.Properties }
-    
+
         /// Convert an xtension to a sequence of its entries.
         let toSeq xtension = xtension.Properties :> _ seq
 
