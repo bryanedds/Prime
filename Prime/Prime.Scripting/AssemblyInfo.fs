@@ -1,7 +1,7 @@
 ﻿// Prime - A PRIMitivEs code library.
 // Copyright (C) Bryan Edds, 2013-2020.
 
-namespace Prime.ScriptingNamespace.AssemblyInfo
+namespace Prime.AssemblyInfo
 open System.Reflection
 open System.Runtime.InteropServices
 
