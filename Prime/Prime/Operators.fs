@@ -6,6 +6,7 @@ open System
 open System.ComponentModel
 open System.Diagnostics
 open System.Reflection
+open FSharp.Reflection
 open Prime
 
 [<AutoOpen>]
@@ -77,6 +78,11 @@ module Operators =
 
     /// Get the properties of a type.
     let inline getProperties (t : Type) = t.GetProperties (BindingFlags.Instance ||| BindingFlags.Public)
+
+    /// Get the union tag for the give case value.
+    let getTag<'u> (unionCase : 'u) =
+        let (unionCaseInfo, _) = FSharpValue.GetUnionFields (unionCase, typeof<'u>)
+        unionCaseInfo.Tag
 
     /// Compare two strings.
     let inline strCmp str str2 = String.CompareOrdinal (str, str2)
