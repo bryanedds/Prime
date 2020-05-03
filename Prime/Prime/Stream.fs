@@ -478,7 +478,7 @@ module Stream =
     /// Insert a persistent state value into the stream.
     let [<DebuggerHidden; DebuggerStepThrough>] insert state stream =
         stream |>
-        fold (fun (stateOpt, _) a -> (Some (Option.getOrDefault state stateOpt), a)) (None, Unchecked.defaultof<_>) |>
+        fold (fun (stateOpt, _) b -> (Some (Option.getOrDefault state stateOpt), b)) (None, Unchecked.defaultof<_>) |>
         map (mapFst Option.get)
 
     (* Derived Combinators *)

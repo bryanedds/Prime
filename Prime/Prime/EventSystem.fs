@@ -270,11 +270,19 @@ module EventSystem =
         (publisher : 'p)
         allowWildcard
         (world : 'w) =
+        
+        // NOTE: inlined foldWhite here in order to compact the call stack
         let objEventAddress = atooa eventAddress in logEvent<'w> objEventAddress eventTrace world
         let subscriptions = getSubscriptionsSorted publishSorter objEventAddress allowWildcard world
         let (_, world) =
-            Array.foldWhile
-                (fun (handling, world : 'w) (subscription : SubscriptionEntry) ->
+            let mutable lastState = (Cascade, world)
+            let mutable stateOpt = Some lastState
+            use mutable enr = (subscriptions :> _ seq).GetEnumerator ()
+            while stateOpt.IsSome && enr.MoveNext () do
+                lastState <- stateOpt.Value
+                stateOpt <-
+                    let (handling, world) = lastState
+                    let subscription = enr.Current
 #if DEBUG
                     let eventAddresses = getEventAddresses world
                     let cycleDetected = List.containsTriplicates eventAddresses
@@ -283,8 +291,8 @@ module EventSystem =
                     let cycleDetected = false
 #endif
                     if not cycleDetected &&
-                       (match handling with Cascade -> true | Resolve -> false) &&
-                       (match world.GetLiveness () with Running -> true | Exiting -> false) then
+                        (match handling with Cascade -> true | Resolve -> false) &&
+                        (match world.GetLiveness () with Running -> true | Exiting -> false) then
 #if DEBUG
                         let world = pushEventAddress objEventAddress world
 #endif
@@ -293,9 +301,10 @@ module EventSystem =
                         let world = popEventAddress world
 #endif
                         Some (handling, world)
-                    else None)
-                (Cascade, world)
-                subscriptions
+                    else None
+            match stateOpt with
+            | Some state -> state
+            | None -> lastState
         world
 
     /// Publish an event with no subscription sorting.
