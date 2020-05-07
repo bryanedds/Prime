@@ -70,14 +70,23 @@ type Symbol =
     | Quote of Symbol * SymbolOrigin option
     | Symbols of Symbol list * SymbolOrigin option
 
-    /// Try to get the Origin of the symbol if it has one.
-    static member tryGetOrigin symbol =
+    /// Try to get the origin of the symbol if it has one.
+    static member getOriginOpt symbol =
         match symbol with
         | Atom (_, originOpt)
         | Number (_, originOpt)
         | Text (_, originOpt)
         | Quote (_, originOpt)
         | Symbols (_, originOpt) -> originOpt
+        
+    /// Set the origin of a symbol.
+    static member setOriginOpt originOpt symbol =
+        match symbol with
+        | Atom (str, _) -> Atom (str, originOpt)
+        | Number (str, _) -> Number (str, originOpt)
+        | Text (str, _) -> Text (str, originOpt)
+        | Quote (sym, _) -> Quote (sym, originOpt)
+        | Symbols (syms, _) -> Symbols (syms, originOpt)
 
 [<RequireQualifiedAccess>]
 module Symbol =
@@ -258,15 +267,17 @@ module Symbol =
             | _ ->
                 OpenSymbolsStr + String.concat " " (List.map writeSymbol symbols) + CloseSymbolsStr
 
-    let readAtomFromCsv =
+    let readSymbolsFromCsv =
         parse {
             let! userState = getUserState
             let! start = getPosition
-            let! chars = many1 (noneOf (StructureChars + "\r\n,"))
+            do! openSymbols
+            do! skipWhitespaces
+            let! symbols = many readSymbol
+            do! closeSymbols
             let! stop = getPosition
-            let str = chars |> String.implode |> fun str -> str.TrimEnd ()
             let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
-            return Atom (str, originOpt) }
+            return Symbols (symbols, originOpt) }
 
     let readNumberFromCsv =
         parse {
@@ -282,8 +293,8 @@ module Symbol =
                 (if number.SuffixChar3 <> (char)65535 then string number.SuffixChar3 else "") + 
                 (if number.SuffixChar4 <> (char)65535 then string number.SuffixChar4 else "")
             return Number (number.String + suffix, originOpt) }
-    
-    let readStringFromCsv =
+
+    let readQuotedFromCsv =
         parse {
             let! userState = getUserState
             let! start = getPosition
@@ -295,10 +306,24 @@ module Symbol =
             let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
             return Text (str, originOpt) }
 
+    let readUnquotedFromCsv =
+        parse {
+            let! userState = getUserState
+            let! start = getPosition
+            let! chars = many1 (noneOf (StructureChars + "\r\n,"))
+            let! stop = getPosition
+            let str = String.implode chars
+            let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
+            return
+                if str.Contains "\t" || str.Contains " "
+                then Text (str, originOpt)
+                else Atom (str, originOpt) }
+
     let readFieldFromCsv =
-        attempt readStringFromCsv <|>
+        attempt readSymbolsFromCsv <|>
         attempt readNumberFromCsv <|>
-        attempt readAtomFromCsv
+        attempt readQuotedFromCsv <|>
+        attempt readUnquotedFromCsv
 
     let readRowFromCsv =
         parse {
@@ -390,7 +415,7 @@ type ConversionException (message : string, symbolOpt : Symbol option) =
     member this.SymbolOpt = symbolOpt
     override this.ToString () =
         message + "\n" +
-        (match symbolOpt with Some symbol -> SymbolOrigin.tryPrint (Symbol.tryGetOrigin symbol) + "\n" | _ -> "") +
+        (match symbolOpt with Some symbol -> SymbolOrigin.tryPrint (Symbol.getOriginOpt symbol) + "\n" | _ -> "") +
         base.ToString ()
 
 [<AutoOpen>]

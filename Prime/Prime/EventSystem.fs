@@ -270,11 +270,10 @@ module EventSystem =
         (publisher : 'p)
         allowWildcard
         (world : 'w) =
-        
-        // NOTE: inlined foldWhite here in order to compact the call stack
         let objEventAddress = atooa eventAddress in logEvent<'w> objEventAddress eventTrace world
         let subscriptions = getSubscriptionsSorted publishSorter objEventAddress allowWildcard world
         let (_, world) =
+            // NOTE: inlined foldWhite here in order to compact the call stack
             let mutable lastState = (Cascade, world)
             let mutable stateOpt = Some lastState
             use mutable enr = (subscriptions :> _ seq).GetEnumerator ()
