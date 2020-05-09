@@ -48,7 +48,7 @@ module BindingOperators =
     let inline (=|>) source signal : Binding<'m, 'c, 's, 'w> =
         (Unchecked.defaultof<Binding<'m, 'c, 's, 'w>> =|> source) signal
 
-    let inline bind source signal : Binding<'m, 'c, 's, 'w> =
+    let inline project source signal : Binding<'m, 'c, 's, 'w> =
         source => signal
 
     let inline react source signal : Binding<'m, 'c, 's, 'w> =
@@ -61,6 +61,7 @@ module SignalOperators =
     let msgs messages = Signals (List.map Message messages)
     let cmd command = Command command
     let cmds commands = Signals (List.map Command commands)
+    let sigs sigs = Signals sigs
     let withMsg value message = (value, Message message)
     let withMsgs value messages = (value, msgs messages)
     let withCmd value command = (value, Command command)
@@ -73,6 +74,8 @@ module SignalOperators =
 module Signal =
 
     let add left right = Signal<_, _>.add left right
+    let addMsg left right = Signal<_, _>.add (msg left) right
+    let addCmd left right = Signal<_, _>.add (cmd left) right
     let many signals = Signals signals
     let none = Signals []
 
