@@ -106,7 +106,7 @@
     <Compile Include="EventSystem.fs" />
     <Compile Include="Stream.fs" />
     <Compile Include="Arrow.fs" />
-    <Compile Include="Binding.fs" />
+    <Compile Include="Signal.fs" />
     <Compile Include="Chain.fs" />
     <Compile Include="Whisp.fs" />
     <Compile Include="Timings.fs" />
