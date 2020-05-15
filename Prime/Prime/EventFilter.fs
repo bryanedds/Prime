@@ -42,7 +42,7 @@ type RexprConverter () =
 
 /// Effectively new-types the Regex type to implement custom type-conversation without needing
 /// explicit initialization by the client program.
-and [<TypeConverter (typeof<RexprConverter>)>] Rexpr (pattern) =
+and [<NoEquality; NoComparison; TypeConverter (typeof<RexprConverter>)>] Rexpr (pattern) =
     inherit Regex (pattern)
 
 [<RequireQualifiedAccess>]

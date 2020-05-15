@@ -149,3 +149,7 @@ module Seq =
             | None -> struct (left, right)
         let struct (list, list2) = splitInner pred [] [] seq
         (List.rev list, List.rev list2)
+        
+    /// Eagerly evaluate a sequence
+    let eval seq =
+        seq |> Seq.toArray |> Seq.ofArray

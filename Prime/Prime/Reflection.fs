@@ -54,7 +54,7 @@ and [<NoEquality; NoComparison>] PropertyDefinition =
         result
 
 /// In tandem with the define literal, grants a nice syntax to define value properties.
-and ValueDescription =
+and [<NoEquality; NoComparison>] ValueDescription =
     { ValueDescription : unit }
     
     /// Some magic syntax for composing value properties.
@@ -63,7 +63,7 @@ and ValueDescription =
             PropertyDefinition.makeValidated propertyName typeof<'v> (DefineExpr value)
 
 /// In tandem with the variable literal, grants a nice syntax to define variable properties.
-and VariableDescription =
+and [<NoEquality; NoComparison>] VariableDescription =
     { VariableDescription : unit }
 
     /// Some magic syntax for composing variable properties.
@@ -72,7 +72,7 @@ and VariableDescription =
             PropertyDefinition.makeValidated propertyName typeof<'v> (VariableExpr (fun context -> variable (context :?> 'w) :> obj))
 
 /// In tandem with the property literal, grants a nice syntax to denote properties.
-and PropertyDescription =
+and [<NoEquality; NoComparison>] PropertyDescription =
     { PropertyDescription : unit }
     
     /// Some magic syntax for composing value properties.

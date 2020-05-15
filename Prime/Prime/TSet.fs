@@ -8,7 +8,7 @@ open System.Collections.Generic
 [<AutoOpen>]
 module TSet =
 
-    type private Log<'a when 'a : equality> =
+    type [<NoEquality; NoComparison>] private Log<'a when 'a : equality> =
         | Add of add : 'a
         | Remove of remove : 'a
         | Clear

@@ -6,7 +6,7 @@ open System
 open Xunit
 open Prime
 
-type [<CLIMutable; NoEquality; NoComparison>] TestXtended =
+type [<NoEquality; NoComparison; CLIMutable>] TestXtended =
     { Xtension : Xtension }
 
     static member (?) (this : TestXtended, propertyName) =

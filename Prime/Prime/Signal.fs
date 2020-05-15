@@ -5,7 +5,7 @@ namespace Prime
 open Prime
 
 /// A model-message-command signal.
-type Signal<'message, 'command> =
+type [<StructuralEquality; StructuralComparison>] Signal<'message, 'command> =
     | Message of message : 'message
     | Command of command : 'command
 

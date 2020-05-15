@@ -14,11 +14,11 @@ type SymbolicExpansionAttribute () =
     inherit Attribute ()
 
 /// Compresses two unions into a single union in a symbolic-expression.
-type SymbolicCompression<'a, 'b> =
+type [<StructuralEquality; StructuralComparison>] SymbolicCompression<'a, 'b> =
     | SymbolicCompressionA of 'a
     | SymbolicCompressionB of 'b
 
-type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType : Type) =
+type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType : Type) =
     inherit TypeConverter ()
 
     let padWithDefaults' (fieldTypes : Type array) (values : obj array) =

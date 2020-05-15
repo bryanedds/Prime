@@ -6,14 +6,14 @@ open System
 open FParsec
 open Prime
 
-type SymbolSource =
+type [<StructuralEquality; StructuralComparison>] SymbolSource =
     { FilePathOpt : string option
       Text : string }
 
-type SymbolState =
+type [<StructuralEquality; StructuralComparison>] SymbolState =
     { SymbolSource : SymbolSource }
 
-type SymbolOrigin =
+type [<StructuralEquality; StructuralComparison>] SymbolOrigin =
     { Source : SymbolSource
       Start : Position
       Stop : Position }
@@ -63,7 +63,7 @@ type SymbolOrigin =
         | None -> "Error origin unknown or not applicable."
 
 /// A lisp-style symbolic type.
-type Symbol =
+type [<StructuralEquality; StructuralComparison>] Symbol =
     | Atom of string * SymbolOrigin option
     | Number of string * SymbolOrigin option
     | Text of string * SymbolOrigin option

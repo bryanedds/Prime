@@ -4,6 +4,7 @@
 namespace Prime
 open System
 open System.Collections.Generic
+open System.Diagnostics
 open Prime
 
 /// A publisher-neutral event system.
@@ -166,7 +167,7 @@ module EventSystem =
         else [|eventAddress|]
 
     let private debugSubscriptionTypeMismatch () =
-        Log.debug
+        Debug.Fail
             ("If you've reached this exception, then you've probably inadvertantly mixed up an event type " +
              "parameter when calling EventSystem.publish or subscribe. " +
              "This exception can also crop up when your implementation of EventSystem.PublishEvent doesn't " +

@@ -8,7 +8,7 @@ open System.Collections.Generic
 [<AutoOpen>]
 module TMap =
 
-    type private Log<'k, 'v when 'k : equality> =
+    type [<NoEquality; NoComparison>] private Log<'k, 'v when 'k : equality> =
         | Add of key : 'k * value : 'v
         | Remove of remove : 'k
         | Clear

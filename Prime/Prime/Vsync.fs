@@ -39,7 +39,7 @@ module Vsync =
     /// The 'Vsync' (AKA, 'Variable Synchrony') monad.
     /// Allows code to run in either an async or synchronous fashion to aid in debugging.
     /// NOTE: to reference how all this stuff works in F#, see here - https://msdn.microsoft.com/en-us/library/dd233182.aspx
-    type [<ReferenceEquality>] 'a Vsync =
+    type [<NoEquality; NoComparison>] 'a Vsync =
         private
             | Sync of (unit -> 'a)
             | Async of 'a Async
@@ -61,7 +61,7 @@ module Vsync =
         /// Initialize Vsync to use synchronized or asynchronous processing.
         let Init sync =
             match SyncOpt with
-            | Some _ -> Log.debug "Cannot init Vsync.sync once it's been set. Consider calling init earlier in your program."
+            | Some _ -> Debug.Fail "Cannot init Vsync.sync once it's been set. Consider calling init earlier in your program."
             | None -> SyncOpt <- Some sync
 
         /// Check whether Vsync is using synchronized or asynchronous processing.
@@ -69,7 +69,7 @@ module Vsync =
             match SyncOpt with
             | Some sync -> sync
             | None ->
-                Log.debug "Sync not set manually before first invocation; automatically setting to false."
+                Debug.Fail "Sync not set manually before first invocation; automatically setting to false."
                 let result = false
                 SyncOpt <- Some result
                 result

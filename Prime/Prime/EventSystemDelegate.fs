@@ -6,12 +6,12 @@ open System
 open Prime
 
 /// Describes whether an in-flight event has been resolved or should cascade to down-stream handlers.
-type Handling =
+type [<StructuralEquality; StructuralComparison>] Handling =
     | Resolve
     | Cascade
 
 /// Specifies whether an event-based application is running or exiting.
-type Liveness =
+type [<StructuralEquality; StructuralComparison>] Liveness =
     | Running
     | Exiting
 
@@ -82,7 +82,7 @@ module EventSystemDelegate =
 
     /// The implementation portion of EventSystem.
     /// OPTIMIZATION: EventContext is mutable for speed.
-    type [<ReferenceEquality>] 'w EventSystemDelegate =
+    type [<ReferenceEquality; NoComparison>] 'w EventSystemDelegate =
         private
             { // cache line begin
               Subscriptions : SubscriptionEntries

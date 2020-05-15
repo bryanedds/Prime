@@ -10,7 +10,7 @@ module MutantCache =
     /// If it is not satisfactorily efficient to run a clone operation on the mutant for every get,
     /// just pass in the id function for make's cloneMutant arg, but make sure to NEVER mutate the
     /// returned mutant!
-    type [<ReferenceEquality>] 'm MutantCache =
+    type [<ReferenceEquality; NoComparison>] 'm MutantCache =
         private
             { CloneMutant : 'm -> 'm
               mutable ValidMutantOpt : 'm option }

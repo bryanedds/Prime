@@ -7,7 +7,7 @@ namespace Prime
 module Mold =
 
     /// Uniquely identifies a type member.
-    type MemberPath =
+    type [<StructuralEquality; StructuralComparison>] MemberPath =
         { TypeName : string
           MemberName : string }
 
@@ -21,7 +21,7 @@ module Mold =
         Map<MemberPath option, InstantiationRule>
 
     /// A primitive mold type.
-    type Primitive =
+    type [<StructuralEquality; StructuralComparison>] Primitive =
         | Unit
         | Boolean
         | Byte
@@ -38,7 +38,7 @@ module Mold =
         | Guid
 
     /// Describes an F# type in a normalized fashion.
-    type Mold =
+    type [<StructuralEquality; StructuralComparison>] Mold =
         | Primitive of MemberPath option * Primitive
         | Tuple of MemberPath option * string * Mold array
         | Record of MemberPath option * string * (string * Mold) array

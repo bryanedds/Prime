@@ -12,7 +12,7 @@ module KeyedCache =
     /// Works by associating a cached value with a given cache key such that the cached value remains valid when queried
     /// for using the same cache key (as decided by a simple key comparer function), automatically rebuilding the cached
     /// value and key (as done with a simple factory function).
-    type [<ReferenceEquality>] KeyedCache<'k, 'v> =
+    type [<ReferenceEquality; NoComparison>] KeyedCache<'k, 'v> =
         private
             { mutable CacheKey : 'k
               mutable CacheValue : 'v }

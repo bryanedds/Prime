@@ -59,7 +59,6 @@
     <Compile Include="Constants.fs" />
     <Compile Include="Operators.fs" />
     <Compile Include="Generics.fs" />
-    <Compile Include="Log.fs" />
     <Compile Include="Option.fs" />
     <Compile Include="Pair.fs" />
     <Compile Include="PairStruct.fs" />

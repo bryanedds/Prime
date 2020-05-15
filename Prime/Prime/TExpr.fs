@@ -4,7 +4,7 @@
 namespace Prime
 open System
 
-type TConfig =
+type [<StructuralEquality; StructuralComparison>] TConfig =
     | BasedOnBuild
     | Functional
     | Imperative

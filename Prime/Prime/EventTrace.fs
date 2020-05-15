@@ -5,7 +5,7 @@ namespace Prime
 open System
 open Prime
 
-type [<CLIMutable; ReferenceEquality>] EventInfo =
+type [<StructuralEquality; StructuralComparison; CLIMutable>] EventInfo =
     { ModuleName : string
       FunctionName : string
       MoreInfo : string }

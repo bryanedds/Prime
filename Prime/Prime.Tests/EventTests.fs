@@ -7,13 +7,13 @@ open Xunit
 open Prime
 module EventTests =
 
-    type [<StructuralEquality; NoComparison>] TestSimulant =
+    type [<NoEquality; NoComparison>] TestSimulant =
         { TestAddress : TestSimulant Address }
         interface Simulant with
             member this.SimulantAddress = atoa<TestSimulant, Simulant> this.TestAddress
             end
 
-    type [<ReferenceEquality>] TestWorld =
+    type [<ReferenceEquality; NoComparison>] TestWorld =
         { TestState : int
           TestEventSystemDelegate : TestWorld EventSystemDelegate }
         interface EventSystem<TestWorld> with

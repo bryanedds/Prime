@@ -6,16 +6,17 @@ open System
 open Xunit
 open Prime
 
-type IntIntRecord = { Int : int; Int2 : int }
+type [<StructuralEquality; StructuralComparison>] IntIntRecord =
+    { Int : int; Int2 : int }
 
-[<SymbolicExpansion>]
-type IntIntRecordExpanded = { IntX : int; IntX2 : int }
+type [<StructuralEquality; StructuralComparison; SymbolicExpansion>] IntIntRecordExpanded =
+    { IntX : int; IntX2 : int }
 
-type SimpleUnion =
+type [<StructuralEquality; StructuralComparison>] SimpleUnion =
     | SimpleUnion
     | SimpleUnion2
 
-type [<StructuralEquality; NoComparison>] ComplexUnion =
+type [<StructuralEquality; StructuralComparison>] ComplexUnion =
     | ComplexUnion of int
     | ComplexUnion2 of int * int
 

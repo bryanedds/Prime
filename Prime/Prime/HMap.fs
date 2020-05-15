@@ -11,7 +11,7 @@ open Prime
 module HMap =
 
     /// A hash-key-value triple, implemented with a struct for efficiency.
-    type private Hkv<'k, 'v when 'k :> 'k IEquatable> =
+    type [<StructuralEquality; NoComparison>] private Hkv<'k, 'v when 'k :> 'k IEquatable> =
         struct
             new (h, k, v) = { H = h; K = k; V = v }
             val H : int
@@ -20,7 +20,7 @@ module HMap =
             end
 
     /// Hash map node.
-    type [<NoComparison>] private HNode<'k, 'v when 'k :> 'k IEquatable> =
+    type [<StructuralEquality; NoComparison>] private HNode<'k, 'v when 'k :> 'k IEquatable> =
         | Nil
         | Singleton of singleton : Hkv<'k, 'v>
         | Multiple of multiple : HNode<'k, 'v> array
@@ -177,7 +177,7 @@ module HMap =
 
     /// A fast persistent hash map.
     /// Works in effectively constant-time for look-ups and updates.
-    type [<NoComparison>] HMap<'k, 'v when 'k :> 'k IEquatable> =
+    type [<StructuralEquality; NoComparison>] HMap<'k, 'v when 'k :> 'k IEquatable> =
         private
             { Node : HNode<'k, 'v>
               EmptyArray : HNode<'k, 'v> array }

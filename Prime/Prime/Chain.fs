@@ -10,7 +10,7 @@ open Prime
 ///
 /// The following is a potentially tail-recursible representation as speculated by @tpetricek -
 /// 'w -> ('w * Either<'e -> Chain<'e, 'a, 'w>, 'a> -> 'a) -> 'a
-type [<NoComparison; NoEquality>] Chain<'e, 'a, 'w when 'w :> EventSystem<'w>> =
+type [<NoEquality; NoComparison>] Chain<'e, 'a, 'w when 'w :> EventSystem<'w>> =
     Chain of ('w -> 'w * Either<'e -> Chain<'e, 'a, 'w>, 'a>)
 
 /// Implements the chain monad.

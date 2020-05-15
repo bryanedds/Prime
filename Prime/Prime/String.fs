@@ -17,6 +17,25 @@ module String =
     let inline notEmpty str =
         String.length str > 0
 
+    /// Take a substring from a string.
+    let take n (str : string) =
+        str |> Seq.take n |> Seq.toArray |> String
+
+    /// Take a substring from a string.
+    let tryTake n (str : string) =
+        str |> Seq.tryTake n |> Seq.toArray |> String
+
+    /// Skip a potion of a string.
+    let skip n (str : string) =
+        str |> Seq.skip n |> Seq.toArray |> String
+
+    /// Skip a potion of a string.
+    let trySkip n (str : string) =
+        str |> Seq.trySkip n |> Seq.toArray |> String
+
+    let inline join (insert : string) (strs : string seq) =
+        String.Join (insert, strs)
+
     /// Check that a string is a guid.
     let isGuid str =
         fst (Guid.TryParse str)
@@ -94,11 +113,11 @@ module String =
             let beginStr = str.Substring (0, beginLength)
             let endStr = str.Substring (beginLength, endLength)
             (endStr = target, beginStr)
-    
+
     /// Convert a string to an array of characters.
     let inline toArray str =
         Array.ofList (explode str)
-    
+
     /// Surround a string with another surrounding string.
     let inline surround (sur : string) (str : string) =
         sur + str + sur

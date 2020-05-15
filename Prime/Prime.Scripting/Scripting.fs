@@ -15,26 +15,26 @@ module Scripting =
         abstract member FSharpType : Type
         abstract member ToSymbol : unit -> Symbol
 
-    and [<NoComparison>] CachedBinding =
+    and [<NoEquality; NoComparison>] CachedBinding =
         | UncachedBinding
         | DeclarationBinding of Expr
         | ProceduralBinding of int * int
 
-    and [<NoComparison>] BindingType =
+    and [<NoEquality; NoComparison>] BindingType =
         | UnknownBindingType
         | IntrinsicBinding
         | ExtrinsicBinding
         | EnvironmentalBinding
 
-    and [<NoComparison>] Binding =
+    and [<StructuralEquality; StructuralComparison>] Binding =
         | VariableBinding of VarName : string * VarValue : Expr
         | FunctionBinding of FunName : string * FunArgs : string array * FunLambda : Expr
 
-    and [<NoComparison>] Breakpoint =
+    and [<StructuralEquality; StructuralComparison>] Breakpoint =
         { mutable BreakEnabled : bool
           mutable BreakCondition : Expr }
 
-    and [<CompilationRepresentation (CompilationRepresentationFlags.UseNullAsTrueValue)>] Codata =
+    and [<StructuralEquality; StructuralComparison; CompilationRepresentation (CompilationRepresentationFlags.UseNullAsTrueValue)>] Codata =
         | Empty
         | Add of Codata * Codata
         | Unfold of Expr * Expr
@@ -91,9 +91,7 @@ module Scripting =
              "get set update",
              Constants.PrettyPrinter.DefaultThresholdMin,
              Constants.PrettyPrinter.DefaultThresholdMax);
-          TypeConverter (typeof<ExprConverter>);
-          CustomEquality;
-          CustomComparison>]
+          CustomEquality; CustomComparison; TypeConverter (typeof<ExprConverter>)>]
         Expr =
 
         (* Primitive Value Types *)
@@ -886,7 +884,7 @@ module Scripting =
     type ProceduralFrame = (struct (string * Expr)) array
     
     /// The manner in which bindings are added to a frame.
-    type AddType =
+    type [<StructuralEquality; StructuralComparison>] AddType =
         | AddToNewFrame of Size : int
         | AddToHeadFrame of Offset : int
 

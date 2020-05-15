@@ -6,7 +6,7 @@ open System
 open Prime
 
 /// Haskell-style Either type.
-type Either<'l, 'r> =
+type [<StructuralEquality; StructuralComparison>] Either<'l, 'r> =
     | Right of 'r
     | Left of 'l
 
