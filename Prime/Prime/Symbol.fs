@@ -111,7 +111,9 @@ module Symbol =
     let [<Literal>] CloseMultilineCommentStr = "|#"
     let [<Literal>] IndexExpansion = "Index"
     let [<Literal>] ReservedChars = "(){}\\#$:,"
-    let [<Literal>] StructureCharsNoStr = "[]`."
+    let [<Literal>] StructureCharsNoStrNoIndex = "[]`"
+    let [<Literal>] StructureCharsNoStr = StructureCharsNoStrNoIndex + IndexStr
+    let [<Literal>] StructureCharsNoIndex = "\"" + StructureCharsNoStrNoIndex
     let [<Literal>] StructureChars = "\"" + StructureCharsNoStr
     let (*Literal*) IllegalNameChars = ReservedChars + StructureChars + WhitespaceChars
     let (*Literal*) IllegalNameCharsArray = Array.ofSeq IllegalNameChars
@@ -310,7 +312,7 @@ module Symbol =
         parse {
             let! userState = getUserState
             let! start = getPosition
-            let! chars = many1 (noneOf (StructureChars + "\r\n,"))
+            let! chars = many1 (noneOf (StructureCharsNoIndex + "\r\n,"))
             let! stop = getPosition
             let str = String.implode chars
             let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
