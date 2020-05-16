@@ -69,15 +69,15 @@ module EventTests =
 
     let [<Fact>] subscribeWithResolutionWorks () =
         let world = TestWorld.make ignore false EventFilter.Empty TestSimulantSpecialized TestSimulantGeneralized
-        let world = EventSystem.subscribePlus (makeGuid ()) incTestStateAndResolve TestEvent TestSimulantSpecialized world |> snd
-        let world = EventSystem.subscribePlus (makeGuid ()) incTestStateAndCascade TestEvent TestSimulantSpecialized world |> snd
+        let world = EventSystem.subscribePlus (makeGuid ()) None None None incTestStateAndResolve TestEvent TestSimulantSpecialized world |> snd
+        let world = EventSystem.subscribePlus (makeGuid ()) None None None incTestStateAndCascade TestEvent TestSimulantSpecialized world |> snd
         let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
         Assert.Equal (1, world.TestState)
 
     let [<Fact>] unsubscribeWorks () =
         let key = makeGuid ()
         let world = TestWorld.make ignore false EventFilter.Empty TestSimulantSpecialized TestSimulantGeneralized
-        let world = EventSystem.subscribePlus key incTestStateAndResolve TestEvent TestSimulantSpecialized world |> snd
+        let world = EventSystem.subscribePlus key None None None incTestStateAndResolve TestEvent TestSimulantSpecialized world |> snd
         let world = EventSystem.unsubscribe key world
         let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
         Assert.Equal (0, world.TestState)

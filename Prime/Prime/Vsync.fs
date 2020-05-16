@@ -61,7 +61,7 @@ module Vsync =
         /// Initialize Vsync to use synchronized or asynchronous processing.
         let Init sync =
             match SyncOpt with
-            | Some _ -> Debug.Fail "Cannot init Vsync.sync once it's been set. Consider calling init earlier in your program."
+            | Some _ -> Trace.WriteLine "Cannot init Vsync.sync once it's been set. Consider calling init earlier in your program."
             | None -> SyncOpt <- Some sync
 
         /// Check whether Vsync is using synchronized or asynchronous processing.
@@ -69,7 +69,7 @@ module Vsync =
             match SyncOpt with
             | Some sync -> sync
             | None ->
-                Debug.Fail "Sync not set manually before first invocation; automatically setting to false."
+                Trace.WriteLine "Sync not set manually before first invocation; automatically setting to false."
                 let result = false
                 SyncOpt <- Some result
                 result

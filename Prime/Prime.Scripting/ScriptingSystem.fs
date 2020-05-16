@@ -4,6 +4,7 @@
 namespace Prime
 open System
 open System.Collections.Generic
+open System.Diagnostics
 open System.IO
 open Prime
 open Prime.Scripting
@@ -80,7 +81,7 @@ module ScriptingSystem =
     let log expr =
         match expr with
         | Violation (names, error, originOpt) ->
-            Log.info
+            Trace.Write
                 ("Unexpected Violation: " + String.concat Constants.Scripting.ViolationSeparatorStr names + "\n" +
                  "Due to: " + error + "\n" +
                  SymbolOrigin.tryPrint originOpt + "\n")
@@ -676,7 +677,7 @@ module ScriptingSystem =
 
     /// Attempt to evaluate a script.
     let tryEvalScript choose scriptFilePath world =
-        Log.info ("Evaluating script '" + scriptFilePath + "'...")
+        Trace.WriteLine ("Evaluating script '" + scriptFilePath + "'...")
         try let scriptStr =
                 scriptFilePath |>
                 File.ReadAllText |>
@@ -686,9 +687,9 @@ module ScriptingSystem =
                 (fun str -> Symbol.OpenSymbolsStr + str + Symbol.CloseSymbolsStr) |>
                 scvalue<Expr array>
             let struct (evaleds, world) = evalMany script world
-            Log.info ("Successfully evaluated script '" + scriptFilePath + "'.")
+            Trace.WriteLine ("Successfully evaluated script '" + scriptFilePath + "'.")
             Right struct (scriptStr, evaleds, world)
         with exn ->
             let error = "Failed to evaluate script '" + scriptFilePath + "' due to: " + exn.Message
-            Log.info error
+            Trace.Fail error
             Left struct (error, choose world)

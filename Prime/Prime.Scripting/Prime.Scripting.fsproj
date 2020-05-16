@@ -81,7 +81,7 @@
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="Prime">
-      <HintPath>..\..\packages\Prime.5.1.0\lib\net472\Prime.dll</HintPath>
+      <HintPath>..\..\packages\Prime.5.8.0\lib\net472\Prime.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

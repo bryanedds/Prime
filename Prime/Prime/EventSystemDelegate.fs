@@ -49,7 +49,10 @@ module Event =
 type [<NoEquality; NoComparison>] SubscriptionEntry =
     { SubscriptionKey : Guid
       SubscriberEntry : Simulant
-      Callback : obj }
+      MapperOpt : (obj -> obj option -> obj -> obj) option // ('a -> 'b option -> 'w -> 'b) option
+      FilterOpt : (obj -> obj option -> obj -> bool) option // ('b -> 'b option -> 'w -> bool) option
+      mutable PreviousDataOpt : obj option // 'b option
+      Callback : obj } // 'b -> 's -> 'w -> 'w
 
 /// Abstracts over a subscription sorting procedure.
 type 'w SubscriptionSorter =
@@ -57,7 +60,7 @@ type 'w SubscriptionSorter =
 
 /// Describes an event subscription that can be boxed / unboxed.
 type 'w BoxableSubscription =
-    obj -> obj -> 'w -> Handling * 'w
+    Event<obj, Simulant> -> 'w -> Handling * 'w
 
 /// A map of event subscriptions.
 type SubscriptionEntries =

@@ -10,48 +10,29 @@ type [<StructuralEquality; StructuralComparison>] Signal<'message, 'command> =
     | Command of command : 'command
 
 type [<NoEquality; NoComparison>] Channel<'m, 'c, 's, 'w when 's :> Simulant and 'w :> EventSystem<'w>> =
-    { Stream : Stream<obj, 'w>
-      Projector : Event<obj, 's> -> Signal<'m, 'c> list }
+    { Address : obj Address
+      Handler : Event<obj, 's> -> Signal<'m, 'c> list }
 
 type Channel<'m, 'c, 's, 'w when 's :> Simulant and 'w :> EventSystem<'w>> with
 
     static member (=>) (_ : Channel<'m, 'c, 's, 'w>, source : Address<'a>) =
         fun (signals : Signal<'m, 'c> list) ->
-            { Stream = source |> Stream.make |> Stream.generalize
-              Projector = fun (_ : Event<obj, 's>) -> signals }
-
-    static member (=>) (_ : Channel<'m, 'c, 's, 'w>, source : Stream<'a, 'w>) =
-        fun (signals : Signal<'m, 'c> list) ->
-            { Stream = source |> Stream.generalize
-              Projector = fun (_ : Event<obj, 's>) -> signals }
+            { Address = atooa source
+              Handler = fun (_ : Event<obj, 's>) -> signals }
 
     static member (=|>) (_ : Channel<'m, 'c, 's, 'w>, source : Address<'a>) =
         fun (handler : Event<'a, 's> -> Signal<'m, 'c> list) ->
-            { Stream = source |> Stream.make |> Stream.generalize
-              Projector = fun evt -> Event.generalize evt |> Event.specialize |> handler }
-
-    static member (=|>) (_ : Channel<'m, 'c, 's, 'w>, source : Stream<'a, 'w>) =
-        fun (handler : Event<'a, 's> -> Signal<'m, 'c> list) ->
-            { Stream = source |> Stream.generalize
-              Projector = fun evt -> Event.generalize evt |> Event.specialize |> handler }
+            { Address = atooa source
+              Handler = fun evt -> Event.generalize evt |> Event.specialize |> handler }
 
 [<AutoOpen>]
-module ChannelOperators =
+module SignalOperators =
 
     let inline (=>) source signals : Channel<'m, 'c, 's, 'w> =
         (Unchecked.defaultof<Channel<'m, 'c, 's, 'w>> => source) signals
 
     let inline (=|>) source signals : Channel<'m, 'c, 's, 'w> =
         (Unchecked.defaultof<Channel<'m, 'c, 's, 'w>> =|> source) signals
-
-    let inline channel source signals : Channel<'m, 'c, 's, 'w> =
-        source => signals
-
-    let inline project source signals : Channel<'m, 'c, 's, 'w> =
-        source =|> signals
-
-[<AutoOpen>]
-module SignalOperators =
 
     let msg message = Message message
     let msgs messages = List.map Message messages
@@ -92,10 +73,15 @@ module Signal =
 
     let processChannels processMessage processCommand model channels simulant world =
         List.fold (fun world channel ->
-            Stream.monitor (fun evt world ->
-                let signals = channel.Projector evt
-                List.fold
-                    (fun world signal -> processSignal processMessage processCommand model signal simulant world)
-                    world signals)
-                simulant channel.Stream world)
-            world channels
+            EventSystem.monitor
+                (fun evt world ->
+                    let signals = channel.Handler evt
+                    List.fold
+                        (fun world signal -> processSignal processMessage processCommand model signal simulant world)
+                        world
+                        signals)
+                channel.Address
+                simulant
+                world)
+            world
+            channels
