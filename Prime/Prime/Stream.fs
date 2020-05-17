@@ -24,7 +24,7 @@ module Stream =
             let unsubscribe = fun world -> EventSystem.unsubscribe<'w> subscriptionKey world
             let subscription = fun evt world ->
                 let eventTrace = EventTrace.record "Stream" "stream" evt.Trace
-                let world = EventSystem.publishPlus<'a, Simulant, 'w> EventSystem.sortSubscriptionsNone evt.Data subscriptionAddress eventTrace globalSimulant false world
+                let world = EventSystem.publishPlus<'a, Simulant, 'w> evt.Data subscriptionAddress eventTrace globalSimulant None world
                 (Cascade, world)
             let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None subscription eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
@@ -61,7 +61,7 @@ module Stream =
                     if tracked then
                         let eventData = transformer state
                         let eventTrace = EventTrace.record "Stream" "trackEvent4" evt.Trace
-                        EventSystem.publishPlus<'b, Simulant, 'w> EventSystem.sortSubscriptionsNone eventData subscriptionAddress eventTrace globalSimulant false world
+                        EventSystem.publishPlus<'b, Simulant, 'w> eventData subscriptionAddress eventTrace globalSimulant None world
                     else world
                 (Cascade, world)
             let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None subscription eventAddress globalSimulant world |> snd
@@ -91,7 +91,7 @@ module Stream =
                 let world =
                     if tracked then
                         let eventTrace = EventTrace.record "Stream" "trackEvent2" evt.Trace
-                        EventSystem.publishPlus<'a, Simulant, 'w> EventSystem.sortSubscriptionsNone state subscriptionAddress eventTrace globalSimulant false world
+                        EventSystem.publishPlus<'a, Simulant, 'w> state subscriptionAddress eventTrace globalSimulant None world
                     else world
                 (Cascade, world)
             let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None subscription eventAddress globalSimulant world |> snd
@@ -118,7 +118,7 @@ module Stream =
                 let world =
                     if tracked then
                         let eventTrace = EventTrace.record "Stream" "trackEvent" evt.Trace
-                        EventSystem.publishPlus<'a, Simulant, 'w> EventSystem.sortSubscriptionsNone evt.Data subscriptionAddress eventTrace globalSimulant false world
+                        EventSystem.publishPlus<'a, Simulant, 'w> evt.Data subscriptionAddress eventTrace globalSimulant None world
                     else world
                 (Cascade, world)
             let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None subscription eventAddress globalSimulant world |> snd
@@ -153,7 +153,7 @@ module Stream =
                 let world =
                     if passed then
                         let eventTrace = EventTrace.record "Stream" "filterEvent" evt.Trace
-                        EventSystem.publishPlus<'a, Simulant, 'w> EventSystem.sortSubscriptionsNone evt.Data subscriptionAddress eventTrace globalSimulant false world
+                        EventSystem.publishPlus<'a, Simulant, 'w> evt.Data subscriptionAddress eventTrace globalSimulant None world
                     else world
                 (Cascade, world)
             let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None subscription eventAddress globalSimulant world |> snd
@@ -174,7 +174,7 @@ module Stream =
             let subscription = fun evt world ->
                 let (eventData, world) = mapper evt world
                 let eventTrace = EventTrace.record "Stream" "mapEvent" evt.Trace
-                let world = EventSystem.publishPlus<'b, Simulant, 'w> EventSystem.sortSubscriptionsNone eventData subscriptionAddress eventTrace globalSimulant false world
+                let world = EventSystem.publishPlus<'b, Simulant, 'w> eventData subscriptionAddress eventTrace globalSimulant None world
                 (Cascade, world)
             let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None subscription eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
@@ -215,7 +215,7 @@ module Stream =
                     | (a :: aList, b :: bList) ->
                         let state = (aList, bList)
                         let (eventData, world) = mapper a b world
-                        let world = EventSystem.publishPlus<'c, Simulant, _> EventSystem.sortSubscriptionsNone eventData subscriptionAddress'' eventTrace globalSimulant false world
+                        let world = EventSystem.publishPlus<'c, Simulant, _> eventData subscriptionAddress'' eventTrace globalSimulant None world
                         (state, world)
                     | state -> (state, world)
                 let world = EventSystem.addEventState stateKey state world
@@ -231,7 +231,7 @@ module Stream =
                     | (a :: aList, b :: bList) ->
                         let state = (aList, bList)
                         let (eventData, world) = mapper a b world
-                        let world = EventSystem.publishPlus<'c, Simulant, _> EventSystem.sortSubscriptionsNone eventData subscriptionAddress'' eventTrace globalSimulant false world
+                        let world = EventSystem.publishPlus<'c, Simulant, _> eventData subscriptionAddress'' eventTrace globalSimulant None world
                         (state, world)
                     | state -> (state, world)
                 let world = EventSystem.addEventState stateKey state world
@@ -395,12 +395,12 @@ module Stream =
             let subscription = fun evt world ->
                 let eventData = Left evt.Data
                 let eventTrace = EventTrace.record "Stream" "sum" evt.Trace
-                let world = EventSystem.publishPlus<Either<'a, 'b>, Simulant, _> EventSystem.sortSubscriptionsNone eventData subscriptionAddress'' eventTrace globalSimulant false world
+                let world = EventSystem.publishPlus<Either<'a, 'b>, Simulant, _> eventData subscriptionAddress'' eventTrace globalSimulant None world
                 (Cascade, world)
             let subscription' = fun evt world ->
                 let eventData = Right evt.Data
                 let eventTrace = EventTrace.record "Stream" "sum" evt.Trace
-                let world = EventSystem.publishPlus<Either<'a, 'b>, Simulant, _> EventSystem.sortSubscriptionsNone eventData subscriptionAddress'' eventTrace globalSimulant false world
+                let world = EventSystem.publishPlus<Either<'a, 'b>, Simulant, _> eventData subscriptionAddress'' eventTrace globalSimulant None world
                 (Cascade, world)
             let world = EventSystem.subscribePlus<'b, 'b, Simulant, 'w> subscriptionKey' None None None subscription' subscriptionAddress' globalSimulant world |> snd
             let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None subscription subscriptionAddress globalSimulant world |> snd
@@ -431,7 +431,7 @@ module Stream =
                 (Cascade, world)
             let subscription' = fun evt world ->
                 let eventTrace = EventTrace.record "Stream" "until" evt.Trace
-                let world = EventSystem.publishPlus<'a, Simulant, 'w> EventSystem.sortSubscriptionsNone evt.Data subscriptionAddress'' eventTrace globalSimulant false world
+                let world = EventSystem.publishPlus<'a, Simulant, 'w> evt.Data subscriptionAddress'' eventTrace globalSimulant None world
                 (Cascade, world)
             let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey' None None None subscription' subscriptionAddress' globalSimulant world |> snd
             let world = EventSystem.subscribePlus<'b, 'b, Simulant, 'w> subscriptionKey None None None subscription subscriptionAddress globalSimulant world |> snd

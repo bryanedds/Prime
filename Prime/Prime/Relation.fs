@@ -84,8 +84,9 @@ module Relation =
             Array.hash relation.NameOpts
                 
         /// Equate Relations.
-        static member equals relation relation2 =
-            String.equateManyOpts relation.NameOpts relation2.NameOpts
+        static member equals (relation : 'a Relation) (relation2 : 'a Relation) =
+            if Object.ReferenceEquals (relation, relation2) then true // OPTIMIZATION: first check ref equality
+            else String.equateManyOpts relation.NameOpts relation2.NameOpts
 
         /// Resolve a relation from an address.
         static member resolve<'a, 'b> (address : 'a Address) (relation : 'b Relation) : 'b Address =

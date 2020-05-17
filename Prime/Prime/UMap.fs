@@ -51,11 +51,6 @@ module UMap =
         let notEmpty map =
             not (isEmpty map)
 
-        let tryFindFast key map =
-            let struct (valueOpt, tmap) = TMap.tryFindFast key map.Map
-            map.Map <- tmap
-            valueOpt
-
         let tryFind key map =
             let struct (valueOpt, tmap) = TMap.tryFind key map.Map
             map.Map <- tmap

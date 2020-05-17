@@ -146,12 +146,6 @@ module TMap =
             let map = validate map
             struct (map.Dict.Count, map)
 
-        let tryFindFast key map =
-            let map = validate map
-            match map.Dict.TryGetValue key with
-            | (true, value) -> struct (Some value, map)
-            | (false, _) -> struct (None, map)
-
         let tryFind key map =
             let map = validate map
             match map.Dict.TryGetValue key with

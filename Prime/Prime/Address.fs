@@ -84,9 +84,9 @@ module Address =
 
         /// Equate Addresses.
         static member equals address address2 =
-            let hashesSame = address.HashCode = address2.HashCode // OPTIMIZATION: first check hash equality
-            let namesSame = String.equateMany address.Names address2.Names
-            hashesSame && namesSame
+            if Object.ReferenceEquals (address, address2) then true // OPTIMIZATION: first check ref equality
+            elif address.HashCode <> address2.HashCode then false // OPTIMIZATION: then check hash equality
+            else String.equateMany address.Names address2.Names
 
         /// Compare Addresses.
         static member compare address address2 =

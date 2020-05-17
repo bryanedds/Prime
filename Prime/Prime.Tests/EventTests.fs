@@ -50,28 +50,28 @@ module EventTests =
     let [<Fact>] subscribeWorks () =
         let world = TestWorld.make ignore false EventFilter.Empty TestSimulantSpecialized TestSimulantGeneralized
         let world = EventSystem.subscribe incTestState TestEvent TestSimulantSpecialized world
-        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (1, world.TestState)
 
     let [<Fact>] subscribeAndPublishTwiceWorks () =
         let world = TestWorld.make ignore false EventFilter.Empty TestSimulantSpecialized TestSimulantGeneralized
         let world = EventSystem.subscribe incTestState TestEvent TestSimulantSpecialized world
-        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
-        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized None world
+        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (2, world.TestState)
 
     let [<Fact>] subscribeTwiceAndPublishWorks () =
         let world = TestWorld.make ignore false EventFilter.Empty TestSimulantSpecialized TestSimulantGeneralized
         let world = EventSystem.subscribe incTestState TestEvent TestSimulantSpecialized world
         let world = EventSystem.subscribe incTestState TestEvent TestSimulantSpecialized world
-        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (2, world.TestState)
 
     let [<Fact>] subscribeWithResolutionWorks () =
         let world = TestWorld.make ignore false EventFilter.Empty TestSimulantSpecialized TestSimulantGeneralized
         let world = EventSystem.subscribePlus (makeGuid ()) None None None incTestStateAndResolve TestEvent TestSimulantSpecialized world |> snd
         let world = EventSystem.subscribePlus (makeGuid ()) None None None incTestStateAndCascade TestEvent TestSimulantSpecialized world |> snd
-        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (1, world.TestState)
 
     let [<Fact>] unsubscribeWorks () =
@@ -79,13 +79,13 @@ module EventTests =
         let world = TestWorld.make ignore false EventFilter.Empty TestSimulantSpecialized TestSimulantGeneralized
         let world = EventSystem.subscribePlus key None None None incTestStateAndResolve TestEvent TestSimulantSpecialized world |> snd
         let world = EventSystem.unsubscribe key world
-        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (0, world.TestState)
 
     let [<Fact>] streamWorks () =
         let world = TestWorld.make ignore false EventFilter.Empty TestSimulantSpecialized TestSimulantGeneralized
         let world = Stream.make TestEvent |> Stream.subscribe incTestState TestSimulantSpecialized $ world
-        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (1, world.TestState)
 
     let [<Fact>] streamSubscribeTwiceUnsubscribeOnceWorks () =
@@ -94,14 +94,14 @@ module EventTests =
         let world = Stream.subscribe incTestState TestSimulantSpecialized stream world
         let (unsubscribe, world) = Stream.subscribeEffect incTestStateAndCascade TestSimulantSpecialized stream world
         let world = unsubscribe world
-        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (1, world.TestState)
 
     let [<Fact>] streamUnsubscribeWorks () =
         let world = TestWorld.make ignore false EventFilter.Empty TestSimulantSpecialized TestSimulantGeneralized
         let (unsubscribe, world) = Stream.make TestEvent |> Stream.subscribeEffect incTestStateAndCascade TestSimulantSpecialized $ world
         let world = unsubscribe world
-        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.True (UMap.isEmpty (EventSystem.getSubscriptions world))
         Assert.Equal (0, world.TestState)
 
@@ -112,8 +112,8 @@ module EventTests =
             Stream.filterWorld (fun _ world -> world.TestState = 0) |>
             Stream.subscribe incTestState TestSimulantSpecialized $
             world
-        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
-        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized None world
+        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (1, world.TestState)
 
     let [<Fact>] mapWorks () =
@@ -123,7 +123,7 @@ module EventTests =
             Stream.map (fun a -> a * 2) |>
             Stream.subscribe (fun evt world -> { world with TestState = evt.Data }) TestSimulantSpecialized $
             world
-        let world = EventSystem.publish 1 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 1 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (2, world.TestState)
 
     let [<Fact>] productWorks () =
@@ -132,7 +132,7 @@ module EventTests =
             Stream.product (Stream.make TestEvent) (Stream.make TestEvent) |>
             Stream.subscribe (fun evt world -> { world with TestState = fst evt.Data + snd evt.Data }) TestSimulantSpecialized $
             world
-        let world = EventSystem.publish 1 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 1 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (2, world.TestState)
 
     let [<Fact>] sumWorks () =
@@ -141,9 +141,9 @@ module EventTests =
             Stream.sum (Stream.make TestEvent) (Stream.make TestEvent2) |>
             Stream.subscribe (fun evt world -> { world with TestState = match evt.Data with Left i -> i | Right _ -> 10 }) TestSimulantSpecialized $
             world
-        let world = EventSystem.publish 1 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 1 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (1, world.TestState)
-        let world = EventSystem.publish true TestEvent2 EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish true TestEvent2 EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (10, world.TestState)
 
     let [<Fact>] scanWorks () =
@@ -153,8 +153,8 @@ module EventTests =
             Stream.fold (+) 0 |>
             Stream.subscribe (fun evt world -> { world with TestState = evt.Data }) TestSimulantSpecialized $
             world
-        let world = EventSystem.publish 1 TestEvent EventTrace.empty TestSimulantSpecialized world
-        let world = EventSystem.publish 2 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 1 TestEvent EventTrace.empty TestSimulantSpecialized None world
+        let world = EventSystem.publish 2 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (3, world.TestState)
 
     let [<Fact>] scan2DoesntLeaveGarbage () =
@@ -164,7 +164,7 @@ module EventTests =
             Stream.reduce (+) |>
             Stream.subscribeEffect incTestStateAndCascade TestSimulantSpecialized $
             world
-        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized None world
         let world = unsubscribe world
         Assert.True (UMap.isEmpty (EventSystem.getSubscriptions world))
 
@@ -185,25 +185,25 @@ module EventTests =
         Assert.Equal (0, world.TestState)
 
         // assert the first publish executes the first chained operation
-        let world = EventSystem.publish 1 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 1 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (1, world.TestState)
 
         // assert the second publish executes the second chained operation
-        let world = EventSystem.publish 2 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 2 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (2, world.TestState)
         
         // and so on...
-        let world = EventSystem.publish 3 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 3 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (3, world.TestState)
         
         // and so on...
-        let world = EventSystem.publish 4 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 4 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (5, world.TestState)
         
         // and so on...
         // TODO: P1: inspect this part of the test - the expected value seems wrong!
-        let world = EventSystem.publish 5 TestEvent EventTrace.empty TestSimulantSpecialized world
-        let world = EventSystem.publish 6 TestEvent EventTrace.empty TestSimulantSpecialized world
+        let world = EventSystem.publish 5 TestEvent EventTrace.empty TestSimulantSpecialized None world
+        let world = EventSystem.publish 6 TestEvent EventTrace.empty TestSimulantSpecialized None world
         Assert.Equal (5, world.TestState)
         
         // assert no garbage is left over after chained computation is concluded

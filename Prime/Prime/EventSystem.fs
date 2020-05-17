@@ -9,7 +9,7 @@ open Prime
 
 /// A publisher-neutral event system.
 /// Effectively a mix-in for the 'w type, where 'w is a type that represents the client program.
-type EventSystem<'w when 'w :> EventSystem<'w>> =
+type EventSystem<'w when 'w :> 'w EventSystem> =
     interface
         inherit PropertySystem<'w>
         abstract member GetLiveness : unit -> Liveness
@@ -22,151 +22,83 @@ type EventSystem<'w when 'w :> EventSystem<'w>> =
         end
 
 /// Handles simulant property changes.
-and SimulantPropertyChangeHandler<'w when 'w :> EventSystem<'w>> =
-    EventSystem<'w> -> EventSystem<'w> -> EventSystem<'w>
+and SimulantPropertyChangeHandler<'w when 'w :> 'w EventSystem> =
+    'w EventSystem -> 'w EventSystem -> 'w EventSystem
 
 /// Detaches a simulant property change handler.
-and SimulantPropertyChangeUnhandler<'w when 'w :> EventSystem<'w>> =
-    EventSystem<'w> -> EventSystem<'w>
+and SimulantPropertyChangeUnhandler<'w when 'w :> 'w EventSystem> =
+    'w EventSystem -> 'w EventSystem
 
 [<RequireQualifiedAccess>]
 module EventSystem =
 
-    let mutable EventAddressCaching = false
-    let EventAddressCache = Dictionary<obj, obj> HashIdentity.Structural
-    let EventAddressListCache = Dictionary<obj Address, obj List> HashIdentity.Structural
-    
-    let private getEventSystemDelegate<'w when 'w :> EventSystem<'w>> (world : 'w) =
+    let private getEventSystemDelegate<'w when 'w :> 'w EventSystem> (world : 'w) =
         world.GetEventSystemDelegateHook ()
         
-    let private getEventSystemDelegateBy<'a, 'w when 'w :> EventSystem<'w>> (by : 'w EventSystemDelegate -> 'a) (world : 'w) : 'a =
+    let private getEventSystemDelegateBy<'a, 'w when 'w :> 'w EventSystem> (by : 'w EventSystemDelegate -> 'a) (world : 'w) : 'a =
         let propertySystem = world.GetEventSystemDelegateHook ()
         by propertySystem
         
-    let private updateEventSystemDelegate<'w when 'w :> EventSystem<'w>> updater (world : 'w) =
+    let private updateEventSystemDelegate<'w when 'w :> 'w EventSystem> updater (world : 'w) =
         world.UpdateEventSystemDelegateHook updater
 
     /// Get event subscriptions.
-    let getSubscriptions<'w when 'w :> EventSystem<'w>> (world : 'w) =
+    let getSubscriptions<'w when 'w :> 'w EventSystem> (world : 'w) =
         getEventSystemDelegateBy EventSystemDelegate.getSubscriptions world
 
     /// Get event unsubscriptions.
-    let getUnsubscriptions<'w when 'w :> EventSystem<'w>> (world : 'w) =
+    let getUnsubscriptions<'w when 'w :> 'w EventSystem> (world : 'w) =
         getEventSystemDelegateBy EventSystemDelegate.getUnsubscriptions world
 
     /// Set event subscriptions.
-    let private setSubscriptions<'w when 'w :> EventSystem<'w>> subscriptions (world : 'w) =
+    let private setSubscriptions<'w when 'w :> 'w EventSystem> subscriptions (world : 'w) =
         updateEventSystemDelegate (EventSystemDelegate.setSubscriptions subscriptions) world
 
     /// Set event unsubscriptions.
-    let private setUnsubscriptions<'w when 'w :> EventSystem<'w>> unsubscriptions (world : 'w) =
+    let private setUnsubscriptions<'w when 'w :> 'w EventSystem> unsubscriptions (world : 'w) =
         updateEventSystemDelegate (EventSystemDelegate.setUnsubscriptions unsubscriptions) world
 
     /// Add event state to the world.
-    let addEventState<'a, 'w when 'w :> EventSystem<'w>> key (state : 'a) (world : 'w) =
+    let addEventState<'a, 'w when 'w :> 'w EventSystem> key (state : 'a) (world : 'w) =
         updateEventSystemDelegate (EventSystemDelegate.addEventState key state) world
 
     /// Remove event state from the world.
-    let removeEventState<'w when 'w :> EventSystem<'w>> key (world : 'w) =
+    let removeEventState<'w when 'w :> 'w EventSystem> key (world : 'w) =
         updateEventSystemDelegate (EventSystemDelegate.removeEventState key) world
 
     /// Get event state from the world.
-    let getEventState<'a, 'g ,'w when 'w :> EventSystem<'w>> key (world : 'w) : 'a =
+    let getEventState<'a, 'g ,'w when 'w :> 'w EventSystem> key (world : 'w) : 'a =
         getEventSystemDelegateBy (EventSystemDelegate.getEventState<'a, 'w> key) world
 
     /// Get whether events are being traced.
-    let getEventTracing<'w when 'w :> EventSystem<'w>> (world : 'w) =
+    let getEventTracing<'w when 'w :> 'w EventSystem> (world : 'w) =
         getEventSystemDelegateBy EventSystemDelegate.getEventTracing<'w> world
 
     /// Set whether events are being traced.
-    let setEventTracing<'w when 'w :> EventSystem<'w>> tracing (world : 'w) =
+    let setEventTracing<'w when 'w :> 'w EventSystem> tracing (world : 'w) =
         updateEventSystemDelegate (EventSystemDelegate.setEventTracing tracing) world
 
     /// Get the state of the event filter.
-    let getEventFilter<'w when 'w :> EventSystem<'w>> (world : 'w) =
+    let getEventFilter<'w when 'w :> 'w EventSystem> (world : 'w) =
         getEventSystemDelegateBy EventSystemDelegate.getEventFilter world
 
     /// Set the state of the event filter.
-    let setEventFilter<'w when 'w :> EventSystem<'w>> filter (world : 'w) =
+    let setEventFilter<'w when 'w :> 'w EventSystem> filter (world : 'w) =
         updateEventSystemDelegate (EventSystemDelegate.setEventFilter filter) world
 
     /// Get the event context of the world.
-    let getEventContext<'w when 'w :> EventSystem<'w>> (world : 'w) =
+    let getEventContext<'w when 'w :> 'w EventSystem> (world : 'w) =
         getEventSystemDelegateBy EventSystemDelegate.getEventContext world
 
     /// Set the event context of the world.
-    let setEventContext<'w when 'w :> EventSystem<'w>> context (world : 'w) =
+    let setEventContext<'w when 'w :> 'w EventSystem> context (world : 'w) =
         EventSystemDelegate.setEventContext context (getEventSystemDelegate world)
 
     /// Qualify the event context of the world.
-    let qualifyEventContext<'w when 'w :> EventSystem<'w>> (address : obj Address) (world : 'w) =
+    let qualifyEventContext<'w when 'w :> 'w EventSystem> (address : obj Address) (world : 'w) =
         getEventSystemDelegateBy (EventSystemDelegate.qualifyEventContext address) world
 
-    /// Set whether event addresses are cached internally.
-    /// If you enable caching, be sure to use EventSystem.cleanEventAddressCache to keep the cache from expanding
-    /// indefinitely.
-    let setEventAddressCaching caching =
-        if not caching then
-            EventAddressCache.Clear ()
-            EventAddressListCache.Clear ()
-        EventAddressCaching <- caching
-
-    /// Remove from the event address cache all addresses belonging to the given target.
-    let cleanEventAddressCache (eventTarget : 'a Address) =
-        if EventAddressCaching then
-            let eventTargetOa = atooa eventTarget
-            match EventAddressListCache.TryGetValue eventTargetOa with
-            | (true, entries) ->
-                for entry in entries do EventAddressCache.Remove entry |> ignore
-                EventAddressListCache.Remove eventTargetOa |> ignore
-            | (false, _) -> ()
-        else ()
-
-    // NOTE: event addresses are ordered from general to specific. This is so a generalized subscriber can preempt
-    // any specific subscribers. Whether this is the best order is open for discussion.
-    // OPTIMIZATION: imperative for speed
-    let private getEventAddresses1 (eventAddress : 'a Address) =
-        
-        // create target event address array
-        let eventAddressNames = Address.getNames eventAddress
-        let eventAddressNamesLength = eventAddressNames.Length
-        let eventAddresses = Array.zeroCreate (inc eventAddressNamesLength)
-
-        // make non-wildcard address the last element
-        eventAddresses.[eventAddressNamesLength] <- eventAddress
-
-        // populate wildcard addresses from specific to general
-        Array.iteri (fun i _ ->
-            let eventAddressNamesAny = Array.zeroCreate eventAddressNamesLength
-            Array.Copy (eventAddressNames, 0, eventAddressNamesAny, 0, eventAddressNamesLength)
-            eventAddressNamesAny.[i] <- Address.head Events.Wildcard
-            let eventAddressAny = Address.rtoa eventAddressNamesAny
-            eventAddresses.[i] <- eventAddressAny)
-            eventAddressNames
-
-        // fin
-        eventAddresses
-
-    let private getEventAddresses2 (eventAddress : 'a Address) allowWildcard =
-        if allowWildcard then
-            if EventAddressCaching then
-                match EventAddressCache.TryGetValue eventAddress with
-                | (false, _) ->
-                    let eventAddressNames = Address.getNames eventAddress
-                    let eventAddresses = getEventAddresses1 eventAddress
-                    let eventTargetIndex = Array.findIndex (fun name -> name = "Event") eventAddressNames + 1
-                    if eventTargetIndex < Array.length eventAddressNames then
-                        let eventTarget = eventAddressNames |> Array.skip eventTargetIndex |> Address.makeFromArray
-                        match EventAddressListCache.TryGetValue eventTarget with
-                        | (false, _) -> EventAddressListCache.Add (eventTarget, List [eventAddress :> obj]) |> ignore
-                        | (true, list) -> list.Add eventAddress
-                        EventAddressCache.Add (eventAddress, eventAddresses)
-                    eventAddresses
-                | (true, eventAddressesObj) -> eventAddressesObj :?> 'a Address array
-            else getEventAddresses1 eventAddress
-        else [|eventAddress|]
-
-    let private boxSubscription<'a, 's, 'w when 's :> Simulant and 'w :> EventSystem<'w>>
+    let private boxSubscription<'a, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
         (subscription : Event<'a, 's> -> 'w -> Handling * 'w) =
         let boxableSubscription = fun (evt : Event<obj, Simulant>) world ->
             let evt =
@@ -178,7 +110,7 @@ module EventSystem =
             subscription evt world
         boxableSubscription :> obj
 
-    let getSortableSubscriptions
+    let private getSortableSubscriptions
         (getSortPriority : Simulant -> 'w -> IComparable)
         (subscriptions : SubscriptionEntry array)
         (world : 'w) :
@@ -189,42 +121,35 @@ module EventSystem =
                 (priority, subscription))
             subscriptions
 
-    let private getSubscriptionsSorted (publishSorter : SubscriptionSorter<'w>) eventAddress allowWildcard (world : 'w) =
-        let eventDeleage = getEventSystemDelegate world
-        let eventSubscriptions = EventSystemDelegate.getSubscriptions eventDeleage
-        let eventAddresses = getEventAddresses2 eventAddress allowWildcard
-        let subscriptionOpts = Array.map (fun eventAddress -> UMap.tryFind eventAddress eventSubscriptions) eventAddresses
-        let subscriptionOpts = Array.filter Option.isSome subscriptionOpts
-        let subscriptions = Array.map Option.get subscriptionOpts // TODO: consider fusing with filter by using filterBy
-        let subscriptions = Array.concat subscriptions
-        publishSorter subscriptions world
+    let getSubscriptionsSorted<'w when 'w :> 'w EventSystem> (publishSorter : SubscriptionSorter) eventAddress (world : 'w) =
+        EventSystemDelegate.getSubscriptionsSorted publishSorter eventAddress (getEventSystemDelegate world) world
 
-    let private logEvent<'w when 'w :> EventSystem<'w>> eventAddress eventTrace (world : 'w) =
+    let private logEvent<'w when 'w :> 'w EventSystem> eventAddress eventTrace (world : 'w) =
         EventSystemDelegate.logEvent<'w> eventAddress eventTrace (getEventSystemDelegate world)
 
-    let private pushEventAddress<'w when 'w :> EventSystem<'w>> eventAddress (world : 'w) =
+    let private pushEventAddress<'w when 'w :> 'w EventSystem> eventAddress (world : 'w) =
         updateEventSystemDelegate (EventSystemDelegate.pushEventAddress eventAddress) world
 
-    let private popEventAddress<'w when 'w :> EventSystem<'w>> (world : 'w) =
+    let private popEventAddress<'w when 'w :> 'w EventSystem> (world : 'w) =
         updateEventSystemDelegate EventSystemDelegate.popEventAddress world
 
-    let private getEventAddresses<'w when 'w :> EventSystem<'w>> (world : 'w) =
+    let private getEventAddresses<'w when 'w :> 'w EventSystem> (world : 'w) =
         getEventSystemDelegateBy EventSystemDelegate.getEventAddresses world
 
-    let getLiveness<'w when 'w :> EventSystem<'w>> (world : 'w) =
+    let getLiveness<'w when 'w :> 'w EventSystem> (world : 'w) =
         world.GetLiveness ()
 
-    let getGlobalSimulantSpecialized<'w when 'w :> EventSystem<'w>> (world : 'w) =
+    let getGlobalSimulantSpecialized<'w when 'w :> 'w EventSystem> (world : 'w) =
         world.GetGlobalSimulantSpecialized ()
 
-    let getGlobalSimulantGeneralized<'w when 'w :> EventSystem<'w>> (world : 'w) =
+    let getGlobalSimulantGeneralized<'w when 'w :> 'w EventSystem> (world : 'w) =
         world.GetGlobalSimulantGeneralized ()
 
-    let simulantExists<'w when 'w :> EventSystem<'w>> (simulant : Simulant) (world : 'w) =
+    let simulantExists<'w when 'w :> 'w EventSystem> (simulant : Simulant) (world : 'w) =
         world.SimulantExists simulant
 
     /// Publish an event directly.
-    let publishEvent<'a, 'p, 's, 'w when 'p :> Simulant and 's :> Simulant and 'w :> EventSystem<'w>>
+    let publishEvent<'a, 'p, 's, 'w when 'p :> Simulant and 's :> Simulant and 'w :> 'w EventSystem>
         (subscriber : Simulant) (publisher : 'p) (eventData : obj) (eventAddress : 'a Address) eventTrace subscription (world : 'w) =
         let evt =
             { Data = eventData
@@ -250,26 +175,27 @@ module EventSystem =
         subscriptions
 
     /// Publish an event, using the given publishSorter procedures to arrange the order to which subscriptions are published.
-    let publishPlus<'a, 'p, 'w when 'p :> Simulant and 'w :> EventSystem<'w>>
-        (publishSorter : SubscriptionSorter<'w>)
+    let publishPlus<'a, 'p, 'w when 'p :> Simulant and 'w :> 'w EventSystem>
         (eventData : 'a)
         (eventAddress : 'a Address)
         eventTrace
         (publisher : 'p)
-        allowWildcard
+        (sorterOpt : SubscriptionSorter option)
         (world : 'w) =
-        let objEventAddress = atooa eventAddress in logEvent<'w> objEventAddress eventTrace world
-        let subscriptions = getSubscriptionsSorted publishSorter objEventAddress allowWildcard world
+        let eventAddressObj = atooa eventAddress
+#if DEBUG
+        logEvent<'w> eventAddressObj eventTrace world
+#endif
+        let subscriptions =
+            match sorterOpt with
+            | Some sorter ->
+                EventSystemDelegate.getSubscriptionsSorted sorter eventAddressObj (getEventSystemDelegate world) world
+            | None ->
+                let subscriptions = EventSystemDelegate.getSubscriptions (getEventSystemDelegate world)
+                match UMap.tryFind eventAddressObj subscriptions with Some subs -> subs | None -> [||]
         let (_, world) =
-            // NOTE: inlined foldWhite here in order to compact the call stack
-            let mutable lastState = (Cascade, world)
-            let mutable stateOpt = Some lastState
-            use mutable enr = (subscriptions :> _ seq).GetEnumerator ()
-            while stateOpt.IsSome && enr.MoveNext () do
-                lastState <- stateOpt.Value
-                stateOpt <-
-                    let (handling, world) = lastState
-                    let subscription = enr.Current
+            Array.foldWhile
+                (fun (handling, world : 'w) (subscription : SubscriptionEntry) ->
 #if DEBUG
                     let eventAddresses = getEventAddresses world
                     let cycleDetected = List.containsTriplicates eventAddresses
@@ -300,19 +226,18 @@ module EventSystem =
                         let world = popEventAddress world
 #endif
                         Some (handling, world)
-                    else None
-            match stateOpt with
-            | Some state -> state
-            | None -> lastState
+                    else None)
+                (Cascade, world)
+                subscriptions
         world
 
     /// Publish an event with no subscription sorting.
-    let publish<'a, 'p, 'w when 'p :> Simulant and 'w :> EventSystem<'w>>
-        (eventData : 'a) (eventAddress : 'a Address) eventTrace (publisher : 'p) (world : 'w) =
-        publishPlus<'a, 'p, 'w> sortSubscriptionsNone eventData eventAddress eventTrace publisher true world
+    let publish<'a, 'p, 'w when 'p :> Simulant and 'w :> 'w EventSystem>
+        (eventData : 'a) (eventAddress : 'a Address) eventTrace (publisher : 'p) sorterOpt (world : 'w) =
+        publishPlus<'a, 'p, 'w> eventData eventAddress eventTrace publisher sorterOpt world
 
     /// Unsubscribe from an event.
-    let unsubscribe<'w when 'w :> EventSystem<'w>> subscriptionKey (world : 'w) =
+    let unsubscribe<'w when 'w :> 'w EventSystem> subscriptionKey (world : 'w) =
         let (subscriptions, unsubscriptions) = (getSubscriptions world, getUnsubscriptions world)
         match UMap.tryFind subscriptionKey unsubscriptions with
         | Some (eventAddress, subscriber) ->
@@ -335,12 +260,13 @@ module EventSystem =
                     (rtoa<obj Address> [|"Unsubscribe"; "Event"|])
                     (EventTrace.record "EventSystem" "unsubscribe" EventTrace.empty)
                     (getGlobalSimulantSpecialized world)
+                    None
                     world
             | None -> world
         | None -> world
 
     /// Subscribe to an event using the given subscriptionKey, and be provided with an unsubscription callback.
-    let subscribePlus<'a, 'b, 's, 'w when 's :> Simulant and 'w :> EventSystem<'w>>
+    let subscribePlus<'a, 'b, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
         (subscriptionKey : Guid)
         (mapperOpt : ('a -> 'b option -> 'w -> 'b) option)
         (filterOpt : ('b -> 'b option -> 'w -> bool) option)
@@ -373,17 +299,18 @@ module EventSystem =
                     (rtoa<obj Address> [|"Subscribe"; "Event"|])
                     (EventTrace.record "EventSystem" "subscribePlus5" EventTrace.empty)
                     (getGlobalSimulantSpecialized world)
+                    None
                     world
             (unsubscribe<'w> subscriptionKey, world)
         else failwith "Event name cannot be empty."
 
     /// Subscribe to an event.
-    let subscribe<'a, 's, 'w when 's :> Simulant and 'w :> EventSystem<'w>>
+    let subscribe<'a, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
         (subscription : Event<'a, 's> -> 'w -> 'w) (eventAddress : 'a Address) (subscriber : 's) world =
         subscribePlus (makeGuid ()) None None None (fun evt world -> (Cascade, subscription evt world)) eventAddress subscriber world |> snd
 
     /// Keep active a subscription for the life span of a simulant, and be provided with an unsubscription callback.
-    let monitorPlus<'a, 'b, 's, 'w when 's :> Simulant and 'w :> EventSystem<'w>>
+    let monitorPlus<'a, 'b, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
         (mapperOpt : ('a -> 'b option -> 'w -> 'b) option)
         (filterOpt : ('b -> 'b option -> 'w -> bool) option)
         (stateOpt : 'b option)
@@ -404,6 +331,6 @@ module EventSystem =
         (unsubscribe, world)
 
     /// Keep active a subscription for the life span of a simulant.
-    let monitor<'a, 's, 'w when 's :> Simulant and 'w :> EventSystem<'w>>
+    let monitor<'a, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
         (subscription : Event<'a, 's> -> 'w -> 'w) (eventAddress : 'a Address) (subscriber : 's) (world : 'w) =
         monitorPlus<'a, 'a, 's, 'w> None None None (fun evt world -> (Cascade, subscription evt world)) eventAddress subscriber world |> snd

@@ -3,6 +3,7 @@
 
 namespace Prime
 open System
+open System.Collections.Generic
 open Prime
 
 /// Describes whether an in-flight event has been resolved or should cascade to down-stream handlers.
@@ -55,8 +56,8 @@ type [<NoEquality; NoComparison>] SubscriptionEntry =
       Callback : obj } // 'b -> 's -> 'w -> 'w
 
 /// Abstracts over a subscription sorting procedure.
-type 'w SubscriptionSorter =
-    SubscriptionEntry array -> 'w -> SubscriptionEntry array
+type SubscriptionSorter =
+    SubscriptionEntry array -> obj -> SubscriptionEntry array
 
 /// Describes an event subscription that can be boxed / unboxed.
 type 'w BoxableSubscription =
@@ -78,10 +79,15 @@ module Events =
 [<AutoOpen>]
 module EventSystemDelegate =
 
+    /// OPTIMIZATION: caches event address for fast address generation.
+    let mutable private EventAddressCaching = false
+    let private EventAddressCache = Dictionary<obj, obj> HashIdentity.Structural
+    let private EventAddressListCache = Dictionary<obj Address, obj List> HashIdentity.Structural
+
     /// OPTIMIZATION: these were pulled out from EventSystemDelegate in order to fit its structure
     /// inside a cache line.
-    let mutable GlobalSimulantSpecialized : Simulant = Unchecked.defaultof<_>
-    let mutable GlobalSimulantGeneralized : GlobalSimulantGeneralized = Unchecked.defaultof<_>
+    let mutable private GlobalSimulantSpecialized : Simulant = Unchecked.defaultof<_>
+    let mutable private GlobalSimulantGeneralized : GlobalSimulantGeneralized = Unchecked.defaultof<_>
 
     /// The implementation portion of EventSystem.
     /// OPTIMIZATION: EventContext is mutable for speed.
@@ -177,6 +183,77 @@ module EventSystemDelegate =
         /// Set the context of the event context.
         let setEventContext context (esd : 'w EventSystemDelegate) =
             esd.EventContext <- context
+
+        /// Set whether event addresses are cached internally.
+        /// If you enable caching, be sure to use EventSystem.cleanEventAddressCache to keep the cache from expanding
+        /// indefinitely.
+        let setEventAddressCaching caching =
+            if not caching then
+                EventAddressCache.Clear ()
+                EventAddressListCache.Clear ()
+            EventAddressCaching <- caching
+
+        /// Remove from the event address cache all addresses belonging to the given target.
+        let cleanEventAddressCache (eventTarget : 'a Address) =
+            if EventAddressCaching then
+                let eventTargetOa = atooa eventTarget
+                match EventAddressListCache.TryGetValue eventTargetOa with
+                | (true, entries) ->
+                    for entry in entries do EventAddressCache.Remove entry |> ignore
+                    EventAddressListCache.Remove eventTargetOa |> ignore
+                | (false, _) -> ()
+            else ()
+
+        // NOTE: event addresses are ordered from general to specific. This is so a generalized subscriber can preempt
+        // any specific subscribers. Whether this is the best order is open for discussion.
+        // OPTIMIZATION: imperative for speed
+        let private getEventAddresses1 (eventAddress : 'a Address) =
+
+            // create target event address array
+            let eventAddressNames = Address.getNames eventAddress
+            let eventAddressNamesLength = eventAddressNames.Length
+            let eventAddresses = Array.zeroCreate (inc eventAddressNamesLength)
+
+            // make non-wildcard address the last element
+            eventAddresses.[eventAddressNamesLength] <- eventAddress
+
+            // populate wildcard addresses from specific to general
+            Array.iteri (fun i _ ->
+                let eventAddressNamesAny = Array.zeroCreate eventAddressNamesLength
+                Array.Copy (eventAddressNames, 0, eventAddressNamesAny, 0, eventAddressNamesLength)
+                eventAddressNamesAny.[i] <- Address.head Events.Wildcard
+                let eventAddressAny = Address.rtoa eventAddressNamesAny
+                eventAddresses.[i] <- eventAddressAny)
+                eventAddressNames
+
+            // fin
+            eventAddresses
+
+        /// Get the wild-carded addresses of an event address.
+        let getEventAddresses2 (eventAddress : 'a Address) (_ : 'w EventSystemDelegate) =
+            if EventAddressCaching then
+                match EventAddressCache.TryGetValue eventAddress with
+                | (false, _) ->
+                    let eventAddressNames = Address.getNames eventAddress
+                    let eventAddresses = getEventAddresses1 eventAddress
+                    let eventTargetIndex = Array.findIndex (fun name -> name = "Event") eventAddressNames + 1
+                    if eventTargetIndex < Array.length eventAddressNames then
+                        let eventTarget = eventAddressNames |> Array.skip eventTargetIndex |> Address.makeFromArray
+                        match EventAddressListCache.TryGetValue eventTarget with
+                        | (false, _) -> EventAddressListCache.Add (eventTarget, List [eventAddress :> obj]) |> ignore
+                        | (true, list) -> list.Add eventAddress
+                        EventAddressCache.Add (eventAddress, eventAddresses)
+                    eventAddresses
+                | (true, eventAddressesObj) -> eventAddressesObj :?> 'a Address array
+            else getEventAddresses1 eventAddress
+            
+        let getSubscriptionsSorted (publishSorter : SubscriptionSorter) eventAddress (esd : 'w EventSystemDelegate) (world : 'w) =
+            let eventSubscriptions = getSubscriptions esd
+            let eventAddresses = getEventAddresses2 eventAddress esd
+            let subscriptionOpts = Array.map (fun eventAddress -> UMap.tryFind eventAddress eventSubscriptions) eventAddresses
+            let subscriptions = Array.definitize subscriptionOpts
+            let subscriptions = Array.concat subscriptions
+            publishSorter subscriptions world
 
         /// Log an event.
         let logEvent<'w> (address : obj Address) (trace : EventTrace) (esd : 'w EventSystemDelegate) =
