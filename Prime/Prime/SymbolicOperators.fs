@@ -3,13 +3,14 @@
 
 namespace Prime
 open System
+open System.Collections.Generic
 open Prime
 
 [<AutoOpen>]
 module SymbolicOperators =
 
-    let private ScvalueMemo = Collections.Generic.Dictionary<string, obj> ()
-    let private ScstringMemo = Collections.Generic.Dictionary<obj, string> ()
+    let private ScvalueMemo = Dictionary<string, obj> HashIdentity.Structural
+    let private ScstringMemo = Dictionary<obj, string> HashIdentity.Structural
 
     /// Convert a value to a symbol.
     let valueToSymbol<'a> (value : 'a) =

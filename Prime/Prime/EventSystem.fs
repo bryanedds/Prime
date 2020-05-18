@@ -150,14 +150,14 @@ module EventSystem =
 
     /// Publish an event directly.
     let publishEvent<'a, 'p, 's, 'w when 'p :> Simulant and 's :> Simulant and 'w :> 'w EventSystem>
-        (subscriber : Simulant) (publisher : 'p) (eventData : obj) (eventAddress : 'a Address) eventTrace subscription (world : 'w) =
+        (subscriber : Simulant) (publisher : 'p) (eventData : obj) (eventAddress : 'a Address) eventTrace (subscription : obj) (world : 'w) =
         let evt =
             { Data = eventData
               Subscriber = subscriber
               Publisher = publisher :> Simulant
               Address = atooa eventAddress
               Trace = eventTrace }
-        let callableSubscription = unbox<'w BoxableSubscription> subscription
+        let callableSubscription = subscription :?> 'w BoxableSubscription
         let oldEventContext = getEventContext world
         setEventContext subscriber world
         let (handling, world) = callableSubscription evt world

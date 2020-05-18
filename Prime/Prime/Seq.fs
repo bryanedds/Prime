@@ -96,7 +96,7 @@ module Seq =
     let foldWhile folder (state : 's) (seq : 't seq) =
         let mutable lastState = state
         let mutable stateOpt = Some lastState
-        use mutable enr = seq.GetEnumerator ()
+        let mutable enr = seq.GetEnumerator ()
         while stateOpt.IsSome && enr.MoveNext () do
             lastState <- stateOpt.Value
             stateOpt <- folder lastState enr.Current
@@ -107,7 +107,7 @@ module Seq =
     /// Implement a fold while folder results in Right.
     let foldWhileRight folder (state : Either<_, _>) (seq : 't seq) =
         let mutable state = state // make mutable
-        use mutable enr = seq.GetEnumerator ()
+        let mutable enr = seq.GetEnumerator ()
         while Either.isRight state && enr.MoveNext () do
             state <- folder (Either.getRightValue state) enr.Current
         state
@@ -117,7 +117,7 @@ module Seq =
         let mutable isFirst = true // no do while necessitates this flag
         let mutable lastState = state
         let mutable stateOpt = Some lastState
-        use mutable enr = seq.GetEnumerator ()
+        let mutable enr = seq.GetEnumerator ()
         while (isFirst || stateOpt.IsNone) && enr.MoveNext () do
             isFirst <- false
             lastState <- stateOpt.Value
@@ -129,7 +129,7 @@ module Seq =
     /// Implement a fold until folder results in Right.
     let foldUntilRight folder (state : Either<_, _>) (seq : 't seq) =
         let mutable state = state // make mutable
-        use mutable enr = seq.GetEnumerator ()
+        let mutable enr = seq.GetEnumerator ()
         while Either.isLeft state && enr.MoveNext () do
             state <- folder (Either.getLeftValue state) enr.Current
         state
