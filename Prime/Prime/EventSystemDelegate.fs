@@ -274,11 +274,11 @@ module EventSystemDelegate =
         /// Push an event address to the list for cycle-detection.
         let pushEventAddress<'w> eventAddress (esd : 'w EventSystemDelegate) =
             { esd with EventAddresses = eventAddress :: esd.EventAddresses }
-            
+
         /// Pop an event address to the list for cycle-detection.
         let popEventAddress<'w> (esd : 'w EventSystemDelegate) =
             { esd with EventAddresses = List.tail esd.EventAddresses }
-            
+
         /// Get the current event address list for cycle-detection.
         let getEventAddresses<'w> (esd : 'w EventSystemDelegate) =
             esd.EventAddresses
