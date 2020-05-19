@@ -106,12 +106,9 @@ module EventSystemDelegate =
               Unsubscriptions : UnsubscriptionEntries
               mutable EventContext : Simulant
               EventStates : UMap<Guid, obj>
-              EventTracer : string -> unit
-              EventTracing : bool
-              // 2 free cache line bytes here
-              EventFilter : EventFilter.Filter
-              EventAddresses : obj Address list }
-              // cache line end
+              EventTracerOpt : (string -> unit) option
+              EventFilter : EventFilter.Filter }
+              // 8 free cache line bytes here
 
     [<RequireQualifiedAccess>]
     module EventSystemDelegate =
@@ -145,13 +142,13 @@ module EventSystemDelegate =
             let state = UMap.find key esd.EventStates
             state :?> 'a
 
-        /// Get whether events are being traced.
-        let getEventTracing<'w> (esd : 'w EventSystemDelegate) =
-            esd.EventTracing
+        /// Get how events are being traced.
+        let getEventTracerOpt<'w> (esd : 'w EventSystemDelegate) =
+            esd.EventTracerOpt
 
-        /// Set whether events are being traced.
-        let setEventTracing<'w> tracing (esd : 'w EventSystemDelegate) =
-            { esd with EventTracing = tracing }
+        /// Set how events are being traced.
+        let setEventTracerOpt<'w> tracing (esd : 'w EventSystemDelegate) =
+            { esd with EventTracerOpt = tracing }
 
         /// Get the state of the event filter.
         let getEventFilter<'w> (esd : 'w EventSystemDelegate) =
@@ -265,35 +262,22 @@ module EventSystemDelegate =
 
         /// Log an event.
         let logEvent<'w> (address : obj Address) (trace : EventTrace) (esd : 'w EventSystemDelegate) =
-            if esd.EventTracing then
+            match esd.EventTracerOpt with
+            | Some tracer ->
                 let addressStr = scstring address
                 let traceRev = List.rev trace // for efficiency during normal execution, trace is cons'd up into a reversed list
-                if EventFilter.filter addressStr traceRev esd.EventFilter then
-                    esd.EventTracer (addressStr + "|" + scstring traceRev)
-
-        /// Push an event address to the list for cycle-detection.
-        let pushEventAddress<'w> eventAddress (esd : 'w EventSystemDelegate) =
-            { esd with EventAddresses = eventAddress :: esd.EventAddresses }
-
-        /// Pop an event address to the list for cycle-detection.
-        let popEventAddress<'w> (esd : 'w EventSystemDelegate) =
-            { esd with EventAddresses = List.tail esd.EventAddresses }
-
-        /// Get the current event address list for cycle-detection.
-        let getEventAddresses<'w> (esd : 'w EventSystemDelegate) =
-            esd.EventAddresses
+                if EventFilter.filter addressStr traceRev esd.EventFilter then tracer (addressStr + "|" + scstring traceRev)
+            | None -> ()
 
         /// Make an event delegate.
-        let make eventTracer eventTracing eventFilter globalSimulantSpecialized globalSimulantGeneralized =
+        let make eventTracerOpt eventFilter globalSimulantSpecialized globalSimulantGeneralized =
             let esd =
                 { Subscriptions = UMap.makeEmpty Functional
                   Unsubscriptions = UMap.makeEmpty Functional
                   EventContext = globalSimulantSpecialized
                   EventStates = UMap.makeEmpty Functional
-                  EventTracer = eventTracer
-                  EventTracing = eventTracing
-                  EventFilter = eventFilter
-                  EventAddresses = [] }
+                  EventTracerOpt = eventTracerOpt
+                  EventFilter = eventFilter }
             GlobalSimulantSpecialized <- globalSimulantSpecialized
             GlobalSimulantGeneralized <- globalSimulantGeneralized
             esd

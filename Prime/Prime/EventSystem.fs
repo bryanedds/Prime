@@ -71,13 +71,13 @@ module EventSystem =
     let getEventState<'a, 'g ,'w when 'w :> 'w EventSystem> key (world : 'w) : 'a =
         getEventSystemDelegateBy (EventSystemDelegate.getEventState<'a, 'w> key) world
 
-    /// Get whether events are being traced.
-    let getEventTracing<'w when 'w :> 'w EventSystem> (world : 'w) =
-        getEventSystemDelegateBy EventSystemDelegate.getEventTracing<'w> world
+    /// Get how events are being traced.
+    let getEventTracerOpt<'w when 'w :> 'w EventSystem> (world : 'w) =
+        getEventSystemDelegateBy EventSystemDelegate.getEventTracerOpt<'w> world
 
-    /// Set whether events are being traced.
-    let setEventTracing<'w when 'w :> 'w EventSystem> tracing (world : 'w) =
-        updateEventSystemDelegate (EventSystemDelegate.setEventTracing tracing) world
+    /// Set how events are being traced.
+    let setEventTracerOpt<'w when 'w :> 'w EventSystem> tracerOpt (world : 'w) =
+        updateEventSystemDelegate (EventSystemDelegate.setEventTracerOpt tracerOpt) world
 
     /// Get the state of the event filter.
     let getEventFilter<'w when 'w :> 'w EventSystem> (world : 'w) =
