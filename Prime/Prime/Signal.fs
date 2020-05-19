@@ -87,12 +87,14 @@ module Signal =
             | Left address ->
                 EventSystem.monitor (fun evt world ->
                     let signals = channel.Handler evt
-                    List.fold (fun world signal -> processSignal processMessage processCommand model signal simulant world) world signals)
+                    let world = List.fold (fun world signal -> processSignal processMessage processCommand model signal simulant world) world signals
+                    (Cascade, world))
                     address simulant world
             | Right stream ->
                 Stream.monitor (fun evt world ->
                     let signals = channel.Handler evt
-                    List.fold (fun world signal -> processSignal processMessage processCommand model signal simulant world) world signals)
+                    let world = List.fold (fun world signal -> processSignal processMessage processCommand model signal simulant world) world signals
+                    world)
                     simulant stream world)
             world
             channels

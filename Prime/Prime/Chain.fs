@@ -177,11 +177,11 @@ module Chain =
             match advanceResult with
             | Right () -> unsubscribe world
             | Left chainNext -> EventSystem.addEventState stateKey chainNext world
-        let subscription = fun evt world ->
+        let callback = fun evt world ->
             let world = advance evt world
             (handling, world)
         let world = advance Unchecked.defaultof<Event<'a, Simulant>> world
-        let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None subscription eventAddress globalSimulant world |> snd
+        let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None callback eventAddress globalSimulant world |> snd
         (unsubscribe, world)
 
     /// Run a chain over Prime's event system.

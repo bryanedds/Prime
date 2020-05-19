@@ -46,6 +46,10 @@ module Event =
           Address = atoa evt.Address
           Trace = evt.Trace }
 
+type [<NoEquality; NoComparison>] Callback =
+    | UserDefinedCallback of obj
+    | FunctionCallback of obj
+
 /// An entry in the subscription map.
 type [<NoEquality; NoComparison>] SubscriptionEntry =
     { SubscriptionKey : Guid
@@ -53,11 +57,15 @@ type [<NoEquality; NoComparison>] SubscriptionEntry =
       MapperOpt : (obj -> obj option -> obj -> obj) option // ('a -> 'b option -> 'w -> 'b) option
       FilterOpt : (obj -> obj option -> obj -> bool) option // ('b -> 'b option -> 'w -> bool) option
       mutable PreviousDataOpt : obj option // 'b option
-      Callback : obj } // 'b -> 's -> 'w -> 'w
+      Callback : Callback }
 
 /// Abstracts over a subscription sorting procedure.
 type SubscriptionSorter =
     SubscriptionEntry array -> obj -> SubscriptionEntry array
+
+/// The type of a subscription.
+type Callback<'a, 's, 'w when 's :> Simulant> =
+    Event<'a, 's> -> 'w -> Handling * 'w
 
 /// Describes an event subscription that can be boxed / unboxed.
 type 'w BoxableSubscription =
