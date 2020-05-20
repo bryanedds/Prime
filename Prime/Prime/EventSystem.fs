@@ -167,8 +167,7 @@ module EventSystem =
         let (_, world) =
             Array.foldWhile
                 (fun (handling, world : 'w) (subscription : SubscriptionEntry) ->
-                    if  (match handling with Cascade -> true | Resolve -> false) &&
-                        (match world.GetLiveness () with Running -> true | Exiting -> false) then
+                    if handling = Cascade && world.GetLiveness () = Running then
                         let mapped =
                             match subscription.MapperOpt with
                             | Some mapper -> mapper eventData subscription.PreviousDataOpt world
