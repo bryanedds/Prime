@@ -53,12 +53,11 @@ type [<NoEquality; NoComparison>] Callback =
 /// An entry in the subscription map.
 type [<NoEquality; NoComparison>] SubscriptionEntry =
     { SubscriptionKey : Guid
-      SubscriberValue : Simulant
       CompressionArtifact : Guid
       MapperOpt : (obj -> obj option -> obj -> obj) option // ('a -> 'b option -> 'w -> 'b) option
       FilterOpt : (obj -> obj option -> obj -> bool) option // ('b -> 'b option -> 'w -> bool) option
       mutable PreviousDataOpt : obj option // 'b option
-      Callbacks : (Guid * Callback) array }
+      Callbacks : (Guid * Simulant * Callback) array }
 
 /// Abstracts over a subscription sorting procedure.
 type SubscriptionSorter =

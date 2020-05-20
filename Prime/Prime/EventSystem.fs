@@ -105,7 +105,9 @@ module EventSystem =
         (IComparable * SubscriptionEntry) array =
         Array.map
             (fun (subscription : SubscriptionEntry) ->
-                let priority = getSortPriority subscription.SubscriberValue world
+                // NOTE: we just take the sort priority of the first callback found when callbacks are compressed. This
+                // is semantically sub-optimal, but should be fine for all of our cases.
+                let priority = getSortPriority (Triple.snd subscription.Callbacks.[0]) world
                 (priority, subscription))
             subscriptions
 
@@ -178,12 +180,12 @@ module EventSystem =
                         subscription.PreviousDataOpt <- Some mapped
                         let (handling, world) =
                             if filtered then
-                                Array.fold (fun (handling, world : 'w) (_, callback) ->
+                                Array.fold (fun (handling, world : 'w) (_, subscriber, callback) ->
                                     match handling with
                                     | Cascade ->
                                         match callback with
                                         | UserDefinedCallback callback -> world.HandleUserDefinedCallback callback mapped world
-                                        | FunctionCallback callback -> world.PublishEventHook subscription.SubscriberValue publisher mapped eventAddress eventTrace callback world
+                                        | FunctionCallback callback -> world.PublishEventHook subscriber publisher mapped eventAddress eventTrace callback world
                                     | Resolve -> (handling, world))
                                     (handling, world)
                                     subscription.Callbacks
@@ -203,18 +205,17 @@ module EventSystem =
     let unsubscribe<'w when 'w :> 'w EventSystem> subscriptionKey (world : 'w) =
         let (subscriptions, unsubscriptions) = (getSubscriptions world, getUnsubscriptions world)
         match UMap.tryFind subscriptionKey unsubscriptions with
-        | Some (eventAddress, subscriber) ->
+        | Some (eventAddress, _) ->
             match UMap.tryFind eventAddress subscriptions with
             | Some subscriptionEntries ->
                 let subscriptionEntryOpt =
-                    Array.tryFind (fun subscription ->
-                        subscription.SubscriptionKey = subscriptionKey &&
-                        subscription.SubscriberValue = subscriber) // is this check really necessaty?
+                    Array.tryFind (fun (subscriptionEntry : SubscriptionEntry) ->
+                        subscriptionEntry.SubscriptionKey = subscriptionKey)
                         subscriptionEntries
                 let subscriptionEntryOpt =
                     match subscriptionEntryOpt with
                     | Some subscriptionEntry ->
-                        let callbacks = Array.remove (fun (key, _) -> key = subscriptionKey) subscriptionEntry.Callbacks
+                        let callbacks = Array.remove (fun (key, _, _) -> key = subscriptionKey) subscriptionEntry.Callbacks
                         if Array.notEmpty callbacks then Some (Some { subscriptionEntry with Callbacks = callbacks })
                         else Some None
                     | None -> None
@@ -223,16 +224,14 @@ module EventSystem =
                     | Some (Some subscriptionEntry) ->
                         let subscriptionEntries =
                             Array.replace (fun (subscriptionEntry : SubscriptionEntry) ->
-                                subscriptionEntry.SubscriptionKey = subscriptionKey &&
-                                subscriptionEntry.SubscriberValue = subscriber) // is this check really necessaty?
+                                subscriptionEntry.SubscriptionKey = subscriptionKey)
                                 subscriptionEntry
                                 subscriptionEntries
                         UMap.add eventAddress subscriptionEntries subscriptions
                     | Some None ->
                         let subscriptionEntries =
                             Array.remove (fun subscription ->
-                                subscription.SubscriptionKey = subscriptionKey &&
-                                subscription.SubscriberValue = subscriber) // is this check really necessaty?
+                                subscription.SubscriptionKey = subscriptionKey)
                                 subscriptionEntries
                         if Array.isEmpty subscriptionEntries
                         then UMap.remove eventAddress subscriptions
@@ -276,38 +275,35 @@ module EventSystem =
                             subscriptionEntries
                     match compressedSubscriptionEntryOpt with
                     | Some subscriptionEntry ->
-                        let callbacks = Array.add (subscriptionKey, callback) subscriptionEntry.Callbacks
+                        let callbacks = Array.add (subscriptionKey, subscriber :> Simulant, callback) subscriptionEntry.Callbacks
                         let subscriptionEntry = { subscriptionEntry with Callbacks = callbacks }
                         let subscriptionEntries =
                             // NOTE: using replace here does potentially put callbacks in an order other than which
                             // they are received. This is semantically suboptimal, but necessary for their performance
                             // boost.
                             Array.replace (fun subscriptionEntry ->
-                                subscriptionEntry.SubscriptionKey = subscriptionKey &&
-                                subscriptionEntry.SubscriberValue = (subscriber :> Simulant))
+                                subscriptionEntry.SubscriptionKey = subscriptionKey)
                                 subscriptionEntry
                                 subscriptionEntries
                         UMap.add eventAddressObj subscriptionEntries subscriptions
                     | None ->
                         let subscriptionEntry =
                             { SubscriptionKey = subscriptionKey
-                              SubscriberValue = subscriber :> Simulant
                               CompressionArtifact = compressionArtifact
                               MapperOpt = Option.map (fun mapper -> fun a p w -> mapper (a :?> 'a) (Option.map cast<'b> p) (w :?> 'w) :> obj) mapperOpt
                               FilterOpt = Option.map (fun filter -> fun b p w -> filter (b :?> 'b) (Option.map cast<'b> p) (w :?> 'w)) filterOpt
                               PreviousDataOpt = Option.map box stateOpt
-                              Callbacks = [|(subscriptionKey, callback)|] }
+                              Callbacks = [|(subscriptionKey, subscriber :> Simulant, callback)|] }
                         let subscriptionEntries = Array.add subscriptionEntry subscriptionEntries
                         UMap.add eventAddressObj subscriptionEntries subscriptions
                 | None ->
                     let subscriptionEntry =
                         { SubscriptionKey = subscriptionKey
-                          SubscriberValue = subscriber :> Simulant
                           CompressionArtifact = compressionArtifact
                           MapperOpt = Option.map (fun mapper -> fun a p w -> mapper (a :?> 'a) (Option.map cast<'b> p) (w :?> 'w) :> obj) mapperOpt
                           FilterOpt = Option.map (fun filter -> fun b p w -> filter (b :?> 'b) (Option.map cast<'b> p) (w :?> 'w)) filterOpt
                           PreviousDataOpt = Option.map box stateOpt
-                          Callbacks = [|(subscriptionKey, callback)|] }
+                          Callbacks = [|(subscriptionKey, subscriber :> Simulant, callback)|] }
                     UMap.add eventAddressObj [|subscriptionEntry|] subscriptions
             let unsubscriptions = UMap.add subscriptionKey (eventAddressObj, subscriber :> Simulant) unsubscriptions
             let world = setSubscriptions subscriptions world
