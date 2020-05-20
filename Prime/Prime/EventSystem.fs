@@ -241,13 +241,13 @@ module EventSystem =
                 let unsubscriptions = UMap.remove subscriptionKey unsubscriptions
                 let world = setSubscriptions subscriptions world
                 let world = setUnsubscriptions unsubscriptions world
-                //let world =
-                //    publish<_, _, 'w>
-                //        eventAddress
-                //        (rtoa<obj Address> [|"Unsubscribe"; "Event"|])
-                //        (EventTrace.record "EventSystem" "unsubscribe" EventTrace.empty)
-                //        (getGlobalSimulantSpecialized world)
-                //        world
+                let world =
+                    publish<_, _, 'w>
+                        eventAddress
+                        (rtoa<obj Address> [|"Unsubscribe"; "Event"|])
+                        (EventTrace.record "EventSystem" "unsubscribe" EventTrace.empty)
+                        (getGlobalSimulantSpecialized world)
+                        world
                 world
             | None -> world
         | None -> world
@@ -312,13 +312,13 @@ module EventSystem =
             let unsubscriptions = UMap.add subscriptionKey (eventAddressObj, subscriber :> Simulant) unsubscriptions
             let world = setSubscriptions subscriptions world
             let world = setUnsubscriptions unsubscriptions world
-            //let world =
-            //    publish
-            //        eventAddressObj
-            //        (rtoa<obj Address> [|"Subscribe"; "Event"|])
-            //        (EventTrace.record "EventSystem" "subscribePlus5" EventTrace.empty)
-            //        (getGlobalSimulantSpecialized world)
-            //        world
+            let world =
+                publish
+                    eventAddressObj
+                    (rtoa<obj Address> [|"Subscribe"; "Event"|])
+                    (EventTrace.record "EventSystem" "subscribePlus5" EventTrace.empty)
+                    (getGlobalSimulantSpecialized world)
+                    world
             (unsubscribe<'w> subscriptionKey, world)
         else failwith "Event name cannot be empty."
 
@@ -351,7 +351,7 @@ module EventSystem =
         (world : 'w) =
         let monitorKey = makeGuid ()
         let removalKey = makeGuid ()
-        let world = subscribeSpecial<'a, 'b, 's, 'w> compressionArtifact monitorKey mapperOpt filterOpt stateOpt callback eventAddress subscriber world |> snd
+        let world = subscribeSpecial<'a, 'b, 's, 'w> monitorKey compressionArtifact mapperOpt filterOpt stateOpt callback eventAddress subscriber world |> snd
         let unsubscribe = fun (world : 'w) ->
             let world = unsubscribe removalKey world
             let world = unsubscribe monitorKey world
