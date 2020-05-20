@@ -282,7 +282,7 @@ module EventSystem =
                             // they are received. This is semantically suboptimal, but necessary for their performance
                             // boost.
                             Array.replace (fun subscriptionEntry ->
-                                subscriptionEntry.SubscriptionKey = subscriptionKey)
+                                subscriptionEntry.CompressionArtifact = compressionArtifact)
                                 subscriptionEntry
                                 subscriptionEntries
                         UMap.add eventAddressObj subscriptionEntries subscriptions
