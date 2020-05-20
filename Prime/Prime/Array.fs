@@ -24,13 +24,22 @@ module Array =
         Array.Copy (arr, 0, arr2, 0, tailLength)
         arr2
 
-    /// Remove the first matching element of the array.
+    /// Remove the first matching element of the array (stable).
     let remove pred (arr : 'a array) =
         match Array.tryFindIndex pred arr with
         | Some index ->
             let arr2 = Array.zeroCreate (dec arr.Length) : 'a array
             Array.Copy (arr, 0, arr2, 0, index)
             Array.Copy (arr, inc index, arr2, index, arr2.Length - index)
+            arr2
+        | None -> arr
+
+    /// Replace the first matching element of the array (stable).
+    let replace pred item (arr : 'a array) =
+        match Array.tryFindIndex pred arr with
+        | Some index ->
+            let arr2 = Array.copy arr
+            arr2.[index] <- item
             arr2
         | None -> arr
 

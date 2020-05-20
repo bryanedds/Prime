@@ -53,11 +53,12 @@ type [<NoEquality; NoComparison>] Callback =
 /// An entry in the subscription map.
 type [<NoEquality; NoComparison>] SubscriptionEntry =
     { SubscriptionKey : Guid
-      SubscriberEntry : Simulant
+      SubscriberValue : Simulant
+      CompressionArtifact : Guid
       MapperOpt : (obj -> obj option -> obj -> obj) option // ('a -> 'b option -> 'w -> 'b) option
       FilterOpt : (obj -> obj option -> obj -> bool) option // ('b -> 'b option -> 'w -> bool) option
       mutable PreviousDataOpt : obj option // 'b option
-      Callback : Callback }
+      Callbacks : (Guid * Callback) array }
 
 /// Abstracts over a subscription sorting procedure.
 type SubscriptionSorter =
@@ -87,7 +88,7 @@ module Events =
 [<AutoOpen>]
 module EventSystemDelegate =
 
-    /// OPTIMIZATION: caches event address for fast address generation.
+    /// OPTIMIZATION: caches event address for fast wildcard address generation.
     let mutable private EventAddressCaching = false
     let private EventAddressCache = Dictionary<obj, obj> HashIdentity.Structural
     let private EventAddressListCache = Dictionary<obj Address, obj List> HashIdentity.Structural
@@ -98,17 +99,15 @@ module EventSystemDelegate =
     let mutable private GlobalSimulantGeneralized : GlobalSimulantGeneralized = Unchecked.defaultof<_>
 
     /// The implementation portion of EventSystem.
-    /// OPTIMIZATION: EventContext is mutable for speed.
     type [<ReferenceEquality; NoComparison>] 'w EventSystemDelegate =
         private
             { // cache line begin
               Subscriptions : SubscriptionEntries
               Unsubscriptions : UnsubscriptionEntries
-              mutable EventContext : Simulant
               EventStates : UMap<Guid, obj>
               EventTracerOpt : (string -> unit) option
               EventFilter : EventFilter.Filter }
-              // 8 free cache line bytes here
+              // 12 free cache line bytes here
 
     [<RequireQualifiedAccess>]
     module EventSystemDelegate =
@@ -158,10 +157,6 @@ module EventSystemDelegate =
         let setEventFilter<'w> filter (esd : 'w EventSystemDelegate) =
             { esd with EventFilter = filter }
 
-        /// Get the context of the event system.
-        let getEventContext (esd : 'w EventSystemDelegate) =
-            esd.EventContext
-
         /// Get the specialized global simulant of the event system.
         let getGlobalSimulantSpecialized (_ : 'w EventSystemDelegate) =
             GlobalSimulantSpecialized
@@ -169,25 +164,6 @@ module EventSystemDelegate =
         /// Get the generalized global simulant of the event system.
         let getGlobalSimulantGeneralized (_ : 'w EventSystemDelegate) =
             GlobalSimulantGeneralized
-
-        /// Qualify the event context of the world.
-        let qualifyEventContext (address : obj Address) (esd : 'w EventSystemDelegate) =
-            let context = getEventContext esd
-            let contextAddress = context.SimulantAddress
-            let contextAddressLength = Address.length contextAddress
-            let addressLength = Address.length address
-            if contextAddressLength = addressLength then
-                Address.tryTake (contextAddressLength - 1) contextAddress =
-                    Address.tryTake (addressLength - 1) address
-            elif contextAddressLength < addressLength then
-                contextAddress = Address.take contextAddressLength address
-            elif contextAddressLength > addressLength then
-                address = Address.take addressLength contextAddress
-            else false
-
-        /// Set the context of the event context.
-        let setEventContext context (esd : 'w EventSystemDelegate) =
-            esd.EventContext <- context
 
         /// Set whether event addresses are cached internally.
         /// If you enable caching, be sure to use EventSystem.cleanEventAddressCache to keep the cache from expanding
@@ -274,7 +250,6 @@ module EventSystemDelegate =
             let esd =
                 { Subscriptions = UMap.makeEmpty Functional
                   Unsubscriptions = UMap.makeEmpty Functional
-                  EventContext = globalSimulantSpecialized
                   EventStates = UMap.makeEmpty Functional
                   EventTracerOpt = eventTracerOpt
                   EventFilter = eventFilter }
