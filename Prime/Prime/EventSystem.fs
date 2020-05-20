@@ -3,7 +3,6 @@
 
 namespace Prime
 open System
-open System.Collections.Generic
 open Prime
 
 /// A publisher-neutral event system.
