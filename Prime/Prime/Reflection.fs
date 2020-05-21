@@ -8,6 +8,7 @@ open System.Collections
 open System.Collections.Generic
 open System.Text
 open System.Reflection
+open FSharp.Reflection
 open Microsoft.FSharp.Reflection
 
 /// An attribute to specify the default value of a property.
@@ -349,3 +350,29 @@ module TypeExtension =
                 ignore (sb.Append ">")
                 sb.ToString ()
             else name
+
+namespace FSharp.Reflection
+open System
+
+[<RequireQualifiedAccess>]
+module FSharpType =
+
+    /// Test that the given type has null as an actual value.
+    let isNullTrueValue (ty : Type) =
+        let isUnit = ty = typeof<unit>
+        let isNullTrueValueByAttribute =
+            ty.GetCustomAttributes(typeof<CompilationRepresentationAttribute>, true) |>
+            Array.map (fun (attr : obj) -> attr :?> CompilationRepresentationAttribute) |>
+            Array.exists (fun attr -> int attr.Flags &&& int CompilationRepresentationFlags.UseNullAsTrueValue <> 0)
+        let result = isUnit || isNullTrueValueByAttribute
+        result
+
+    let isRecordAbstract (ty : Type) =
+        ty.GetCustomAttributes(typeof<CompilationMappingAttribute>, true) |>
+        Array.map (fun (attr : obj) -> attr :?> CompilationMappingAttribute) |>
+        Array.exists (fun attr -> int attr.SourceConstructFlags = (int SourceConstructFlags.RecordType ||| int SourceConstructFlags.NonPublicRepresentation))
+
+    let isUnionAbstract (ty : Type) =
+        ty.GetCustomAttributes(typeof<CompilationMappingAttribute>, true) |>
+        Array.map (fun (attr : obj) -> attr :?> CompilationMappingAttribute) |>
+        Array.exists (fun attr -> int attr.SourceConstructFlags = (int SourceConstructFlags.SumType ||| int SourceConstructFlags.NonPublicRepresentation))

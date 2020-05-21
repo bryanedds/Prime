@@ -7,6 +7,6 @@ open Prime.Tests
 module Program =
 
     let [<EntryPoint; STAThread>] main _ =
-        EventTests.streamSubscribeTwiceUnsubscribeOnceWorks ()
+        SymbolTests.canConvertStringToRecordAbstract ()
         TimingTests.run ()
         0

@@ -60,16 +60,6 @@ module Operators =
     /// Test for non-null.
     let inline notNull a = match a with null -> false | _ -> true
 
-    /// Test that the given type has null as an actual value.
-    let isNullTrueValue (ty : Type) =
-        let isUnit = ty = typeof<unit>
-        let isNullTrueValueByAttribute =
-            ty.GetCustomAttributes(typeof<CompilationRepresentationAttribute>, true) |>
-            Array.map (fun (attr : obj) -> attr :?> CompilationRepresentationAttribute) |>
-            Array.exists (fun attr -> int attr.Flags &&& int CompilationRepresentationFlags.UseNullAsTrueValue <> 0)
-        let result = isUnit || isNullTrueValueByAttribute
-        result
-
     /// Get the .NET type of a target.
     let inline getType target = target.GetType ()
 
