@@ -26,8 +26,12 @@ module SymbolicOperators =
     /// Uses a symbolic converter to convert a value to a string.
     let scstring2<'a> printing (value : 'a) =
         let ty = if isNull (value :> obj) then typeof<'a> else getType value
-        let converter = SymbolicConverter (printing, None, ty)
-        converter.ConvertToString value
+        if ty.IsPrimitive then
+            // OPTIMIZATION: avoid symbolic conversion for primitives
+            value.ToString ()
+        else
+            let converter = SymbolicConverter (printing, None, ty)
+            converter.ConvertToString value
 
     /// Uses a symbolic converter to convert a value to a string.
     let scstring<'a> value =
