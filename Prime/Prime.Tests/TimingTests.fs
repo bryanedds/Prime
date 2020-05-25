@@ -9,24 +9,24 @@ open Prime
 module TimingTests =
 
     /// The number of samples taken for each timing.
-    let [<Literal>] private Samples = 3
+    let [<Literal>] private Samples = 5
 
     /// Performs some ad-hoc tests to compare performance of fns.
     let private runFnTimings fn name =
         printfn "%s timings..." name
-        for _ in 1 .. Samples do
+        for i in 1 .. Samples do
             GC.Collect ()
             let watch = Stopwatch.StartNew ()
             fn () |> ignore
             watch.Stop ()
-            printfn "Run time: %A" watch.Elapsed
+            if i > 1 then printfn "Run time: %A" watch.Elapsed
 
     /// Performs some ad-hoc tests to compare performance of maps.
     let private runMapTimings make lookup name =
         printfn "%s timings..." name
         let rand = Random 1
         let entries = [|for _ in 0 .. 524280 do yield let n = rand.Next () in (string n, (string n, string n))|]
-        for _ in 1 .. Samples do
+        for i in 1 .. Samples do
             GC.Collect ()
             let watch = Stopwatch.StartNew ()
             let made = make entries
@@ -35,7 +35,7 @@ module TimingTests =
             let watch2 = Stopwatch.StartNew ()
             lookup entries made
             watch2.Stop ()
-            printfn "Make time: %A\tLookup time: %A\tRun time: %A" watch.Elapsed watch2.Elapsed (watch.Elapsed + watch2.Elapsed)
+            if i > 1 then printfn "Make time: %A\tLookup time: %A\tRun time: %A" watch.Elapsed watch2.Elapsed (watch.Elapsed + watch2.Elapsed)
 
     /// Run timing tests.
     let run () =
@@ -83,7 +83,7 @@ module TimingTests =
         // run dictionary timings
         let dic = Dictionary<string, string * string> ()
         runMapTimings
-            (fun entries -> Array.iter (fun (k, v) -> if not (dic.ContainsKey k) then dic.Add (k, v)) entries)
+            (fun entries -> Array.iter (fun (k, v) -> dic.[k] <- v) entries)
             (fun entries () -> Array.iter (fun (k, _) -> dic.[k] |> ignore) entries)
             ".NET Dictionary"
         
