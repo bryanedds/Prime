@@ -7,6 +7,5 @@ open Prime.Tests
 module Program =
 
     let [<EntryPoint; STAThread>] main _ =
-        SymbolTests.canConvertStringToRecordAbstract ()
         TimingTests.run ()
         0
