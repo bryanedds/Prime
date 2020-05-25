@@ -252,7 +252,7 @@ module EventSystem =
     /// Subscribe to an event using the given subscriptionKey, and be provided with an unsubscription callback.
     let subscribeSpecial<'a, 'b, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
         (subscriptionKey : Guid)
-        (compressionArtifact : Guid)
+        (compressionId : Guid)
         (mapperOpt : ('a -> 'b option -> 'w -> 'b) option)
         (filterOpt : ('b -> 'b option -> 'w -> bool) option)
         (stateOpt : 'b option)
@@ -269,7 +269,7 @@ module EventSystem =
                 | Some subscriptionEntries ->
                     let compressedSubscriptionEntryOpt =
                         Array.tryFind (fun entry ->
-                            entry.CompressionArtifact = compressionArtifact)
+                            entry.CompressionId = compressionId)
                             subscriptionEntries
                     match compressedSubscriptionEntryOpt with
                     | Some subscriptionEntry ->
@@ -280,14 +280,14 @@ module EventSystem =
                             // they are received. This is semantically suboptimal, but necessary for their performance
                             // boost.
                             Array.replace (fun subscriptionEntry ->
-                                subscriptionEntry.CompressionArtifact = compressionArtifact)
+                                subscriptionEntry.CompressionId = compressionId)
                                 subscriptionEntry
                                 subscriptionEntries
                         UMap.add eventAddressObj subscriptionEntries subscriptions
                     | None ->
                         let subscriptionEntry =
                             { SubscriptionKey = subscriptionKey
-                              CompressionArtifact = compressionArtifact
+                              CompressionId = compressionId
                               MapperOpt = Option.map (fun mapper -> fun a p w -> mapper (a :?> 'a) (Option.map cast<'b> p) (w :?> 'w) :> obj) mapperOpt
                               FilterOpt = Option.map (fun filter -> fun b p w -> filter (b :?> 'b) (Option.map cast<'b> p) (w :?> 'w)) filterOpt
                               PreviousDataOpt = Option.map box stateOpt
@@ -297,7 +297,7 @@ module EventSystem =
                 | None ->
                     let subscriptionEntry =
                         { SubscriptionKey = subscriptionKey
-                          CompressionArtifact = compressionArtifact
+                          CompressionId = compressionId
                           MapperOpt = Option.map (fun mapper -> fun a p w -> mapper (a :?> 'a) (Option.map cast<'b> p) (w :?> 'w) :> obj) mapperOpt
                           FilterOpt = Option.map (fun filter -> fun b p w -> filter (b :?> 'b) (Option.map cast<'b> p) (w :?> 'w)) filterOpt
                           PreviousDataOpt = Option.map box stateOpt
@@ -335,7 +335,7 @@ module EventSystem =
 
     /// Keep active a subscription for the life span of a simulant, and be provided with an unsubscription callback.
     let monitorSpecial<'a, 'b, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
-        (compressionArtifact : Guid)
+        (compressionId : Guid)
         (mapperOpt : ('a -> 'b option -> 'w -> 'b) option)
         (filterOpt : ('b -> 'b option -> 'w -> bool) option)
         (stateOpt : 'b option)
@@ -345,7 +345,7 @@ module EventSystem =
         (world : 'w) =
         let monitorKey = makeGuid ()
         let removalKey = makeGuid ()
-        let world = subscribeSpecial<'a, 'b, 's, 'w> monitorKey compressionArtifact mapperOpt filterOpt stateOpt callback eventAddress subscriber world |> snd
+        let world = subscribeSpecial<'a, 'b, 's, 'w> monitorKey compressionId mapperOpt filterOpt stateOpt callback eventAddress subscriber world |> snd
         let unsubscribe = fun (world : 'w) ->
             let world = unsubscribe removalKey world
             let world = unsubscribe monitorKey world

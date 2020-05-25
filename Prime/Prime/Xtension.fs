@@ -5,7 +5,7 @@ namespace Prime
 open System
 open Prime
 
-[<AutoOpen>]
+[<RequireQualifiedAccess>]
 module Xtension =
 
     // OPTIMIZATION: Xtension flag bit-masks; only for use by internal facilities.
@@ -85,76 +85,73 @@ module Xtension =
                 let properties = UMap.add propertyName property xtension.Properties
                 { xtension with Properties = properties }
 
-    [<RequireQualifiedAccess>]
-    module Xtension =
+    /// Make an extension.
+    let make properties canDefault isSealed imperative =
+        { Properties = properties
+          Flags =
+            (if canDefault then CanDefaultMask else 0) |||
+            (if isSealed then SealedMask else 0) |||
+            (if imperative then ImperativeMask else 0) }
 
-        /// Make an extension.
-        let make properties canDefault isSealed imperative =
-            { Properties = properties
-              Flags =
-                (if canDefault then CanDefaultMask else 0) |||
-                (if isSealed then SealedMask else 0) |||
-                (if imperative then ImperativeMask else 0) }
+    /// An Xtension that cannot default, is sealed, and is imperative.
+    let makeImperative () = make (UMap.makeEmpty Imperative) false true true
 
-        /// An Xtension that cannot default, is sealed, and is imperative.
-        let makeImperative () = make (UMap.makeEmpty Imperative) false true true
+    /// An Xtension that can default, isn't sealed, and isn't imperative.
+    let makeEmpty () = make (UMap.makeEmpty Functional) true false false
 
-        /// An Xtension that can default, isn't sealed, and isn't imperative.
-        let makeEmpty () = make (UMap.makeEmpty Functional) true false false
+    /// An Xtension that cannot default, is sealed, and isn't imperative.
+    let makeSafe () = make (UMap.makeEmpty Functional) false true false
 
-        /// An Xtension that cannot default, is sealed, and isn't imperative.
-        let makeSafe () = make (UMap.makeEmpty Functional) false true false
+    /// An Xtension that cannot default, isn't sealed, and isn't imperative.
+    let makeMixed () = make (UMap.makeEmpty Functional) false false false
 
-        /// An Xtension that cannot default, isn't sealed, and isn't imperative.
-        let makeMixed () = make (UMap.makeEmpty Functional) false false false
+    /// Check whether the extension uses mutation.
+    let getImperative (xtension : Xtension) = xtension.Imperative
 
-        /// Check whether the extension uses mutation.
-        let getImperative (xtension : Xtension) = xtension.Imperative
+    /// Try to get a property from an xtension.
+    let tryGetProperty name xtension = UMap.tryFind name xtension.Properties
 
-        /// Try to get a property from an xtension.
-        let tryGetProperty name xtension = UMap.tryFind name xtension.Properties
+    /// Get a property from an xtension.
+    let getProperty name xtension = UMap.find name xtension.Properties
 
-        /// Get a property from an xtension.
-        let getProperty name xtension = UMap.find name xtension.Properties
+    /// Set a property on an Xtension.
+    let trySetProperty name property xtension =
+        match UMap.tryFind name xtension.Properties with
+        | Some property' ->
+            if xtension.Imperative then
+                let mutable property' = property' // rebind as mutable
+                property'.PropertyType <- property.PropertyType
+                property'.PropertyValue <- property.PropertyValue
+                (true, xtension)
+            else (true, { xtension with Properties = UMap.add name property xtension.Properties })
+        | None ->
+            if not xtension.Sealed
+            then (true, { xtension with Properties = UMap.add name property xtension.Properties })
+            else (false, xtension)
 
-        /// Set a property on an Xtension.
-        let trySetProperty name property xtension =
-            match UMap.tryFind name xtension.Properties with
-            | Some property' ->
-                if xtension.Imperative then
-                    let mutable property' = property' // rebind as mutable
-                    property'.PropertyType <- property.PropertyType
-                    property'.PropertyValue <- property.PropertyValue
-                    (true, xtension)
-                else (true, { xtension with Properties = UMap.add name property xtension.Properties })
-            | None ->
-                if not xtension.Sealed
-                then (true, { xtension with Properties = UMap.add name property xtension.Properties })
-                else (false, xtension)
+    /// Set a property on an Xtension.
+    let setProperty name property xtension =
+        match trySetProperty name property xtension with
+        | (true, xtension) -> xtension
+        | (false, _) -> failwith "Cannot add property to a sealed Xtension."
 
-        /// Set a property on an Xtension.
-        let setProperty name property xtension =
-            match trySetProperty name property xtension with
-            | (true, xtension) -> xtension
-            | (false, _) -> failwith "Cannot add property to a sealed Xtension."
+    /// Attach a property to an Xtension.
+    let attachProperty name property xtension = { xtension with Properties = UMap.add name property xtension.Properties }
 
-        /// Attach a property to an Xtension.
-        let attachProperty name property xtension = { xtension with Properties = UMap.add name property xtension.Properties }
+    /// Attach multiple properties to an Xtension.
+    let attachProperties namesAndProperties xtension = { xtension with Properties = UMap.addMany namesAndProperties xtension.Properties }
 
-        /// Attach multiple properties to an Xtension.
-        let attachProperties namesAndProperties xtension = { xtension with Properties = UMap.addMany namesAndProperties xtension.Properties }
+    /// Detach a property from an Xtension.
+    let detachProperty name xtension = { xtension with Properties = UMap.remove name xtension.Properties }
 
-        /// Detach a property from an Xtension.
-        let detachProperty name xtension = { xtension with Properties = UMap.remove name xtension.Properties }
+    /// Detach multiple properties from an Xtension.
+    let detachProperties names xtension = { xtension with Properties = UMap.removeMany names xtension.Properties }
 
-        /// Detach multiple properties from an Xtension.
-        let detachProperties names xtension = { xtension with Properties = UMap.removeMany names xtension.Properties }
+    /// Convert an xtension to a sequence of its entries.
+    let toSeq xtension = xtension.Properties :> _ seq
 
-        /// Convert an xtension to a sequence of its entries.
-        let toSeq xtension = xtension.Properties :> _ seq
-
-        /// Convert an xtension to a sequence of its entries.
-        let ofSeq seq = attachProperties seq (makeEmpty ())
+    /// Convert an xtension to a sequence of its entries.
+    let ofSeq seq = attachProperties seq (makeEmpty ())
 
 /// Xtensions (and their supporting types) are a dynamic, functional, and convenient way
 /// to implement dynamic properties.

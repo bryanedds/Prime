@@ -7,7 +7,7 @@ open System.Collections
 open System.Collections.Generic
 open Prime
 
-[<AutoOpen>]
+[<RequireQualifiedAccess>]
 module HMap =
 
     /// A hash-key-value triple, implemented with a struct for efficiency.
@@ -188,91 +188,88 @@ module HMap =
         interface IEnumerable with
             member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator () :> IEnumerator
 
-    [<RequireQualifiedAccess>]
-    module HMap =
-    
-        /// Create an empty HMap.
-        let makeEmpty () =
-            { Node = HNode.empty
-              EmptyArray = Array.create 16 Nil }
+    /// Create an empty HMap.
+    let makeEmpty () =
+        { Node = HNode.empty
+          EmptyArray = Array.create 16 Nil }
 
-        /// Check that an HMap is empty.
-        let isEmpty map =
-            HNode.isEmpty map.Node
-    
-        /// Check that an HMap is empty.
-        let notEmpty map =
-            not (HNode.isEmpty map.Node)
-    
-        /// Add a value with the key to an HMap.
-        let add (key : 'k) (value : 'v) map =
-            let hkv = Hkv (key.GetHashCode (), key, value)
-            let node = HNode.add hkv map.EmptyArray 0 map.Node
-            { map with Node = node }
-    
-        /// Remove a value with the given key from an HMap.
-        let remove (key : 'k) map =
-            let h = key.GetHashCode ()
-            { map with Node = HNode.remove h key 0 map.Node }
-    
-        /// Add all the given entries to an HMap.
-        let addMany entries map =
-            Seq.fold (fun map (key : 'k, value : 'v) -> add key value map) map entries
-    
-        /// Remove all values with the given keys from an HMap.
-        let removeMany keys map =
-            Seq.fold (fun map (key : 'k) -> remove key map) map keys
-    
-        /// Try to find a value with the given key in an HMap.
-        /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.
-        let tryFind (key : 'k) map : 'v option =
-            let h = key.GetHashCode ()
-            HNode.tryFind h key 0 map.Node
+    /// Check that an HMap is empty.
+    let isEmpty map =
+        HNode.isEmpty map.Node
 
-        /// Find a value with the given key in an HMap.
-        /// Constant-time complexity with approx. 1/3 speed of Dictionary.GetValue.
-        let find (key : 'k) map : 'v =
-            let h = key.GetHashCode ()
-            HNode.find h key 0 map.Node
-    
-        /// Check that an HMap contains a value with the given key.
-        let containsKey key map =
-            Option.isSome (tryFind key map)
-            
-        /// Combine the contents of two HMaps, taking an item from the second map in the case of a key conflict.
-        let concat map map2 =
-            Seq.fold (flip (uncurry add)) map map2
-    
-        /// Fold over an HMap.
-        let fold folder state (map : HMap<'k, 'v>) =
-            HNode.fold folder state map.Node
-    
-        /// Map over an HMap.
-        let map mapper (map : HMap<'k, 'v>) =
-            fold
-                (fun state key value -> add key (mapper value) state)
-                (makeEmpty ())
-                map
-    
-        /// Filter an HMap.
-        let filter pred (map : HMap<'k, 'v>) =
-            fold
-                (fun state key value -> if pred key value then add key value state else state)
-                (makeEmpty ())
-                map
-    
-        /// Convert an HMap to a sequence of pairs of keys and values.
-        /// NOTE: This function seems to profile as being very slow. I don't know if it's the seq / yields syntax or what.
-        /// Don't use it unless you need its laziness or if performance won't be affected significantly.
-        let toSeq (map : HMap<'k, 'v>) =
-            map :> IEnumerable<'k * 'v>
-    
-        /// Convert a sequence of keys and values to an HMap.
-        let ofSeq pairs =
-            Seq.fold
-                (fun map (key, value) -> add key value map)
-                (makeEmpty ())
-                pairs
+    /// Check that an HMap is empty.
+    let notEmpty map =
+        not (HNode.isEmpty map.Node)
+
+    /// Add a value with the key to an HMap.
+    let add (key : 'k) (value : 'v) map =
+        let hkv = Hkv (key.GetHashCode (), key, value)
+        let node = HNode.add hkv map.EmptyArray 0 map.Node
+        { map with Node = node }
+
+    /// Remove a value with the given key from an HMap.
+    let remove (key : 'k) map =
+        let h = key.GetHashCode ()
+        { map with Node = HNode.remove h key 0 map.Node }
+
+    /// Add all the given entries to an HMap.
+    let addMany entries map =
+        Seq.fold (fun map (key : 'k, value : 'v) -> add key value map) map entries
+
+    /// Remove all values with the given keys from an HMap.
+    let removeMany keys map =
+        Seq.fold (fun map (key : 'k) -> remove key map) map keys
+
+    /// Try to find a value with the given key in an HMap.
+    /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.
+    let tryFind (key : 'k) map : 'v option =
+        let h = key.GetHashCode ()
+        HNode.tryFind h key 0 map.Node
+
+    /// Find a value with the given key in an HMap.
+    /// Constant-time complexity with approx. 1/3 speed of Dictionary.GetValue.
+    let find (key : 'k) map : 'v =
+        let h = key.GetHashCode ()
+        HNode.find h key 0 map.Node
+
+    /// Check that an HMap contains a value with the given key.
+    let containsKey key map =
+        Option.isSome (tryFind key map)
+        
+    /// Combine the contents of two HMaps, taking an item from the second map in the case of a key conflict.
+    let concat map map2 =
+        Seq.fold (flip (uncurry add)) map map2
+
+    /// Fold over an HMap.
+    let fold folder state (map : HMap<'k, 'v>) =
+        HNode.fold folder state map.Node
+
+    /// Map over an HMap.
+    let map mapper (map : HMap<'k, 'v>) =
+        fold
+            (fun state key value -> add key (mapper value) state)
+            (makeEmpty ())
+            map
+
+    /// Filter an HMap.
+    let filter pred (map : HMap<'k, 'v>) =
+        fold
+            (fun state key value -> if pred key value then add key value state else state)
+            (makeEmpty ())
+            map
+
+    /// Convert an HMap to a sequence of pairs of keys and values.
+    /// NOTE: This function seems to profile as being very slow. I don't know if it's the seq / yields syntax or what.
+    /// Don't use it unless you need its laziness or if performance won't be affected significantly.
+    let toSeq (map : HMap<'k, 'v>) =
+        map :> IEnumerable<'k * 'v>
+
+    /// Convert a sequence of keys and values to an HMap.
+    let ofSeq pairs =
+        Seq.fold
+            (fun map (key, value) -> add key value map)
+            (makeEmpty ())
+            pairs
 
 /// A very fast persistent hash map.
 /// Works in effectively constant-time for look-ups and updates.

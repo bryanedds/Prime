@@ -888,7 +888,7 @@ module Scripting =
         | AddToNewFrame of Size : int
         | AddToHeadFrame of Offset : int
 
-    [<AutoOpen>]
+    [<RequireQualifiedAccess>]
     module Env =
     
         /// The execution environment for scripts.
@@ -898,137 +898,131 @@ module Scripting =
                   mutable LocalFrame : DeclarationFrame
                   mutable ProceduralFrames : ProceduralFrame list }
     
-        [<RequireQualifiedAccess>]
-        module Env =
-    
-            let private BottomBinding =
-                struct (String.Empty, Violation (["BottomAccess"], "Accessed a Bottom value.", None))
+        let private BottomBinding =
+            struct (String.Empty, Violation (["BottomAccess"], "Accessed a Bottom value.", None))
 
-            let getLocalFrame env =
-                env.LocalFrame
+        let getLocalFrame env =
+            env.LocalFrame
 
-            let setLocalFrame localFrame env =
-                env.LocalFrame <- localFrame
+        let setLocalFrame localFrame env =
+            env.LocalFrame <- localFrame
 
-            let getGlobalFrame env =
-                env.GlobalFrame
+        let getGlobalFrame env =
+            env.GlobalFrame
 
-            let private makeProceduralFrame size =
-                Array.create size BottomBinding
+        let private makeProceduralFrame size =
+            Array.create size BottomBinding
 
-            let private addProceduralFrame frame env =
-                env.ProceduralFrames <- frame :: env.ProceduralFrames
+        let private addProceduralFrame frame env =
+            env.ProceduralFrames <- frame :: env.ProceduralFrames
 
-            let private tryGetDeclarationBinding name env =
-                match env.LocalFrame.TryGetValue name with
-                | (false, _) ->
-                    match env.GlobalFrame.TryGetValue name with
-                    | (false, _) -> None
-                    | (true, value) -> Some value
+        let private tryGetDeclarationBinding name env =
+            match env.LocalFrame.TryGetValue name with
+            | (false, _) ->
+                match env.GlobalFrame.TryGetValue name with
+                | (false, _) -> None
                 | (true, value) -> Some value
-    
-            let private tryGetProceduralBinding name env =
-                let offsetRef = ref -1
-                let indexOptRef = ref None
-                let optBinding =
-                    List.tryFindPlus
-                        (fun frame ->
-                            offsetRef := !offsetRef + 1
-                            indexOptRef := Array.tryFindIndexBack (fun struct (bindingName, _) -> name.Equals bindingName) frame // OPTIMIZATION: faster than (=) here
-                            match !indexOptRef with
-                            | Some index -> Some frame.[index]
-                            | None -> None)
-                        env.ProceduralFrames
-                match optBinding with
-                | Some struct (_, binding) -> Some (struct (binding, !offsetRef, (!indexOptRef).Value))
-                | None -> None
+            | (true, value) -> Some value
 
-            let tryGetBinding name cachedBinding (_ : BindingType ref) env =
-                match !cachedBinding with
-                | UncachedBinding ->
-                    match tryGetProceduralBinding name env with
-                    | None ->
-                        match tryGetDeclarationBinding name env with
-                        | Some binding as bindingOpt ->
-#if DEBUG
-                            // NOTE: when debugging, we allow declaration bindings to be redefined, thus we can't cache...
-                            ignore binding
-#else
-                            // ...otherwise we can cache since bindings will be immutable
-                            cachedBinding := DeclarationBinding binding
-#endif
-                            bindingOpt
-                        | None -> None
-                    | Some struct (binding, offset, index) ->
-                        cachedBinding := ProceduralBinding (offset, index)
-                        Some binding
-                | DeclarationBinding binding ->
-                    Some binding
-                | ProceduralBinding (offset, index) ->
-                    let frame = (List.skip offset env.ProceduralFrames).Head
-                    let struct (_, binding) = frame.[index]
-                    Some binding
+        let private tryGetProceduralBinding name env =
+            let offsetRef = ref -1
+            let indexOptRef = ref None
+            let optBinding =
+                List.tryFindPlus
+                    (fun frame ->
+                        offsetRef := !offsetRef + 1
+                        indexOptRef := Array.tryFindIndexBack (fun struct (bindingName, _) -> name.Equals bindingName) frame // OPTIMIZATION: faster than (=) here
+                        match !indexOptRef with
+                        | Some index -> Some frame.[index]
+                        | None -> None)
+                    env.ProceduralFrames
+            match optBinding with
+            | Some struct (_, binding) -> Some (struct (binding, !offsetRef, (!indexOptRef).Value))
+            | None -> None
 
-            let tryAddDeclarationBinding name value env =
-                let isTopLevel = List.isEmpty env.ProceduralFrames
-                if isTopLevel then
+        let tryGetBinding name cachedBinding (_ : BindingType ref) env =
+            match !cachedBinding with
+            | UncachedBinding ->
+                match tryGetProceduralBinding name env with
+                | None ->
+                    match tryGetDeclarationBinding name env with
+                    | Some binding as bindingOpt ->
 #if DEBUG
-                    env.LocalFrame.ForceAdd (name, value); true
+                        // NOTE: when debugging, we allow declaration bindings to be redefined, thus we can't cache...
+                        ignore binding
 #else
-                    env.LocalFrame.TryAdd (name, value)
+                        // ...otherwise we can cache since bindings will be immutable
+                        cachedBinding := DeclarationBinding binding
 #endif
-                else false
-    
-            let addProceduralBinding appendType name value env =
-                match appendType with
-                | AddToNewFrame size ->
-                    let frame = makeProceduralFrame size
-                    frame.[0] <- struct (name, value)
-                    addProceduralFrame frame env
-                | AddToHeadFrame offset ->
-                    match env.ProceduralFrames with
-                    | frame :: _ -> frame.[offset] <- struct (name, value)
-                    | [] -> failwithumf ()
-    
-            let addProceduralBindings appendType bindings env =
-                match appendType with
-                | AddToNewFrame size ->
-                    let frame = makeProceduralFrame size
-                    let mutable index = 0
+                        bindingOpt
+                    | None -> None
+                | Some struct (binding, offset, index) ->
+                    cachedBinding := ProceduralBinding (offset, index)
+                    Some binding
+            | DeclarationBinding binding ->
+                Some binding
+            | ProceduralBinding (offset, index) ->
+                let frame = (List.skip offset env.ProceduralFrames).Head
+                let struct (_, binding) = frame.[index]
+                Some binding
+
+        let tryAddDeclarationBinding name value env =
+            let isTopLevel = List.isEmpty env.ProceduralFrames
+            if isTopLevel then
+#if DEBUG
+                env.LocalFrame.ForceAdd (name, value); true
+#else
+                env.LocalFrame.TryAdd (name, value)
+#endif
+            else false
+
+        let addProceduralBinding appendType name value env =
+            match appendType with
+            | AddToNewFrame size ->
+                let frame = makeProceduralFrame size
+                frame.[0] <- struct (name, value)
+                addProceduralFrame frame env
+            | AddToHeadFrame offset ->
+                match env.ProceduralFrames with
+                | frame :: _ -> frame.[offset] <- struct (name, value)
+                | [] -> failwithumf ()
+
+        let addProceduralBindings appendType bindings env =
+            match appendType with
+            | AddToNewFrame size ->
+                let frame = makeProceduralFrame size
+                let mutable index = 0
+                for binding in bindings do
+                    frame.[index] <- binding
+                    index <- index + 1
+                addProceduralFrame frame env
+            | AddToHeadFrame start ->
+                match env.ProceduralFrames with
+                | frame :: _ ->
+                    let mutable index = start
                     for binding in bindings do
                         frame.[index] <- binding
                         index <- index + 1
-                    addProceduralFrame frame env
-                | AddToHeadFrame start ->
-                    match env.ProceduralFrames with
-                    | frame :: _ ->
-                        let mutable index = start
-                        for binding in bindings do
-                            frame.[index] <- binding
-                            index <- index + 1
-                    | [] -> failwithumf ()
-
-            let removeProceduralBindings env =
-                match env.ProceduralFrames with
                 | [] -> failwithumf ()
-                | _ :: tail -> env.ProceduralFrames <- tail
 
-            let getProceduralFrames env =
-                env.ProceduralFrames
+        let removeProceduralBindings env =
+            match env.ProceduralFrames with
+            | [] -> failwithumf ()
+            | _ :: tail -> env.ProceduralFrames <- tail
 
-            let setProceduralFrames proceduralFrames env =
-                env.ProceduralFrames <- proceduralFrames
+        let getProceduralFrames env =
+            env.ProceduralFrames
 
-            let make () =
-                // NOTE: local frame starts out the same as the global frame so that prelude
-                // functions are defined globally
-                let globalFrame = DeclarationFrame HashIdentity.Structural
-                { GlobalFrame = globalFrame
-                  LocalFrame = globalFrame
-                  ProceduralFrames = [] }
+        let setProceduralFrames proceduralFrames env =
+            env.ProceduralFrames <- proceduralFrames
+
+        let make () =
+            // NOTE: local frame starts out the same as the global frame so that prelude
+            // functions are defined globally
+            let globalFrame = DeclarationFrame HashIdentity.Structural
+            { GlobalFrame = globalFrame
+              LocalFrame = globalFrame
+              ProceduralFrames = [] }
 
     /// The execution environment for scripts.
     type Env = Env.Env
-
-    /// Attempting to expose Env module contents as well, but does not seem to work...
-    module Env = Env.Env

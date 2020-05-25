@@ -53,7 +53,7 @@ type [<NoEquality; NoComparison>] Callback =
 /// An entry in the subscription map.
 type [<NoEquality; NoComparison>] SubscriptionEntry =
     { SubscriptionKey : Guid
-      CompressionArtifact : Guid
+      CompressionId : Guid
       MapperOpt : (obj -> obj option -> obj -> obj) option // ('a -> 'b option -> 'w -> 'b) option
       FilterOpt : (obj -> obj option -> obj -> bool) option // ('b -> 'b option -> 'w -> bool) option
       mutable PreviousDataOpt : obj option // 'b option
@@ -84,7 +84,7 @@ module Events =
     /// Represents a wildcard in an event.
     let Wildcard = ntoa<obj> "@"
 
-[<AutoOpen>]
+[<RequireQualifiedAccess>]
 module EventSystemDelegate =
 
     /// OPTIMIZATION: caches event address for fast wildcard address generation.
@@ -108,153 +108,150 @@ module EventSystemDelegate =
               EventFilter : EventFilter.Filter }
               // 12 free cache line bytes here
 
-    [<RequireQualifiedAccess>]
-    module EventSystemDelegate =
+    /// Add event state.
+    let addEventState<'a, 'w> key (state : 'a) (esd : 'w EventSystemDelegate) =
+        { esd with EventStates = UMap.add key (state :> obj) esd.EventStates }
 
-        /// Add event state.
-        let addEventState<'a, 'w> key (state : 'a) (esd : 'w EventSystemDelegate) =
-            { esd with EventStates = UMap.add key (state :> obj) esd.EventStates }
+    /// Remove event state.
+    let removeEventState<'w> key (esd : 'w EventSystemDelegate) =
+        { esd with EventStates = UMap.remove key esd.EventStates }
 
-        /// Remove event state.
-        let removeEventState<'w> key (esd : 'w EventSystemDelegate) =
-            { esd with EventStates = UMap.remove key esd.EventStates }
+    /// Get subscriptions.
+    let getSubscriptions<'w> (esd : 'w EventSystemDelegate) =
+        esd.Subscriptions
 
-        /// Get subscriptions.
-        let getSubscriptions<'w> (esd : 'w EventSystemDelegate) =
-            esd.Subscriptions
+    /// Get unsubscriptions.
+    let getUnsubscriptions<'w> (esd : 'w EventSystemDelegate) =
+        esd.Unsubscriptions
 
-        /// Get unsubscriptions.
-        let getUnsubscriptions<'w> (esd : 'w EventSystemDelegate) =
-            esd.Unsubscriptions
+    /// Set subscriptions.
+    let internal setSubscriptions<'w> subscriptions (esd : 'w EventSystemDelegate) =
+        { esd with Subscriptions = subscriptions }
 
-        /// Set subscriptions.
-        let internal setSubscriptions<'w> subscriptions (esd : 'w EventSystemDelegate) =
-            { esd with Subscriptions = subscriptions }
+    /// Set unsubscriptions.
+    let internal setUnsubscriptions<'w> unsubscriptions (esd : 'w EventSystemDelegate) =
+        { esd with Unsubscriptions = unsubscriptions }
 
-        /// Set unsubscriptions.
-        let internal setUnsubscriptions<'w> unsubscriptions (esd : 'w EventSystemDelegate) =
-            { esd with Unsubscriptions = unsubscriptions }
+    /// Get event state.
+    let getEventState<'a, 'w> key (esd : 'w EventSystemDelegate) =
+        let state = UMap.find key esd.EventStates
+        state :?> 'a
 
-        /// Get event state.
-        let getEventState<'a, 'w> key (esd : 'w EventSystemDelegate) =
-            let state = UMap.find key esd.EventStates
-            state :?> 'a
+    /// Get how events are being traced.
+    let getEventTracerOpt<'w> (esd : 'w EventSystemDelegate) =
+        esd.EventTracerOpt
 
-        /// Get how events are being traced.
-        let getEventTracerOpt<'w> (esd : 'w EventSystemDelegate) =
-            esd.EventTracerOpt
+    /// Set how events are being traced.
+    let setEventTracerOpt<'w> tracing (esd : 'w EventSystemDelegate) =
+        { esd with EventTracerOpt = tracing }
 
-        /// Set how events are being traced.
-        let setEventTracerOpt<'w> tracing (esd : 'w EventSystemDelegate) =
-            { esd with EventTracerOpt = tracing }
+    /// Get the state of the event filter.
+    let getEventFilter<'w> (esd : 'w EventSystemDelegate) =
+        esd.EventFilter
 
-        /// Get the state of the event filter.
-        let getEventFilter<'w> (esd : 'w EventSystemDelegate) =
-            esd.EventFilter
+    /// Set the state of the event filter.
+    let setEventFilter<'w> filter (esd : 'w EventSystemDelegate) =
+        { esd with EventFilter = filter }
 
-        /// Set the state of the event filter.
-        let setEventFilter<'w> filter (esd : 'w EventSystemDelegate) =
-            { esd with EventFilter = filter }
+    /// Get the specialized global simulant of the event system.
+    let getGlobalSimulantSpecialized (_ : 'w EventSystemDelegate) =
+        GlobalSimulantSpecialized
 
-        /// Get the specialized global simulant of the event system.
-        let getGlobalSimulantSpecialized (_ : 'w EventSystemDelegate) =
-            GlobalSimulantSpecialized
+    /// Get the generalized global simulant of the event system.
+    let getGlobalSimulantGeneralized (_ : 'w EventSystemDelegate) =
+        GlobalSimulantGeneralized
 
-        /// Get the generalized global simulant of the event system.
-        let getGlobalSimulantGeneralized (_ : 'w EventSystemDelegate) =
-            GlobalSimulantGeneralized
+    /// Set whether event addresses are cached internally.
+    /// If you enable caching, be sure to use EventSystem.cleanEventAddressCache to keep the cache from expanding
+    /// indefinitely.
+    let setEventAddressCaching caching =
+        if not caching then
+            EventAddressCache.Clear ()
+            EventAddressListCache.Clear ()
+        EventAddressCaching <- caching
 
-        /// Set whether event addresses are cached internally.
-        /// If you enable caching, be sure to use EventSystem.cleanEventAddressCache to keep the cache from expanding
-        /// indefinitely.
-        let setEventAddressCaching caching =
-            if not caching then
-                EventAddressCache.Clear ()
-                EventAddressListCache.Clear ()
-            EventAddressCaching <- caching
+    /// Remove from the event address cache all addresses belonging to the given target.
+    let cleanEventAddressCache (eventTarget : 'a Address) =
+        if EventAddressCaching then
+            let eventTargetOa = atooa eventTarget
+            match EventAddressListCache.TryGetValue eventTargetOa with
+            | (true, entries) ->
+                for entry in entries do EventAddressCache.Remove entry |> ignore
+                EventAddressListCache.Remove eventTargetOa |> ignore
+            | (false, _) -> ()
+        else ()
 
-        /// Remove from the event address cache all addresses belonging to the given target.
-        let cleanEventAddressCache (eventTarget : 'a Address) =
-            if EventAddressCaching then
-                let eventTargetOa = atooa eventTarget
-                match EventAddressListCache.TryGetValue eventTargetOa with
-                | (true, entries) ->
-                    for entry in entries do EventAddressCache.Remove entry |> ignore
-                    EventAddressListCache.Remove eventTargetOa |> ignore
-                | (false, _) -> ()
-            else ()
+    // NOTE: event addresses are ordered from general to specific. This is so a generalized subscriber can preempt
+    // any specific subscribers. Whether this is the best order is open for discussion.
+    // OPTIMIZATION: imperative for speed
+    let private getEventAddresses1 (eventAddress : 'a Address) =
 
-        // NOTE: event addresses are ordered from general to specific. This is so a generalized subscriber can preempt
-        // any specific subscribers. Whether this is the best order is open for discussion.
-        // OPTIMIZATION: imperative for speed
-        let private getEventAddresses1 (eventAddress : 'a Address) =
+        // create target event address array
+        let eventAddressNames = Address.getNames eventAddress
+        let eventAddressNamesLength = eventAddressNames.Length
+        let eventAddresses = Array.zeroCreate (inc eventAddressNamesLength)
 
-            // create target event address array
-            let eventAddressNames = Address.getNames eventAddress
-            let eventAddressNamesLength = eventAddressNames.Length
-            let eventAddresses = Array.zeroCreate (inc eventAddressNamesLength)
+        // make non-wildcard address the last element
+        eventAddresses.[eventAddressNamesLength] <- eventAddress
 
-            // make non-wildcard address the last element
-            eventAddresses.[eventAddressNamesLength] <- eventAddress
+        // populate wildcard addresses from specific to general
+        Array.iteri (fun i _ ->
+            let eventAddressNamesAny = Array.zeroCreate eventAddressNamesLength
+            Array.Copy (eventAddressNames, 0, eventAddressNamesAny, 0, eventAddressNamesLength)
+            eventAddressNamesAny.[i] <- Address.head Events.Wildcard
+            let eventAddressAny = Address.rtoa eventAddressNamesAny
+            eventAddresses.[i] <- eventAddressAny)
+            eventAddressNames
 
-            // populate wildcard addresses from specific to general
-            Array.iteri (fun i _ ->
-                let eventAddressNamesAny = Array.zeroCreate eventAddressNamesLength
-                Array.Copy (eventAddressNames, 0, eventAddressNamesAny, 0, eventAddressNamesLength)
-                eventAddressNamesAny.[i] <- Address.head Events.Wildcard
-                let eventAddressAny = Address.rtoa eventAddressNamesAny
-                eventAddresses.[i] <- eventAddressAny)
-                eventAddressNames
+        // fin
+        eventAddresses
 
-            // fin
-            eventAddresses
+    /// Get the wild-carded addresses of an event address.
+    let getEventAddresses2 (eventAddress : 'a Address) (_ : 'w EventSystemDelegate) =
+        if EventAddressCaching then
+            match EventAddressCache.TryGetValue eventAddress with
+            | (false, _) ->
+                let eventAddressNames = Address.getNames eventAddress
+                let eventAddresses = getEventAddresses1 eventAddress
+                let eventTargetIndex = Array.findIndex (fun name -> name = "Event") eventAddressNames + 1
+                if eventTargetIndex < Array.length eventAddressNames then
+                    let eventTarget = eventAddressNames |> Array.skip eventTargetIndex |> Address.makeFromArray
+                    match EventAddressListCache.TryGetValue eventTarget with
+                    | (false, _) -> EventAddressListCache.Add (eventTarget, List [eventAddress :> obj]) |> ignore
+                    | (true, list) -> list.Add eventAddress
+                    EventAddressCache.Add (eventAddress, eventAddresses)
+                eventAddresses
+            | (true, eventAddressesObj) -> eventAddressesObj :?> 'a Address array
+        else getEventAddresses1 eventAddress
+        
+    let getSubscriptionsSorted (publishSorter : SubscriptionSorter) eventAddress (esd : 'w EventSystemDelegate) (world : 'w) =
+        let eventSubscriptions = getSubscriptions esd
+        let eventAddresses = getEventAddresses2 eventAddress esd
+        let subscriptionOpts = Array.map (fun eventAddress -> UMap.tryFind eventAddress eventSubscriptions) eventAddresses
+        let subscriptions = Array.definitize subscriptionOpts
+        let subscriptions = Array.concat subscriptions
+        publishSorter subscriptions world
 
-        /// Get the wild-carded addresses of an event address.
-        let getEventAddresses2 (eventAddress : 'a Address) (_ : 'w EventSystemDelegate) =
-            if EventAddressCaching then
-                match EventAddressCache.TryGetValue eventAddress with
-                | (false, _) ->
-                    let eventAddressNames = Address.getNames eventAddress
-                    let eventAddresses = getEventAddresses1 eventAddress
-                    let eventTargetIndex = Array.findIndex (fun name -> name = "Event") eventAddressNames + 1
-                    if eventTargetIndex < Array.length eventAddressNames then
-                        let eventTarget = eventAddressNames |> Array.skip eventTargetIndex |> Address.makeFromArray
-                        match EventAddressListCache.TryGetValue eventTarget with
-                        | (false, _) -> EventAddressListCache.Add (eventTarget, List [eventAddress :> obj]) |> ignore
-                        | (true, list) -> list.Add eventAddress
-                        EventAddressCache.Add (eventAddress, eventAddresses)
-                    eventAddresses
-                | (true, eventAddressesObj) -> eventAddressesObj :?> 'a Address array
-            else getEventAddresses1 eventAddress
-            
-        let getSubscriptionsSorted (publishSorter : SubscriptionSorter) eventAddress (esd : 'w EventSystemDelegate) (world : 'w) =
-            let eventSubscriptions = getSubscriptions esd
-            let eventAddresses = getEventAddresses2 eventAddress esd
-            let subscriptionOpts = Array.map (fun eventAddress -> UMap.tryFind eventAddress eventSubscriptions) eventAddresses
-            let subscriptions = Array.definitize subscriptionOpts
-            let subscriptions = Array.concat subscriptions
-            publishSorter subscriptions world
+    /// Log an event.
+    let logEvent<'w> (address : obj Address) (trace : EventTrace) (esd : 'w EventSystemDelegate) =
+        match esd.EventTracerOpt with
+        | Some tracer ->
+            let addressStr = scstring address
+            let traceRev = List.rev trace // for efficiency during normal execution, trace is cons'd up into a reversed list
+            if EventFilter.filter addressStr traceRev esd.EventFilter then tracer (addressStr + "|" + scstring traceRev)
+        | None -> ()
 
-        /// Log an event.
-        let logEvent<'w> (address : obj Address) (trace : EventTrace) (esd : 'w EventSystemDelegate) =
-            match esd.EventTracerOpt with
-            | Some tracer ->
-                let addressStr = scstring address
-                let traceRev = List.rev trace // for efficiency during normal execution, trace is cons'd up into a reversed list
-                if EventFilter.filter addressStr traceRev esd.EventFilter then tracer (addressStr + "|" + scstring traceRev)
-            | None -> ()
-
-        /// Make an event delegate.
-        let make eventTracerOpt eventFilter globalSimulantSpecialized globalSimulantGeneralized =
-            let esd =
-                { Subscriptions = UMap.makeEmpty Functional
-                  Unsubscriptions = UMap.makeEmpty Functional
-                  EventStates = UMap.makeEmpty Functional
-                  EventTracerOpt = eventTracerOpt
-                  EventFilter = eventFilter }
-            GlobalSimulantSpecialized <- globalSimulantSpecialized
-            GlobalSimulantGeneralized <- globalSimulantGeneralized
-            esd
+    /// Make an event delegate.
+    let make eventTracerOpt eventFilter globalSimulantSpecialized globalSimulantGeneralized =
+        let esd =
+            { Subscriptions = UMap.makeEmpty Functional
+              Unsubscriptions = UMap.makeEmpty Functional
+              EventStates = UMap.makeEmpty Functional
+              EventTracerOpt = eventTracerOpt
+              EventFilter = eventFilter }
+        GlobalSimulantSpecialized <- globalSimulantSpecialized
+        GlobalSimulantGeneralized <- globalSimulantGeneralized
+        esd
 
 /// The implementation portion of EventSystem.
 type 'w EventSystemDelegate = 'w EventSystemDelegate.EventSystemDelegate

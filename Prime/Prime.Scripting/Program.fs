@@ -13,7 +13,7 @@ module Program =
             member this.TryGetExtrinsic _ = None
             member this.TryImport _ _ = failwithnie ()
             member this.TryExport _ _ = failwithnie ()
-        static member make () = { ScriptingEnv = Scripting.Env.Env.make () }
+        static member make () = { ScriptingEnv = Scripting.Env.make () }
         
     let rec private runRepl world =
         while Console.KeyAvailable do ignore (Console.ReadKey true)
