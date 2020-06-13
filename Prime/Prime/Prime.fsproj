@@ -26,7 +26,7 @@
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
     <OutputPath>bin\Release\</OutputPath>
@@ -39,6 +39,12 @@
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>5.8.1-tindeco</Version>
+    <Authors>Prime Authors, Tindeco Financial Services AG</Authors>
+    <Company>Prime Authors</Company>
+    <AssemblyVersion>5.8.1.1</AssemblyVersion>
+    <FileVersion>5.8.1.1</FileVersion>
   </PropertyGroup>
   
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
