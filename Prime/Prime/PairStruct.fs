@@ -29,10 +29,14 @@ module PairStructOperators =
     /// Map over struct pair member snd.
     let inline mapSnd' mapper struct (fst, snd) =
         struct (fst, mapper snd)
+        
+    /// Make a struct pair of values.
+    let inline pair' a b =
+        struct (a, b)
 
 [<RequireQualifiedAccess>]
 module PairStruct =
 
-    /// Make a pair.
+    /// Make a struct pair.
     let inline make a b =
-        (a, b)
+        pair' a b

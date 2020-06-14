@@ -9,13 +9,13 @@ open Prime
 type 'w Lens =
     interface
         abstract Name : string
-        abstract This : Simulant
         abstract Validate : 'w -> bool
-        abstract PayloadOpt : obj option
         abstract GetWithoutValidation : 'w -> obj
         abstract SetOpt : (obj -> 'w -> 'w) option
-        abstract Type : Type
+        abstract This : Simulant
+        abstract PayloadOpt : obj option
         abstract ChangeEvent : ChangeData Address
+        abstract Type : Type
         end
 
 /// Describes a property of a simulant.
@@ -24,17 +24,17 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
     { Name : string
       Validate : 'w -> bool
       GetWithoutValidation : 'w -> 'a
-      PayloadOpt : obj option
       SetOpt : ('a -> 'w -> 'w) option
-      This : Simulant }
+      This : Simulant
+      PayloadOpt : obj option }
 
     interface 'w Lens with
         member this.Name = this.Name
         member this.Validate world = this.Validate world
-        member this.PayloadOpt = this.PayloadOpt
         member this.GetWithoutValidation world = this.GetWithoutValidation world :> obj
         member this.SetOpt = Option.map (fun set -> fun (value : obj) world -> set (value :?> 'a) world) this.SetOpt
         member this.This = this.This
+        member this.PayloadOpt = this.PayloadOpt
         member this.Type = typeof<'a>
         member this.ChangeEvent = this.ChangeEvent
 
@@ -42,10 +42,10 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
         let this = this :> 'w Lens
         { Name = this.Name
           Validate = this.Validate
-          PayloadOpt = this.PayloadOpt
           GetWithoutValidation = this.GetWithoutValidation
           SetOpt = this.SetOpt
-          This = this.This }
+          This = this.This
+          PayloadOpt = this.PayloadOpt }
 
     member this.Get world =
         if not (this.Validate world) then failwith "Invalid lens."
@@ -98,26 +98,26 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
     member this.Map mapper : Lens<'b, 'w> =
         { Name = this.Name
           Validate = this.Validate
-          PayloadOpt = this.PayloadOpt
           GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world)
           SetOpt = None
-          This = this.This }
+          This = this.This
+          PayloadOpt = this.PayloadOpt }
 
     member this.MapWorld mapper : Lens<'b, 'w> =
         { Name = this.Name
           Validate = this.Validate
-          PayloadOpt = this.PayloadOpt
           GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world) world
           SetOpt = None
-          This = this.This }
+          This = this.This
+          PayloadOpt = this.PayloadOpt }
 
     member this.Bimap mapper unmapper : Lens<'b, 'w> =
         { Name = this.Name
           Validate = this.Validate
-          PayloadOpt = this.PayloadOpt
           GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world)
           SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (unmapper value)) | None -> None
-          This = this.This }
+          This = this.This
+          PayloadOpt = this.PayloadOpt }
 
     member this.ChangeEvent =
         let changeEventAddress = rtoa<ChangeData> [|"Change"; this.Name; "Event"|]
@@ -248,10 +248,10 @@ module Lens =
         lens.Map Option.get
 
     let makeReadOnly<'a, 'w> name get this : Lens<'a, 'w> =
-        { Name = name; Validate = tautology; PayloadOpt = None; GetWithoutValidation = get; SetOpt = None; This = this }
+        { Name = name; Validate = tautology; GetWithoutValidation = get; SetOpt = None; This = this; PayloadOpt = None }
 
     let make<'a, 'w> name get set this : Lens<'a, 'w> =
-        { Name = name; Validate = tautology; PayloadOpt = None; GetWithoutValidation = get; SetOpt = Some set; This = this }
+        { Name = name; Validate = tautology; GetWithoutValidation = get; SetOpt = Some set; This = this; PayloadOpt = None }
 
 [<AutoOpen>]
 module LensOperators =

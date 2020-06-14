@@ -19,17 +19,18 @@ module Stream =
         (eventAddress : 'a Address) : Stream<'a, 'w> =
         let subscribe = fun (world : 'w) ->
             let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
-            let subscriptionKey = makeGuid ()
-            let subscriptionAddress = ntoa<'a> (scstring subscriptionKey)
-            let unsubscribe = fun world -> EventSystem.unsubscribe<'w> subscriptionKey world
+            let subscriptionId = makeGuid ()
+            let subscriptionAddress = ntoa<'a> (scstring subscriptionId)
+            let unsubscribe = fun world -> EventSystem.unsubscribe<'w> subscriptionId world
             let callback = fun evt world ->
                 let eventTrace = EventTrace.record "Stream" "stream" evt.Trace
                 let world = EventSystem.publishPlus<'a, Simulant, 'w> evt.Data subscriptionAddress eventTrace globalSimulant None world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None callback eventAddress globalSimulant world |> snd
+            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
+    /// Generalize a stream's data type to obj.
     let [<DebuggerHidden; DebuggerStepThrough>] generalize<'a, 'w when 'w :> EventSystem<'w>>
         (stream : Stream<'a, 'w>) : Stream<obj, 'w> =
         { Subscribe = fun world -> let (address, unsub, world) = stream.Subscribe world in (atooa address, unsub, world) }
@@ -44,19 +45,19 @@ module Stream =
         Stream<'b, 'w> =
         let subscribe = fun (world : 'w) ->
             let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
-            let stateKey = makeGuid ()
-            let world = EventSystem.addEventState stateKey state world
-            let subscriptionKey = makeGuid ()
-            let subscriptionAddress = ntoa<'b> (scstring subscriptionKey)
+            let stateId = makeGuid ()
+            let world = EventSystem.addEventState stateId state world
+            let subscriptionId = makeGuid ()
+            let subscriptionAddress = ntoa<'b> (scstring subscriptionId)
             let (eventAddress, unsubscribe, world) = stream.Subscribe world
             let unsubscribe = fun world ->
-                let world = EventSystem.removeEventState stateKey world
+                let world = EventSystem.removeEventState stateId world
                 let world = unsubscribe world
-                EventSystem.unsubscribe<'w> subscriptionKey world
+                EventSystem.unsubscribe<'w> subscriptionId world
             let callback = fun evt world ->
-                let state = EventSystem.getEventState stateKey world
+                let state = EventSystem.getEventState stateId world
                 let (state, tracked, world) = tracker state evt world
-                let world = EventSystem.addEventState stateKey state world
+                let world = EventSystem.addEventState stateId state world
                 let world =
                     if tracked then
                         let eventData = transformer state
@@ -64,7 +65,7 @@ module Stream =
                         EventSystem.publishPlus<'b, Simulant, 'w> eventData subscriptionAddress eventTrace globalSimulant None world
                     else world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None callback eventAddress globalSimulant world |> snd
+            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -74,27 +75,27 @@ module Stream =
         Stream<'a, 'w> =
         let subscribe = fun (world : 'w) ->
             let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
-            let stateKey = makeGuid ()
-            let world = EventSystem.addEventState stateKey None world
-            let subscriptionKey = makeGuid ()
-            let subscriptionAddress = ntoa<'a> (scstring subscriptionKey)
+            let stateId = makeGuid ()
+            let world = EventSystem.addEventState stateId None world
+            let subscriptionId = makeGuid ()
+            let subscriptionAddress = ntoa<'a> (scstring subscriptionId)
             let (eventAddress, unsubscribe, world) = stream.Subscribe world
             let unsubscribe = fun world ->
-                let world = EventSystem.removeEventState stateKey world
+                let world = EventSystem.removeEventState stateId world
                 let world = unsubscribe world
-                EventSystem.unsubscribe<'w> subscriptionKey world
+                EventSystem.unsubscribe<'w> subscriptionId world
             let callback = fun evt world ->
-                let stateOpt = EventSystem.getEventState stateKey world
+                let stateOpt = EventSystem.getEventState stateId world
                 let state = match stateOpt with Some state -> state | None -> evt.Data
                 let (state, tracked, world) = tracker state evt world
-                let world = EventSystem.addEventState stateKey state world
+                let world = EventSystem.addEventState stateId state world
                 let world =
                     if tracked then
                         let eventTrace = EventTrace.record "Stream" "trackEvent2" evt.Trace
                         EventSystem.publishPlus<'a, Simulant, 'w> state subscriptionAddress eventTrace globalSimulant None world
                     else world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None callback eventAddress globalSimulant world |> snd
+            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -102,26 +103,26 @@ module Stream =
         (tracker : 'b -> 'w -> 'b * bool * 'w) (state : 'b) (stream : Stream<'a, 'w>) : Stream<'a, 'w> =
         let subscribe = fun (world : 'w) ->
             let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
-            let stateKey = makeGuid ()
-            let world = EventSystem.addEventState stateKey state world
-            let subscriptionKey = makeGuid ()
-            let subscriptionAddress = ntoa<'a> (scstring subscriptionKey)
+            let stateId = makeGuid ()
+            let world = EventSystem.addEventState stateId state world
+            let subscriptionId = makeGuid ()
+            let subscriptionAddress = ntoa<'a> (scstring subscriptionId)
             let (eventAddress, unsubscribe, world) = stream.Subscribe world
             let unsubscribe = fun world ->
-                let world = EventSystem.removeEventState stateKey world
+                let world = EventSystem.removeEventState stateId world
                 let world = unsubscribe world
-                EventSystem.unsubscribe<'w> subscriptionKey world
+                EventSystem.unsubscribe<'w> subscriptionId world
             let callback = fun evt world ->
-                let state = EventSystem.getEventState stateKey world
+                let state = EventSystem.getEventState stateId world
                 let (state, tracked, world) = tracker state world
-                let world = EventSystem.addEventState stateKey state world
+                let world = EventSystem.addEventState stateId state world
                 let world =
                     if tracked then
                         let eventTrace = EventTrace.record "Stream" "trackEvent" evt.Trace
                         EventSystem.publishPlus<'a, Simulant, 'w> evt.Data subscriptionAddress eventTrace globalSimulant None world
                     else world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None callback eventAddress globalSimulant world |> snd
+            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -142,12 +143,12 @@ module Stream =
         (pred : Event<'a, Simulant> -> 'w -> bool * 'w) (stream : Stream<'a, 'w>) =
         let subscribe = fun (world : 'w) ->
             let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
-            let subscriptionKey = makeGuid ()
-            let subscriptionAddress = ntoa<'a> (scstring subscriptionKey)
+            let subscriptionId = makeGuid ()
+            let subscriptionAddress = ntoa<'a> (scstring subscriptionId)
             let (eventAddress, unsubscribe, world) = stream.Subscribe world
             let unsubscribe = fun world ->
                 let world = unsubscribe world
-                EventSystem.unsubscribe<'w> subscriptionKey world
+                EventSystem.unsubscribe<'w> subscriptionId world
             let callback = fun evt world ->
                 let (passed, world) = pred evt world
                 let world =
@@ -156,7 +157,7 @@ module Stream =
                         EventSystem.publishPlus<'a, Simulant, 'w> evt.Data subscriptionAddress eventTrace globalSimulant None world
                     else world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None callback eventAddress globalSimulant world |> snd
+            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -165,18 +166,18 @@ module Stream =
         (mapper : Event<'a, Simulant> -> 'w -> 'b * 'w) (stream : Stream<'a, 'w>) : Stream<'b, 'w> =
         let subscribe = fun (world : 'w) ->
             let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
-            let subscriptionKey = makeGuid ()
-            let subscriptionAddress = ntoa<'b> (scstring subscriptionKey)
+            let subscriptionId = makeGuid ()
+            let subscriptionAddress = ntoa<'b> (scstring subscriptionId)
             let (eventAddress, unsubscribe, world) = stream.Subscribe world
             let unsubscribe = fun world ->
                 let world = unsubscribe world
-                EventSystem.unsubscribe<'w> subscriptionKey world
+                EventSystem.unsubscribe<'w> subscriptionId world
             let callback = fun evt world ->
                 let (eventData, world) = mapper evt world
                 let eventTrace = EventTrace.record "Stream" "mapEvent" evt.Trace
                 let world = EventSystem.publishPlus<'b, Simulant, 'w> eventData subscriptionAddress eventTrace globalSimulant None world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None callback eventAddress globalSimulant world |> snd
+            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -188,27 +189,27 @@ module Stream =
 
             // initialize event state, subscription keys and addresses
             let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
-            let stateKey = makeGuid ()
+            let stateId = makeGuid ()
             let state = (List.empty<Event<'a, Simulant>>, List.empty<Event<'b, Simulant>>)
-            let world = EventSystem.addEventState stateKey state world
-            let subscriptionKey = makeGuid ()
-            let subscriptionKey' = makeGuid ()
-            let subscriptionKey'' = makeGuid ()
+            let world = EventSystem.addEventState stateId state world
+            let subscriptionId = makeGuid ()
+            let subscriptionId' = makeGuid ()
+            let subscriptionId'' = makeGuid ()
             let (subscriptionAddress, unsubscribe, world) = stream.Subscribe world
             let (subscriptionAddress', unsubscribe', world) = stream2.Subscribe world
-            let subscriptionAddress'' = ntoa<'c> (scstring subscriptionKey'')
+            let subscriptionAddress'' = ntoa<'c> (scstring subscriptionId'')
 
             // unsubscribe from 'a and 'b events, and remove event state
             let unsubscribe = fun world ->
                 let world = unsubscribe (unsubscribe' world)
-                let world = EventSystem.unsubscribe<'w> subscriptionKey world
-                let world = EventSystem.unsubscribe<'w> subscriptionKey' world
-                EventSystem.removeEventState stateKey world
+                let world = EventSystem.unsubscribe<'w> subscriptionId world
+                let world = EventSystem.unsubscribe<'w> subscriptionId' world
+                EventSystem.removeEventState stateId world
 
             // callback for 'a events
             let callback = fun evt world ->
                 let eventTrace = EventTrace.record4 "Stream" "product" "'a" evt.Trace
-                let (aList : Event<'a, Simulant> list, bList : Event<'b, Simulant> list) = EventSystem.getEventState stateKey world
+                let (aList : Event<'a, Simulant> list, bList : Event<'b, Simulant> list) = EventSystem.getEventState stateId world
                 let aList = evt :: aList
                 let (state, world) =
                     match (List.rev aList, List.rev bList) with
@@ -218,13 +219,13 @@ module Stream =
                         let world = EventSystem.publishPlus<'c, Simulant, _> eventData subscriptionAddress'' eventTrace globalSimulant None world
                         (state, world)
                     | state -> (state, world)
-                let world = EventSystem.addEventState stateKey state world
+                let world = EventSystem.addEventState stateId state world
                 (Cascade, world)
 
             // callback for 'b events
             let callback' = fun evt world ->
                 let eventTrace = EventTrace.record4 "Stream" "product" "'b" evt.Trace
-                let (aList : Event<'a, Simulant> list, bList : Event<'b, Simulant> list) = EventSystem.getEventState stateKey world
+                let (aList : Event<'a, Simulant> list, bList : Event<'b, Simulant> list) = EventSystem.getEventState stateId world
                 let bList = evt :: bList
                 let (state, world) =
                     match (List.rev aList, List.rev bList) with
@@ -234,12 +235,12 @@ module Stream =
                         let world = EventSystem.publishPlus<'c, Simulant, _> eventData subscriptionAddress'' eventTrace globalSimulant None world
                         (state, world)
                     | state -> (state, world)
-                let world = EventSystem.addEventState stateKey state world
+                let world = EventSystem.addEventState stateId state world
                 (Cascade, world)
 
             // subscripe 'a and 'b events
-            let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None callback subscriptionAddress globalSimulant world |> snd
-            let world = EventSystem.subscribePlus<'b, 'b, Simulant, 'w> subscriptionKey None None None callback' subscriptionAddress' globalSimulant world |> snd
+            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback subscriptionAddress globalSimulant world |> snd
+            let world = EventSystem.subscribeWith<'b, Simulant, 'w> subscriptionId callback' subscriptionAddress' globalSimulant world |> snd
             (subscriptionAddress'', unsubscribe, world)
 
         // fin
@@ -381,17 +382,17 @@ module Stream =
     let [<DebuggerHidden; DebuggerStepThrough>] sum
         (stream : Stream<'a, 'w>) (stream2 : Stream<'b, 'w>) : Stream<Either<'a, 'b>, 'w> =
         let subscribe = fun world ->
-            let subscriptionKey = makeGuid ()
-            let subscriptionKey' = makeGuid ()
-            let subscriptionKey'' = makeGuid ()
+            let subscriptionId = makeGuid ()
+            let subscriptionId' = makeGuid ()
+            let subscriptionId'' = makeGuid ()
             let (subscriptionAddress, unsubscribe, world) = stream.Subscribe world
             let (subscriptionAddress', unsubscribe', world) = stream2.Subscribe world
-            let subscriptionAddress'' = ntoa<Either<'a, 'b>> (scstring subscriptionKey'')
+            let subscriptionAddress'' = ntoa<Either<'a, 'b>> (scstring subscriptionId'')
             let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
             let unsubscribe = fun world ->
                 let world = unsubscribe (unsubscribe' world)
-                let world = EventSystem.unsubscribe<'w> subscriptionKey world
-                EventSystem.unsubscribe<'w> subscriptionKey' world
+                let world = EventSystem.unsubscribe<'w> subscriptionId world
+                EventSystem.unsubscribe<'w> subscriptionId' world
             let callback = fun evt world ->
                 let eventData = Left evt.Data
                 let eventTrace = EventTrace.record "Stream" "sum" evt.Trace
@@ -402,8 +403,8 @@ module Stream =
                 let eventTrace = EventTrace.record "Stream" "sum" evt.Trace
                 let world = EventSystem.publishPlus<Either<'a, 'b>, Simulant, _> eventData subscriptionAddress'' eventTrace globalSimulant None world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'b, 'b, Simulant, 'w> subscriptionKey' None None None callback' subscriptionAddress' globalSimulant world |> snd
-            let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None callback subscriptionAddress globalSimulant world |> snd
+            let world = EventSystem.subscribeWith<'b, Simulant, 'w> subscriptionId' callback' subscriptionAddress' globalSimulant world |> snd
+            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback subscriptionAddress globalSimulant world |> snd
             (subscriptionAddress'', unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -416,16 +417,16 @@ module Stream =
         (stream : Stream<'b, 'w>) (stream2 : Stream<'a, 'w>) : Stream<'a, 'w> =
         let subscribe = fun (world : 'w) ->
             let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
-            let subscriptionKey = makeGuid ()
-            let subscriptionKey' = makeGuid ()
-            let subscriptionKey'' = makeGuid ()
+            let subscriptionId = makeGuid ()
+            let subscriptionId' = makeGuid ()
+            let subscriptionId'' = makeGuid ()
             let (subscriptionAddress, unsubscribe, world) = stream.Subscribe world
             let (subscriptionAddress', unsubscribe', world) = stream2.Subscribe world
-            let subscriptionAddress'' = ntoa<'a> (scstring subscriptionKey'')
+            let subscriptionAddress'' = ntoa<'a> (scstring subscriptionId'')
             let unsubscribe = fun world ->
                 let world = unsubscribe (unsubscribe' world)
-                let world = EventSystem.unsubscribe<'w> subscriptionKey' world
-                EventSystem.unsubscribe<'w> subscriptionKey world
+                let world = EventSystem.unsubscribe<'w> subscriptionId' world
+                EventSystem.unsubscribe<'w> subscriptionId world
             let callback = fun _ world ->
                 let world = unsubscribe world
                 (Cascade, world)
@@ -433,8 +434,8 @@ module Stream =
                 let eventTrace = EventTrace.record "Stream" "until" evt.Trace
                 let world = EventSystem.publishPlus<'a, Simulant, 'w> evt.Data subscriptionAddress'' eventTrace globalSimulant None world
                 (Cascade, world)
-            let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey' None None None callback' subscriptionAddress' globalSimulant world |> snd
-            let world = EventSystem.subscribePlus<'b, 'b, Simulant, 'w> subscriptionKey None None None callback subscriptionAddress globalSimulant world |> snd
+            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId' callback' subscriptionAddress' globalSimulant world |> snd
+            let world = EventSystem.subscribeWith<'b, Simulant, 'w> subscriptionId callback subscriptionAddress globalSimulant world |> snd
             (subscriptionAddress'', unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -450,13 +451,13 @@ module Stream =
     /// callback.
     let [<DebuggerHidden; DebuggerStepThrough>] subscribeEffect callback (subscriber : 's) stream world =
         let subscribe = fun world ->
-            let subscriptionKey = makeGuid ()
-            let subscriptionAddress = ntoa<'a> (scstring subscriptionKey)
+            let subscriptionId = makeGuid ()
+            let subscriptionAddress = ntoa<'a> (scstring subscriptionId)
             let (address, unsubscribe, world) = stream.Subscribe world
             let unsubscribe = fun world ->
                 let world = unsubscribe world
-                EventSystem.unsubscribe<'w> subscriptionKey world
-            let world = EventSystem.subscribePlus<'a, 'a, 's, 'w> subscriptionKey None None None callback address subscriber world |> snd
+                EventSystem.unsubscribe<'w> subscriptionId world
+            let world = EventSystem.subscribeWith<'a, 's, 'w> subscriptionId callback address subscriber world |> snd
             (subscriptionAddress, unsubscribe, world)
         let stream = { Subscribe = subscribe }
         stream.Subscribe world |> _bc

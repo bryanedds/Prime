@@ -95,6 +95,7 @@
     <Compile Include="SymbolicOperators.fs" />
     <Compile Include="Mold.fs" />
     <Compile Include="Molder.fs" />
+    <Compile Include="Whisp.fs" />
     <Compile Include="Xtension.fs" />
     <Compile Include="PropertySystem.fs" />
     <Compile Include="EventTrace.fs" />
@@ -107,7 +108,6 @@
     <Compile Include="Arrow.fs" />
     <Compile Include="Signal.fs" />
     <Compile Include="Chain.fs" />
-    <Compile Include="Whisp.fs" />
     <Compile Include="Timings.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <None Include="Interactive.fsx" />

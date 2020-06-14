@@ -52,7 +52,7 @@ type [<NoEquality; NoComparison>] Callback =
 
 /// An entry in the subscription map.
 type [<NoEquality; NoComparison>] SubscriptionEntry =
-    { SubscriptionKey : Guid
+    { SubscriptionId : Guid
       CompressionId : Guid
       MapperOpt : (obj -> obj option -> obj -> obj) option // ('a -> 'b option -> 'w -> 'b) option
       FilterOpt : (obj -> obj option -> obj -> bool) option // ('b -> 'b option -> 'w -> bool) option
@@ -79,6 +79,7 @@ type SubscriptionEntries =
 type UnsubscriptionEntries =
     UMap<Guid, obj Address * Simulant>
 
+[<RequireQualifiedAccess>]
 module Events =
 
     /// Represents a wildcard in an event.
@@ -223,7 +224,8 @@ module EventSystemDelegate =
                 eventAddresses
             | (true, eventAddressesObj) -> eventAddressesObj :?> 'a Address array
         else getEventAddresses1 eventAddress
-        
+
+    /// Get subscriptions for eventAddress sorted by publishSorter.
     let getSubscriptionsSorted (publishSorter : SubscriptionSorter) eventAddress (esd : 'w EventSystemDelegate) (world : 'w) =
         let eventSubscriptions = getSubscriptions esd
         let eventAddresses = getEventAddresses2 eventAddress esd

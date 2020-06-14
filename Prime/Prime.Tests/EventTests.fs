@@ -70,15 +70,15 @@ module EventTests =
 
     let [<Fact>] subscribeWithResolutionWorks () =
         let world = TestWorld.make None EventFilter.Empty TestSimulantSpecialized TestSimulantGeneralized
-        let world = EventSystem.subscribePlus (makeGuid ()) None None None incTestStateAndResolve TestEvent TestSimulantSpecialized world |> snd
-        let world = EventSystem.subscribePlus (makeGuid ()) None None None incTestStateAndCascade TestEvent TestSimulantSpecialized world |> snd
+        let world = EventSystem.subscribeWith (makeGuid ()) incTestStateAndResolve TestEvent TestSimulantSpecialized world |> snd
+        let world = EventSystem.subscribeWith (makeGuid ()) incTestStateAndCascade TestEvent TestSimulantSpecialized world |> snd
         let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
         Assert.Equal (1, world.TestState)
 
     let [<Fact>] unsubscribeWorks () =
         let key = makeGuid ()
         let world = TestWorld.make None EventFilter.Empty TestSimulantSpecialized TestSimulantGeneralized
-        let world = EventSystem.subscribePlus key None None None incTestStateAndResolve TestEvent TestSimulantSpecialized world |> snd
+        let world = EventSystem.subscribeWith key incTestStateAndResolve TestEvent TestSimulantSpecialized world |> snd
         let world = EventSystem.unsubscribe key world
         let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
         Assert.Equal (0, world.TestState)
@@ -170,7 +170,7 @@ module EventTests =
         Assert.True (UMap.isEmpty (EventSystem.getSubscriptions world))
 
     let [<Fact>] chainWorks () =
-        
+
         // build everything
         let world = TestWorld.make None EventFilter.Empty TestSimulantSpecialized TestSimulantGeneralized
         let chain =
@@ -192,11 +192,11 @@ module EventTests =
         // assert the second publish executes the second chained operation
         let world = EventSystem.publish 2 TestEvent EventTrace.empty TestSimulantSpecialized world
         Assert.Equal (2, world.TestState)
-        
+
         // and so on...
         let world = EventSystem.publish 3 TestEvent EventTrace.empty TestSimulantSpecialized world
         Assert.Equal (3, world.TestState)
-        
+
         // and so on...
         let world = EventSystem.publish 4 TestEvent EventTrace.empty TestSimulantSpecialized world
         Assert.Equal (5, world.TestState)

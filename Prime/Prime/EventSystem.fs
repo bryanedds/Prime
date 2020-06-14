@@ -200,20 +200,20 @@ module EventSystem =
         publishPlus<'a, 'p, 'w> eventData eventAddress eventTrace publisher None world
 
     /// Unsubscribe from an event.
-    let unsubscribe<'w when 'w :> 'w EventSystem> subscriptionKey (world : 'w) =
+    let unsubscribe<'w when 'w :> 'w EventSystem> subscriptionId (world : 'w) =
         let (subscriptions, unsubscriptions) = (getSubscriptions world, getUnsubscriptions world)
-        match UMap.tryFind subscriptionKey unsubscriptions with
+        match UMap.tryFind subscriptionId unsubscriptions with
         | Some (eventAddress, _) ->
             match UMap.tryFind eventAddress subscriptions with
             | Some subscriptionEntries ->
                 let subscriptionEntryOpt =
                     Array.tryFind (fun (subscriptionEntry : SubscriptionEntry) ->
-                        subscriptionEntry.SubscriptionKey = subscriptionKey)
+                        subscriptionEntry.SubscriptionId = subscriptionId)
                         subscriptionEntries
                 let subscriptionEntryOpt =
                     match subscriptionEntryOpt with
                     | Some subscriptionEntry ->
-                        let callbacks = Array.remove (fun (key, _, _) -> key = subscriptionKey) subscriptionEntry.Callbacks
+                        let callbacks = Array.remove (fun (key, _, _) -> key = subscriptionId) subscriptionEntry.Callbacks
                         if Array.notEmpty callbacks then Some (Some { subscriptionEntry with Callbacks = callbacks })
                         else Some None
                     | None -> None
@@ -222,20 +222,20 @@ module EventSystem =
                     | Some (Some subscriptionEntry) ->
                         let subscriptionEntries =
                             Array.replace (fun (subscriptionEntry : SubscriptionEntry) ->
-                                subscriptionEntry.SubscriptionKey = subscriptionKey)
+                                subscriptionEntry.SubscriptionId = subscriptionId)
                                 subscriptionEntry
                                 subscriptionEntries
                         UMap.add eventAddress subscriptionEntries subscriptions
                     | Some None ->
                         let subscriptionEntries =
                             Array.remove (fun subscription ->
-                                subscription.SubscriptionKey = subscriptionKey)
+                                subscription.SubscriptionId = subscriptionId)
                                 subscriptionEntries
                         if Array.isEmpty subscriptionEntries
                         then UMap.remove eventAddress subscriptions
                         else UMap.add eventAddress subscriptionEntries subscriptions
                     | None -> subscriptions
-                let unsubscriptions = UMap.remove subscriptionKey unsubscriptions
+                let unsubscriptions = UMap.remove subscriptionId unsubscriptions
                 let world = setSubscriptions subscriptions world
                 let world = setUnsubscriptions unsubscriptions world
                 let world =
@@ -249,9 +249,10 @@ module EventSystem =
             | None -> world
         | None -> world
 
-    /// Subscribe to an event using the given subscriptionKey, and be provided with an unsubscription callback.
-    let subscribeSpecial<'a, 'b, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
-        (subscriptionKey : Guid)
+    /// Subscribe to a compressed event with the given subscriptionId and be provided with an unsubscription callback.
+    /// Has additional parameters for compressing, mapping, filtering, and seeding the subscription.
+    let subscribeCompressed<'a, 'b, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
+        (subscriptionId : Guid)
         (compressionId : Guid)
         (mapperOpt : ('a -> 'b option -> 'w -> 'b) option)
         (filterOpt : ('b -> 'b option -> 'w -> bool) option)
@@ -273,7 +274,7 @@ module EventSystem =
                             subscriptionEntries
                     match compressedSubscriptionEntryOpt with
                     | Some subscriptionEntry ->
-                        let callbacks = Array.add (subscriptionKey, subscriber :> Simulant, callback) subscriptionEntry.Callbacks
+                        let callbacks = Array.add (subscriptionId, subscriber :> Simulant, callback) subscriptionEntry.Callbacks
                         let subscriptionEntry = { subscriptionEntry with Callbacks = callbacks }
                         let subscriptionEntries =
                             // NOTE: using replace here does potentially put callbacks in an order other than which
@@ -286,24 +287,24 @@ module EventSystem =
                         UMap.add eventAddressObj subscriptionEntries subscriptions
                     | None ->
                         let subscriptionEntry =
-                            { SubscriptionKey = subscriptionKey
+                            { SubscriptionId = subscriptionId
                               CompressionId = compressionId
                               MapperOpt = Option.map (fun mapper -> fun a p w -> mapper (a :?> 'a) (Option.map cast<'b> p) (w :?> 'w) :> obj) mapperOpt
                               FilterOpt = Option.map (fun filter -> fun b p w -> filter (b :?> 'b) (Option.map cast<'b> p) (w :?> 'w)) filterOpt
                               PreviousDataOpt = Option.map box stateOpt
-                              Callbacks = [|(subscriptionKey, subscriber :> Simulant, callback)|] }
+                              Callbacks = [|(subscriptionId, subscriber :> Simulant, callback)|] }
                         let subscriptionEntries = Array.add subscriptionEntry subscriptionEntries
                         UMap.add eventAddressObj subscriptionEntries subscriptions
                 | None ->
                     let subscriptionEntry =
-                        { SubscriptionKey = subscriptionKey
+                        { SubscriptionId = subscriptionId
                           CompressionId = compressionId
                           MapperOpt = Option.map (fun mapper -> fun a p w -> mapper (a :?> 'a) (Option.map cast<'b> p) (w :?> 'w) :> obj) mapperOpt
                           FilterOpt = Option.map (fun filter -> fun b p w -> filter (b :?> 'b) (Option.map cast<'b> p) (w :?> 'w)) filterOpt
                           PreviousDataOpt = Option.map box stateOpt
-                          Callbacks = [|(subscriptionKey, subscriber :> Simulant, callback)|] }
+                          Callbacks = [|(subscriptionId, subscriber :> Simulant, callback)|] }
                     UMap.add eventAddressObj [|subscriptionEntry|] subscriptions
-            let unsubscriptions = UMap.add subscriptionKey (eventAddressObj, subscriber :> Simulant) unsubscriptions
+            let unsubscriptions = UMap.add subscriptionId (eventAddressObj, subscriber :> Simulant) unsubscriptions
             let world = setSubscriptions subscriptions world
             let world = setUnsubscriptions unsubscriptions world
             let world =
@@ -313,28 +314,22 @@ module EventSystem =
                     (EventTrace.record "EventSystem" "subscribePlus5" EventTrace.empty)
                     (getGlobalSimulantSpecialized world)
                     world
-            (unsubscribe<'w> subscriptionKey, world)
+            (unsubscribe<'w> subscriptionId, world)
         else failwith "Event name cannot be empty."
 
-    /// Subscribe to an event.
-    let subscribePlus<'a, 'b, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
-        (subscriptionKey : Guid)
-        (mapperOpt : ('a -> 'b option -> 'w -> 'b) option)
-        (filterOpt : ('b -> 'b option -> 'w -> bool) option)
-        (stateOpt : 'b option)
-        (callback : Callback<'b, 's, 'w>)
-        (eventAddress : 'a Address)
-        (subscriber : 's)
-        (world : 'w) =
-        subscribeSpecial subscriptionKey (makeGuid ()) mapperOpt filterOpt stateOpt (Left callback) eventAddress subscriber world
+    /// Subscribe to an event with the given subscription id.
+    let subscribeWith<'a, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
+        (subscriptionId : Guid) (callback : Callback<'a, 's, 'w>) (eventAddress : 'a Address) (subscriber : 's) (world : 'w) =
+        subscribeCompressed subscriptionId (makeGuid ()) None None None (Left callback) eventAddress subscriber world
 
     /// Subscribe to an event.
     let subscribe<'a, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
         (callback : Callback<'a, 's, 'w>) (eventAddress : 'a Address) (subscriber : 's) world =
-        subscribePlus (makeGuid ()) None None None callback eventAddress subscriber world |> snd
+        subscribeWith (makeGuid ()) callback eventAddress subscriber world |> snd
 
-    /// Keep active a subscription for the life span of a simulant, and be provided with an unsubscription callback.
-    let monitorSpecial<'a, 'b, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
+    /// Keep active a compressed subscription for the life span of a simulant, and be provided with an unsubscription callback.
+    /// Has additional parameters for compressing, mapping, filtering, and seeding the subscription.
+    let monitorCompressed<'a, 'b, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
         (compressionId : Guid)
         (mapperOpt : ('a -> 'b option -> 'w -> 'b) option)
         (filterOpt : ('b -> 'b option -> 'w -> bool) option)
@@ -343,30 +338,19 @@ module EventSystem =
         (eventAddress : 'a Address)
         (subscriber : 's)
         (world : 'w) =
-        let monitorKey = makeGuid ()
-        let removalKey = makeGuid ()
-        let world = subscribeSpecial<'a, 'b, 's, 'w> monitorKey compressionId mapperOpt filterOpt stateOpt callback eventAddress subscriber world |> snd
+        let monitorId = makeGuid ()
+        let removalId = makeGuid ()
+        let world = subscribeCompressed<'a, 'b, 's, 'w> monitorId compressionId mapperOpt filterOpt stateOpt callback eventAddress subscriber world |> snd
         let unsubscribe = fun (world : 'w) ->
-            let world = unsubscribe removalKey world
-            let world = unsubscribe monitorKey world
+            let world = unsubscribe removalId world
+            let world = unsubscribe monitorId world
             world
         let callback' = Left (fun _ eventSystem -> (Cascade, unsubscribe eventSystem))
         let removingEventAddress = rtoa<obj> [|"Unregistering"; "Event"|] --> subscriber.SimulantAddress
-        let world = subscribeSpecial<obj, obj, Simulant, 'w> removalKey (makeGuid ()) None None None callback' removingEventAddress subscriber world |> snd
+        let world = subscribeCompressed<obj, obj, Simulant, 'w> removalId (makeGuid ()) None None None callback' removingEventAddress subscriber world |> snd
         (unsubscribe, world)
-
-    /// Keep active a subscription for the life span of a simulant, and be provided with an unsubscription callback.
-    let monitorPlus<'a, 'b, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
-        (mapperOpt : ('a -> 'b option -> 'w -> 'b) option)
-        (filterOpt : ('b -> 'b option -> 'w -> bool) option)
-        (stateOpt : 'b option)
-        (callback : Callback<'b, 's, 'w>)
-        (eventAddress : 'a Address)
-        (subscriber : 's)
-        (world : 'w) =
-        monitorSpecial<'a, 'b, 's, 'w> (makeGuid ()) mapperOpt filterOpt stateOpt (Left callback) eventAddress subscriber world
 
     /// Keep active a subscription for the life span of a simulant.
     let monitor<'a, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
         (callback : Callback<'a, 's, 'w>) (eventAddress : 'a Address) (subscriber : 's) (world : 'w) =
-        monitorPlus<'a, 'a, 's, 'w> None None None callback eventAddress subscriber world |> snd
+        monitorCompressed<'a, 'a, 's, 'w> (makeGuid ()) None None None (Left callback) eventAddress subscriber world |> snd

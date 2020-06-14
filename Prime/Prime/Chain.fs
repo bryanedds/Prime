@@ -163,25 +163,25 @@ module Chain =
 
     let [<DebuggerHidden; DebuggerStepThrough>] private run4 handling (chain : Chain<Event<'a, Simulant>, unit, 'w>) (stream : Stream<'a, 'w>) (world : 'w) =
         let globalSimulant = EventSystem.getGlobalSimulantGeneralized world
-        let stateKey = makeGuid ()
-        let subscriptionKey = makeGuid ()
-        let world = EventSystem.addEventState stateKey (fun (_ : Event<'a, Simulant>) -> chain) world
+        let stateId = makeGuid ()
+        let subscriptionId = makeGuid ()
+        let world = EventSystem.addEventState stateId (fun (_ : Event<'a, Simulant>) -> chain) world
         let (eventAddress, unsubscribe, world) = stream.Subscribe world
         let unsubscribe = fun world ->
-            let world = EventSystem.removeEventState stateKey world
+            let world = EventSystem.removeEventState stateId world
             let world = unsubscribe world
-            EventSystem.unsubscribe subscriptionKey world
+            EventSystem.unsubscribe subscriptionId world
         let advance = fun evt world ->
-            let chain = EventSystem.getEventState stateKey world : Event<'a, Simulant> -> Chain<Event<'a, Simulant>, unit, 'w>
+            let chain = EventSystem.getEventState stateId world : Event<'a, Simulant> -> Chain<Event<'a, Simulant>, unit, 'w>
             let (world, advanceResult) = advance chain evt world
             match advanceResult with
             | Right () -> unsubscribe world
-            | Left chainNext -> EventSystem.addEventState stateKey chainNext world
+            | Left chainNext -> EventSystem.addEventState stateId chainNext world
         let callback = fun evt world ->
             let world = advance evt world
             (handling, world)
         let world = advance Unchecked.defaultof<Event<'a, Simulant>> world
-        let world = EventSystem.subscribePlus<'a, 'a, Simulant, 'w> subscriptionKey None None None callback eventAddress globalSimulant world |> snd
+        let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
         (unsubscribe, world)
 
     /// Run a chain over Prime's event system.

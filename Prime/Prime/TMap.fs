@@ -147,6 +147,10 @@ module TMap =
         | (true, value) -> struct (Some value, map)
         | (false, _) -> struct (None, map)
 
+    let tryGetValue key map =
+        let map = validate map
+        struct (map.Dict.TryGetValue key, map)
+
     let find key map =
         let map = validate map
         struct (map.Dict.[key], map)

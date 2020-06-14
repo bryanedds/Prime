@@ -36,6 +36,10 @@ module TripleOperators =
         match triple with
         | (_, b, c) -> (b, c)
 
+    /// Make a triple.
+    let inline triple a b c =
+        (a, b, c)
+
 [<RequireQualifiedAccess>]
 module Triple =
 

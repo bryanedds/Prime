@@ -608,7 +608,7 @@ module ScriptingSystem =
         else struct (Violation (["InvalidDeclaration"], "Can make declarations only at the top-level.", None), world)
 
     /// Evaluate an expression.
-    and eval expr world =
+    and eval expr (world : 'w) =
         match expr with
         | Violation _
         | Unit _
@@ -651,7 +651,7 @@ module ScriptingSystem =
         | Define (binding, originOpt) -> evalDefine binding originOpt world
 
     /// Evaluate a sequence of expressions.
-    and evalMany (exprs : Expr array) world =
+    and evalMany (exprs : Expr array) (world : 'w) =
         let evaleds = Array.zeroCreate exprs.Length
         let world =
             Seq.foldi
@@ -664,19 +664,19 @@ module ScriptingSystem =
         struct (evaleds, world)
 
     /// Evaluate an expression, with logging on violation result.
-    let evalWithLogging expr world =
+    let evalWithLogging expr (world : 'w) =
         let struct (evaled, world) = eval expr world
         log evaled
         struct (evaled, world)
 
     /// Evaluate a series of expressions, with logging on violation result.
-    let evalManyWithLogging exprs world =
+    let evalManyWithLogging exprs (world : 'w) =
         let struct (evaleds, world) = evalMany exprs world
         Array.iter log evaleds
         struct (evaleds, world)
 
     /// Attempt to evaluate a script.
-    let tryEvalScript choose scriptFilePath world =
+    let tryEvalScript (choose : 'w -> 'w) (scriptFilePath : string) (world : 'w) =
         Trace.WriteLine ("Evaluating script '" + scriptFilePath + "'...")
         try let scriptStr =
                 scriptFilePath |>

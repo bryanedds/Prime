@@ -9,13 +9,6 @@ type 'a FSharpOption = 'a option
 [<RequireQualifiedAccess>]
 module Option =
 
-    /// Flatten an option option.
-    let flatten opt =
-        match opt with
-        | Some (Some s) -> Some s
-        | Some None -> None
-        | None -> None
-
     /// Get an option's value, or missing that, return a default value.
     let getOrDefault aDefault opt =
         match opt with

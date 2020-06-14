@@ -53,6 +53,11 @@ module UMap =
         map.Map <- tmap
         valueOpt
 
+    let tryGetValue key map =
+        let struct (result, tmap) = TMap.tryGetValue key map.Map
+        map.Map <- tmap
+        result
+
     let find key map =
         let struct (item, tmap) = TMap.find key map.Map
         map.Map <- tmap

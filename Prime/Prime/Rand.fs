@@ -12,7 +12,6 @@ module Rand =
         private
             { RandState : uint64 }
 
-
     /// Get the sample value used to generate the current random value.
     let private sample rand =
         let result = rand.RandState * 2685821657736338717UL

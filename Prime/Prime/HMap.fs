@@ -69,22 +69,22 @@ module HMap =
             match node with
             | Nil -> true
             | _ -> false
-    
+
         /// OPTIMIZATION: Requires an empty array to use the source of new array clones in order to avoid Array.create.
         let rec add (hkv : Hkv<'k, 'v>) (earr : HNode<'k, 'v> array) (dep : int) (node : HNode<'k, 'v>) : HNode<'k, 'v> =
-    
+
             // lower than max depth, non-clashing
             if dep < 9 then
-    
+
                 // handle non-clash cases
                 match node with
                 | Nil ->
-    
+
                     // make singleton entry
                     Singleton hkv
-    
+
                 | Singleton hkv' ->
-                    
+
                     // if additional entry; convert Singleton to Multiple
                     let idx = hashToIndex hkv.H dep
                     let idx' = hashToIndex hkv'.H dep
@@ -93,11 +93,11 @@ module HMap =
                         arr.[idx] <- Singleton hkv
                         arr.[idx'] <- Singleton hkv'
                         Multiple arr
-    
+
                     // if replace entry; remain Singleton
                     elif hkv.K.Equals hkv'.K then
                         Singleton hkv
-    
+
                     // if add entry with same idx; add both in new node
                     else
                         let dep' = dep + 1
@@ -106,31 +106,31 @@ module HMap =
                         let arr = cloneArray earr
                         arr.[idx] <- node'
                         Multiple arr
-    
+
                 | Multiple arr ->
-    
+
                     // add entry with recursion
                     let idx = hashToIndex hkv.H dep
                     let entry = arr.[idx]
                     let arr = cloneArray arr
                     arr.[idx] <- add hkv earr (dep + 1) entry
                     Multiple arr
-    
+
                 | Gutter _ ->
-    
+
                     // logically should never hit here
                     failwithumf ()
-    
+
             // clashing
             else
-                
+
                 // handle clash cases
                 match node with
                 | Nil -> Gutter (Array.singleton hkv)
                 | Singleton hkv' -> Gutter [|hkv'; hkv|]
                 | Multiple _ -> failwithumf () // should never hit here
                 | Gutter gutter -> Gutter (addToGutter hkv gutter)
-    
+
         let rec remove (h : int) (k : 'k) (dep : int) (node : HNode<'k, 'v>) : HNode<'k, 'v> =
             match node with
             | Nil -> node
@@ -144,28 +144,28 @@ module HMap =
             | Gutter gutter ->
                 let gutter = removeFromGutter k gutter
                 if Array.isEmpty gutter then Nil else Gutter gutter
-    
+
         let rec tryFind (h : int) (k : 'k) (dep : int) (node : HNode<'k, 'v>) : 'v option =
             match node with
             | Nil -> None
             | Singleton hkv -> if hkv.K.Equals k then Some hkv.V else None
             | Multiple arr -> let idx = hashToIndex h dep in tryFind h k (dep + 1) arr.[idx]
             | Gutter gutter -> tryFindInGutter k gutter
-    
+
         let rec find (h : int) (k : 'k) (dep : int) (node : HNode<'k, 'v>) : 'v =
             match node with
             | Nil -> failwithKeyNotFound k
             | Singleton hkv -> if hkv.K.Equals k then hkv.V else failwithKeyNotFound k
             | Multiple arr -> let idx = hashToIndex h dep in find h k (dep + 1) arr.[idx]
             | Gutter gutter -> Option.get (tryFindInGutter k gutter)
-    
+
         let rec fold folder state node =
             match node with
             | Nil -> state
             | Singleton hkv -> folder state hkv.K hkv.V
             | Multiple arr -> Array.fold (fold folder) state arr
             | Gutter gutter -> Array.fold (fun state (hkv : Hkv<_, _>) -> folder state hkv.K hkv.V) state gutter
-    
+
         /// NOTE: This function seems to profile as being very slow. I don't know if it's the seq / yields syntax or what.
         let rec toSeq node =
             seq {
@@ -181,10 +181,10 @@ module HMap =
         private
             { Node : HNode<'k, 'v>
               EmptyArray : HNode<'k, 'v> array }
-    
+
         interface IEnumerable<'k * 'v> with
             member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator ()
-    
+
         interface IEnumerable with
             member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator () :> IEnumerator
 

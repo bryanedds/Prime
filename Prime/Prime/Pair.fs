@@ -21,7 +21,7 @@ module PairOperators =
     /// Map over pair member snd.
     let inline mapSnd mapper (fst, snd) =
         (fst, mapper snd)
-        
+
     /// Make a pair of values.
     let inline pair a b =
         (a, b)
