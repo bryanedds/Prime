@@ -59,7 +59,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="App.config" />
-    <Content Include="packages.config.x" />
+    <Content Include="packages.config" />
   </ItemGroup>
   
   <ItemGroup>
