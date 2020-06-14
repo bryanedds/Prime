@@ -11,6 +11,8 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Name>Prime.Tests</Name>
     <TargetFrameworkProfile />
+    <Deterministic>false</Deterministic>
+    <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
