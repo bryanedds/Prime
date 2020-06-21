@@ -318,14 +318,14 @@ module EventSystem =
         else failwith "Event name cannot be empty."
 
     /// Subscribe to an event with the given subscription id.
-    let subscribeWith<'a, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
+    let subscribePlus<'a, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
         (subscriptionId : Guid) (callback : Callback<'a, 's, 'w>) (eventAddress : 'a Address) (subscriber : 's) (world : 'w) =
         subscribeCompressed subscriptionId (makeGuid ()) None None None (Left callback) eventAddress subscriber world
 
     /// Subscribe to an event.
     let subscribe<'a, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
         (callback : Callback<'a, 's, 'w>) (eventAddress : 'a Address) (subscriber : 's) world =
-        subscribeWith (makeGuid ()) callback eventAddress subscriber world |> snd
+        subscribePlus (makeGuid ()) callback eventAddress subscriber world |> snd
 
     /// Keep active a compressed subscription for the life span of a simulant, and be provided with an unsubscription callback.
     /// Has additional parameters for compressing, mapping, filtering, and seeding the subscription.
@@ -349,6 +349,11 @@ module EventSystem =
         let removingEventAddress = rtoa<obj> [|"Unregistering"; "Event"|] --> subscriber.SimulantAddress
         let world = subscribeCompressed<obj, obj, Simulant, 'w> removalId (makeGuid ()) None None None callback' removingEventAddress subscriber world |> snd
         (unsubscribe, world)
+
+    /// Keep active a subscription for the life span of a simulant.
+    let monitorPlus<'a, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
+        (callback : Callback<'a, 's, 'w>) (eventAddress : 'a Address) (subscriber : 's) (world : 'w) =
+        monitorCompressed<'a, 'a, 's, 'w> (makeGuid ()) None None None (Left callback) eventAddress subscriber world
 
     /// Keep active a subscription for the life span of a simulant.
     let monitor<'a, 's, 'w when 's :> Simulant and 'w :> 'w EventSystem>
