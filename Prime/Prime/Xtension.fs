@@ -16,7 +16,7 @@ module Xtension =
     /// Xtensions are a dynamic, functional, and convenient way to implement both dynamic properties
     /// and designer properties.
     /// OPTIMIZATION: Booleans are packed into the Flags field.
-    type [<NoEquality; NoComparison; Struct>] Xtension =
+    type [<NoEquality; NoComparison>] Xtension =
         private
             { Properties : UMap<string, Property>
               Flags : int }
