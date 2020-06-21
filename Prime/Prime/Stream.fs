@@ -26,7 +26,7 @@ module Stream =
                 let eventTrace = EventTrace.record "Stream" "stream" evt.Trace
                 let world = EventSystem.publishPlus<'a, Simulant, 'w> evt.Data subscriptionAddress eventTrace globalSimulant None world
                 (Cascade, world)
-            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -65,7 +65,7 @@ module Stream =
                         EventSystem.publishPlus<'b, Simulant, 'w> eventData subscriptionAddress eventTrace globalSimulant None world
                     else world
                 (Cascade, world)
-            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -95,7 +95,7 @@ module Stream =
                         EventSystem.publishPlus<'a, Simulant, 'w> state subscriptionAddress eventTrace globalSimulant None world
                     else world
                 (Cascade, world)
-            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -122,7 +122,7 @@ module Stream =
                         EventSystem.publishPlus<'a, Simulant, 'w> evt.Data subscriptionAddress eventTrace globalSimulant None world
                     else world
                 (Cascade, world)
-            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -157,7 +157,7 @@ module Stream =
                         EventSystem.publishPlus<'a, Simulant, 'w> evt.Data subscriptionAddress eventTrace globalSimulant None world
                     else world
                 (Cascade, world)
-            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -177,7 +177,7 @@ module Stream =
                 let eventTrace = EventTrace.record "Stream" "mapEvent" evt.Trace
                 let world = EventSystem.publishPlus<'b, Simulant, 'w> eventData subscriptionAddress eventTrace globalSimulant None world
                 (Cascade, world)
-            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionId callback eventAddress globalSimulant world |> snd
             (subscriptionAddress, unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -239,8 +239,8 @@ module Stream =
                 (Cascade, world)
 
             // subscripe 'a and 'b events
-            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback subscriptionAddress globalSimulant world |> snd
-            let world = EventSystem.subscribeWith<'b, Simulant, 'w> subscriptionId callback' subscriptionAddress' globalSimulant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionId callback subscriptionAddress globalSimulant world |> snd
+            let world = EventSystem.subscribePlus<'b, Simulant, 'w> subscriptionId callback' subscriptionAddress' globalSimulant world |> snd
             (subscriptionAddress'', unsubscribe, world)
 
         // fin
@@ -403,8 +403,8 @@ module Stream =
                 let eventTrace = EventTrace.record "Stream" "sum" evt.Trace
                 let world = EventSystem.publishPlus<Either<'a, 'b>, Simulant, _> eventData subscriptionAddress'' eventTrace globalSimulant None world
                 (Cascade, world)
-            let world = EventSystem.subscribeWith<'b, Simulant, 'w> subscriptionId' callback' subscriptionAddress' globalSimulant world |> snd
-            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId callback subscriptionAddress globalSimulant world |> snd
+            let world = EventSystem.subscribePlus<'b, Simulant, 'w> subscriptionId' callback' subscriptionAddress' globalSimulant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionId callback subscriptionAddress globalSimulant world |> snd
             (subscriptionAddress'', unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -434,8 +434,8 @@ module Stream =
                 let eventTrace = EventTrace.record "Stream" "until" evt.Trace
                 let world = EventSystem.publishPlus<'a, Simulant, 'w> evt.Data subscriptionAddress'' eventTrace globalSimulant None world
                 (Cascade, world)
-            let world = EventSystem.subscribeWith<'a, Simulant, 'w> subscriptionId' callback' subscriptionAddress' globalSimulant world |> snd
-            let world = EventSystem.subscribeWith<'b, Simulant, 'w> subscriptionId callback subscriptionAddress globalSimulant world |> snd
+            let world = EventSystem.subscribePlus<'a, Simulant, 'w> subscriptionId' callback' subscriptionAddress' globalSimulant world |> snd
+            let world = EventSystem.subscribePlus<'b, Simulant, 'w> subscriptionId callback subscriptionAddress globalSimulant world |> snd
             (subscriptionAddress'', unsubscribe, world)
         { Subscribe = subscribe }
 
@@ -457,7 +457,7 @@ module Stream =
             let unsubscribe = fun world ->
                 let world = unsubscribe world
                 EventSystem.unsubscribe<'w> subscriptionId world
-            let world = EventSystem.subscribeWith<'a, 's, 'w> subscriptionId callback address subscriber world |> snd
+            let world = EventSystem.subscribePlus<'a, 's, 'w> subscriptionId callback address subscriber world |> snd
             (subscriptionAddress, unsubscribe, world)
         let stream = { Subscribe = subscribe }
         stream.Subscribe world |> _bc
