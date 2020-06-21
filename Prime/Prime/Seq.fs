@@ -3,6 +3,7 @@
 
 namespace Prime
 open System
+open System.Collections
 open Prime
 
 [<RequireQualifiedAccess>]
@@ -153,3 +154,13 @@ module Seq =
     /// Eagerly evaluate a sequence
     let eval seq =
         seq |> Seq.toArray |> Seq.ofArray
+
+[<RequireQualifiedAccess>]
+module IEnumerable =
+
+    /// Get the nth item in an enumerable.
+    let item n (enum : IEnumerable) =
+        let mutable i = 0
+        let mutable enr = enum.GetEnumerator ()
+        while enr.MoveNext () && i < n do i <- i + 1
+        enr.Current
