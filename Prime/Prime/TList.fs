@@ -61,15 +61,13 @@ module TList =
             list)
 
     let private validate2 list =
-        match box list.TListOpt with
-        | null -> commit list
-        | target ->
-            match obj.ReferenceEquals (target, list) with
-            | true ->
-                if list.LogsLength > list.ImpList.Count
-                then compress list
-                else list
-            | false -> commit list
+        lock list (fun () ->
+            match box list.TListOpt with
+            | null -> commit list
+            | target ->
+                match obj.ReferenceEquals (target, list) with
+                | true -> if list.LogsLength > list.ImpList.Count then compress list else list
+                | false -> commit list)
 
     let private update updater list =
         let oldList = list
@@ -85,7 +83,7 @@ module TList =
         else list
 
     let makeFromSeq config (items : 'a seq) =
-        if TConfig.isFunctional config then 
+        if TConfig.isFunctional config then
             let impList = List<'a> items
             let impListOrigin = List<'a> impList
             let list =

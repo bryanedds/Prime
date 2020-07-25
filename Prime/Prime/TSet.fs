@@ -33,38 +33,37 @@ module TSet =
 
     let private commit set =
         if List.notEmpty set.Logs then
-            lock set (fun () ->
-                let oldSet = set
-                let hashSetOrigin = HashSet<'a> (set.HashSetOrigin, HashIdentity.Structural)
-                List.foldBack (fun log () ->
-                    match log with
-                    | Add value -> hashSetOrigin.TryAdd value |> ignore
-                    | Remove value -> hashSetOrigin.Remove value |> ignore
-                    | Clear -> hashSetOrigin.Clear ())
-                    set.Logs ()
-                let hashSet = HashSet<'a> (hashSetOrigin, HashIdentity.Structural)
-                let set = { set with HashSet = hashSet; HashSetOrigin = hashSetOrigin; Logs = []; LogsLength = 0 }
-                oldSet.TSetOpt <- Unchecked.defaultof<'a TSet>
-                set.TSetOpt <- set
-                set)
+            let oldSet = set
+            let hashSetOrigin = HashSet<'a> (set.HashSetOrigin, HashIdentity.Structural)
+            List.foldBack (fun log () ->
+                match log with
+                | Add value -> hashSetOrigin.TryAdd value |> ignore
+                | Remove value -> hashSetOrigin.Remove value |> ignore
+                | Clear -> hashSetOrigin.Clear ())
+                set.Logs ()
+            let hashSet = HashSet<'a> (hashSetOrigin, HashIdentity.Structural)
+            let set = { set with HashSet = hashSet; HashSetOrigin = hashSetOrigin; Logs = []; LogsLength = 0 }
+            oldSet.TSetOpt <- Unchecked.defaultof<'a TSet>
+            set.TSetOpt <- set
+            set
         else set
 
     let private compress set =
-        lock set (fun () ->
-            let oldSet = set
-            let hashSetOrigin = HashSet<'a> (set.HashSet, HashIdentity.Structural)
-            let set = { set with HashSetOrigin = hashSetOrigin; Logs = []; LogsLength = 0 }
-            oldSet.TSetOpt <- Unchecked.defaultof<'a TSet>
-            set.TSetOpt <- set
-            set)
+        let oldSet = set
+        let hashSetOrigin = HashSet<'a> (set.HashSet, HashIdentity.Structural)
+        let set = { set with HashSetOrigin = hashSetOrigin; Logs = []; LogsLength = 0 }
+        oldSet.TSetOpt <- Unchecked.defaultof<'a TSet>
+        set.TSetOpt <- set
+        set
 
     let private validate2 set =
-        match box set.TSetOpt with
-        | null -> commit set
-        | target ->
-            match obj.ReferenceEquals (target, set) with
-            | true -> if set.LogsLength > set.HashSet.Count then compress set else set
-            | false -> commit set
+        lock set (fun () ->
+            match box set.TSetOpt with
+            | null -> commit set
+            | target ->
+                match obj.ReferenceEquals (target, set) with
+                | true -> if set.LogsLength > set.HashSet.Count then compress set else set
+                | false -> commit set)
 
     let private update updater set =
         let oldSet = set
