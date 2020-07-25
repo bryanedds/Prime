@@ -40,6 +40,11 @@ module UMap =
     let remove key map =
         { Map = TMap.remove key map.Map }
 
+    let length map =
+        let struct (result, tmap) = TMap.length map.Map
+        map.Map <- tmap
+        result
+
     let isEmpty map =
         let struct (result, tmap) = TMap.isEmpty map.Map
         map.Map <- tmap

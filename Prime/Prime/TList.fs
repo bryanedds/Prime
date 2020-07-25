@@ -33,28 +33,32 @@ module TList =
             builder list
 
     let private commit list =
-        let oldList = list
-        let impListOrigin = List<'a> list.ImpListOrigin
-        List.foldBack (fun log () ->
-            match log with
-            | Add value -> impListOrigin.Add value
-            | Remove value -> impListOrigin.Remove value |> ignore
-            | Set (index, value) -> impListOrigin.[index] <- value
-            | Clear -> impListOrigin.Clear ())
-            list.Logs ()
-        let impList = List<'a> impListOrigin
-        let list = { list with ImpList = impList; ImpListOrigin = impListOrigin; Logs = []; LogsLength = 0 }
-        oldList.TListOpt <- Unchecked.defaultof<'a TList>
-        list.TListOpt <- list
-        list
+        if List.notEmpty list.Logs then
+            lock list (fun () ->
+                let oldList = list
+                let impListOrigin = List<'a> list.ImpListOrigin
+                List.foldBack (fun log () ->
+                    match log with
+                    | Add value -> impListOrigin.Add value
+                    | Remove value -> impListOrigin.Remove value |> ignore
+                    | Set (index, value) -> impListOrigin.[index] <- value
+                    | Clear -> impListOrigin.Clear ())
+                    list.Logs ()
+                let impList = List<'a> impListOrigin
+                let list = { list with ImpList = impList; ImpListOrigin = impListOrigin; Logs = []; LogsLength = 0 }
+                oldList.TListOpt <- Unchecked.defaultof<'a TList>
+                list.TListOpt <- list
+                list)
+        else list
 
     let private compress list =
-        let oldList = list
-        let impListOrigin = List<'a> list.ImpList
-        let list = { list with ImpListOrigin = impListOrigin; Logs = []; LogsLength = 0 }
-        oldList.TListOpt <- Unchecked.defaultof<'a TList>
-        list.TListOpt <- list
-        list
+        lock list (fun () ->
+            let oldList = list
+            let impListOrigin = List<'a> list.ImpList
+            let list = { list with ImpListOrigin = impListOrigin; Logs = []; LogsLength = 0 }
+            oldList.TListOpt <- Unchecked.defaultof<'a TList>
+            list.TListOpt <- list
+            list)
 
     let private validate2 list =
         match box list.TListOpt with

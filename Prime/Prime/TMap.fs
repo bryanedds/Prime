@@ -32,27 +32,31 @@ module TMap =
             builder map
 
     let private commit map =
-        let oldMap = map
-        let dictOrigin = Dictionary<'k, 'v> (map.DictOrigin, HashIdentity.Structural)
-        List.foldBack (fun log () ->
-            match log with
-            | Add (key, value) -> dictOrigin.ForceAdd (key, value)
-            | Remove key -> dictOrigin.Remove key |> ignore
-            | Clear -> dictOrigin.Clear ())
-            map.Logs ()
-        let dict = Dictionary<'k, 'v> (dictOrigin, HashIdentity.Structural)
-        let map = { map with Dict = dict; DictOrigin = dictOrigin; Logs = []; LogsLength = 0 }
-        oldMap.TMapOpt <- Unchecked.defaultof<TMap<'k, 'v>>
-        map.TMapOpt <- map
-        map
+        if List.notEmpty map.Logs then
+            lock map (fun () ->
+                let oldMap = map
+                let dictOrigin = Dictionary<'k, 'v> (map.DictOrigin, HashIdentity.Structural)
+                List.foldBack (fun log () ->
+                    match log with
+                    | Add (key, value) -> dictOrigin.ForceAdd (key, value)
+                    | Remove key -> dictOrigin.Remove key |> ignore
+                    | Clear -> dictOrigin.Clear ())
+                    map.Logs ()
+                let dict = Dictionary<'k, 'v> (dictOrigin, HashIdentity.Structural)
+                let map = { map with Dict = dict; DictOrigin = dictOrigin; Logs = []; LogsLength = 0 }
+                oldMap.TMapOpt <- Unchecked.defaultof<TMap<'k, 'v>>
+                map.TMapOpt <- map
+                map)
+        else map
 
     let private compress map =
-        let oldMap = map
-        let dictOrigin = Dictionary<'k, 'v> (map.Dict, HashIdentity.Structural)
-        let map = { map with DictOrigin = dictOrigin; Logs = []; LogsLength = 0 }
-        oldMap.TMapOpt <- Unchecked.defaultof<TMap<'k, 'v>>
-        map.TMapOpt <- map
-        map
+        lock map (fun () ->
+            let oldMap = map
+            let dictOrigin = Dictionary<'k, 'v> (map.Dict, HashIdentity.Structural)
+            let map = { map with DictOrigin = dictOrigin; Logs = []; LogsLength = 0 }
+            oldMap.TMapOpt <- Unchecked.defaultof<TMap<'k, 'v>>
+            map.TMapOpt <- map
+            map)
 
     let private validate2 map =
         match box map.TMapOpt with
