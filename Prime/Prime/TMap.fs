@@ -57,7 +57,7 @@ module TMap =
         map
 
     let private validate2 map =
-        lock map (fun () ->
+        lock map.Logs (fun () ->
             match box map.TMapOpt with
             | null -> commit map
             | target ->

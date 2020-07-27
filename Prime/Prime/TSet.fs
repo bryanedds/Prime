@@ -57,7 +57,7 @@ module TSet =
         set
 
     let private validate2 set =
-        lock set (fun () ->
+        lock set.Logs (fun () ->
             match box set.TSetOpt with
             | null -> commit set
             | target ->
