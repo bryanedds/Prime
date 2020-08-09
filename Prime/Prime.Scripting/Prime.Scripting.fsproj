@@ -67,7 +67,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="App.config" />
-    <Content Include="Packages.config" />
+    <Content Include="_ackages.config" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FParsec">
