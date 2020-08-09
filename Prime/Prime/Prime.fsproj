@@ -73,7 +73,6 @@
     <Compile Include="Map.fs" />
     <Compile Include="HashSet.fs" />
     <Compile Include="Dictionary.fs" />
-    <Compile Include="ListTree.fs" />
     <Compile Include="Rand.fs" />
     <Compile Include="Symbol.fs" />
     <Compile Include="PrettyPrinter.fs" />
