@@ -21,7 +21,8 @@ module Set =
 
     /// Add multiple values to a set.
     let addMany values set =
-        Seq.fold
-            (fun set value -> Set.add value set)
-            set
-            values
+        Seq.fold (flip Set.add) set values
+
+    /// Remove multiple values from a set.
+    let removeMany values set =
+        Seq.fold (flip Set.remove) set values

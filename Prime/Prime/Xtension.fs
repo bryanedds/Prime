@@ -114,7 +114,7 @@ module Xtension =
     /// Get a property from an xtension.
     let getProperty name xtension = UMap.find name xtension.Properties
 
-    /// Set a property on an Xtension.
+    /// Attempt to set a property on an Xtension.
     let trySetProperty name property xtension =
         match UMap.tryFind name xtension.Properties with
         | Some property' ->
