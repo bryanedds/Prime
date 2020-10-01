@@ -32,21 +32,19 @@ module TMap =
             builder map
 
     let private commit map =
-        if List.notEmpty map.Logs then
-            let oldMap = map
-            let dictOrigin = Dictionary<'k, 'v> (map.DictOrigin, HashIdentity.Structural)
-            List.foldBack (fun log () ->
-                match log with
-                | Add (key, value) -> dictOrigin.ForceAdd (key, value)
-                | Remove key -> dictOrigin.Remove key |> ignore
-                | Clear -> dictOrigin.Clear ())
-                map.Logs ()
-            let dict = Dictionary<'k, 'v> (dictOrigin, HashIdentity.Structural)
-            let map = { map with Dict = dict; DictOrigin = dictOrigin; Logs = []; LogsLength = 0 }
-            oldMap.TMapOpt <- Unchecked.defaultof<TMap<'k, 'v>>
-            map.TMapOpt <- map
-            map
-        else map
+        let oldMap = map
+        let dictOrigin = Dictionary<'k, 'v> (map.DictOrigin, HashIdentity.Structural)
+        List.foldBack (fun log () ->
+            match log with
+            | Add (key, value) -> dictOrigin.ForceAdd (key, value)
+            | Remove key -> dictOrigin.Remove key |> ignore
+            | Clear -> dictOrigin.Clear ())
+            map.Logs ()
+        let dict = Dictionary<'k, 'v> (dictOrigin, HashIdentity.Structural)
+        let map = { map with Dict = dict; DictOrigin = dictOrigin; Logs = []; LogsLength = 0 }
+        oldMap.TMapOpt <- Unchecked.defaultof<TMap<'k, 'v>>
+        map.TMapOpt <- map
+        map
 
     let private compress map =
         let oldMap = map
@@ -79,7 +77,7 @@ module TMap =
         else map
 
     let makeFromSeq<'k, 'v when 'k : equality> config (entries : ('k * 'v) seq) =
-        if TConfig.isFunctional config then
+        if TConfig.isFunctional config then 
             let dict = dictPlus entries
             let dictOrigin = Dictionary (dict, HashIdentity.Structural)
             let map =

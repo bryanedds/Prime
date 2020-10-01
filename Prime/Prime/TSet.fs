@@ -32,21 +32,19 @@ module TSet =
             builder set
 
     let private commit set =
-        if List.notEmpty set.Logs then
-            let oldSet = set
-            let hashSetOrigin = HashSet<'a> (set.HashSetOrigin, HashIdentity.Structural)
-            List.foldBack (fun log () ->
-                match log with
-                | Add value -> hashSetOrigin.TryAdd value |> ignore
-                | Remove value -> hashSetOrigin.Remove value |> ignore
-                | Clear -> hashSetOrigin.Clear ())
-                set.Logs ()
-            let hashSet = HashSet<'a> (hashSetOrigin, HashIdentity.Structural)
-            let set = { set with HashSet = hashSet; HashSetOrigin = hashSetOrigin; Logs = []; LogsLength = 0 }
-            oldSet.TSetOpt <- Unchecked.defaultof<'a TSet>
-            set.TSetOpt <- set
-            set
-        else set
+        let oldSet = set
+        let hashSetOrigin = HashSet<'a> (set.HashSetOrigin, HashIdentity.Structural)
+        List.foldBack (fun log () ->
+            match log with
+            | Add value -> hashSetOrigin.TryAdd value |> ignore
+            | Remove value -> hashSetOrigin.Remove value |> ignore
+            | Clear -> hashSetOrigin.Clear ())
+            set.Logs ()
+        let hashSet = HashSet<'a> (hashSetOrigin, HashIdentity.Structural)
+        let set = { set with HashSet = hashSet; HashSetOrigin = hashSetOrigin; Logs = []; LogsLength = 0 }
+        oldSet.TSetOpt <- Unchecked.defaultof<'a TSet>
+        set.TSetOpt <- set
+        set
 
     let private compress set =
         let oldSet = set

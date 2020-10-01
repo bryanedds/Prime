@@ -33,22 +33,20 @@ module TList =
             builder list
 
     let private commit list =
-        if List.notEmpty list.Logs then
-            let oldList = list
-            let impListOrigin = List<'a> list.ImpListOrigin
-            List.foldBack (fun log () ->
-                match log with
-                | Add value -> impListOrigin.Add value
-                | Remove value -> impListOrigin.Remove value |> ignore
-                | Set (index, value) -> impListOrigin.[index] <- value
-                | Clear -> impListOrigin.Clear ())
-                list.Logs ()
-            let impList = List<'a> impListOrigin
-            let list = { list with ImpList = impList; ImpListOrigin = impListOrigin; Logs = []; LogsLength = 0 }
-            oldList.TListOpt <- Unchecked.defaultof<'a TList>
-            list.TListOpt <- list
-            list
-        else list
+        let oldList = list
+        let impListOrigin = List<'a> list.ImpListOrigin
+        List.foldBack (fun log () ->
+            match log with
+            | Add value -> impListOrigin.Add value
+            | Remove value -> impListOrigin.Remove value |> ignore
+            | Set (index, value) -> impListOrigin.[index] <- value
+            | Clear -> impListOrigin.Clear ())
+            list.Logs ()
+        let impList = List<'a> impListOrigin
+        let list = { list with ImpList = impList; ImpListOrigin = impListOrigin; Logs = []; LogsLength = 0 }
+        oldList.TListOpt <- Unchecked.defaultof<'a TList>
+        list.TListOpt <- list
+        list
 
     let private compress list =
         let oldList = list
@@ -64,7 +62,10 @@ module TList =
             | null -> commit list
             | target ->
                 match obj.ReferenceEquals (target, list) with
-                | true -> if list.LogsLength > list.ImpList.Count then compress list else list
+                | true ->
+                    if list.LogsLength > list.ImpList.Count
+                    then compress list
+                    else list
                 | false -> commit list)
 
     let private update updater list =
@@ -81,7 +82,7 @@ module TList =
         else list
 
     let makeFromSeq config (items : 'a seq) =
-        if TConfig.isFunctional config then
+        if TConfig.isFunctional config then 
             let impList = List<'a> items
             let impListOrigin = List<'a> impList
             let list =
