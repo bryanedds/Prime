@@ -21,7 +21,7 @@ type [<StructuralEquality; StructuralComparison>] SymbolicCompression<'a, 'b> =
 type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType : Type) =
     inherit TypeConverter ()
 
-    let padWithDefaults' (fieldTypes : Type array) (values : obj array) =
+    let padWithDefaultsInternal (fieldTypes : Type array) (values : obj array) =
         if values.Length < fieldTypes.Length then
             let valuesPadded =
                 fieldTypes |>
@@ -32,7 +32,7 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
         else values
 
     let padWithDefaults (fieldInfos : PropertyInfo array) (values : obj array) =
-        padWithDefaults' (Array.map (fun (info : PropertyInfo) -> info.PropertyType) fieldInfos) values
+        padWithDefaultsInternal (Array.map (fun (info : PropertyInfo) -> info.PropertyType) fieldInfos) values
 
     let rec toSymbol (sourceType : Type) (source : obj) =
         match sourceType.TryGetCustomTypeConverter () with
@@ -317,7 +317,7 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                     | Symbols (symbols, _) ->
                         let elementTypes = FSharpType.GetTupleElements destType
                         let elements = symbols |> Array.ofList |> Array.mapi (fun i elementSymbol -> fromSymbol elementTypes.[i] elementSymbol)
-                        let elements = padWithDefaults' elementTypes elements
+                        let elements = padWithDefaultsInternal elementTypes elements
                         FSharpValue.MakeTuple (elements, destType)
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to Tuple." (Some symbol)
