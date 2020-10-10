@@ -100,16 +100,14 @@ module EventSystem =
     let getSortableSubscriptions
         (getSortPriority : Simulant -> 'w -> IComparable)
         (subscriptions : struct (Guid * SubscriptionEntry) seq)
-        (world : 'w) :
-        struct (IComparable * SubscriptionEntry) array =
-        subscriptions |>
+        (world : 'w) =
         Seq.map
             (fun (struct (_, subscription : SubscriptionEntry)) ->
                 // NOTE: we just take the sort priority of the first callback found when callbacks are compressed. This
                 // is semantically sub-optimal, but should be fine for all of our cases.
                 let priority = getSortPriority (Triple.snd subscription.Callbacks.[0]) world
-                struct (priority, subscription)) |>
-        Seq.toArray
+                struct (priority, subscription))
+            subscriptions
             
 
     let getLiveness<'w when 'w :> 'w EventSystem> (world : 'w) =
@@ -138,10 +136,11 @@ module EventSystem =
 
     /// Sort subscriptions using categorization via the 'by' procedure.
     let sortSubscriptionsBy by (subscriptions : struct (Guid * SubscriptionEntry) seq) (world : 'w) =
-        let subscriptions = getSortableSubscriptions by subscriptions world
-        let subscriptions = Array.sortWith (fun (struct ((p : IComparable), _)) (struct ((p2 : IComparable), _)) -> p.CompareTo p2) subscriptions
-        let subscriptions = Array.map (fun (struct (_, subscription)) -> struct (subscription.CompressionId, subscription)) subscriptions
-        Array.toSeq subscriptions
+        getSortableSubscriptions by subscriptions world |>
+        Array.ofSeq |>
+        Array.sortWith (fun (struct ((p : IComparable), _)) (struct ((p2 : IComparable), _)) -> p.CompareTo p2) |>
+        Array.map (fun (struct (_, subscription)) -> struct (subscription.CompressionId, subscription)) |>
+        Array.toSeq
 
     /// A 'no-op' for subscription sorting - that is, performs no sorting at all.
     let sortSubscriptionsNone (subscriptions : SubscriptionEntry array) (_ : 'w) =

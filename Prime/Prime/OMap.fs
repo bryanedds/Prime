@@ -8,6 +8,7 @@ open Prime
 module OMap =
 
     /// An ordered persistent map based on UMap and FStack.
+    /// NOTE: currently not supported by SymbolicConverter!
     type [<NoEquality; NoComparison>] OMap<'k, 'v when 'k : equality> =
         private
             { Indices : UMap<'k, int>
@@ -140,4 +141,5 @@ module OMap =
         add key value empty
 
 /// An ordered persistent map based on UMap and FStack.
+/// NOTE: currently not supported by SymbolicConverter!
 type OMap<'k, 'v when 'k : equality> = OMap.OMap<'k, 'v>
