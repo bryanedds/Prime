@@ -30,6 +30,16 @@ module FStack =
             for a in this do hash <- 31 * hash + Unchecked.hash a
             hash
 
+        member this.Item with get index =
+            if index >= 0 then
+                if index >= this.Front.Length then 
+                    let j = index - this.Front.Length
+                    if j >= this.Back.Length
+                    then raise (IndexOutOfRangeException "Cannot index outside of FastStack's range.")
+                    else this.Back.[index]
+                else this.Front.[index]
+            else raise (IndexOutOfRangeException "Cannot index outside of FastStack's range.")
+
     let rec private balance stack =
         if length stack > 0 then
             let buffer = stack |> length |> double |> Math.Sqrt |> int
@@ -122,10 +132,8 @@ module FStack =
             else Some stack.Front.[i]
         else None
 
-    let index i stack =
-        match tryIndex i stack with
-        | Some a -> a
-        | None -> raise (IndexOutOfRangeException "Cannot index outside of FastStack's range.")
+    let index i (stack : 'a FStack) =
+        stack.[i]
 
     let conj a stack =
         let stack = { Front = stack.Front; Back = Array.add a stack.Back }

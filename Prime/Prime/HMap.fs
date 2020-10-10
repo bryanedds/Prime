@@ -188,6 +188,11 @@ module HMap =
         interface IEnumerable with
             member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator () :> IEnumerator
 
+        member this.Item
+            with get (key : 'k) =
+                let h = Unchecked.hash key
+                HNode.find h key 0 this.Node
+
     /// Create an empty HMap.
     let makeEmpty () =
         { Node = HNode.empty
