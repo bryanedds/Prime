@@ -60,7 +60,7 @@ module FStack =
         length stack <> 0
 
     let fromSeq seq =
-        let stack = { Front = [||]; Back = Seq.toArray seq }
+        let stack = { Front = Seq.toArray seq; Back = [||] }
         balance stack
 
     let toSeq (stack : 'a FStack) =
@@ -90,8 +90,27 @@ module FStack =
         then Some stack.Front.[0]
         else None
 
-    let remove a stack =
-        { Front = Array.remove a stack.Front; Back = Array.remove a stack.Back }
+    let remove pred stack =
+        let stack = { Front = Array.remove pred stack.Front; Back = Array.remove pred stack.Back }
+        balance stack
+
+    let removeAt index stack =
+        let arr = toArray stack
+        let arr = Array.removeAt index arr
+        let stack = { Front = arr; Back = [||] }
+        balance stack
+
+    let tryFind pred stack =
+        match Array.tryFind pred stack.Front with
+        | None -> Array.tryFind pred stack.Back
+        | Some item -> Some item
+        
+    let replace pred replacement stack =
+        { Front = Array.replace pred replacement stack.Front
+          Back = Array.replace pred replacement stack.Back; }
+
+    let find pred stack =
+        Option.get (tryFind pred stack)
 
     let tryIndex i stack =
         if i >= 0 then
@@ -132,6 +151,9 @@ module FStack =
         match tryUnconj stack with
         | Some stack -> stack
         | None -> raise (InvalidOperationException "Cannot unconj an empty FStack.")
+
+    let singleton a =
+        { Front = [|a|]; Back = [||] }
 
     let empty =
         { Front = [||]; Back = [||] }
