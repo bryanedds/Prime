@@ -74,7 +74,7 @@
     <Compile Include="HashSet.fs" />
     <Compile Include="Dictionary.fs" />
     <Compile Include="Rand.fs" />
-    <Compile Include="FastStack.fs" />
+    <Compile Include="FStack.fs" />
     <Compile Include="Symbol.fs" />
     <Compile Include="PrettyPrinter.fs" />
     <Compile Include="Address.fs" />
