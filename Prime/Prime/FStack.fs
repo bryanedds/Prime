@@ -66,6 +66,13 @@ module FStack =
     let toSeq (stack : 'a FStack) =
         stack :> 'a seq
 
+    let fromArray arr =
+        let stack = { Front = [||]; Back = arr }
+        balance stack
+
+    let toArray (stack : 'a FStack) =
+        Array.append stack.Front stack.Back
+
     let fold (f : 'a -> 'b -> 'a) s (stack : 'b FStack) =
         stack |> toSeq |> Seq.fold f s
 
