@@ -99,16 +99,18 @@ module EventSystem =
 
     let getSortableSubscriptions
         (getSortPriority : Simulant -> 'w -> IComparable)
-        (subscriptions : SubscriptionEntry array)
+        (subscriptions : struct (Guid * SubscriptionEntry) seq)
         (world : 'w) :
-        (IComparable * SubscriptionEntry) array =
-        Array.map
-            (fun (subscription : SubscriptionEntry) ->
+        struct (IComparable * SubscriptionEntry) array =
+        subscriptions |>
+        Seq.map
+            (fun (struct (_, subscription : SubscriptionEntry)) ->
                 // NOTE: we just take the sort priority of the first callback found when callbacks are compressed. This
                 // is semantically sub-optimal, but should be fine for all of our cases.
                 let priority = getSortPriority (Triple.snd subscription.Callbacks.[0]) world
-                (priority, subscription))
-            subscriptions
+                struct (priority, subscription)) |>
+        Seq.toArray
+            
 
     let getLiveness<'w when 'w :> 'w EventSystem> (world : 'w) =
         world.GetLiveness ()
@@ -135,10 +137,11 @@ module EventSystem =
         callableSubscription evt world
 
     /// Sort subscriptions using categorization via the 'by' procedure.
-    let sortSubscriptionsBy by (subscriptions : SubscriptionEntry array) (world : 'w) =
+    let sortSubscriptionsBy by (subscriptions : struct (Guid * SubscriptionEntry) seq) (world : 'w) =
         let subscriptions = getSortableSubscriptions by subscriptions world
-        let subscriptions = Array.sortWith (fun ((p : IComparable), _) ((p2 : IComparable), _) -> p.CompareTo p2) subscriptions
-        Array.map snd subscriptions
+        let subscriptions = Array.sortWith (fun (struct ((p : IComparable), _)) (struct ((p2 : IComparable), _)) -> p.CompareTo p2) subscriptions
+        let subscriptions = Array.map (fun (struct (_, subscription)) -> struct (subscription.CompressionId, subscription)) subscriptions
+        Array.toSeq subscriptions
 
     /// A 'no-op' for subscription sorting - that is, performs no sorting at all.
     let sortSubscriptionsNone (subscriptions : SubscriptionEntry array) (_ : 'w) =
@@ -162,10 +165,11 @@ module EventSystem =
                 EventSystemDelegate.getSubscriptionsSorted sorter eventAddressObj (getEventSystemDelegate world) world
             | None ->
                 let subscriptions = EventSystemDelegate.getSubscriptions (getEventSystemDelegate world)
-                match UMap.tryFind eventAddressObj subscriptions with Some subs -> subs | None -> [||]
+                match UMap.tryFind eventAddressObj subscriptions with
+                | Some subs -> OMap.toSeq subs | None -> Seq.empty
         let (_, world) =
-            Array.foldWhile
-                (fun (handling, world : 'w) (subscription : SubscriptionEntry) ->
+            Seq.foldWhile
+                (fun (handling, world : 'w) struct (_ : Guid, subscription : SubscriptionEntry) ->
                     if handling = Cascade && world.GetLiveness () = Running then
                         let mapped =
                             match subscription.MapperOpt with
@@ -207,7 +211,7 @@ module EventSystem =
             match UMap.tryFind eventAddress subscriptions with
             | Some subscriptionEntries ->
                 let subscriptionEntryOpt =
-                    Array.tryFind (fun (subscriptionEntry : SubscriptionEntry) ->
+                    OMap.tryFindBy (fun _ subscriptionEntry ->
                         subscriptionEntry.SubscriptionId = subscriptionId)
                         subscriptionEntries
                 let subscriptionEntryOpt =
@@ -220,18 +224,14 @@ module EventSystem =
                 let subscriptions =
                     match subscriptionEntryOpt with
                     | Some (Some subscriptionEntry) ->
-                        let subscriptionEntries =
-                            Array.replace (fun (subscriptionEntry : SubscriptionEntry) ->
-                                subscriptionEntry.SubscriptionId = subscriptionId)
-                                subscriptionEntry
-                                subscriptionEntries
+                        let subscriptionEntries = OMap.add subscriptionEntry.CompressionId subscriptionEntry subscriptionEntries
                         UMap.add eventAddress subscriptionEntries subscriptions
                     | Some None ->
                         let subscriptionEntries =
-                            Array.remove (fun subscription ->
+                            OMap.removeBy (fun subscription ->
                                 subscription.SubscriptionId = subscriptionId)
                                 subscriptionEntries
-                        if Array.isEmpty subscriptionEntries
+                        if OMap.isEmpty subscriptionEntries
                         then UMap.remove eventAddress subscriptions
                         else UMap.add eventAddress subscriptionEntries subscriptions
                     | None -> subscriptions
@@ -268,42 +268,32 @@ module EventSystem =
             let subscriptions =
                 match UMap.tryFind eventAddressObj subscriptions with
                 | Some subscriptionEntries ->
-                    let compressedSubscriptionEntryOpt =
-                        Array.tryFind (fun entry ->
-                            entry.CompressionId = compressionId)
-                            subscriptionEntries
+                    let compressedSubscriptionEntryOpt = OMap.tryFind compressionId subscriptionEntries
                     match compressedSubscriptionEntryOpt with
                     | Some subscriptionEntry ->
                         let callbacks = Array.add (subscriptionId, subscriber :> Simulant, callback) subscriptionEntry.Callbacks
                         let subscriptionEntry = { subscriptionEntry with Callbacks = callbacks }
-                        let subscriptionEntries =
-                            // NOTE: using replace here does potentially put callbacks in an order other than which
-                            // they are received. This is semantically suboptimal, but necessary for their performance
-                            // boost.
-                            Array.replace (fun subscriptionEntry ->
-                                subscriptionEntry.CompressionId = compressionId)
-                                subscriptionEntry
-                                subscriptionEntries
+                        let subscriptionEntries = OMap.add compressionId subscriptionEntry subscriptionEntries
                         UMap.add eventAddressObj subscriptionEntries subscriptions
                     | None ->
                         let subscriptionEntry =
-                            { SubscriptionId = subscriptionId
-                              CompressionId = compressionId
+                            { CompressionId = compressionId
+                              SubscriptionId = subscriptionId
                               MapperOpt = Option.map (fun mapper -> fun a p w -> mapper (a :?> 'a) (Option.map cast<'b> p) (w :?> 'w) :> obj) mapperOpt
                               FilterOpt = Option.map (fun filter -> fun b p w -> filter (b :?> 'b) (Option.map cast<'b> p) (w :?> 'w)) filterOpt
                               PreviousDataOpt = Option.map box stateOpt
                               Callbacks = [|(subscriptionId, subscriber :> Simulant, callback)|] }
-                        let subscriptionEntries = Array.add subscriptionEntry subscriptionEntries
+                        let subscriptionEntries = OMap.add compressionId subscriptionEntry subscriptionEntries
                         UMap.add eventAddressObj subscriptionEntries subscriptions
                 | None ->
                     let subscriptionEntry =
-                        { SubscriptionId = subscriptionId
-                          CompressionId = compressionId
+                        { CompressionId = compressionId
+                          SubscriptionId = subscriptionId
                           MapperOpt = Option.map (fun mapper -> fun a p w -> mapper (a :?> 'a) (Option.map cast<'b> p) (w :?> 'w) :> obj) mapperOpt
                           FilterOpt = Option.map (fun filter -> fun b p w -> filter (b :?> 'b) (Option.map cast<'b> p) (w :?> 'w)) filterOpt
                           PreviousDataOpt = Option.map box stateOpt
                           Callbacks = [|(subscriptionId, subscriber :> Simulant, callback)|] }
-                    UMap.add eventAddressObj [|subscriptionEntry|] subscriptions
+                    UMap.add eventAddressObj (OMap.makeSingleton compressionId subscriptionEntry Functional) subscriptions
             let unsubscriptions = UMap.add subscriptionId (eventAddressObj, subscriber :> Simulant) unsubscriptions
             let world = setSubscriptions subscriptions world
             let world = setUnsubscriptions unsubscriptions world

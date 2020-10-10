@@ -252,7 +252,7 @@ module HMap =
     /// Map over an HMap.
     let map mapper (map : HMap<'k, 'v>) =
         fold
-            (fun state key value -> add key (mapper value) state)
+            (fun state key value -> add key (mapper key value) state)
             (makeEmpty ())
             map
 

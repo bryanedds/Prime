@@ -33,10 +33,10 @@ module FStack =
         member this.Item with get index =
             if index >= 0 then
                 if index >= this.Front.Length then 
-                    let j = index - this.Front.Length
-                    if j >= this.Back.Length
+                    let index' = index - this.Front.Length
+                    if index' >= this.Back.Length
                     then raise (IndexOutOfRangeException "Cannot index outside of FastStack's range.")
-                    else this.Back.[index]
+                    else this.Back.[index']
                 else this.Front.[index]
             else raise (IndexOutOfRangeException "Cannot index outside of FastStack's range.")
 
@@ -109,15 +109,28 @@ module FStack =
         let arr = Array.removeAt index arr
         let stack = { Front = arr; Back = [||] }
         balance stack
+        
+    let replace pred replacement stack =
+        { Front = Array.replace pred replacement stack.Front
+          Back = Array.replace pred replacement stack.Back; }
+
+    let replaceAt index replacement stack =
+        if index < stack.Front.Length then
+            let front = Array.copy stack.Front
+            front.[index] <- replacement
+            { stack with Front = front }
+        else
+            let index' = index - stack.Front.Length
+            if index' < stack.Back.Length then
+                let back = Array.copy stack.Back
+                back.[index'] <- replacement
+                { stack with Back = back }
+            else raise (IndexOutOfRangeException "Cannot index outside of FastStack's range.")
 
     let tryFind pred stack =
         match Array.tryFind pred stack.Front with
         | None -> Array.tryFind pred stack.Back
         | Some item -> Some item
-        
-    let replace pred replacement stack =
-        { Front = Array.replace pred replacement stack.Front
-          Back = Array.replace pred replacement stack.Back; }
 
     let find pred stack =
         Option.get (tryFind pred stack)
