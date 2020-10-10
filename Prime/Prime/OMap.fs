@@ -11,9 +11,9 @@ module OMap =
     type [<NoEquality; NoComparison>] OMap<'k, 'v when 'k : equality> =
         private
             { Indices : UMap<'k, int>
-              Values : ('k * 'v) FStack }
+              Values : struct ('k * 'v) FStack }
 
-        interface IEnumerable<'k * 'v> with
+        interface IEnumerable<struct ('k * 'v)> with
             member this.GetEnumerator () =
                 (this.Values :> _ seq).GetEnumerator ()
 
@@ -62,13 +62,13 @@ module OMap =
     /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.
     let tryFind (key : 'k) map : 'v option =
         match UMap.tryFind key map.Indices with
-        | Some index -> map.Values.[index] |> snd |> Some
+        | Some index -> map.Values.[index] |> snd' |> Some
         | None -> None
 
     /// Find a value with the given key in an OMap.
     /// Constant-time complexity with approx. 1/3 speed of Dictionary.GetValue.
     let find (key : 'k) map : 'v =
-        snd map.Values.[map.Indices.[key]]
+        snd' map.Values.[map.Indices.[key]]
 
     /// Check that an OMap contains a value with the given key.
     let containsKey key map =
@@ -98,7 +98,7 @@ module OMap =
 
     /// Convert an OMap to a sequence of pairs of keys and values.
     let toSeq (map : OMap<'k, 'v>) =
-        map :> IEnumerable<'k * 'v>
+        map :> IEnumerable<struct ('k * 'v)>
 
     /// Convert a sequence of keys and values to an HMap.
     //let ofSeq pairs =
