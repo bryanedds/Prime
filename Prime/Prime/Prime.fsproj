@@ -90,6 +90,7 @@
     <Compile Include="USet.fs" />
     <Compile Include="HMap.fs" />
     <Compile Include="HSet.fs" />
+    <Compile Include="OMap.fs" />
     <Compile Include="Vsync.fs" />
     <Compile Include="Reflection.fs" />
     <Compile Include="SymbolicConverter.fs" />
