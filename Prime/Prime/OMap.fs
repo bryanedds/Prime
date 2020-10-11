@@ -128,7 +128,7 @@ module OMap =
     let toSeq (map : OMap<'k, 'v>) =
         map :> IEnumerable<struct ('k * 'v)>
 
-    /// Convert a sequence of keys and values to an HMap.
+    /// Convert a sequence of keys and values to an OMap.
     let ofSeq pairs config =
         Seq.fold
             (fun map (key, value) -> add key value map)
