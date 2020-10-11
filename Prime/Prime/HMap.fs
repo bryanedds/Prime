@@ -11,7 +11,7 @@ open Prime
 module HMap =
 
     /// A hash-key-value triple, implemented with a struct for efficiency.
-    type [<StructuralEquality; NoComparison>] private Hkv<'k, 'v when 'k :> 'k IEquatable> =
+    type [<StructuralEquality; NoComparison>] private Hkv<'k, 'v when 'k : equality> =
         struct
             new (h, k, v) = { H = h; K = k; V = v }
             val H : int
@@ -20,7 +20,7 @@ module HMap =
             end
 
     /// Hash map node.
-    type [<StructuralEquality; NoComparison>] private HNode<'k, 'v when 'k :> 'k IEquatable> =
+    type [<StructuralEquality; NoComparison>] private HNode<'k, 'v when 'k : equality> =
         | Nil
         | Singleton of singleton : Hkv<'k, 'v>
         | Multiple of multiple : HNode<'k, 'v> array
@@ -177,7 +177,7 @@ module HMap =
 
     /// A fast persistent hash map.
     /// Works in effectively constant-time for look-ups and updates.
-    type [<StructuralEquality; NoComparison>] HMap<'k, 'v when 'k :> 'k IEquatable> =
+    type [<StructuralEquality; NoComparison>] HMap<'k, 'v when 'k : equality> =
         private
             { Node : HNode<'k, 'v>
               EmptyArray : HNode<'k, 'v> array }
@@ -187,6 +187,11 @@ module HMap =
 
         interface IEnumerable with
             member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator () :> IEnumerator
+
+        member this.Item
+            with get (key : 'k) =
+                let h = Unchecked.hash key
+                HNode.find h key 0 this.Node
 
     /// Create an empty HMap.
     let makeEmpty () =
@@ -247,7 +252,7 @@ module HMap =
     /// Map over an HMap.
     let map mapper (map : HMap<'k, 'v>) =
         fold
-            (fun state key value -> add key (mapper value) state)
+            (fun state key value -> add key (mapper key value) state)
             (makeEmpty ())
             map
 
@@ -273,4 +278,4 @@ module HMap =
 
 /// A very fast persistent hash map.
 /// Works in effectively constant-time for look-ups and updates.
-type HMap<'k, 'v when 'k :> 'k IEquatable> = HMap.HMap<'k, 'v>
+type HMap<'k, 'v when 'k : equality> = HMap.HMap<'k, 'v>

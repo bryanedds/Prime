@@ -55,7 +55,7 @@ type RelationConverter (targetType : Type) =
 module Relation =
 
     /// A relation that can be resolved to an address via contextual resolution.
-    type [<CustomEquality; NoComparison; Struct; TypeConverter (typeof<RelationConverter>)>] 'a Relation =
+    type [<CustomEquality; NoComparison; TypeConverter (typeof<RelationConverter>)>] 'a Relation =
         private
             { NameOpts : string option array }
 

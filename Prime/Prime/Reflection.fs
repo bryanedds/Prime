@@ -259,7 +259,7 @@ module TypeExtension =
         member this.GetDefaultValue () =
             match this.TryGetDefaultValue () with
             | Some value -> value
-            | None -> failwithumf ()
+            | None -> failwith ("Could not get default value for type '" + this.Name + "'.")
 
         /// Get the type descriptor for this type as returned by the global TypeDescriptor.
         member this.GetTypeDescriptor () =

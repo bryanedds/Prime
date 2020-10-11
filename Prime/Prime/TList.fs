@@ -57,15 +57,16 @@ module TList =
         list
 
     let private validate2 list =
-        match box list.TListOpt with
-        | null -> commit list
-        | target ->
-            match obj.ReferenceEquals (target, list) with
-            | true ->
-                if list.LogsLength > list.ImpList.Count
-                then compress list
-                else list
-            | false -> commit list
+        lock list.Logs (fun () ->
+            match box list.TListOpt with
+            | null -> commit list
+            | target ->
+                match obj.ReferenceEquals (target, list) with
+                | true ->
+                    if list.LogsLength > list.ImpList.Count
+                    then compress list
+                    else list
+                | false -> commit list)
 
     let private update updater list =
         let oldList = list

@@ -52,8 +52,8 @@ type [<NoEquality; NoComparison>] Callback =
 
 /// An entry in the subscription map.
 type [<NoEquality; NoComparison>] SubscriptionEntry =
-    { SubscriptionId : Guid
-      CompressionId : Guid
+    { CompressionId : Guid
+      SubscriptionId : Guid
       MapperOpt : (obj -> obj option -> obj -> obj) option // ('a -> 'b option -> 'w -> 'b) option
       FilterOpt : (obj -> obj option -> obj -> bool) option // ('b -> 'b option -> 'w -> bool) option
       mutable PreviousDataOpt : obj option // 'b option
@@ -61,7 +61,7 @@ type [<NoEquality; NoComparison>] SubscriptionEntry =
 
 /// Abstracts over a subscription sorting procedure.
 type SubscriptionSorter =
-    SubscriptionEntry array -> obj -> SubscriptionEntry array
+    (struct (Guid * SubscriptionEntry)) seq -> obj -> (struct (Guid * SubscriptionEntry)) seq
 
 /// The type of a subscription.
 type Callback<'a, 's, 'w when 's :> Simulant> =
@@ -73,7 +73,7 @@ type 'w BoxableSubscription =
 
 /// A map of event subscriptions.
 type SubscriptionEntries =
-    UMap<obj Address, SubscriptionEntry array>
+    UMap<obj Address, OMap<Guid, SubscriptionEntry>>
 
 /// A map of subscription keys to unsubscription data.
 type UnsubscriptionEntries =
@@ -185,7 +185,7 @@ module EventSystemDelegate =
     // NOTE: event addresses are ordered from general to specific. This is so a generalized subscriber can preempt
     // any specific subscribers. Whether this is the best order is open for discussion.
     // OPTIMIZATION: imperative for speed
-    let private getEventAddresses1 (eventAddress : 'a Address) =
+    let getEventAddresses1 (eventAddress : 'a Address) =
 
         // create target event address array
         let eventAddressNames = Address.getNames eventAddress
@@ -230,8 +230,7 @@ module EventSystemDelegate =
         let eventSubscriptions = getSubscriptions esd
         let eventAddresses = getEventAddresses2 eventAddress esd
         let subscriptionOpts = Array.map (fun eventAddress -> UMap.tryFind eventAddress eventSubscriptions) eventAddresses
-        let subscriptions = Array.definitize subscriptionOpts
-        let subscriptions = Array.concat subscriptions
+        let subscriptions = subscriptionOpts |> Array.definitize |> Array.map OMap.toSeq |> Seq.concat
         publishSorter subscriptions world
 
     /// Log an event.

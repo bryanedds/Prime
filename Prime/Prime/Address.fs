@@ -64,7 +64,7 @@ module Address =
 
     /// Specifies the address of an identifiable value.
     /// TODO: P1: have Address constructor throw if multiple wildcards are used.
-    type [<CustomEquality; CustomComparison; Struct; TypeConverter (typeof<AddressConverter>)>] 'a Address =
+    type [<CustomEquality; CustomComparison; TypeConverter (typeof<AddressConverter>)>] 'a Address =
         { Names : string array
           HashCode : int } // OPTIMIZATION: hash is cached for speed
 

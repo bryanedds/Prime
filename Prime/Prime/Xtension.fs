@@ -16,7 +16,7 @@ module Xtension =
     /// Xtensions are a dynamic, functional, and convenient way to implement both dynamic properties
     /// and designer properties.
     /// OPTIMIZATION: Booleans are packed into the Flags field.
-    type [<NoEquality; NoComparison; Struct>] Xtension =
+    type [<NoEquality; NoComparison>] Xtension =
         private
             { Properties : UMap<string, Property>
               Flags : int }
@@ -114,7 +114,7 @@ module Xtension =
     /// Get a property from an xtension.
     let getProperty name xtension = UMap.find name xtension.Properties
 
-    /// Set a property on an Xtension.
+    /// Attempt to set a property on an Xtension.
     let trySetProperty name property xtension =
         match UMap.tryFind name xtension.Properties with
         | Some property' ->

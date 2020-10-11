@@ -34,6 +34,15 @@ module Array =
             arr2
         | None -> arr
 
+    /// Remove an item at the given array index (stable).
+    let removeAt index (arr : 'a array) =
+        if index < arr.Length && index >= 0 then
+            let arr' = Array.zeroCreate (dec arr.Length)
+            Array.blit arr 0 arr' 0 index
+            Array.blit arr (inc index) arr' index (dec (arr.Length - index))
+            arr'
+        else raise (IndexOutOfRangeException "Cannot removeAt from an Array when index is out of range.")
+
     /// Replace the first matching element of the array (stable).
     let replace pred item (arr : 'a array) =
         match Array.tryFindIndex pred arr with

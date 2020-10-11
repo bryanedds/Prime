@@ -48,32 +48,32 @@ module SignalOperators =
     let msgs messages = List.map Message messages
     let cmd command = Command command
     let cmds commands = List.map Command commands
-    let withMsg value message = (value, [Message message])
-    let withMsgs value messages = (value, msgs messages)
-    let withCmd value command = (value, [Command command])
-    let withCmds value commands = (value, cmds commands)
-    let withSig value (signal : Signal<_, _>) = (value, [signal])
-    let withSigs value signals = (value, signals)
-    let just value = (value, [])
+    let withMsg message value = ([Message message], value)
+    let withMsgs messages value = (msgs messages, value)
+    let withCmd command value = ([Command command], value)
+    let withCmds commands value = (cmds commands, value)
+    let withSig (signal : Signal<_, _>) value = ([signal], value)
+    let withSigs signals value = (signals, value)
+    let just value = ([], value)
 
 [<RequireQualifiedAccess>]
 module Signal =
 
     let rec
         processSignal
-        (processMessage : 'model * 'message * 's * 'w -> 'model * Signal<'message, 'command> list)
-        (processCommand : 'model * 'command * 's * 'w -> 'w * Signal<'message, 'command> list)
+        (processMessage : 'model * 'message * 's * 'w -> Signal<'message, 'command> list * 'model)
+        (processCommand : 'model * 'command * 's * 'w -> Signal<'message, 'command> list * 'w)
         (model : Lens<'model, 'w>)
         (signal : Signal<'message, 'command>)
         (simulant : 's)
         (world : 'w) =
         match signal with
         | Message message ->
-            let (modelValue, signals) = processMessage (model.Get world, message, simulant, world)
+            let (signals, modelValue) = processMessage (model.Get world, message, simulant, world)
             let world = model.Set modelValue world
             processSignals processMessage processCommand model signals simulant world
         | Command command ->
-            let (world, signals) = processCommand (model.Get world, command, simulant, world)
+            let (signals, world) = processCommand (model.Get world, command, simulant, world)
             processSignals processMessage processCommand model signals simulant world
 
     and processSignals processMessage processCommand model signals simulant world =

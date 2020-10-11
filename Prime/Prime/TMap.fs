@@ -55,12 +55,13 @@ module TMap =
         map
 
     let private validate2 map =
-        match box map.TMapOpt with
-        | null -> commit map
-        | target ->
-            match obj.ReferenceEquals (target, map) with
-            | true -> if map.LogsLength > map.Dict.Count then compress map else map
-            | false -> commit map
+        lock map.Logs (fun () ->
+            match box map.TMapOpt with
+            | null -> commit map
+            | target ->
+                match obj.ReferenceEquals (target, map) with
+                | true -> if map.LogsLength > map.Dict.Count then compress map else map
+                | false -> commit map)
 
     let private update updater map =
         let oldMap = map

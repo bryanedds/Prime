@@ -51,6 +51,11 @@ module USet =
     let removeMany values set =
         { Set = TSet.removeMany values set.Set }
 
+    let length set =
+        let struct (result, tset) = TSet.length set.Set
+        set.Set <- tset
+        result
+
     let isEmpty set =
         let struct (result, tset) = TSet.isEmpty set.Set
         set.Set <- tset
@@ -80,6 +85,54 @@ module USet =
     let filter pred set =
         let struct (result, tset) = TSet.filter pred set.Set
         set.Set <- tset
+        { Set = result }
+
+    let unionFast set set2 =
+        let struct (result, tset, tset2) = TSet.unionFast set.Set set2.Set
+        set.Set <- tset
+        set2.Set <- tset2
+        result
+
+    let intersectFast set set2 =
+        let struct (result, tset, tset2) = TSet.intersectFast set.Set set2.Set
+        set.Set <- tset
+        set2.Set <- tset2
+        result
+
+    let disjointFast set set2 =
+        let struct (result, tset, tset2) = TSet.disjointFast set.Set set2.Set
+        set.Set <- tset
+        set2.Set <- tset2
+        result
+
+    let differenceFast set set2 =
+        let struct (result, tset, tset2) = TSet.differenceFast set.Set set2.Set
+        set.Set <- tset
+        set2.Set <- tset2
+        result
+
+    let union config set set2 =
+        let struct (result, tset, tset2) = TSet.union config set.Set set2.Set
+        set.Set <- tset
+        set2.Set <- tset2
+        { Set = result }
+
+    let intersect config set set2 =
+        let struct (result, tset, tset2) = TSet.intersect config set.Set set2.Set
+        set.Set <- tset
+        set2.Set <- tset2
+        { Set = result }
+
+    let disjoint config set set2 =
+        let struct (result, tset, tset2) = TSet.disjoint config set.Set set2.Set
+        set.Set <- tset
+        set2.Set <- tset2
+        { Set = result }
+
+    let difference config set set2 =
+        let struct (result, tset, tset2) = TSet.difference config set.Set set2.Set
+        set.Set <- tset
+        set2.Set <- tset2
         { Set = result }
 
 type USet<'a when 'a : equality> = USet.USet<'a>

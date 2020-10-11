@@ -312,14 +312,19 @@ module Symbol =
         parse {
             let! userState = getUserState
             let! start = getPosition
-            let! chars = many1 (noneOf (StructureCharsNoIndex + "\r\n,"))
-            let! stop = getPosition
-            let str = String.implode chars
-            let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
-            return
-                if str.Contains "\t" || str.Contains " "
-                then Text (str, originOpt)
-                else Atom (str, originOpt) }
+            let! isEmptyString = fun stream -> Reply (match stream.Peek () with '\r' | '\n' | ',' -> true | _ -> false)
+            if isEmptyString then
+                let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = start }
+                return Text ("", originOpt)
+            else
+                let! chars = many1 (noneOf (StructureCharsNoIndex + "\r\n,"))
+                let! stop = getPosition
+                let str = String.implode chars
+                let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
+                return
+                    if str.Contains "\t" || str.Contains " "
+                    then Text (str, originOpt)
+                    else Atom (str, originOpt) }
 
     let readFieldFromCsv =
         attempt readSymbolsFromCsv <|>

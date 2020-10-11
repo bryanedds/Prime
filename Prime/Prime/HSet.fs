@@ -11,7 +11,7 @@ open Prime
 module HSet =
 
     /// A hash-value pair, implemented with a struct for efficiency.
-    type [<StructuralEquality; NoComparison>] private Hv<'a when 'a :> 'a IEquatable> =
+    type [<StructuralEquality; NoComparison>] private Hv<'a when 'a : equality> =
         struct
             new (h, v) = { H = h; V = v }
             val H : int
@@ -20,7 +20,7 @@ module HSet =
 
     /// Hash set node.
     type [<StructuralEquality; NoComparison; CompilationRepresentation (CompilationRepresentationFlags.UseNullAsTrueValue)>]
-        private HNode<'a when 'a :> 'a IEquatable> =
+        private HNode<'a when 'a : equality> =
         | Nil
         | Singleton of 'a Hv
         | Multiple of 'a HNode array
@@ -166,7 +166,7 @@ module HSet =
 
     /// A fast persistent hash set.
     /// Works in effectively constant-time for look-ups and updates.
-    type [<StructuralEquality; NoComparison>] HSet<'a when 'a :> 'a IEquatable> =
+    type [<StructuralEquality; NoComparison>] HSet<'a when 'a : equality> =
         private
             { Node : 'a HNode
               EmptyArray : 'a HNode array }
@@ -251,4 +251,4 @@ module HSet =
 
 /// A very fast persistent hash set.
 /// Works in effectively constant-time for look-ups and updates.
-type HSet<'a when 'a :> 'a IEquatable> = 'a HSet.HSet
+type HSet<'a when 'a : equality> = 'a HSet.HSet

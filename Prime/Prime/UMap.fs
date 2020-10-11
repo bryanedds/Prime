@@ -23,6 +23,11 @@ module UMap =
             member this.GetEnumerator () =
                 (this :> IEnumerable<'k * 'v>).GetEnumerator () :> IEnumerator
 
+        member this.Item with get key =
+            let struct (item, tmap) = TMap.find key this.Map
+            this.Map <- tmap
+            item
+
     let makeFromSeq<'k, 'v when 'k : equality> config entries =
         { Map = TMap.makeFromSeq<'k, 'v> config entries }
 
@@ -39,6 +44,11 @@ module UMap =
 
     let remove key map =
         { Map = TMap.remove key map.Map }
+
+    let length map =
+        let struct (result, tmap) = TMap.length map.Map
+        map.Map <- tmap
+        result
 
     let isEmpty map =
         let struct (result, tmap) = TMap.isEmpty map.Map
@@ -58,10 +68,8 @@ module UMap =
         map.Map <- tmap
         result
 
-    let find key map =
-        let struct (item, tmap) = TMap.find key map.Map
-        map.Map <- tmap
-        item
+    let find key (map : UMap<'k, 'v>) =
+        map.[key]
 
     let containsKey key map =
         let struct (result, tmap) = TMap.containsKey key map.Map

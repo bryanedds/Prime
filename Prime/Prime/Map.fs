@@ -23,6 +23,10 @@ module Map =
     let addMany kvps map =
         Seq.fold (fun map (key, value) -> Map.add key value map) map kvps
     
+    /// Remove multiple values from a map.
+    let removeMany keys map =
+        Seq.fold (flip Map.remove) map keys
+    
     /// Make a map from a seq by a function.
     let ofSeqBy by seq =
         let pairs = Seq.map by seq
