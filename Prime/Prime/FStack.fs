@@ -136,14 +136,14 @@ module FStack =
     let find pred stack =
         Option.get (tryFind pred stack)
 
-    let tryIndex i stack =
-        if i >= 0 then
-            if i >= stack.Front.Length then 
-                let j = i - stack.Front.Length
-                if j >= stack.Back.Length
+    let tryIndex index stack =
+        if index >= 0 then
+            if index >= stack.Front.Length then 
+                let index' = index - stack.Front.Length
+                if index' >= stack.Back.Length
                 then None
-                else Some stack.Back.[i]
-            else Some stack.Front.[i]
+                else Some stack.Back.[index']
+            else Some stack.Front.[index]
         else None
 
     let index i (stack : 'a FStack) =
