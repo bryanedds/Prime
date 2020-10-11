@@ -57,7 +57,7 @@ type [<NoEquality; NoComparison>] SubscriptionEntry =
       MapperOpt : (obj -> obj option -> obj -> obj) option // ('a -> 'b option -> 'w -> 'b) option
       FilterOpt : (obj -> obj option -> obj -> bool) option // ('b -> 'b option -> 'w -> bool) option
       mutable PreviousDataOpt : obj option // 'b option
-      Callbacks : (Guid * Simulant * Callback) array }
+      Callbacks : (Guid * Simulant * Callback) array } // TODO: consider using an FStack instead of an array here.
 
 /// Abstracts over a subscription sorting procedure.
 type SubscriptionSorter =
