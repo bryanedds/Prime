@@ -50,30 +50,31 @@ module OMap =
             { Indices = UMap.add key (FStack.length map.Entries) map.Indices
               Entries = FStack.conj struct (key, value) map.Entries }
 
-    /// Remove a value with the given key from an OMap.
-    let remove (key : 'k) map =
-        match UMap.tryFind key map.Indices with
-        | Some index -> { Indices = UMap.remove key map.Indices; Entries = FStack.removeAt index map.Entries }
-        | None -> map
-
-    /// Remove a value with the given key from an OMap.
-    let removeBy (by : 'v -> bool) (map : OMap<'k, 'v>) =
-        let map =
-            FStack.fold (fun map struct (k, v) ->
-                if by v
-                then { map with Indices = UMap.remove k map.Indices }
-                else map)
-                map
-                map.Entries
-        { map with Entries = FStack.remove (fun struct (_, v) -> by v) map.Entries }
-
     /// Add all the given entries to an OMap.
     let addMany entries map =
         Seq.fold (fun map (key : 'k, value : 'v) -> add key value map) map entries
 
+    /// Remove a value with the given key from an OMap.
+    /// Horribly slow due to a design bug.
+    let remove (key : 'k) map =
+        match UMap.tryFind key map.Indices with
+        | Some index ->
+            let map = { Indices = UMap.remove key map.Indices; Entries = FStack.removeAt index map.Entries }
+            let map = { map with Indices = UMap.toSeq map.Indices |> Seq.map (fun (k, v) -> (k, if v > index then dec v else v)) |> flip UMap.ofSeq Functional }
+            map
+        | None -> map
+
     /// Remove all values with the given keys from an OMap.
+    /// Horribly slow due to a design bug.
     let removeMany keys map =
         Seq.fold (fun map (key : 'k) -> remove key map) map keys
+
+    /// Remove a value with the given key from an OMap.
+    /// Horribly slow due to a design bug.
+    let removeBy (by : 'v -> bool) (map : OMap<'k, 'v>) =
+        FStack.fold
+            (fun map struct (k, v) -> if by v then remove k map else map)
+            map map.Entries
 
     /// Try to find a value with the given key in an OMap.
     /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.

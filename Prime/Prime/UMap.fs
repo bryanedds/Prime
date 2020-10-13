@@ -87,6 +87,13 @@ module UMap =
     let toSeq (map : UMap<_, _>) =
         map :> _ seq
 
+    /// Convert a sequence of keys and values to a UMap.
+    let ofSeq pairs config =
+        Seq.fold
+            (fun map (key, value) -> add key value map)
+            (makeEmpty config)
+            pairs
+
     let fold folder state map =
         let struct (result, tmap) = TMap.fold folder state map.Map
         map.Map <- tmap

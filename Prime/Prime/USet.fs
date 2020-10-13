@@ -72,6 +72,12 @@ module USet =
     let toSeq (set : _ USet) =
         set :> _ seq
 
+    let ofSeq values config =
+        Seq.fold
+            (fun map value -> add value map)
+            (makeEmpty config)
+            values
+
     let fold folder state set =
         let struct (result, tset) = TSet.fold folder state set.Set
         set.Set <- tset

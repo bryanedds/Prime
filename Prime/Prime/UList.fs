@@ -74,13 +74,22 @@ module UList =
         list.List <- tlist
         result
 
+    let toSeq (list : _ UList) =
+        list :> _ seq
+
     let toArray (list : _ UList) =
         let struct (arr, tlist) = TList.toArray list.List
         list.List <- tlist
         arr
 
-    let toSeq (list : _ UList) =
-        list :> _ seq
+    let ofSeq values config =
+        Seq.fold
+            (fun map value -> add value map)
+            (makeEmpty config)
+            values
+
+    let ofArray (values : 'a array) config =
+        ofSeq values config
 
     let map mapper list =
         let struct (result, tlist) = TList.map mapper list.List
