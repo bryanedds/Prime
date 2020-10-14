@@ -12,25 +12,40 @@ module OMap =
     type [<NoEquality; NoComparison>] OMap<'k, 'v when 'k : equality> =
         private
             { Indices : UMap<'k, int>
-              Entries : struct ('k * 'v) FStack }
+              Entries : struct (bool * 'k * 'v) FStack
+              InactiveCount : int }
 
         interface IEnumerable<struct ('k * 'v)> with
             member this.GetEnumerator () =
-                (this.Entries :> _ seq).GetEnumerator ()
+                this.Entries |>
+                Seq.filter (fun (struct (active, _, _)) -> active) |>
+                Seq.map (fun (struct (_, k, v)) -> struct (k, v)) |>
+                fun entries -> entries.GetEnumerator ()
 
         interface IEnumerable with
             member this.GetEnumerator () =
-                (this.Entries :> IEnumerable).GetEnumerator ()
+                this :>
+                IEnumerable<_> :>
+                IEnumerable |>
+                fun entries -> entries.GetEnumerator ()
 
         member this.Item
             with get (key : 'k) =
                 let index = this.Indices.[key]
                 this.Entries.[index]
 
+    let private compact map =
+        let entries = FStack.filter (fun (struct (a, _, _)) -> a) map.Entries
+        let indices = Seq.foldi (fun i u (struct (_, k, _)) -> UMap.add k i u) (UMap.makeEmpty (UMap.getConfig map.Indices)) entries
+        { Indices = indices
+          Entries = entries
+          InactiveCount = 0 }
+
     /// Create an empty OMap.
     let makeEmpty<'k, 'v when 'k : equality> config =
         { Indices = UMap.makeEmpty<'k, int> config
-          Entries = (FStack.empty : struct ('k * 'v) FStack) }
+          Entries = (FStack.empty : struct (bool * 'k * 'v) FStack)
+          InactiveCount = 0 }
 
     /// Check that an OMap is empty.
     let isEmpty map =
@@ -44,54 +59,59 @@ module OMap =
     let add (key : 'k) (value : 'v) map =
         match UMap.tryFind key map.Indices with
         | Some index ->
-            { Indices = UMap.add key index map.Indices
-              Entries = FStack.replaceAt index struct (key, value) map.Entries }
+            { map with
+                Indices = UMap.add key index map.Indices
+                Entries = FStack.replaceAt index struct (true, key, value) map.Entries }
         | None ->
-            { Indices = UMap.add key (FStack.length map.Entries) map.Indices
-              Entries = FStack.conj struct (key, value) map.Entries }
+            { map with
+                Indices = UMap.add key (FStack.length map.Entries) map.Indices
+                Entries = FStack.conj struct (true, key, value) map.Entries }
 
     /// Add all the given entries to an OMap.
     let addMany entries map =
         Seq.fold (fun map (key : 'k, value : 'v) -> add key value map) map entries
 
     /// Remove a value with the given key from an OMap.
-    /// Horribly slow due to a design bug.
     let remove (key : 'k) map =
         match UMap.tryFind key map.Indices with
         | Some index ->
-            let map = { Indices = UMap.remove key map.Indices; Entries = FStack.removeAt index map.Entries }
-            let map = { map with Indices = UMap.toSeq map.Indices |> Seq.map (fun (k, v) -> (k, if v > index then dec v else v)) |> flip UMap.ofSeq Functional }
-            map
+            let struct (_, k, v) = map.Entries.[index]
+            let map =
+                { Indices = UMap.remove key map.Indices
+                  Entries = FStack.replaceAt index struct (false, k, v) map.Entries
+                  InactiveCount = inc map.InactiveCount }
+            if map.InactiveCount > FStack.length map.Entries
+            then compact map
+            else map
         | None -> map
 
     /// Remove all values with the given keys from an OMap.
-    /// Horribly slow due to a design bug.
     let removeMany keys map =
         Seq.fold (fun map (key : 'k) -> remove key map) map keys
 
     /// Remove a value with the given key from an OMap.
-    /// Horribly slow due to a design bug.
     let removeBy (by : 'v -> bool) (map : OMap<'k, 'v>) =
         FStack.fold
-            (fun map struct (k, v) -> if by v then remove k map else map)
+            (fun map struct (active, k, v) -> if active && by v then remove k map else map)
             map map.Entries
 
     /// Try to find a value with the given key in an OMap.
     /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.
     let tryFind (key : 'k) map : 'v option =
         match UMap.tryFind key map.Indices with
-        | Some index -> map.Entries.[index] |> snd' |> Some
+        | Some index -> match map.Entries.[index] with (_, _, v) -> Some v
         | None -> None
 
     /// Find a value with the given key in an OMap.
     /// Constant-time complexity with approx. 1/3 speed of Dictionary.GetValue.
     let find (key : 'k) map : 'v =
-        snd' map.Entries.[map.Indices.[key]]
+        let struct (_, _, value) = map.Entries.[map.Indices.[key]]
+        value
 
     /// Try to find a value with the predicate.
     let tryFindBy by map =
-        let foundOpt = FStack.tryFind (fun struct (key, value) -> by key value) map.Entries
-        Option.map snd' foundOpt
+        let foundOpt = FStack.tryFind (fun struct (active, key, value) -> if active then by key value else false) map.Entries
+        Option.map (fun (struct (_, _, v)) -> v) foundOpt
 
     /// Find a value with the given predicate.
     let findBy by map =
@@ -109,7 +129,7 @@ module OMap =
 
     /// Fold over an OMap.
     let fold folder state (map : OMap<'k, 'v>) =
-        Seq.fold (fun a struct (k, v) -> folder a k v) state map.Entries
+        Seq.fold (fun s struct (a, k, v) -> if a then folder s k v else s) state map.Entries
 
     /// Map over an OMap.
     let map mapper map =
@@ -127,7 +147,7 @@ module OMap =
 
     /// Convert an OMap to a sequence of pairs of keys and values.
     let toSeq (map : OMap<'k, 'v>) =
-        map :> IEnumerable<struct ('k * 'v)>
+        map :> _ IEnumerable
 
     /// Convert a sequence of keys and values to an OMap.
     let ofSeq pairs config =
