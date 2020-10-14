@@ -99,10 +99,10 @@ module EventSystem =
 
     let getSortableSubscriptions
         (getSortPriority : Simulant -> 'w -> IComparable)
-        (subscriptions : struct (Guid * SubscriptionEntry) seq)
+        (subscriptions : (Guid * SubscriptionEntry) seq)
         (world : 'w) =
         Seq.map
-            (fun (struct (_, subscription : SubscriptionEntry)) ->
+            (fun (_, subscription : SubscriptionEntry) ->
                 // NOTE: we just take the sort priority of the first callback found when callbacks are compressed. This
                 // is semantically sub-optimal, but should be fine for all of our cases.
                 let priority = getSortPriority (Triple.snd subscription.Callbacks.[0]) world
@@ -135,7 +135,7 @@ module EventSystem =
         callableSubscription evt world
 
     /// Sort subscriptions using categorization via the 'by' procedure.
-    let sortSubscriptionsBy by (subscriptions : struct (Guid * SubscriptionEntry) seq) (world : 'w) =
+    let sortSubscriptionsBy by (subscriptions : (Guid * SubscriptionEntry) seq) (world : 'w) =
         getSortableSubscriptions by subscriptions world |>
         Array.ofSeq |>
         Array.sortWith (fun (struct ((p : IComparable), _)) (struct ((p2 : IComparable), _)) -> p.CompareTo p2) |>
@@ -168,7 +168,7 @@ module EventSystem =
                 | Some subs -> OMap.toSeq subs | None -> Seq.empty
         let (_, world) =
             Seq.foldWhile
-                (fun (handling, world : 'w) struct (_ : Guid, subscription : SubscriptionEntry) ->
+                (fun (handling, world : 'w) (_ : Guid, subscription : SubscriptionEntry) ->
                     if handling = Cascade && world.GetLiveness () = Running then
                         let mapped =
                             match subscription.MapperOpt with

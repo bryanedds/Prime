@@ -15,11 +15,11 @@ module OMap =
               Entries : struct (bool * 'k * 'v) FStack
               InactiveCount : int }
 
-        interface IEnumerable<struct ('k * 'v)> with
+        interface IEnumerable<'k * 'v> with
             member this.GetEnumerator () =
                 this.Entries |>
                 Seq.filter (fun (struct (active, _, _)) -> active) |>
-                Seq.map (fun (struct (_, k, v)) -> struct (k, v)) |>
+                Seq.map (fun (struct (_, k, v)) -> (k, v)) |>
                 fun entries -> entries.GetEnumerator ()
 
         interface IEnumerable with

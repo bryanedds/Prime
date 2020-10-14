@@ -61,7 +61,7 @@ type [<NoEquality; NoComparison>] SubscriptionEntry =
 
 /// Abstracts over a subscription sorting procedure.
 type SubscriptionSorter =
-    (struct (Guid * SubscriptionEntry)) seq -> obj -> (struct (Guid * SubscriptionEntry)) seq
+    (Guid * SubscriptionEntry) seq -> obj -> (Guid * SubscriptionEntry) seq
 
 /// The type of a subscription.
 type Callback<'a, 's, 'w when 's :> Simulant> =
