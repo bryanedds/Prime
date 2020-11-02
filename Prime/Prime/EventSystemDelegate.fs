@@ -214,14 +214,21 @@ module EventSystemDelegate =
             | (false, _) ->
                 let eventAddressNames = Address.getNames eventAddress
                 let eventAddresses = getEventAddresses1 eventAddress
-                let eventTargetIndex = Array.findIndex (fun name -> name = "Event") eventAddressNames + 1
-                if eventTargetIndex < Array.length eventAddressNames then
-                    let eventTarget = eventAddressNames |> Array.skip eventTargetIndex |> Address.makeFromArray
-                    match EventAddressListCache.TryGetValue eventTarget with
-                    | (false, _) -> EventAddressListCache.Add (eventTarget, List [eventAddress :> obj]) |> ignore
-                    | (true, list) -> list.Add eventAddress
-                    EventAddressCache.Add (eventAddress, eventAddresses)
-                eventAddresses
+                match Array.tryFindIndex (fun name -> name = "Event") eventAddressNames with
+                | Some eventIndex ->
+                    let eventTargetIndex = inc eventIndex
+                    if eventTargetIndex < Array.length eventAddressNames then
+                        let eventTarget = eventAddressNames |> Array.skip eventTargetIndex |> Address.makeFromArray
+                        match EventAddressListCache.TryGetValue eventTarget with
+                        | (false, _) -> EventAddressListCache.Add (eventTarget, List [eventAddress :> obj]) |> ignore
+                        | (true, list) -> list.Add eventAddress
+                        EventAddressCache.Add (eventAddress, eventAddresses)
+                    eventAddresses
+                | None ->
+                    failwith
+                        ("The event address '" + scstring eventAddress +
+                         "' is missing the 'Event' name. All event addresses must separate the event names from the publisher names with 'Event', " +
+                         "like 'Click/Event/Button', or 'Mouse/Left/Down/Event' if there is no publisher.")
             | (true, eventAddressesObj) -> eventAddressesObj :?> 'a Address array
         else getEventAddresses1 eventAddress
 
