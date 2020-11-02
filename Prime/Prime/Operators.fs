@@ -91,6 +91,22 @@ module Operators =
     let inline cast<'a> (target : obj) =
         target :?> 'a
 
+    /// Rotate bits left.
+    let rotl bits (i : uint32) =
+        (i <<< bits) ||| (i >>> (32 - bits))
+
+    /// Rotate bits right.
+    let rotr bits (i : uint32) =
+        (i >>> bits) ||| (i <<< (32 - bits))
+
+    /// Rotate bits left.
+    let rotl64 bits (i : uint64) =
+        (i <<< bits) ||| (i >>> (64 - bits))
+
+    /// Rotate bits right.
+    let rotr64 bits (i : uint64) =
+        (i >>> bits) ||| (i <<< (64 - bits))
+
     /// Short-hand for linq enumerable cast.
     let inline enumerable<'a> enumeratable =
         System.Linq.Enumerable.Cast<'a> enumeratable
@@ -139,3 +155,10 @@ module Operators =
 
     /// Sequences two functions like Haskell ($).
     let inline ($) f g = f g
+
+// TODO: Find a better place for this?
+[<RequireQualifiedAccess>]
+module Path =
+
+    /// Simplify a path.
+    let Simplify (path : string) = Uri(Uri("http://example.com/"), path).AbsolutePath.TrimStart('/')

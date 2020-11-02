@@ -79,6 +79,7 @@
     <Reference Include="FSharp.Core">
       <HintPath>..\..\packages\FSharp.Core.4.7.2\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="mscorlib" />
     <Reference Include="Prime">
       <HintPath>..\..\packages\Prime.5.8.0\lib\net472\Prime.dll</HintPath>

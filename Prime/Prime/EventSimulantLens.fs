@@ -160,7 +160,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
     static member inline (~~~)  (lens : Lens<_, 'w>) =         lens.Map (~~~)
 
     /// Map over a lens in the given world context (read-only).
-    static member inline (->>) (lens : Lens<_, 'w>, mapper) = lens.MapWorld mapper
+    static member inline (--|>) (lens : Lens<_, 'w>, mapper) = lens.MapWorld mapper
 
     /// Map over a lens (read-only).
     static member inline (-->) (lens : Lens<_, 'w>, mapper) = lens.Map mapper

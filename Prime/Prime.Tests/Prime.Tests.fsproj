@@ -77,6 +77,9 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Csv">
+      <HintPath>..\..\packages\Csv.1.0.58\lib\net40\Csv.dll</HintPath>
+    </Reference>
     <Reference Include="FParsec">
       <HintPath>..\..\packages\FParsec.1.0.3\lib\net40-client\FParsec.dll</HintPath>
     </Reference>
@@ -92,6 +95,7 @@
     <Reference Include="FSharp.Core">
       <HintPath>..\..\packages\FSharp.Core.4.7.2\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />

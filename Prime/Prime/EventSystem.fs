@@ -139,7 +139,7 @@ module EventSystem =
         getSortableSubscriptions by subscriptions world |>
         Array.ofSeq |>
         Array.sortWith (fun (struct ((p : IComparable), _)) (struct ((p2 : IComparable), _)) -> p.CompareTo p2) |>
-        Array.map (fun (struct (_, subscription)) -> struct (subscription.CompressionId, subscription)) |>
+        Array.map (fun (struct (_, subscription)) -> (subscription.CompressionId, subscription)) |>
         Array.toSeq
 
     /// A 'no-op' for subscription sorting - that is, performs no sorting at all.
