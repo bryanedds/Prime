@@ -28,14 +28,20 @@ module Generics =
     let inline dec n = n + -(one ())
 
     /// Generic (and sectioned) addition.
-    let inline add x y = x + y
+    let inline add a b = a + b
 
     /// Generic (and sectioned) subtraction.
-    let inline sub x y = x - y
+    let inline sub a b = a - b
 
     /// Generic (and sectioned) multiplication.
-    let inline mul x y = x * y
+    let inline mul a b = a * b
 
     /// Generic (and sectioned) division.
-    let inline div x y = x / y
+    let inline div a b = a / b
     
+    /// The modulus (not remainder!) operator.
+    let inline modulus a b =
+        let remainder = a % b
+        if remainder < zero ()
+        then remainder + b
+        else remainder

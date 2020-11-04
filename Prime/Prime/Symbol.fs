@@ -116,6 +116,7 @@ module Symbol =
     let [<Literal>] StructureCharsNoStr = StructureCharsNoStrNoIndex + IndexStr
     let [<Literal>] StructureCharsNoIndex = "\"" + StructureCharsNoStrNoIndex
     let [<Literal>] StructureChars = "\"" + StructureCharsNoStr
+    let [<Literal>] NonAtomChars = WhitespaceChars + StructureChars
     let (*Literal*) IllegalNameChars = ReservedChars + StructureChars + WhitespaceChars
     let (*Literal*) IllegalNameCharsArray = Array.ofSeq IllegalNameChars
     let [<Literal>] NumberFormat =
@@ -158,7 +159,7 @@ module Symbol =
     let isNumber str = match run isNumberParser str with Success (_, _, position) -> position.Index = int64 str.Length | Failure _ -> false
     let shouldBeExplicit str = Seq.exists (fun chr -> Char.IsWhiteSpace chr || Seq.contains chr StructureCharsNoStr) str
 
-    let readAtomChars = many1 (noneOf (StructureChars + WhitespaceChars))
+    let readAtomChars = many1 (noneOf NonAtomChars)
     let readStringChars = many (noneOf [CloseStringChar])
     let (readSymbol : Parser<Symbol, SymbolState>, private readSymbolRef : Parser<Symbol, SymbolState> ref) = createParserForwardedToRef ()
 
@@ -305,11 +306,20 @@ module Symbol =
     let fromStringCsv stripHeader csvStr (filePathOpt : string option) =
         let csvOptions = CsvOptions ()
         csvOptions.HeaderMode <- if stripHeader then HeaderMode.HeaderPresent else HeaderMode.HeaderAbsent
-        let symbols =
+        let valueLists =
             CsvReader.ReadFromText (csvStr, csvOptions) |>
             Seq.map (fun line -> Seq.toList line.Values) |>
-            Seq.toList |>
-            List.map (fun values -> Symbols (List.map (fun str -> if str = "" then Text ("", None) else fromString str None) values, None))
+            Seq.toList
+        let symbols =
+            List.map (fun values ->
+                let symbols =
+                    List.map (fun str ->
+                        if str = "" then Text ("", None)
+                        elif str.[0] <> OpenSymbolsChar && str.IndexOfAny (Seq.toArray NonAtomChars) <> -1 then Text (str, None)
+                        else fromString str None)
+                        values
+                Symbols (symbols, None))
+                valueLists
         let symbolSource = { FilePathOpt = filePathOpt; Text = csvStr }
         let symbolOrigin = { Source = symbolSource; Start = Position ("", 0L, 0L, 0L); Stop = Position ("", 0L, 0L, 0L) }
         let symbol = Symbols (symbols, Some symbolOrigin)
