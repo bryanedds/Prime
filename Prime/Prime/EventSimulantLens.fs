@@ -223,14 +223,23 @@ module Lens =
     let tryIndex i (lens : Lens<'a seq, 'w>) : Lens<'a option, 'w> =
         lens.Map (Seq.tryItem i)
 
+    let explode (lens : Lens<'a seq, 'w>) : Lens<'a option, 'w> seq =
+        Seq.initInfinite id |>
+        Seq.map (fun index ->
+            map (fun items ->
+                match Seq.tryItem index items with
+                | Some item -> Some item
+                | None -> None)
+                lens)
+
     let explodeIndexedOpt indexerOpt (lens : Lens<'a seq, 'w>) : Lens<(int * 'a) option, 'w> seq =
         Seq.initInfinite id |>
         Seq.map (fun index ->
             map (fun models ->
                 match indexerOpt with
                 | Some indexer ->
-                    let modelsIndexed = Seq.map (fun model -> (indexer model, model)) models
-                    Seq.tryFind (fun (index2, _) -> index = index2) modelsIndexed
+                    let indexed = Seq.map (fun item -> (indexer item, item)) models
+                    Seq.tryFind (fun (index2, _) -> index = index2) indexed
                 | None ->
                     match Seq.tryItem index models with
                     | Some model -> Some (index, model)
@@ -239,10 +248,6 @@ module Lens =
 
     let explodeIndexed indexer (lens : Lens<'a seq, 'w>) : Lens<(int * 'a) option, 'w> seq =
         explodeIndexedOpt (Some indexer) lens
-
-    let explode (lens : Lens<'a seq, 'w>) : Lens<'a option, 'w> seq =
-        Seq.initInfinite id |>
-        Seq.map (flip tryIndex lens)
 
     let dereference (lens : Lens<'a option, 'w>) : Lens<'a, 'w> =
         lens.Map Option.get

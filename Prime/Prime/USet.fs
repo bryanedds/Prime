@@ -72,6 +72,11 @@ module USet =
     let toSeq (set : _ USet) =
         set :> _ seq
 
+    let toHashSet (set : _ USet) =
+        let struct (hashSet, tset) = TSet.toHashSet set.Set
+        set.Set <- tset
+        hashSet
+
     let ofSeq values config =
         Seq.fold
             (fun map value -> add value map)

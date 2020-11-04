@@ -163,6 +163,12 @@ module TSet =
         let seq = set.HashSet |> Array.ofSeq :> 'a seq
         struct (seq, set)
 
+    /// Convert a TSet to a HashSet.
+    let toHashSet set =
+        let set = validate set
+        let result = HashSet<'a> (set.HashSet, HashIdentity.Structural)
+        struct (result, set)
+
     let fold folder state set =
         let struct (seq, set) = toSeq set
         let result = Seq.fold folder state seq

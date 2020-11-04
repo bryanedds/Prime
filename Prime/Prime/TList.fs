@@ -181,6 +181,12 @@ module TList =
         let struct (arr, list) = toArray list
         struct (Seq.ofArray arr, list)
 
+    /// Convert a TList to an imperative System.Collections.Generic.List.
+    let toImpList list =
+        let list = validate list
+        let result = List<'a> list.ImpList
+        struct (result, list)
+
     let map (mapper : 'a -> 'b) (list : 'a TList) =
         let list = validate list
         let seqMapped = Seq.map mapper list.ImpList

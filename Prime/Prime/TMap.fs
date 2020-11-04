@@ -180,6 +180,12 @@ module TMap =
             seq<'k * 'v>
         struct (seq, map)
 
+    /// Convert a TMap to a Dictionary.
+    let toDict map =
+        let dict = validate map
+        let result = Dictionary<'k, 'v> (dict.Dict, HashIdentity.Structural)
+        struct (result, dict)
+
     let fold folder state map =
         let struct (seq, map) = toSeq map
         let result = Seq.fold (folder >> uncurry) state seq

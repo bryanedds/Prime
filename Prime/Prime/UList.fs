@@ -82,6 +82,11 @@ module UList =
         list.List <- tlist
         arr
 
+    let toImpList (list : _ UList) =
+        let struct (arr, tlist) = TList.toImpList list.List
+        list.List <- tlist
+        arr
+
     let ofSeq values config =
         Seq.fold
             (fun map value -> add value map)

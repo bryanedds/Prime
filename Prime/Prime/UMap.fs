@@ -87,6 +87,11 @@ module UMap =
     let toSeq (map : UMap<_, _>) =
         map :> _ seq
 
+    let toDict (map : UMap<_, _>) =
+        let struct (dict, tmap) = TMap.toDict map.Map
+        map.Map <- tmap
+        dict
+
     /// Convert a sequence of keys and values to a UMap.
     let ofSeq pairs config =
         Seq.fold
