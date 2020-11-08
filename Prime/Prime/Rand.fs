@@ -46,7 +46,7 @@ module Rand =
         let (number, rand) = nextDouble rand
         (number % max, rand)
 
-    /// Get the next random value as a double type.
+    /// Get the next random value as a single type.
     let nextSingle rand =
         let (numberDouble, rand) = nextDouble rand
         (single numberDouble, rand)
