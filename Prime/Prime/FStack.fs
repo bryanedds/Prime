@@ -70,16 +70,23 @@ module FStack =
     let notEmpty stack =
         length stack <> 0
 
-    let fromSeq seq =
+    let ofSeq seq =
         let stack = { Front = Seq.toArray seq; Back = [||] }
+        balance stack
+
+    let ofList lst =
+        let stack = { Front = List.toArray lst; Back = [||] }
+        balance stack
+
+    let ofArray arr =
+        let stack = { Front = [||]; Back = arr }
         balance stack
 
     let toSeq (stack : 'a FStack) =
         stack :> 'a seq
 
-    let fromArray arr =
-        let stack = { Front = [||]; Back = arr }
-        balance stack
+    let toList (stack : 'a FStack) =
+        stack :> 'a seq |> Seq.toList
 
     let toArray (stack : 'a FStack) =
         Array.append stack.Front stack.Back
@@ -88,10 +95,10 @@ module FStack =
         stack |> toSeq |> Seq.fold f s
 
     let map f (stack : 'a FStack) =
-        stack |> toSeq |> Seq.map f |> fromSeq
+        stack |> toSeq |> Seq.map f |> ofSeq
 
     let filter f (stack : 'a FStack) =
-        stack |> toSeq |> Seq.filter f |> fromSeq
+        stack |> toSeq |> Seq.filter f |> ofSeq
 
     let head stack =
         stack.Front.[0]
