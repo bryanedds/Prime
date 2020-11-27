@@ -296,14 +296,14 @@ module Symbol =
     /// [Gem `[Some 1]]
     ///
     /// ...and so on.
-    let fromString str filePathOpt =
+    let ofString str filePathOpt =
         let symbolState = { SymbolSource = { FilePathOpt = filePathOpt; Text = str }}
         match runParserOnString (skipWhitespaces >>. readSymbol) symbolState String.Empty str with
         | Success (value, _, _) -> value
         | Failure (error, _, _) -> failwith error
 
     /// Read a symbol from a CSV (comma-separated value) string.
-    let fromStringCsv stripHeader csvStr (filePathOpt : string option) =
+    let ofStringCsv stripHeader csvStr (filePathOpt : string option) =
         let csvOptions = CsvOptions ()
         csvOptions.HeaderMode <- if stripHeader then HeaderMode.HeaderPresent else HeaderMode.HeaderAbsent
         let valueLists =
@@ -316,7 +316,7 @@ module Symbol =
                     List.map (fun str ->
                         if str = "" then Text ("", None)
                         elif str.[0] <> OpenSymbolsChar && str.IndexOfAny (Seq.toArray NonAtomChars) <> -1 then Text (str, None)
-                        else fromString str None)
+                        else ofString str None)
                         values
                 Symbols (symbols, None))
                 valueLists

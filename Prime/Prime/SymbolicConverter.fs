@@ -172,7 +172,7 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
         let symbol = toSymbol sourceType source
         Symbol.toString symbol
 
-    let rec fromSymbol (destType : Type) (symbol : Symbol) =
+    let rec ofSymbol (destType : Type) (symbol : Symbol) =
 
         // desymbolize .NET primitive
         if destType.IsPrimitive then
@@ -226,12 +226,12 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                 if destType = typeof<DesignerProperty> then
                     match (designTypeOpt, symbol) with
                     | (Some ty, valueSymbol) ->
-                        let value = fromSymbol ty valueSymbol
+                        let value = ofSymbol ty valueSymbol
                         let property = { DesignerType = ty; DesignerValue = value }
                         property :> obj
                     | (None, Symbols ([Text (aqTypeName, _); valueSymbol], _)) ->
                         let ty = Type.GetType aqTypeName
-                        let value = fromSymbol ty valueSymbol
+                        let value = ofSymbol ty valueSymbol
                         let property = { DesignerType = ty; DesignerValue = value }
                         property :> obj
                     | _ ->
@@ -241,7 +241,7 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                 elif destType.IsArray then
                     match symbol with
                     | Symbols (symbols, _) ->
-                        let elements = List.map (fromSymbol (destType.GetElementType ())) symbols
+                        let elements = List.map (ofSymbol (destType.GetElementType ())) symbols
                         Reflection.objsToArray destType elements
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to array." (Some symbol)
@@ -258,7 +258,7 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
                         let elementType = gargs.[0]
-                        let elements = List.map (fromSymbol elementType) symbols
+                        let elements = List.map (ofSymbol elementType) symbols
                         Reflection.objsToList destType elements
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to list." (Some symbol)
@@ -269,7 +269,7 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
                         let elementType = gargs.[0]
-                        let elements = List.map (fromSymbol elementType) symbols
+                        let elements = List.map (ofSymbol elementType) symbols
                         Reflection.objsToSet destType elements
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to Set." (Some symbol)
@@ -282,7 +282,7 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                         match gargs with
                         | [|fstType; sndType|] ->
                             let pairType = typedefof<Tuple<_, _>>.MakeGenericType [|fstType; sndType|]
-                            let pairs = List.map (fromSymbol pairType) symbols
+                            let pairs = List.map (ofSymbol pairType) symbols
                             Reflection.pairsToMap destType pairs
                         | _ -> failwithumf ()
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
@@ -299,12 +299,12 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                             let aCases = FSharpType.GetUnionCases aType
                             match Array.tryFind (fun (unionCase : UnionCaseInfo) -> unionCase.Name = symbolHead) aCases with
                             | Some aCase ->
-                                let a = fromSymbol aCase.DeclaringType symbol
+                                let a = ofSymbol aCase.DeclaringType symbol
                                 let compressionUnion = (FSharpType.GetUnionCases destType).[0]
                                 FSharpValue.MakeUnion (compressionUnion, [|a|])
                             | None ->
                                 let bType = gargs.[1]
-                                let b = fromSymbol bType symbol
+                                let b = ofSymbol bType symbol
                                 let compressionUnion = (FSharpType.GetUnionCases destType).[1]
                                 FSharpValue.MakeUnion (compressionUnion, [|b|])
                         | _ -> failconv "Expected Atom value for SymbolicCompression union name." (Some symbol)
@@ -316,7 +316,7 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                     match symbol with
                     | Symbols (symbols, _) ->
                         let elementTypes = FSharpType.GetTupleElements destType
-                        let elements = symbols |> Array.ofList |> Array.mapi (fun i elementSymbol -> fromSymbol elementTypes.[i] elementSymbol)
+                        let elements = symbols |> Array.ofList |> Array.mapi (fun i elementSymbol -> ofSymbol elementTypes.[i] elementSymbol)
                         let elements = padWithDefaultsInternal elementTypes elements
                         FSharpValue.MakeTuple (elements, destType)
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
@@ -337,14 +337,14 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                                     Array.map
                                         (fun (info : PropertyInfo) ->
                                             match Map.tryFind info.Name fieldMap with
-                                            | Some fieldSymbol -> fromSymbol info.PropertyType fieldSymbol
+                                            | Some fieldSymbol -> ofSymbol info.PropertyType fieldSymbol
                                             | None -> info.PropertyType.GetDefaultValue ())
                                         fieldInfos
                                 FSharpValue.MakeRecord (destType, fields, true)
                             else failconv "Expected Symbols in pairs for expanded Record" (Some symbol)
                         else
                             let fieldInfos = FSharpType.GetRecordFields (destType, true)
-                            let fields = symbols |> Array.ofList |> Array.mapi (fun i fieldSymbol -> fromSymbol fieldInfos.[i].PropertyType fieldSymbol)
+                            let fields = symbols |> Array.ofList |> Array.mapi (fun i fieldSymbol -> ofSymbol fieldInfos.[i].PropertyType fieldSymbol)
                             let fields = padWithDefaults fieldInfos fields
                             FSharpValue.MakeRecord (destType, fields, true)
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
@@ -367,7 +367,7 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                             match Array.tryFind (fun (unionCase : UnionCaseInfo) -> unionCase.Name = unionName) unionCases with
                             | Some unionCase ->
                                 let unionFieldInfos = unionCase.GetFields ()
-                                let unionValues = symbolTail |> Array.ofList |> Array.mapi (fun i unionSymbol -> fromSymbol unionFieldInfos.[i].PropertyType unionSymbol)
+                                let unionValues = symbolTail |> Array.ofList |> Array.mapi (fun i unionSymbol -> ofSymbol unionFieldInfos.[i].PropertyType unionSymbol)
                                 let unionValues = padWithDefaults unionFieldInfos unionValues
                                 FSharpValue.MakeUnion (unionCase, unionValues, true)
                             | None ->
@@ -388,9 +388,9 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                     | Quote (_, _) | Symbols (_, _) ->
                         failconv ("Expected Atom, Number, or String value for conversion to vanilla .NET type '" + destType.Name + "'.") (Some symbol)
 
-    let fromString (destType : Type) (source : string) =
-        let symbol = Symbol.fromString source None
-        fromSymbol destType symbol
+    let ofString (destType : Type) (source : string) =
+        let symbol = Symbol.ofString source None
+        ofSymbol destType symbol
 
     override this.CanConvertTo (_, destType) =
         destType = typeof<string> ||
@@ -423,8 +423,8 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
             let sourceType = source.GetType ()
             if sourceType <> pointType then
                 match source with
-                | :? string as sourceStr -> fromString pointType sourceStr
-                | :? Symbol as sourceSymbol -> fromSymbol pointType sourceSymbol
+                | :? string as sourceStr -> ofString pointType sourceStr
+                | :? Symbol as sourceSymbol -> ofSymbol pointType sourceSymbol
                 | _ -> failconv "Invalid SymbolicConverter conversion from string." None
             else source
 

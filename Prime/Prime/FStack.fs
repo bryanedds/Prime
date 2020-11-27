@@ -15,11 +15,8 @@ module FStack =
               Back : 'a array }
     
         interface 'a IEnumerable with
-            member this.GetEnumerator () = 
-                (Seq.append this.Front this.Back).GetEnumerator ()
-
-            member this.GetEnumerator () =
-                (Seq.append this.Front this.Back).GetEnumerator () :> IEnumerator
+            member this.GetEnumerator () = (Seq.append this.Front this.Back).GetEnumerator ()
+            member this.GetEnumerator () = (Seq.append this.Front this.Back).GetEnumerator () :> IEnumerator
 
         override this.Equals (thatObj : obj) =
             match thatObj with

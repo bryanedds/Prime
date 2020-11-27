@@ -107,7 +107,7 @@ module Whisp =
         static member toIndex block =
             block.PositionBegin.Index
 
-        static member fromIndex index block =
+        static member ofIndex index block =
             let blocks = Block.getFlattened block
             let candidates = Array.filter (Block.containsIndex index) blocks
             let biasedAgainstRoot =
@@ -266,13 +266,13 @@ module Whisp =
     let pushScope scope =
         parse {
             let! position = getPosition
-            let newScope = { scope with Limiter = Block.fromIndex position.Index scope.Root }
+            let newScope = { scope with Limiter = Block.ofIndex position.Index scope.Root }
             return newScope }
 
     let inScope scope parse =
         Primitives.parse {
             let! position = getPosition
-            let block = Block.fromIndex position.Index scope.Root
+            let block = Block.ofIndex position.Index scope.Root
             if block = scope.Limiter || Block.isAncestor scope.Limiter block
             then return! parse
             else return! fail "End of block." }
@@ -335,7 +335,7 @@ module Whisp =
             let! fn = parseApplyFragment scope
             let! args = many1 $ parse {
                 let! position = getPosition
-                let block = Block.fromIndex position.Index scope.Root
+                let block = Block.ofIndex position.Index scope.Root
                 return!
                     if block.ParentOpt = Some scope.Limiter
                     then inScope scope (attempt (parseApply scope) <|> parseApplyFragment scope)

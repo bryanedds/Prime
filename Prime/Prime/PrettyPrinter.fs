@@ -140,7 +140,7 @@ module PrettyPrinter =
         prettySymbolToPrettyStr 0 prettySymbol prettyPrinter
 
     let prettyPrint str prettyPrinter =
-        let symbol = Symbol.fromString str None
+        let symbol = Symbol.ofString str None
         prettyPrintSymbol symbol prettyPrinter
 
 type [<AttributeUsage (AttributeTargets.Class); AllowNullLiteral>]
