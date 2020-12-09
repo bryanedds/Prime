@@ -276,6 +276,11 @@ module HMap =
             (makeEmpty ())
             pairs
 
+    /// Create a singleton HMap.
+    let singleton key value =
+        let map = makeEmpty ()
+        add key value map
+
 /// A very fast persistent hash map.
 /// Works in effectively constant-time for look-ups and updates.
 type HMap<'k, 'v when 'k : equality> = HMap.HMap<'k, 'v>

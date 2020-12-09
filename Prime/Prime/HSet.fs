@@ -249,6 +249,11 @@ module HSet =
             (makeEmpty ())
             pairs
 
+    /// Create a singleton HSet.
+    let singleton item =
+        let set = makeEmpty ()
+        add item set
+
 /// A very fast persistent hash set.
 /// Works in effectively constant-time for look-ups and updates.
 type HSet<'a when 'a : equality> = 'a HSet.HSet
