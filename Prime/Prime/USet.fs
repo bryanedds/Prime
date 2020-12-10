@@ -21,7 +21,7 @@ module USet =
     
         interface IEnumerable with
             member this.GetEnumerator () =
-                (this :> IEnumerable<'a>).GetEnumerator () :> IEnumerator
+                (this :> seq<'a>).GetEnumerator () :> IEnumerator
 
     let makeFromSeq<'a when 'a : equality> config items =
         { Set = TSet.makeFromSeq<'a> config items }

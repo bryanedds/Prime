@@ -21,7 +21,7 @@ module UMap =
     
         interface IEnumerable with
             member this.GetEnumerator () =
-                (this :> IEnumerable<'k * 'v>).GetEnumerator () :> IEnumerator
+                (this :> seq<'k * 'v>).GetEnumerator () :> IEnumerator
 
         member this.Item with get key =
             let struct (item, tmap) = TMap.find key this.Map

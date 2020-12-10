@@ -164,8 +164,8 @@ module String =
     /// Check for equality an array of strings lexicographically.
     let equateMany (strs : string array) (strs2 : string array) =
         if strs.Length = strs2.Length then
-            let enr = (strs :> IEnumerable<string>).GetEnumerator ()
-            let enr2 = (strs2 :> IEnumerable<string>).GetEnumerator ()
+            let enr = (strs :> string seq).GetEnumerator ()
+            let enr2 = (strs2 :> string seq).GetEnumerator ()
             let mutable result = true
             while result && enr.MoveNext () do
                 enr2.MoveNext () |> ignore
@@ -176,8 +176,8 @@ module String =
     /// Check for equality an array of strings lexicographically.
     let equateManyOpts (strs : string option array) (strs2 : string option array) =
         if strs.Length = strs2.Length then
-            let enr = (strs :> IEnumerable<string option>).GetEnumerator ()
-            let enr2 = (strs2 :> IEnumerable<string option>).GetEnumerator ()
+            let enr = (strs :> (string option) seq).GetEnumerator ()
+            let enr2 = (strs2 :> (string option) seq).GetEnumerator ()
             let mutable result = true
             while result && enr.MoveNext () do
                 enr2.MoveNext () |> ignore
@@ -190,8 +190,8 @@ module String =
         let length = strs.Length // avoid copy warning
         let lengthCmp = length.CompareTo strs2.Length
         if lengthCmp = 0 then
-            let enr = (strs :> IEnumerable<string>).GetEnumerator ()
-            let enr2 = (strs2 :> IEnumerable<string>).GetEnumerator ()
+            let enr = (strs :> string seq).GetEnumerator ()
+            let enr2 = (strs2 :> string seq).GetEnumerator ()
             let mutable result = 0
             while result = 0 && enr.MoveNext () do
                 enr2.MoveNext () |> ignore

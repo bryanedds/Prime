@@ -282,7 +282,7 @@ module HMap =
     /// NOTE: This function seems to profile as being very slow. I don't know if it's the seq / yields syntax or what.
     /// Don't use it unless you need its laziness or if performance won't be affected significantly.
     let toSeq (map : HMap<'k, 'v>) =
-        map :> IEnumerable<'k * 'v>
+        map :> seq<'k * 'v>
 
     /// Convert a sequence of keys and values to an HMap.
     let ofSeq pairs =
