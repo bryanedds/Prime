@@ -166,7 +166,7 @@ module HSet =
 
     /// A fast persistent hash set.
     /// Works in effectively constant-time for look-ups and updates.
-    type [<StructuralEquality; NoComparison>] HSet<'a when 'a : equality> =
+    type [<CustomEquality; NoComparison>] HSet<'a when 'a : equality> =
         private
             { Node : 'a HNode
               EmptyArray : 'a HNode array }
@@ -176,6 +176,17 @@ module HSet =
     
         interface IEnumerable with
             member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator () :> IEnumerator
+
+        override this.Equals that =
+            match that with
+            | :? HSet<'a> as that ->
+                // OPTIMIZATION: elide deep comparison with reference equality.
+                if obj.ReferenceEquals (this, that) then true
+                else obj.Equals (this.Node, that.Node)
+            | _ -> false
+
+        override this.GetHashCode () =
+            hash (box this.Node)
 
     /// Create an empty HSet.
     let makeEmpty () =
@@ -208,6 +219,10 @@ module HSet =
     /// Remove all values with the given keys from an HSet.
     let removeMany keys set =
         Seq.fold (fun set (value : 'a) -> remove value set) set keys
+
+    /// Count the number of entries (linear time complexity).
+    let count (set : 'a HSet) =
+        set :> _ seq |> Seq.length
 
     /// Check that an HSet contains a value.
     let contains value set =
@@ -248,6 +263,10 @@ module HSet =
             (fun set value -> add value set)
             (makeEmpty ())
             pairs
+
+    /// Convert a list of keys and values to an HSet.
+    let ofList (pairs : _ list) =
+        ofSeq pairs
 
     /// Create a singleton HSet.
     let singleton item =

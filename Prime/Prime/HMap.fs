@@ -177,7 +177,7 @@ module HMap =
 
     /// A fast persistent hash map.
     /// Works in effectively constant-time for look-ups and updates.
-    type [<StructuralEquality; NoComparison>] HMap<'k, 'v when 'k : equality> =
+    type [<CustomEquality; NoComparison>] HMap<'k, 'v when 'k : equality> =
         private
             { Node : HNode<'k, 'v>
               EmptyArray : HNode<'k, 'v> array }
@@ -187,6 +187,17 @@ module HMap =
 
         interface IEnumerable with
             member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator () :> IEnumerator
+
+        override this.Equals that =
+            match that with
+            | :? HMap<'k, 'v> as that ->
+                // OPTIMIZATION: elide deep comparison with reference equality.
+                if obj.ReferenceEquals (this, that) then true
+                else obj.Equals (this.Node, that.Node)
+            | _ -> false
+
+        override this.GetHashCode () =
+            hash (box this.Node)
 
         member this.Item
             with get (key : 'k) =
@@ -224,6 +235,10 @@ module HMap =
     /// Remove all values with the given keys from an HMap.
     let removeMany keys map =
         Seq.fold (fun map (key : 'k) -> remove key map) map keys
+
+    /// Count the number of entries (linear time complexity).
+    let count (map : HMap<'k, 'v>) =
+        map :> _ seq |> Seq.length
 
     /// Try to find a value with the given key in an HMap.
     /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.
@@ -276,10 +291,30 @@ module HMap =
             (makeEmpty ())
             pairs
 
+    /// Convert a list of keys and values to an HMap.
+    let ofList (pairs : _ list) =
+        ofSeq pairs
+
     /// Create a singleton HMap.
     let singleton key value =
         let map = makeEmpty ()
         add key value map
+
+    /// Convert the map to a sequence of its keys.
+    let toKeySeq (map : HMap<'k, 'v>) =
+        map :> _ seq |> Seq.map fst
+
+    /// Convert the map to a list of its keys.
+    let toKeyList (map : HMap<'k, 'v>) =
+        toKeySeq map |> Seq.toList
+
+    /// Convert the map to a sequence of its values.
+    let toValueSeq (map : HMap<'k, 'v>) =
+        map :> _ seq |> Seq.map snd
+
+    /// Convert the map to a list of its values.
+    let toValueList (map : HMap<'k, 'v>) =
+        toValueSeq map |> Seq.toList
 
 /// A very fast persistent hash map.
 /// Works in effectively constant-time for look-ups and updates.

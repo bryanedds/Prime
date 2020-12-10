@@ -16,9 +16,6 @@ module Operators =
     /// No matter what you pass it, it evaluates to a constant value.
     let constant a _ = a
 
-    /// The duplication function.
-    let dup a = (a, a)
-
     /// The tautology function.
     /// No matter what you pass it, it evaluates to true.
     let tautology _ = true
@@ -86,9 +83,8 @@ module Operators =
     /// Test for reference equality.
     let inline refEq (a : 'a) (b : 'a) = obj.ReferenceEquals (a, b)
 
-    /// Test for equality, usually faster than (=).
-    /// TODO: make sure this always generates code equally fast or faster.
-    let inline fastEq (a : 'a) (b : 'a) = LanguagePrimitives.GenericEquality a b
+    /// Test for equality generically, usually faster than (=).
+    let inline genEq (a : 'a) (b : 'a) = LanguagePrimitives.GenericEquality a b
 
     /// Cast as a function.
     let inline cast<'a> (target : obj) =

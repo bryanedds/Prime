@@ -26,3 +26,13 @@ module Set =
     /// Remove multiple values from a set.
     let removeMany values set =
         Seq.fold (flip Set.remove) set values
+
+    /// Map over a set with an index.
+    let mapi mapper map =
+        let mutable i = 0
+        Set.map (fun a -> let r = mapper i a in i <- inc i; r) map
+
+    /// Fold over a set with an index.
+    let foldi mapper map =
+        let mutable i = 0
+        Set.fold (fun s a -> let r = mapper i s a in i <- inc i; r) map

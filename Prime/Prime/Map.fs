@@ -78,6 +78,22 @@ module Map =
     /// Convert a list of a map's values by a function.
     let toValueListBy by map =
         toListBy (fun _ v -> by v) map
+
+    /// Index a sequence and convert it to a map.
+    let indexed seq =
+        seq |>
+        Seq.indexed |>
+        Map.ofSeq
+
+    /// Map over a map with an index.
+    let mapi mapper map =
+        let mutable i = 0
+        Map.map (fun k v -> let r = mapper i k v in i <- inc i; r) map
+
+    /// Fold over a map with an index.
+    let foldi mapper map =
+        let mutable i = 0
+        Map.fold (fun s k v -> let r = mapper i s k v in i <- inc i; r) map
     
     /// Combine the contents of two maps, taking an item from the second map in the case of a key
     /// conflict.

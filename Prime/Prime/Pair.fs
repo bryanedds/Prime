@@ -26,6 +26,10 @@ module PairOperators =
     let inline pair a b =
         (a, b)
 
+    /// Make a pair from a duplicated value.
+    let inline dup a =
+        pair a a
+
 [<RequireQualifiedAccess>]
 module Pair =
 
