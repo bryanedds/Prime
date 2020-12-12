@@ -59,41 +59,61 @@ module SignalOperators =
 [<RequireQualifiedAccess>]
 module Signal =
 
-    let rec
-        processSignal
+    let rec internal
+        processSignalInternal
         (processMessage : 'model * 'message * 's * 'w -> Signal<'message, 'command> list * 'model)
         (processCommand : 'model * 'command * 's * 'w -> Signal<'message, 'command> list * 'w)
-        (model : Lens<'model, 'w>)
+        (model : 'model)
         (signal : Signal<'message, 'command>)
         (simulant : 's)
         (world : 'w) =
         match signal with
         | Message message ->
-            let (signals, modelValue) = processMessage (model.Get world, message, simulant, world)
-            let world = model.Set modelValue world
-            processSignals processMessage processCommand model signals simulant world
+            let (signals, model) = processMessage (model, message, simulant, world)
+            match signals with
+            | _ :: _ -> processSignalsInternal processMessage processCommand model signals simulant world
+            | [] -> (model, world)
         | Command command ->
-            let (signals, world) = processCommand (model.Get world, command, simulant, world)
-            processSignals processMessage processCommand model signals simulant world
+            let (signals, world) = processCommand (model, command, simulant, world)
+            match signals with
+            | _ :: _ -> processSignalsInternal processMessage processCommand model signals simulant world
+            | [] -> (model, world)
 
-    and processSignals processMessage processCommand model signals simulant world =
+    and internal processSignalsInternal processMessage processCommand model signals simulant world =
         List.fold
-            (fun world signal -> processSignal processMessage processCommand model signal simulant world)
-            world signals
+            (fun (model, world) signal -> processSignalInternal processMessage processCommand model signal simulant world)
+            (model, world)
+            signals
 
-    let processChannels processMessage processCommand model channels simulant world =
+    let processSignal processMessage processCommand modelLens signal simulant world =
+        let model = Lens.get modelLens world
+        let (model, world) = processSignalInternal processMessage processCommand model signal simulant world
+        let world = Lens.set model modelLens world
+        world
+
+    let processSignals processMessage processCommand modelLens signals simulant world =
+        let model = Lens.get modelLens world
+        let (model, world) = processSignalsInternal processMessage processCommand model signals simulant world
+        let world = Lens.set model modelLens world
+        world
+
+    let processChannels processMessage processCommand modelLens channels simulant world =
         List.fold (fun world channel ->
             match channel.Source with
             | Left address ->
                 EventSystem.monitor (fun evt world ->
                     let signal = channel.Handler evt
-                    let world = processSignal processMessage processCommand model signal simulant world
+                    let model = Lens.get modelLens world
+                    let (model, world) = processSignalInternal processMessage processCommand model signal simulant world
+                    let world = Lens.set model modelLens world
                     (Cascade, world))
                     address simulant world
             | Right stream ->
                 Stream.monitor (fun evt world ->
                     let signal = channel.Handler evt
-                    let world = processSignal processMessage processCommand model signal simulant world
+                    let model = Lens.get modelLens world
+                    let (model, world) = processSignalInternal processMessage processCommand model signal simulant world
+                    let world = Lens.set model modelLens world
                     world)
                     simulant stream world)
             world
