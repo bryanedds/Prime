@@ -85,6 +85,12 @@ module Signal =
             (model, world)
             signals
 
+    let processSignal processMessage processCommand modelLens signal simulant world =
+        let model = Lens.get modelLens world
+        let (model, world) = processSignalInternal processMessage processCommand model signal simulant world
+        let world = Lens.set model modelLens world
+        world
+
     let processSignals processMessage processCommand modelLens signals simulant world =
         let model = Lens.get modelLens world
         let (model, world) = processSignalsInternal processMessage processCommand model signals simulant world
