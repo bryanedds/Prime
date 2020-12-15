@@ -43,22 +43,6 @@ module DictionaryExtension =
             then this.Add (key, value); true
             else false
 
-        /// Check value equality of dictionary.
-        /// NOTE: be wary the highly imperative nature of this code.
-        member this.ValueEquals (that : Dictionary<'k, 'v>) =
-            let mutable enr = this.GetEnumerator ()
-            let mutable enr2 = that.GetEnumerator ()
-            let mutable moving = true
-            let mutable equal = true
-            while moving && equal do
-                if enr.MoveNext () then
-                    if enr2.MoveNext () then equal <- enr.Current = enr2.Current
-                    else equal <- false
-                else
-                    if enr2.MoveNext () then equal <- false
-                    else moving <- false
-            equal
-
 [<AutoOpen>]
 module DictionaryOperators =
 

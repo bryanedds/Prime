@@ -139,7 +139,7 @@ module TSet =
     let notEmpty set =
         mapFst' not (isEmpty set)
 
-    /// Get the length of the set (constant-time, obviously).
+    /// Get the length of the set (constant-time).
     let length set =
         let set = validate set
         struct (set.HashSet.Count, set)

@@ -159,7 +159,7 @@ module TList =
         let list = validate list
         mapFst' not (isEmpty list)
 
-    /// Get the length of the list (constant-time, obviously).
+    /// Get the length of the list (constant-time).
     let length list =
         let list = validate list
         struct (list.ImpList.Count, list)

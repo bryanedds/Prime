@@ -137,7 +137,7 @@ module TMap =
     let notEmpty map =
         mapFst' not (isEmpty map)
 
-    /// Get the length of the map (constant-time, obviously).
+    /// Get the length of the map (constant-time).
     let length map =
         let map = validate map
         struct (map.Dict.Count, map)

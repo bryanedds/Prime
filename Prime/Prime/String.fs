@@ -3,7 +3,6 @@
 
 namespace Prime
 open System
-open System.Collections.Generic
 open System.Text
 
 [<RequireQualifiedAccess>]
@@ -163,41 +162,36 @@ module String =
 
     /// Check for equality an array of strings lexicographically.
     let equateMany (strs : string array) (strs2 : string array) =
-        if strs.Length = strs2.Length then
-            let enr = (strs :> string seq).GetEnumerator ()
-            let enr2 = (strs2 :> string seq).GetEnumerator ()
+        let length = strs.Length
+        if length = strs2.Length then
             let mutable result = true
-            while result && enr.MoveNext () do
-                enr2.MoveNext () |> ignore
-                result <- strEq enr.Current enr2.Current
+            let mutable i = 0
+            while result && i < length do
+                result <- strEq strs.[i] strs2.[i]
+                i <- inc i
             result
          else false
 
     /// Check for equality an array of strings lexicographically.
     let equateManyOpts (strs : string option array) (strs2 : string option array) =
-        if strs.Length = strs2.Length then
-            let enr = (strs :> (string option) seq).GetEnumerator ()
-            let enr2 = (strs2 :> (string option) seq).GetEnumerator ()
+        let length = strs.Length
+        if length = strs2.Length then
             let mutable result = true
-            while result && enr.MoveNext () do
-                enr2.MoveNext () |> ignore
-                result <- enr.Current = enr2.Current // generic eq is slower here, but it probably won't matter
+            let mutable i = 0
+            while result && i < length do
+                result <- objEq strs.[i] strs2.[i]
+                i <- inc i
             result
          else false
     
     /// Compare an array of strings lexicographically.
     let compareMany (strs : string array) (strs2 : string array) =
-        let length = strs.Length // avoid copy warning
-        let lengthCmp = length.CompareTo strs2.Length
-        if lengthCmp = 0 then
-            let enr = (strs :> string seq).GetEnumerator ()
-            let enr2 = (strs2 :> string seq).GetEnumerator ()
-            let mutable result = 0
-            while result = 0 && enr.MoveNext () do
-                enr2.MoveNext () |> ignore
-                result <- strCmp enr.Current enr2.Current
-            result
-         else lengthCmp
+        let mutable result = 0
+        let mutable i = 0
+        while result = 0 && i < strs.Length && i < strs2.Length do
+            result <- strCmp strs.[i] strs2.[i]
+            i <- inc i
+        result
     
     /// Hash an array of names.
     let hashMany (strs : string array) =

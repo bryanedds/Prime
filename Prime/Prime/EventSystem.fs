@@ -241,7 +241,7 @@ module EventSystem =
                     publish<_, _, 'w>
                         eventAddress
                         (rtoa<obj Address> [|"Unsubscribe"; "Event"|])
-                        (EventTrace.record "EventSystem" "unsubscribe" EventTrace.empty)
+                        EventTrace.empty
                         (getGlobalSimulantSpecialized world)
                         world
                 world
@@ -300,7 +300,7 @@ module EventSystem =
                 publish
                     eventAddressObj
                     (rtoa<obj Address> [|"Subscribe"; "Event"|])
-                    (EventTrace.record "EventSystem" "subscribePlus5" EventTrace.empty)
+                    EventTrace.empty
                     (getGlobalSimulantSpecialized world)
                     world
             (unsubscribe<'w> subscriptionId, world)

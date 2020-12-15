@@ -80,11 +80,28 @@ module Operators =
     /// Test for string equality.
     let inline strEq str str2 = strCmp str str2 = 0
 
+    /// Test for string inequality.
+    let inline strNeq str str2 = strCmp str str2 <> 0
+
+    /// Test for object equality.
+    /// OPTIMIZATION: always tests reference equality first.
+    let inline objEq (a : obj) (b : obj) = obj.ReferenceEquals (a, b) || obj.Equals (a, b)
+
+    /// Test for object inequality.
+    /// OPTIMIZATION: always tests reference equality first.
+    let inline objNeq (a : obj) (b : obj) = not (obj.ReferenceEquals (a, b) || obj.Equals (a, b))
+
     /// Test for reference equality.
     let inline refEq (a : 'a) (b : 'a) = obj.ReferenceEquals (a, b)
 
+    /// Test for reference inequality.
+    let inline refNeq (a : 'a) (b : 'a) = not (obj.ReferenceEquals (a, b))
+
     /// Test for equality generically, usually faster than (=).
     let inline genEq (a : 'a) (b : 'a) = LanguagePrimitives.GenericEquality a b
+
+    /// Test for inequality generically, usually faster than (=).
+    let inline genNeq (a : 'a) (b : 'a) = not (LanguagePrimitives.GenericEquality a b)
 
     /// Cast as a function.
     let inline cast<'a> (target : obj) =
@@ -147,6 +164,16 @@ module Operators =
         let line = frame.GetFileLineNumber ()
         let fileName = frame.GetFileName ()
         raise (NotImplementedException (sprintf "Not implemented exception in '%s' on line %i in file %s." meth.Name line fileName))
+
+    /// Test for object equality.
+    /// OPTIMIZATION: always tests reference equality first.
+    let inline (===) (a : obj) (b : obj) =
+        objEq a b
+
+    /// Test for object inequality.
+    /// OPTIMIZATION: always tests reference inequality first.
+    let inline (=/=) (a : obj) (b : obj) =
+        objNeq a b
 
     /// The implicit conversion operator.
     /// Same as the (!!) operator found in Prime, but placed here to expose it directly from Nu.
