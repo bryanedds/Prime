@@ -23,7 +23,7 @@ module Dictionary =
         | (true, value) -> Some value
         | (false, _) -> None
 
-    /// Try to get a value in a dictonary.
+    /// Try to get a value in a dictonary without allocating.
     let inline tryGetValue key (dictionary : Dictionary<'k, 'v>) =
         dictionary.TryGetValue key
 

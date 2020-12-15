@@ -19,6 +19,10 @@ module Map =
     let inline singleton key value =
         Map.add key value Map.empty
 
+    /// Try to get a value in a map without allocating.
+    let inline tryGetValue key (map : Map<'k, 'v>) =
+        map.TryGetValue key
+
     /// Add multiple values to a map.
     let addMany kvps map =
         Seq.fold (fun map (key, value) -> Map.add key value map) map kvps
@@ -62,6 +66,24 @@ module Map =
     /// Get a list of a map's values.
     let toValueList map =
         toListBy (fun _ v -> v) map
+
+    /// Make a map from an array by a function.
+    let ofArrayBy by arr =
+        let pairs = Array.map by arr
+        Map.ofArray pairs
+
+    /// Convert a map to an array by a function.
+    let toArrayBy by map =
+        let arr = Map.toArray map
+        Array.map (fun (k, v) -> by k v) arr
+
+    /// Get an array of a map's keys.
+    let toKeyArray map =
+        toArrayBy (fun k _ -> k) map
+
+    /// Get an array of a map's values.
+    let toValueArray map =
+        toArrayBy (fun _ v -> v) map
 
     /// Index a sequence and convert it to a map.
     let indexed seq =

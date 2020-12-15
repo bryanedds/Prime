@@ -49,11 +49,11 @@ module OMap =
 
     /// Check that an OMap is empty.
     let isEmpty map =
-        FStack.isEmpty map.Entries
+        UMap.isEmpty map.Indices
 
     /// Check that an OMap is empty.
     let notEmpty map =
-        FStack.notEmpty map.Entries
+        UMap.notEmpty map.Indices
 
     /// Add a value with the key to an OMap.
     let add (key : 'k) (value : 'v) map =
@@ -101,6 +101,15 @@ module OMap =
         match UMap.tryFind key map.Indices with
         | Some index -> match map.Entries.[index] with (_, _, v) -> Some v
         | None -> None
+
+    /// Try to find a value with the given key in an OMap without allocating.
+    /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.
+    let tryGetValue (key : 'k) map =
+        match UMap.tryGetValue key map.Indices with
+        | (true, index) ->
+            let struct (_, _, v) = map.Entries.[index]
+            (true, v)
+        | (false, _) -> (false, Unchecked.defaultof<_>)
 
     /// Find a value with the given key in an OMap.
     /// Constant-time complexity with approx. 1/3 speed of Dictionary.GetValue.
