@@ -17,7 +17,7 @@ module EventTests =
         { TestState : int
           TestEventSystemDelegate : TestWorld EventSystemDelegate }
         interface EventSystem<TestWorld> with
-            member this.GetLiveness () = Running
+            member this.GetLiveness () = Live
             member this.GetGlobalSimulantSpecialized () = EventSystemDelegate.getGlobalSimulantSpecialized this.TestEventSystemDelegate
             member this.GetGlobalSimulantGeneralized () = EventSystemDelegate.getGlobalSimulantGeneralized this.TestEventSystemDelegate
             member this.SimulantExists simulant = simulant.GetType () = typeof<TestSimulant>

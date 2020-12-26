@@ -7,14 +7,14 @@ open System.Collections.Generic
 open Prime
 
 /// Describes whether an in-flight event has been resolved or should cascade to down-stream handlers.
-type [<StructuralEquality; StructuralComparison>] Handling =
+type [<NoEquality; NoComparison; Struct>] Handling =
     | Resolve
     | Cascade
-
-/// Specifies whether an event-based application is running or exiting.
-type [<StructuralEquality; StructuralComparison>] Liveness =
-    | Running
-    | Exiting
+ 
+/// Specifies whether a process is live or dead.
+type [<NoEquality; NoComparison; Struct>] Liveness =
+    | Live
+    | Dead
 
 /// The generalized event type (can be used to handle any event).
 type Event = Event<obj, Simulant>

@@ -169,7 +169,8 @@ module EventSystem =
         let (_, world) =
             Seq.foldWhile
                 (fun (handling, world : 'w) (_ : Guid, subscription : SubscriptionEntry) ->
-                    if handling = Cascade && world.GetLiveness () = Running then
+                    match (handling, world.GetLiveness ()) with
+                    | (Cascade, Live) ->
                         let mapped =
                             match subscription.MapperOpt with
                             | Some mapper -> mapper eventData subscription.PreviousDataOpt world
@@ -192,7 +193,7 @@ module EventSystem =
                                     subscription.Callbacks
                             else (Cascade, world)
                         Some (handling, world)
-                    else None)
+                    | (_, _) -> None)
                 (Cascade, world)
                 subscriptions
         world
