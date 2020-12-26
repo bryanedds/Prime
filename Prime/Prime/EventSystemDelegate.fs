@@ -6,15 +6,15 @@ open System
 open System.Collections.Generic
 open Prime
 
+/// Specifies whether a process is live or dead.
+type [<NoEquality; NoComparison; Struct>] Liveness =
+   | Live
+   | Dead
+
 /// Describes whether an in-flight event has been resolved or should cascade to down-stream handlers.
 type [<NoEquality; NoComparison; Struct>] Handling =
     | Resolve
     | Cascade
- 
-/// Specifies whether a process is live or dead.
-type [<NoEquality; NoComparison; Struct>] Liveness =
-    | Live
-    | Dead
 
 /// The generalized event type (can be used to handle any event).
 type Event = Event<obj, Simulant>
