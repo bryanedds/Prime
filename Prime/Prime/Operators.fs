@@ -13,8 +13,12 @@ open Prime
 module Operators =
 
     /// The constant function.
-    /// No matter what you pass it, it evaluates to a constant value.
+    /// No matter what you pass it, it evaluates to the first argument.
     let constant a _ = a
+
+    /// The constant2 function.
+    /// No matter what you pass it, it evaluates to the second argument.
+    let constant2 _ b = b
 
     /// The tautology function.
     /// No matter what you pass it, it evaluates to true.
@@ -50,6 +54,8 @@ module Operators =
 
     /// Transforms a function by flipping the order of its arguments.
     let inline flip4 f a b c d = f d a b c
+
+    let test<'k, 'v, 'x> (f : 'v -> 'x) = flip constant >> f
 
     /// Apply a function to an argument.
     let inline apply f a = f a
