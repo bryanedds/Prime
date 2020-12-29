@@ -55,8 +55,6 @@ module Operators =
     /// Transforms a function by flipping the order of its arguments.
     let inline flip4 f a b c d = f d a b c
 
-    let test<'k, 'v, 'x> (f : 'v -> 'x) = flip constant >> f
-
     /// Apply a function to an argument.
     let inline apply f a = f a
 
