@@ -8,7 +8,7 @@ open System.Collections.Generic
 module FStack =
 
     /// A functional stack with fast iteration and amortized sqrt n conj.
-    /// NOTE: currently not supported by SymbolicConverter!
+    /// NOTE: not supported by SymbolicConverter.
     type [<CustomEquality; NoComparison>] 'a FStack =
         private
             { Front : 'a array
@@ -185,5 +185,5 @@ module FStack =
         { Front = [||]; Back = [||] }
 
 /// A functional stack with fast iteration and amortized sqrt n conj.
-/// NOTE: currently not supported by SymbolicConverter!
+/// NOTE: not supported by SymbolicConverter.
 type 'a FStack = 'a FStack.FStack

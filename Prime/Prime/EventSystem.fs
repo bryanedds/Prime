@@ -227,6 +227,7 @@ module EventSystem =
                         let subscriptionEntries = OMap.add subscriptionEntry.CompressionId subscriptionEntry subscriptionEntries
                         UMap.add eventAddress subscriptionEntries subscriptions
                     | Some None ->
+                        // NOTE: P1: OMap.removeBy can be slow here...
                         let subscriptionEntries =
                             OMap.removeBy (fun subscription ->
                                 subscription.SubscriptionId = subscriptionId)
