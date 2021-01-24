@@ -109,22 +109,24 @@ module Xtension =
     let getImperative (xtension : Xtension) = xtension.Imperative
 
     /// Try to get a property from an xtension.
-    let tryGetProperty name xtension = UMap.tryFind name xtension.Properties
+    let tryGetProperty (name, xtension, propertyRef : _ byref) =
+        UMap.tryGetValue (name, xtension.Properties, &propertyRef)
 
     /// Get a property from an xtension.
     let getProperty name xtension = UMap.find name xtension.Properties
 
     /// Attempt to set a property on an Xtension.
     let trySetProperty name property xtension =
-        match UMap.tryFind name xtension.Properties with
-        | Some property' ->
+        let mutable propertyRef = Unchecked.defaultof<_>
+        match UMap.tryGetValue (name, xtension.Properties, &propertyRef) with
+        | true ->
             if xtension.Imperative then
-                let mutable property' = property' // rebind as mutable
+                let mutable property' = propertyRef // rebind as mutable
                 property'.PropertyType <- property.PropertyType
                 property'.PropertyValue <- property.PropertyValue
                 (true, xtension)
             else (true, { xtension with Properties = UMap.add name property xtension.Properties })
-        | None ->
+        | false ->
             if not xtension.Sealed
             then (true, { xtension with Properties = UMap.add name property xtension.Properties })
             else (false, xtension)

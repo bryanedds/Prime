@@ -23,6 +23,11 @@ module UMap =
             member this.GetEnumerator () =
                 (this :> seq<'k * 'v>).GetEnumerator () :> IEnumerator
 
+        member this.TryGetValue (key, valueRef : 'v byref) =
+            let struct (found, tmap) = TMap.tryGetValue (key, this.Map, &valueRef)
+            this.Map <- tmap
+            found
+
         member this.Item with get key =
             let struct (item, tmap) = TMap.find key this.Map
             this.Map <- tmap
@@ -63,10 +68,10 @@ module UMap =
         map.Map <- tmap
         valueOpt
 
-    let tryGetValue key map =
-        let struct (result, tmap) = TMap.tryGetValue key map.Map
+    let tryGetValue (key, map, valueRef : _ byref) =
+        let struct (found, tmap) = TMap.tryGetValue (key, map.Map, &valueRef)
         map.Map <- tmap
-        result
+        found
 
     let find key (map : UMap<'k, 'v>) =
         map.[key]

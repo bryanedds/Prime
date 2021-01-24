@@ -29,6 +29,17 @@ module OMap =
                 IEnumerable |>
                 fun entries -> entries.GetEnumerator ()
 
+        /// Try to find a value with the given key in an OMap without allocating.
+        /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.
+        member this.TryGetValue (key, valueRef : 'v byref) =
+            let mutable indexRef = 0
+            match UMap.tryGetValue (key, this.Indices, &indexRef) with
+            | true ->
+                let struct (_, _, v) = this.Entries.[indexRef]
+                valueRef <- v
+                true
+            | false -> false
+
         member this.Item
             with get (key : 'k) =
                 let index = this.Indices.[key]
@@ -104,12 +115,14 @@ module OMap =
 
     /// Try to find a value with the given key in an OMap without allocating.
     /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.
-    let tryGetValue (key : 'k) map =
-        match UMap.tryGetValue key map.Indices with
-        | (true, index) ->
-            let struct (_, _, v) = map.Entries.[index]
-            (true, v)
-        | (false, _) -> (false, Unchecked.defaultof<_>)
+    let tryGetValue (key : 'k, map, valueRef : _ byref) =
+        let mutable indexRef = 0
+        match UMap.tryGetValue (key, map.Indices, &indexRef) with
+        | true ->
+            let struct (_, _, v) = map.Entries.[indexRef]
+            valueRef <- v
+            true
+        | false -> false
 
     /// Find a value with the given key in an OMap.
     /// Constant-time complexity with approx. 1/3 speed of Dictionary.GetValue.

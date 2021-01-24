@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>Prime</id>
+        <version>6.8.0</version>
+        <title>Prime - An F# primitives library.</title>
+        <authors>Bryan Edds</authors>
+        <owners>Bryan Edds</owners>
+        <licenseUrl>https://github.com/bryanedds/Prime/blob/master/License.md</licenseUrl>
+        <projectUrl>https://github.com/bryanedds/Prime</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>An F# code library for pure functional programming... and much more!</description>
+        <summary />
+        <releaseNotes>Implemented tryGetValue functions to actually not allocate.</releaseNotes>
+        <copyright>Copyright (c) 2020 Bryan Edds</copyright>
+        <language>en-US</language>
+        <tags>F# Functional Programming</tags>
+        <dependencies>
+            <dependency id="Csv" version="1.0.58" />
+            <dependency id="FParsec" version="1.0.3" />
+            <dependency id="FSharp.Core" version="4.7.2" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\Prime\bin\Release\Prime.dll" target="lib\net472\Prime.dll" />
+        <file src="..\Prime\bin\Release\Prime.dll.config" target="lib\net472\Prime.dll.config" />
+        <file src="..\Prime\bin\Release\Prime.pdb" target="lib\net472\Prime.pdb" />
+        <file src="..\Prime\bin\Release\Prime.xml" target="lib\net472\Prime.xml" />
+    </files>
+</package>
