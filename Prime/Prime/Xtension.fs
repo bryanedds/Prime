@@ -121,9 +121,8 @@ module Xtension =
         match UMap.tryGetValue (name, xtension.Properties, &propertyRef) with
         | true ->
             if xtension.Imperative then
-                let mutable property' = propertyRef // rebind as mutable
-                property'.PropertyType <- property.PropertyType
-                property'.PropertyValue <- property.PropertyValue
+                propertyRef.PropertyType <- property.PropertyType
+                propertyRef.PropertyValue <- property.PropertyValue
                 (true, xtension)
             else (true, { xtension with Properties = UMap.add name property xtension.Properties })
         | false ->
