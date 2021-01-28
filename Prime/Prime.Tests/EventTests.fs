@@ -32,6 +32,8 @@ module EventTests =
                 | :? GlobalSimulantGeneralized -> EventSystem.publishEvent<'a, 'p, Simulant, TestWorld> simulant publisher eventData eventAddress eventTrace callback world
                 | :? TestSimulant -> EventSystem.publishEvent<'a, 'p, TestSimulant, TestWorld> simulant publisher eventData eventAddress eventTrace callback world
                 | _ -> failwithumf ()
+            member this.SubscribeEventHook _ _ world = world
+            member this.UnsubscribeEventHook _ _ world = world
         static member incTestState this =
             { this with TestState = inc this.TestState }
         static member make eventTracerOpt eventFilter globalSimulant globalContext =

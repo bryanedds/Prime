@@ -18,6 +18,8 @@ type EventSystem<'w when 'w :> 'w EventSystem> =
         abstract member UpdateEventSystemDelegateHook : ('w EventSystemDelegate -> 'w EventSystemDelegate) -> 'w
         abstract member HandleUserDefinedCallback : obj -> obj -> 'w -> Handling * 'w
         abstract member PublishEventHook<'a, 'p when 'p :> Simulant> : Simulant -> 'p -> obj -> 'a Address -> EventTrace -> obj -> 'w -> Handling * 'w
+        abstract member SubscribeEventHook : obj Address -> Simulant -> 'w -> 'w
+        abstract member UnsubscribeEventHook : obj Address -> Simulant -> 'w -> 'w
         end
 
 /// Handles simulant property changes.
@@ -239,13 +241,7 @@ module EventSystem =
                 let unsubscriptions = UMap.remove subscriptionId unsubscriptions
                 let world = setSubscriptions subscriptions world
                 let world = setUnsubscriptions unsubscriptions world
-                let world =
-                    publish<_, _, 'w>
-                        eventAddress
-                        (rtoa<obj Address> [|"Unsubscribe"; "Event"|])
-                        EventTrace.empty
-                        (getGlobalSimulantSpecialized world)
-                        world
+                let world = world.UnsubscribeEventHook eventAddress (getGlobalSimulantSpecialized world) world
                 world
             | None -> world
         | None -> world
@@ -298,13 +294,7 @@ module EventSystem =
             let unsubscriptions = UMap.add subscriptionId (eventAddressObj, subscriber :> Simulant) unsubscriptions
             let world = setSubscriptions subscriptions world
             let world = setUnsubscriptions unsubscriptions world
-            let world =
-                publish
-                    eventAddressObj
-                    (rtoa<obj Address> [|"Subscribe"; "Event"|])
-                    EventTrace.empty
-                    (getGlobalSimulantSpecialized world)
-                    world
+            let world = world.SubscribeEventHook eventAddressObj (getGlobalSimulantSpecialized world) world
             (unsubscribe<'w> subscriptionId, world)
         else failwith "Event name cannot be empty."
 
