@@ -36,9 +36,11 @@ type [<CustomEquality; CustomComparison>] PartialComparable<'a, 'b when 'a : com
 /// PartialComparable functions.
 module PartialComparable =
 
+    /// Make a partially-comparable value.
     let make comparable noncomparable =
         { Comparable = comparable
           Noncomparable = noncomparable }
 
+    /// Split a partially-comparable value.
     let unmake partialCompare =
         (partialCompare.Comparable, partialCompare.Noncomparable)
