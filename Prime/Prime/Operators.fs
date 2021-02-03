@@ -16,9 +16,9 @@ module Operators =
     /// No matter what you pass it, it evaluates to the first argument.
     let constant a _ = a
 
-    /// The constant2 function.
+    /// The constend function.
     /// No matter what you pass it, it evaluates to the second argument.
-    let constant2 _ b = b
+    let constend _ b = b
 
     /// The tautology function.
     /// No matter what you pass it, it evaluates to true.
