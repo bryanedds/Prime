@@ -17,15 +17,15 @@ module EventTests =
         { TestState : int
           TestEventSystemDelegate : TestWorld EventSystemDelegate }
         interface EventSystem<TestWorld> with
+            member this.GetPropertyOpt _ _ = None
+            member this.SetPropertyOpt _ _ _ = this
+            member this.HandlePropertyChange _ _ _ = (id, this)
             member this.GetLiveness () = Live
             member this.GetGlobalSimulantSpecialized () = EventSystemDelegate.getGlobalSimulantSpecialized this.TestEventSystemDelegate
             member this.GetGlobalSimulantGeneralized () = EventSystemDelegate.getGlobalSimulantGeneralized this.TestEventSystemDelegate
-            member this.SimulantExists simulant = simulant.GetType () = typeof<TestSimulant>
-            member this.GetPropertyOpt _ _ = failwithnie ()
-            member this.SetPropertyOpt _ _ _ = failwithnie ()
-            member this.HandlePropertyChange _ _ _ = failwithnie ()
-            member this.GetEventSystemDelegateHook () = this.TestEventSystemDelegate
-            member this.UpdateEventSystemDelegateHook updater = { this with TestEventSystemDelegate = updater this.TestEventSystemDelegate }
+            member this.GetSimulantExists simulant = simulant.GetType () = typeof<TestSimulant>
+            member this.GetEventSystemDelegate () = this.TestEventSystemDelegate
+            member this.UpdateEventSystemDelegate updater = { this with TestEventSystemDelegate = updater this.TestEventSystemDelegate }
             member this.UserDefinedCallbackHook _ _ _ = failwithnie ()
             member this.PublishEventHook (simulant : Simulant) publisher eventData eventAddress eventTrace callback world =
                 match simulant with

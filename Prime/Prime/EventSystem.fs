@@ -5,43 +5,43 @@ namespace Prime
 open System
 open Prime
 
-/// A publisher-neutral event system.
-/// Effectively a mix-in for the 'w type, where 'w is a type that represents the client program.
-type EventSystem<'w when 'w :> 'w EventSystem> =
-    interface
-        inherit PropertySystem<'w>
-        abstract member GetLiveness : unit -> Liveness
-        abstract member GetGlobalSimulantSpecialized : unit -> Simulant
-        abstract member GetGlobalSimulantGeneralized : unit -> GlobalSimulantGeneralized
-        abstract member SimulantExists : Simulant -> bool
-        abstract member GetEventSystemDelegateHook : unit -> 'w EventSystemDelegate
-        abstract member UpdateEventSystemDelegateHook : ('w EventSystemDelegate -> 'w EventSystemDelegate) -> 'w
-        abstract member UserDefinedCallbackHook : obj -> obj -> 'w -> Handling * 'w
-        abstract member PublishEventHook<'a, 'p when 'p :> Simulant> : Simulant -> 'p -> obj -> 'a Address -> EventTrace -> obj -> 'w -> Handling * 'w
-        abstract member SubscribeEventHook : obj Address -> Simulant -> 'w -> 'w
-        abstract member UnsubscribeEventHook : obj Address -> Simulant -> 'w -> 'w
-        end
-
 /// Handles simulant property changes.
-and SimulantPropertyChangeHandler<'w when 'w :> 'w EventSystem> =
+type SimulantPropertyChangeHandler<'w when 'w :> 'w EventSystem> =
     'w EventSystem -> 'w EventSystem -> 'w EventSystem
 
 /// Detaches a simulant property change handler.
 and SimulantPropertyChangeUnhandler<'w when 'w :> 'w EventSystem> =
     'w EventSystem -> 'w EventSystem
 
+/// A publisher-neutral event system.
+/// Effectively a mix-in for the 'w type, where 'w is a type that represents the client program.
+and EventSystem<'w when 'w :> 'w EventSystem> =
+    interface
+        inherit PropertySystem<'w>
+        abstract member GetLiveness : unit -> Liveness
+        abstract member GetGlobalSimulantSpecialized : unit -> Simulant
+        abstract member GetGlobalSimulantGeneralized : unit -> GlobalSimulantGeneralized
+        abstract member GetSimulantExists : Simulant -> bool
+        abstract member GetEventSystemDelegate : unit -> 'w EventSystemDelegate
+        abstract member UpdateEventSystemDelegate : ('w EventSystemDelegate -> 'w EventSystemDelegate) -> 'w
+        abstract member UserDefinedCallbackHook : obj -> obj -> 'w -> Handling * 'w
+        abstract member PublishEventHook<'a, 'p when 'p :> Simulant> : Simulant -> 'p -> obj -> 'a Address -> EventTrace -> obj -> 'w -> Handling * 'w
+        abstract member SubscribeEventHook : obj Address -> Simulant -> 'w -> 'w
+        abstract member UnsubscribeEventHook : obj Address -> Simulant -> 'w -> 'w
+        end
+
 [<RequireQualifiedAccess>]
 module EventSystem =
 
     let private getEventSystemDelegate<'w when 'w :> 'w EventSystem> (world : 'w) =
-        world.GetEventSystemDelegateHook ()
+        world.GetEventSystemDelegate ()
         
     let private getEventSystemDelegateBy<'a, 'w when 'w :> 'w EventSystem> (by : 'w EventSystemDelegate -> 'a) (world : 'w) : 'a =
-        let propertySystem = world.GetEventSystemDelegateHook ()
+        let propertySystem = world.GetEventSystemDelegate ()
         by propertySystem
         
     let private updateEventSystemDelegate<'w when 'w :> 'w EventSystem> updater (world : 'w) =
-        world.UpdateEventSystemDelegateHook updater
+        world.UpdateEventSystemDelegate updater
 
     /// Get event subscriptions.
     let getSubscriptions<'w when 'w :> 'w EventSystem> (world : 'w) =
@@ -121,8 +121,8 @@ module EventSystem =
     let getGlobalSimulantGeneralized<'w when 'w :> 'w EventSystem> (world : 'w) =
         world.GetGlobalSimulantGeneralized ()
 
-    let simulantExists<'w when 'w :> 'w EventSystem> (simulant : Simulant) (world : 'w) =
-        world.SimulantExists simulant
+    let getSimulantExists<'w when 'w :> 'w EventSystem> (simulant : Simulant) (world : 'w) =
+        world.GetSimulantExists simulant
 
     /// Publish an event directly.
     let publishEvent<'a, 'p, 's, 'w when 'p :> Simulant and 's :> Simulant and 'w :> 'w EventSystem>

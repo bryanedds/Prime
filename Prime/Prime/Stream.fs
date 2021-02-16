@@ -629,7 +629,7 @@ module StreamOperators =
     /// subscriber exists (doing nothing otherwise).
     let [<DebuggerHidden; DebuggerStepThrough>] (-|>) stream (lens : Lens<'b, 'w>) =
         Stream.subscribe (fun a world ->
-            if world.SimulantExists a.Subscriber then
+            if world.GetSimulantExists a.Subscriber then
                 match lens.SetOpt with
                 | Some set -> set a.Data world
                 | None -> world // TODO: log info here about property not being set-able?
