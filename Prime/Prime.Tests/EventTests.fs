@@ -26,7 +26,7 @@ module EventTests =
             member this.HandlePropertyChange _ _ _ = failwithnie ()
             member this.GetEventSystemDelegateHook () = this.TestEventSystemDelegate
             member this.UpdateEventSystemDelegateHook updater = { this with TestEventSystemDelegate = updater this.TestEventSystemDelegate }
-            member this.HandleUserDefinedCallback _ _ _ = failwithnie ()
+            member this.UserDefinedCallbackHook _ _ _ = failwithnie ()
             member this.PublishEventHook (simulant : Simulant) publisher eventData eventAddress eventTrace callback world =
                 match simulant with
                 | :? GlobalSimulantGeneralized -> EventSystem.publishEvent<'a, 'p, Simulant, TestWorld> simulant publisher eventData eventAddress eventTrace callback world
@@ -41,7 +41,7 @@ module EventTests =
 
     let TestEvent = ntoa<int> "Inc"
     let TestEvent2 = ntoa<bool> "Flag"
-    let TestSimulantGeneralized = { GpgAddress = Address.empty<GlobalSimulantGeneralized> }
+    let TestSimulantGeneralized = { GsgAddress = Address.empty<GlobalSimulantGeneralized> }
     let TestSimulantSpecialized = { TestAddress = Address.empty<TestSimulant> }
     let incTestState _ world = TestWorld.incTestState world
     let incTestStateNoEvent world = TestWorld.incTestState world
