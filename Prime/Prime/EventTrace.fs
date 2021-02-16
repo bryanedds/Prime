@@ -5,32 +5,37 @@ namespace Prime
 open System
 open Prime
 
+/// Conveys debugging info about an event.
 type [<StructuralEquality; StructuralComparison; CLIMutable>] EventInfo =
     { ModuleName : string
       FunctionName : string
       MoreInfo : string }
 
-    static member record moduleName functionName =
+    /// Record event information.
+    static member make moduleName functionName =
         { ModuleName = moduleName
           FunctionName = functionName
           MoreInfo = String.Empty }
 
-    static member record3 moduleName functionName moreInfo =
+    /// Record event information with greater detail.
+    static member make3 moduleName functionName moreInfo =
         { ModuleName = moduleName
           FunctionName = functionName
           MoreInfo = moreInfo }
 
-// TODO: P1: consider replacing this with UList since we really want to add to the back anyway.
+/// Conveys an event's trace information.
 type EventTrace = EventInfo list
 
 [<RequireQualifiedAccess>]
 module EventTrace =
 
-    let record moduleName functionName eventTrace : EventTrace =
-        EventInfo.record moduleName functionName :: eventTrace
+    /// Trace event information.
+    let trace moduleName functionName eventTrace : EventTrace =
+        EventInfo.make moduleName functionName :: eventTrace
 
-    let record4 moduleName functionName moreInfo eventTrace : EventTrace =
-        EventInfo.record3 moduleName functionName moreInfo :: eventTrace
+    /// Trace event information with greater detail.
+    let trace4 moduleName functionName moreInfo eventTrace : EventTrace =
+        EventInfo.make3 moduleName functionName moreInfo :: eventTrace
 
-    let empty : EventTrace =
-        []
+    /// The empty event trace.
+    let empty : EventTrace = []

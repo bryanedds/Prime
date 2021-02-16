@@ -38,13 +38,21 @@ module Event =
           Address = atoa evt.Address
           Trace = evt.Trace }
 
-    // Generalize an event.
+    /// Generalize an event.
     let generalize (evt : Event<'a, 's>) : Event =
         { Data = evt.Data :> obj
           Subscriber = evt.Subscriber
           Publisher = evt.Publisher
           Address = atoa evt.Address
           Trace = evt.Trace }
+
+    /// Trace event information.
+    let trace moduleName functionName eventTrace =
+        EventTrace.trace moduleName functionName eventTrace
+
+    /// Trace event information with greater detail.
+    let trace4 moduleName functionName moreInfo eventTrace =
+        EventTrace.trace4 moduleName functionName moreInfo eventTrace
 
 type [<NoEquality; NoComparison>] Callback =
     | FunctionCallback of obj
