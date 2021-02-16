@@ -26,7 +26,7 @@ module EventTests =
             member this.GetSimulantExists simulant = simulant.GetType () = typeof<TestSimulant>
             member this.GetEventSystemDelegate () = this.TestEventSystemDelegate
             member this.UpdateEventSystemDelegate updater = { this with TestEventSystemDelegate = updater this.TestEventSystemDelegate }
-            member this.UserDefinedCallbackHook _ _ _ = failwithnie ()
+            member this.HandleUserDefinedCallback _ _ _ = (Cascade, this)
             member this.PublishEventHook (simulant : Simulant) publisher eventData eventAddress eventTrace callback world =
                 match simulant with
                 | :? GlobalSimulantGeneralized -> EventSystem.publishEvent<'a, 'p, Simulant, TestWorld> simulant publisher eventData eventAddress eventTrace callback world
