@@ -46,14 +46,6 @@ module Event =
           Address = atoa evt.Address
           Trace = evt.Trace }
 
-    /// Trace event information.
-    let trace moduleName functionName eventTrace =
-        EventTrace.trace moduleName functionName eventTrace
-
-    /// Trace event information with greater detail.
-    let trace4 moduleName functionName moreInfo eventTrace =
-        EventTrace.trace4 moduleName functionName moreInfo eventTrace
-
 type [<NoEquality; NoComparison>] Callback =
     | FunctionCallback of obj
     | UserDefinedCallback of obj
