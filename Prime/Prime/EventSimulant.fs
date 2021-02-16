@@ -34,7 +34,7 @@ type [<StructuralEquality; NoComparison>] ChangeData =
 
 /// A simulant in the event system that is globalized and compatible with generalized events.
 type [<StructuralEquality; NoComparison>] GlobalSimulantGeneralized =
-    { GpgAddress : GlobalSimulantGeneralized Address }
+    { GsgAddress : GlobalSimulantGeneralized Address }
     interface Simulant with
-        member this.SimulantAddress = atoa<GlobalSimulantGeneralized, Simulant> this.GpgAddress
+        member this.SimulantAddress = atoa<GlobalSimulantGeneralized, Simulant> this.GsgAddress
         end
