@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Prime.Scripting</id>
-        <version>6.2.0</version>
+        <version>6.10.0</version>
         <title>Prime.Scripting - A dynamic scripting language for .NET.</title>
         <authors>Bryan Edds</authors>
         <owners>Bryan Edds</owners>
@@ -11,12 +11,12 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>A dynamic scripting language for .NET.</description>
         <summary />
-        <releaseNotes>Removed redundant dependency on Csv.</releaseNotes>
+        <releaseNotes>Updated Prime.</releaseNotes>
         <copyright>Copyright (c) 2020 Bryan Edds</copyright>
         <language>en-US</language>
         <tags>F# Functional Programming Scripting Script Language</tags>
         <dependencies>
-            <dependency id="Prime" version="6.1.0" />
+            <dependency id="Prime" version="6.10.0" />
             <dependency id="FSharp.Core" version="4.7.2" />
         </dependencies>
     </metadata>

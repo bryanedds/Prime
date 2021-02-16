@@ -16,7 +16,7 @@ type EventSystem<'w when 'w :> 'w EventSystem> =
         abstract member SimulantExists : Simulant -> bool
         abstract member GetEventSystemDelegateHook : unit -> 'w EventSystemDelegate
         abstract member UpdateEventSystemDelegateHook : ('w EventSystemDelegate -> 'w EventSystemDelegate) -> 'w
-        abstract member HandleUserDefinedCallback : obj -> obj -> 'w -> Handling * 'w
+        abstract member UserDefinedCallbackHook : obj -> obj -> 'w -> Handling * 'w
         abstract member PublishEventHook<'a, 'p when 'p :> Simulant> : Simulant -> 'p -> obj -> 'a Address -> EventTrace -> obj -> 'w -> Handling * 'w
         abstract member SubscribeEventHook : obj Address -> Simulant -> 'w -> 'w
         abstract member UnsubscribeEventHook : obj Address -> Simulant -> 'w -> 'w
@@ -188,8 +188,8 @@ module EventSystem =
                                     match handling with
                                     | Cascade ->
                                         match callback with
-                                        | UserDefinedCallback callback -> world.HandleUserDefinedCallback callback mapped world
                                         | FunctionCallback callback -> world.PublishEventHook subscriber publisher mapped eventAddress eventTrace callback world
+                                        | UserDefinedCallback callback -> world.UserDefinedCallbackHook callback mapped world
                                     | Resolve -> (handling, world))
                                     (handling, world)
                                     subscription.Callbacks

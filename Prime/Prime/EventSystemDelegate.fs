@@ -47,8 +47,8 @@ module Event =
           Trace = evt.Trace }
 
 type [<NoEquality; NoComparison>] Callback =
-    | UserDefinedCallback of obj
     | FunctionCallback of obj
+    | UserDefinedCallback of obj
 
 /// An entry in the subscription map.
 type [<NoEquality; NoComparison>] SubscriptionEntry =

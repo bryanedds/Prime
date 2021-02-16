@@ -35,8 +35,8 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
         member this.SetOpt = Option.map (fun set -> fun (value : obj) world -> set (value :?> 'a) world) this.SetOpt
         member this.This = this.This
         member this.PayloadOpt = this.PayloadOpt
-        member this.Type = typeof<'a>
         member this.ChangeEvent = this.ChangeEvent
+        member this.Type = typeof<'a>
 
     member this.Generalize () =
         let this = this :> 'w Lens
