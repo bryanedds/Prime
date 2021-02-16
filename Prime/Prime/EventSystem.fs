@@ -19,9 +19,9 @@ and EventSystem<'w when 'w :> 'w EventSystem> =
     interface
         inherit PropertySystem<'w>
         abstract member GetLiveness : unit -> Liveness
+        abstract member GetSimulantExists : Simulant -> bool
         abstract member GetGlobalSimulantSpecialized : unit -> Simulant
         abstract member GetGlobalSimulantGeneralized : unit -> GlobalSimulantGeneralized
-        abstract member GetSimulantExists : Simulant -> bool
         abstract member GetEventSystemDelegate : unit -> 'w EventSystemDelegate
         abstract member UpdateEventSystemDelegate : ('w EventSystemDelegate -> 'w EventSystemDelegate) -> 'w
         abstract member HandleUserDefinedCallback : obj -> obj -> 'w -> Handling * 'w
@@ -115,14 +115,14 @@ module EventSystem =
     let getLiveness<'w when 'w :> 'w EventSystem> (world : 'w) =
         world.GetLiveness ()
 
+    let getSimulantExists<'w when 'w :> 'w EventSystem> (simulant : Simulant) (world : 'w) =
+        world.GetSimulantExists simulant
+
     let getGlobalSimulantSpecialized<'w when 'w :> 'w EventSystem> (world : 'w) =
         world.GetGlobalSimulantSpecialized ()
 
     let getGlobalSimulantGeneralized<'w when 'w :> 'w EventSystem> (world : 'w) =
         world.GetGlobalSimulantGeneralized ()
-
-    let getSimulantExists<'w when 'w :> 'w EventSystem> (simulant : Simulant) (world : 'w) =
-        world.GetSimulantExists simulant
 
     /// Publish an event directly.
     let publishEvent<'a, 'p, 's, 'w when 'p :> Simulant and 's :> Simulant and 'w :> 'w EventSystem>

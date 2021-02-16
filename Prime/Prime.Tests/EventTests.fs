@@ -21,9 +21,9 @@ module EventTests =
             member this.SetPropertyOpt _ _ _ = this
             member this.HandlePropertyChange _ _ _ = (id, this)
             member this.GetLiveness () = Live
+            member this.GetSimulantExists simulant = simulant.GetType () = typeof<TestSimulant>
             member this.GetGlobalSimulantSpecialized () = EventSystemDelegate.getGlobalSimulantSpecialized this.TestEventSystemDelegate
             member this.GetGlobalSimulantGeneralized () = EventSystemDelegate.getGlobalSimulantGeneralized this.TestEventSystemDelegate
-            member this.GetSimulantExists simulant = simulant.GetType () = typeof<TestSimulant>
             member this.GetEventSystemDelegate () = this.TestEventSystemDelegate
             member this.UpdateEventSystemDelegate updater = { this with TestEventSystemDelegate = updater this.TestEventSystemDelegate }
             member this.HandleUserDefinedCallback _ _ _ = (Cascade, this)
