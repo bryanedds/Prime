@@ -101,16 +101,15 @@ and [<NoEquality; NoComparison>] ComputedProperty =
       ComputedGet : obj -> obj -> obj
       ComputedSetOpt : (obj -> obj -> obj -> obj) option }
 
-[<RequireQualifiedAccess>]
-module ComputedProperty =
-
-    let make ty get setOpt =
+    /// Make a computed property.
+    static member make ty get setOpt =
         { ComputedType = ty
           ComputedGet = get
           ComputedSetOpt = setOpt }
 
-    let makeReadOnly ty get =
-        make ty get None
+    /// Make a readonly computed property.
+    static member makeReadOnly ty get =
+        ComputedProperty.make ty get None
 
 [<AutoOpen>]
 module ReflectionSyntax =
