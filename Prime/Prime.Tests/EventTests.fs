@@ -37,7 +37,7 @@ module EventTests =
         static member incTestState this =
             { this with TestState = inc this.TestState }
         static member make eventTracerOpt eventFilter globalSimulant globalContext =
-            { TestState = 0; TestEventSystemDelegate = EventSystemDelegate.make eventTracerOpt eventFilter globalSimulant globalContext }
+            { TestState = 0; TestEventSystemDelegate = EventSystemDelegate.make eventTracerOpt eventFilter globalSimulant globalContext Functional }
 
     let TestEvent = ntoa<int> "Inc"
     let TestEvent2 = ntoa<bool> "Flag"
