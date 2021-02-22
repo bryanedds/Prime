@@ -86,10 +86,10 @@ module OMap =
     let remove (key : 'k) map =
         match UMap.tryFind key map.Indices with
         | Some index ->
-            let struct (_, k, v) = map.Entries.[index]
+            let struct (_, _, _) = map.Entries.[index]
             let map =
                 { Indices = UMap.remove key map.Indices
-                  Entries = FStack.replaceAt index struct (false, k, v) map.Entries
+                  Entries = FStack.replaceAt index struct (false, Unchecked.defaultof<_>, Unchecked.defaultof<_>) map.Entries
                   InactiveCount = inc map.InactiveCount }
             if map.InactiveCount > FStack.length map.Entries
             then compact map
