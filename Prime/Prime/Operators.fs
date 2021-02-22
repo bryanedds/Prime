@@ -3,6 +3,7 @@
 
 namespace Prime
 open System
+open System.Collections.Generic
 open System.ComponentModel
 open System.Diagnostics
 open System.Reflection
@@ -11,6 +12,9 @@ open Prime
 
 [<AutoOpen>]
 module Operators =
+
+    /// Memoized union tags.
+    let private TagsMemo = Dictionary<obj, int> (HashIdentity.Structural)
 
     /// The constant function.
     /// No matter what you pass it, it evaluates to the first argument.
@@ -74,9 +78,15 @@ module Operators =
     let inline getProperties (t : Type) = t.GetProperties (BindingFlags.Instance ||| BindingFlags.Public)
 
     /// Get the union tag for the give case value.
+    /// OPTIMIZATION: memoizes zero-field unions for speed.
     let getTag<'u> (unionCase : 'u) =
-        let (unionCaseInfo, _) = FSharpValue.GetUnionFields (unionCase, typeof<'u>)
-        unionCaseInfo.Tag
+        match TagsMemo.TryGetValue unionCase with
+        | (true, tag) -> tag
+        | (false, _) ->
+            let (unionCaseInfo, _) = FSharpValue.GetUnionFields (unionCase, typeof<'u>)
+            let tag = unionCaseInfo.Tag
+            if Array.isEmpty (unionCaseInfo.GetFields ()) then TagsMemo.Add (unionCase, tag)
+            tag
 
     /// Compare two strings.
     let inline strCmp str str2 = String.CompareOrdinal (str, str2)
