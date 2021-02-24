@@ -148,7 +148,7 @@ module TMap =
         | (true, value) -> struct (Some value, map)
         | (false, _) -> struct (None, map)
 
-    let tryGetValue (key, map, valueRef : _ byref) =
+    let tryGetValue (key, map, valueRef : _ outref) =
         let map = validate map
         let found = map.Dict.TryGetValue (key, &valueRef)
         struct (found, map)
