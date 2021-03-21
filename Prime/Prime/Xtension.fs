@@ -49,10 +49,8 @@ module Xtension =
                 | :? 'a as value -> value
                 | _ -> failwith ("Xtension property '" + propertyName + "' of type '" + property.PropertyType.Name + "' is not of the expected type '" + typeof<'a>.Name + "'.")
 
-            | None ->
-
-                // presume we're looking for a property that doesn't exist, so try to get the default value
-                Xtension.tryGetDefaultValue xtension propertyName
+            // presume we're looking for a property that doesn't exist, so try to get the default value
+            | None -> Xtension.tryGetDefaultValue xtension propertyName
 
         /// The dynamic assignment operator for an Xtension.
         /// Example:

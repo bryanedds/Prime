@@ -3,6 +3,29 @@ open System
 open System.Collections
 open System.Collections.Generic
 
+/// An enumerator for FStack.
+type internal 'a FStackEnumerator (front : 'a array, back : 'a array) =
+    let mutable inFront = true
+    let mutable index = -1
+    interface 'a IEnumerator with
+        member this.MoveNext () =
+            index <- inc index
+            if inFront then
+                if  index >= Array.length front then
+                    index <- 0
+                    inFront <- false
+                    index < Array.length back
+                else true
+            else index < Array.length back
+        member this.Current =
+            if inFront then front.[index] else back.[index]
+        member this.Current =
+            (this :> 'a IEnumerator).Current :> obj
+        member this.Reset () =
+            inFront <- true; index <- 0
+        member this.Dispose () =
+            ()
+
 // TODO: document!
 [<RequireQualifiedAccess>]
 module FStack =
@@ -13,10 +36,10 @@ module FStack =
         private
             { Front : 'a array
               Back : 'a array }
-    
+
         interface 'a IEnumerable with
-            member this.GetEnumerator () = (Seq.append this.Front this.Back).GetEnumerator ()
-            member this.GetEnumerator () = (Seq.append this.Front this.Back).GetEnumerator () :> IEnumerator
+            member this.GetEnumerator () = new FStackEnumerator<'a> (this.Front, this.Back) :> 'a IEnumerator
+            member this.GetEnumerator () = new FStackEnumerator<'a> (this.Front, this.Back) :> IEnumerator
 
         override this.Equals (thatObj : obj) =
             match thatObj with
