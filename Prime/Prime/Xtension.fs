@@ -109,7 +109,7 @@ module Xtension =
     let getImperative (xtension : Xtension) = xtension.Imperative
 
     /// Try to get a property from an xtension.
-    let tryGetProperty (name, xtension, propertyRef : _ byref) =
+    let tryGetProperty (name, xtension, propertyRef : _ outref) =
         UMap.tryGetValue (name, xtension.Properties, &propertyRef)
 
     /// Get a property from an xtension.

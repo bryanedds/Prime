@@ -24,7 +24,7 @@ module Dictionary =
         | (false, _) -> None
 
     /// Try to get a value in a dictonary without allocating.
-    let inline tryGetValue (key, dictionary : Dictionary<'k, 'v>, value : 'v byref) =
+    let inline tryGetValue (key, dictionary : Dictionary<'k, 'v>, value : 'v outref) =
         dictionary.TryGetValue (key, &value)
 
 [<AutoOpen>]
