@@ -20,8 +20,8 @@ module Map =
         Map.add key value Map.empty
 
     /// Try to get a value in a map without allocating.
-    let inline tryGetValue key (map : Map<'k, 'v>) =
-        map.TryGetValue key
+    let inline tryGetValue (key, map : Map<'k, 'v>, value : 'v byref) =
+        map.TryGetValue (key, &value)
 
     /// Add multiple values to a map.
     let addMany kvps map =

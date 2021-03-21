@@ -31,7 +31,7 @@ module OMap =
 
         /// Try to find a value with the given key in an OMap without allocating.
         /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.
-        member this.TryGetValue (key, valueRef : 'v outref) =
+        member this.TryGetValue (key, valueRef : 'v byref) =
             let mutable indexRef = 0
             match UMap.tryGetValue (key, this.Indices, &indexRef) with
             | true ->
@@ -115,7 +115,7 @@ module OMap =
 
     /// Try to find a value with the given key in an OMap without allocating.
     /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.
-    let tryGetValue (key : 'k, map, valueRef : _ outref) =
+    let tryGetValue (key : 'k, map, valueRef : _ byref) =
         let mutable indexRef = 0
         match UMap.tryGetValue (key, map.Indices, &indexRef) with
         | true ->
