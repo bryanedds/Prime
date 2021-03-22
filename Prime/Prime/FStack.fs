@@ -56,10 +56,10 @@ module FStack =
                 if index >= this.Front.Length then 
                     let index' = index - this.Front.Length
                     if index' >= this.Back.Length
-                    then raise (IndexOutOfRangeException "Cannot index outside of FastStack's range.")
+                    then raise (IndexOutOfRangeException "Cannot index outside of FStack's range.")
                     else this.Back.[index']
                 else this.Front.[index]
-            else raise (IndexOutOfRangeException "Cannot index outside of FastStack's range.")
+            else raise (IndexOutOfRangeException "Cannot index outside of FStack's range.")
 
     let rec private balance stack =
         if length stack > 0 then
@@ -153,7 +153,7 @@ module FStack =
                 let back = Array.copy stack.Back
                 back.[index'] <- replacement
                 { stack with Back = back }
-            else raise (IndexOutOfRangeException "Cannot index outside of FastStack's range.")
+            else raise (IndexOutOfRangeException "Cannot index outside of FStack's range.")
 
     let tryFind pred stack =
         match Array.tryFind pred stack.Front with
