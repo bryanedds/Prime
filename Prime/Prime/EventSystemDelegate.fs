@@ -16,6 +16,12 @@ type [<NoEquality; NoComparison; Struct>] Handling =
     | Resolve
     | Cascade
 
+/// An entry in the subscription map.
+type [<NoEquality; NoComparison>] SubscriptionEntry =
+    { SubscriptionId : Guid
+      Subscriber : Simulant
+      CallbackBoxed : obj }
+
 /// The generalized event type (can be used to handle any event).
 type Event = Event<obj, Simulant>
 
@@ -45,19 +51,6 @@ module Event =
           Publisher = evt.Publisher
           Address = atoa evt.Address
           Trace = evt.Trace }
-
-type [<NoEquality; NoComparison>] Callback =
-    | FunctionCallback of obj
-    | UserDefinedCallback of obj
-
-/// An entry in the subscription map.
-type [<NoEquality; NoComparison>] SubscriptionEntry =
-    { CompressionId : Guid
-      SubscriptionId : Guid
-      MapperOpt : (obj -> obj option -> obj -> obj) option // ('a -> 'b option -> 'w -> 'b) option
-      FilterOpt : (obj -> obj option -> obj -> bool) option // ('b -> 'b option -> 'w -> bool) option
-      mutable PreviousDataOpt : obj option // 'b option
-      Callbacks : (Guid * Simulant * Callback) array } // TODO: consider using an FStack instead of an array here.
 
 /// Abstracts over a subscription sorting procedure.
 type SubscriptionSorter =
