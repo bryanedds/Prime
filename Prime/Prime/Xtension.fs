@@ -121,18 +121,18 @@ module Xtension =
             if xtension.Imperative then
                 propertyRef.PropertyType <- property.PropertyType
                 propertyRef.PropertyValue <- property.PropertyValue
-                (true, xtension)
-            else (true, { xtension with Properties = UMap.add name property xtension.Properties })
+                struct (true, xtension)
+            else struct (true, { xtension with Properties = UMap.add name property xtension.Properties })
         | false ->
             if not xtension.Sealed
-            then (true, { xtension with Properties = UMap.add name property xtension.Properties })
-            else (false, xtension)
+            then struct (true, { xtension with Properties = UMap.add name property xtension.Properties })
+            else struct (false, xtension)
 
     /// Set a property on an Xtension.
     let setProperty name property xtension =
         match trySetProperty name property xtension with
-        | (true, xtension) -> xtension
-        | (false, _) -> failwith "Cannot add property to a sealed Xtension."
+        | struct (true, xtension) -> xtension
+        | struct (false, _) -> failwith "Cannot add property to a sealed Xtension."
 
     /// Attach a property to an Xtension.
     let attachProperty name property xtension = { xtension with Properties = UMap.add name property xtension.Properties }
