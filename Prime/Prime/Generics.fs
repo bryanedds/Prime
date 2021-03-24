@@ -16,7 +16,7 @@ module Generics =
     let inline isZero a = a = zero ()
 
     /// Check a value for non-equality with zero.
-    let inline isNonZero a = a <> zero ()
+    let inline notZero a = a <> zero ()
 
     /// The generic monoidal append operation.
     let inline append a b = a + b
