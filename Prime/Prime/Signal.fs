@@ -59,43 +59,34 @@ module SignalOperators =
 [<RequireQualifiedAccess>]
 module Signal =
 
-    let rec internal
-        processSignalInternal
+    let rec
+        processSignal
         (processMessage : 'model * 'message * 's * 'w -> Signal<'message, 'command> list * 'model)
         (processCommand : 'model * 'command * 's * 'w -> Signal<'message, 'command> list * 'w)
-        (model : 'model)
+        (modelLens : Lens<'model, 'w>)
         (signal : Signal<'message, 'command>)
         (simulant : 's)
-        (world : 'w) =
+        (world : 'w) :
+        'w =
         match signal with
         | Message message ->
+            let model = Lens.get modelLens world
             let (signals, model) = processMessage (model, message, simulant, world)
+            let world = Lens.set model modelLens world
             match signals with
-            | _ :: _ -> processSignalsInternal processMessage processCommand model signals simulant world
-            | [] -> (model, world)
+            | _ :: _ -> processSignals processMessage processCommand modelLens signals simulant world
+            | [] -> world
         | Command command ->
+            let model = Lens.get modelLens world
             let (signals, world) = processCommand (model, command, simulant, world)
             match signals with
-            | _ :: _ -> processSignalsInternal processMessage processCommand model signals simulant world
-            | [] -> (model, world)
+            | _ :: _ -> processSignals processMessage processCommand modelLens signals simulant world
+            | [] -> world
 
-    and internal processSignalsInternal processMessage processCommand model signals simulant world =
+    and processSignals processMessage processCommand modelLens signals simulant world =
         List.fold
-            (fun (model, world) signal -> processSignalInternal processMessage processCommand model signal simulant world)
-            (model, world)
-            signals
-
-    let processSignal processMessage processCommand modelLens signal simulant world =
-        let model = Lens.get modelLens world
-        let (model, world) = processSignalInternal processMessage processCommand model signal simulant world
-        let world = Lens.set model modelLens world
-        world
-
-    let processSignals processMessage processCommand modelLens signals simulant world =
-        let model = Lens.get modelLens world
-        let (model, world) = processSignalsInternal processMessage processCommand model signals simulant world
-        let world = Lens.set model modelLens world
-        world
+            (fun world signal -> processSignal processMessage processCommand modelLens signal simulant world)
+            world signals
 
     let processChannels processMessage processCommand modelLens channels simulant world =
         List.fold (fun world channel ->
@@ -103,18 +94,13 @@ module Signal =
             | Left address ->
                 EventSystem.monitor (fun evt world ->
                     let signal = channel.Handler evt
-                    let model = Lens.get modelLens world
-                    let (model, world) = processSignalInternal processMessage processCommand model signal simulant world
-                    let world = Lens.set model modelLens world
+                    let world = processSignal processMessage processCommand modelLens signal simulant world
                     (Cascade, world))
                     address simulant world
             | Right stream ->
                 Stream.monitor (fun evt world ->
                     let signal = channel.Handler evt
-                    let model = Lens.get modelLens world
-                    let (model, world) = processSignalInternal processMessage processCommand model signal simulant world
-                    let world = Lens.set model modelLens world
-                    world)
+                    processSignal processMessage processCommand modelLens signal simulant world)
                     simulant stream world)
             world
             channels
