@@ -91,7 +91,7 @@ module OMap =
                 { Indices = UMap.remove key map.Indices
                   Entries = FStack.replaceAt index struct (false, Unchecked.defaultof<_>, Unchecked.defaultof<_>) map.Entries
                   InactiveCount = inc map.InactiveCount }
-            if map.InactiveCount > FStack.length map.Entries
+            if map.InactiveCount > FStack.length map.Entries / 2
             then compact map
             else map
         | None -> map
