@@ -9,8 +9,8 @@ type OMapEnumerator<'k, 'v> (enr : FStackEnumerator<struct (bool * 'k * 'v)>) =
     member this.MoveNext () =
         let result = enr.MoveNext ()
         if result then
-            let struct (valid, _, _) = enr.Current
-            if not valid then this.MoveNext ()
+            let struct (active, _, _) = enr.Current
+            if not active then this.MoveNext ()
             else true
         else false
     interface IEnumerator<'k * 'v> with
@@ -165,6 +165,10 @@ module OMap =
     /// Fold over an OMap.
     let fold folder state (map : OMap<'k, 'v>) =
         Seq.fold (fun s struct (a, k, v) -> if a then folder s k v else s) state map.Entries
+
+    /// Fold over the values of an OMap.
+    let foldv folder state (map : OMap<'k, 'v>) =
+        Seq.fold (fun s struct (a, _, v) -> if a then folder s v else s) state map.Entries
 
     /// Map over an OMap.
     let map mapper map =
