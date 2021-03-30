@@ -4,6 +4,22 @@ open System.Collections
 open System.Collections.Generic
 open Prime
 
+/// An enumerator for OMap.
+type OMapEnumerator<'k, 'v> (enr : FStackEnumerator<struct (bool * 'k * 'v)>) =
+    member this.MoveNext () =
+        let result = enr.MoveNext ()
+        if result then
+            let struct (valid, _, _) = enr.Current
+            if not valid then this.MoveNext ()
+            else true
+        else false
+    interface IEnumerator<'k * 'v> with
+        member this.MoveNext () = this.MoveNext ()
+        member this.Current = let struct (_, k, v) = enr.Current in (k, v)
+        member this.Current = let struct (_, k, v) = enr.Current in (k, v) :> obj
+        member this.Reset () = enr.Reset ()
+        member this.Dispose () = enr.Dispose ()
+
 [<RequireQualifiedAccess>]
 module OMap =
 
@@ -17,17 +33,14 @@ module OMap =
 
         interface IEnumerable<'k * 'v> with
             member this.GetEnumerator () =
-                this.Entries |>
-                Seq.filter (fun (struct (active, _, _)) -> active) |>
-                Seq.map (fun (struct (_, k, v)) -> (k, v)) |>
-                fun entries -> entries.GetEnumerator ()
+                new OMapEnumerator<'k, 'v> (this.Entries.GetEnumerator ()) :> IEnumerator<'k * 'v>
 
         interface IEnumerable with
             member this.GetEnumerator () =
-                this :>
-                IEnumerable<_> :>
-                IEnumerable |>
-                fun entries -> entries.GetEnumerator ()
+                new OMapEnumerator<'k, 'v> (this.Entries.GetEnumerator ()) :> IEnumerator
+
+        member this.GetEnumerator () =
+            new OMapEnumerator<'k, 'v> (this.Entries.GetEnumerator ())
 
         /// Try to find a value with the given key in an OMap without allocating.
         /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.

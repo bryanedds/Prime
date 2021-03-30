@@ -4,27 +4,33 @@ open System.Collections
 open System.Collections.Generic
 
 /// An enumerator for FStack.
-type internal 'a FStackEnumerator (front : 'a array, back : 'a array) =
+type 'a FStackEnumerator (front : 'a array, back : 'a array) =
     let mutable inFront = true
     let mutable index = -1
+    member this.MoveNext () =
+        index <- inc index
+        if inFront then
+            if  index >= Array.length front then
+                index <- 0
+                inFront <- false
+                index < Array.length back
+            else true
+        else index < Array.length back
+    member this.Current =
+        if inFront
+        then front.[index]
+        else back.[index]
+    member this.Reset () =
+        inFront <- true
+        index <- -1
+    member this.Dispose () =
+        ()
     interface 'a IEnumerator with
-        member this.MoveNext () =
-            index <- inc index
-            if inFront then
-                if  index >= Array.length front then
-                    index <- 0
-                    inFront <- false
-                    index < Array.length back
-                else true
-            else index < Array.length back
-        member this.Current =
-            if inFront then front.[index] else back.[index]
-        member this.Current =
-            (this :> 'a IEnumerator).Current :> obj
-        member this.Reset () =
-            inFront <- true; index <- -1
-        member this.Dispose () =
-            ()
+        member this.MoveNext () = this.MoveNext ()
+        member this.Current = this.Current
+        member this.Current = this.Current :> obj
+        member this.Reset () = this.Reset ()
+        member this.Dispose () = this.Dispose ()
 
 // TODO: document!
 [<RequireQualifiedAccess>]
@@ -50,6 +56,9 @@ module FStack =
             let mutable hash = 1
             for a in this do hash <- 31 * hash + Unchecked.hash a
             hash
+
+        member this.GetEnumerator () =
+            new FStackEnumerator<'a> (this.Front, this.Back)
 
         member this.Item with get index =
             if index >= 0 then
