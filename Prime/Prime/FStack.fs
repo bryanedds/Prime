@@ -22,7 +22,7 @@ type internal 'a FStackEnumerator (front : 'a array, back : 'a array) =
         member this.Current =
             (this :> 'a IEnumerator).Current :> obj
         member this.Reset () =
-            inFront <- true; index <- 0
+            inFront <- true; index <- -1
         member this.Dispose () =
             ()
 
