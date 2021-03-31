@@ -92,16 +92,16 @@ module Xtension =
             (if imperative then ImperativeMask else 0) }
 
     /// An Xtension that cannot default, is sealed, and is imperative.
-    let makeImperative () = make (UMap.makeEmpty HashIdentity.Structural Imperative) false true true
+    let makeImperative () = make (UMap.makeEmpty StringComparer.Ordinal Imperative) false true true
 
     /// An Xtension that can default, isn't sealed, and isn't imperative.
-    let makeEmpty () = make (UMap.makeEmpty HashIdentity.Structural Functional) true false false
+    let makeEmpty () = make (UMap.makeEmpty StringComparer.Ordinal Functional) true false false
 
     /// An Xtension that cannot default, is sealed, and isn't imperative.
-    let makeSafe () = make (UMap.makeEmpty HashIdentity.Structural Functional) false true false
+    let makeSafe () = make (UMap.makeEmpty StringComparer.Ordinal Functional) false true false
 
     /// An Xtension that cannot default, isn't sealed, and isn't imperative.
-    let makeMixed () = make (UMap.makeEmpty HashIdentity.Structural Functional) false false false
+    let makeMixed () = make (UMap.makeEmpty StringComparer.Ordinal Functional) false false false
 
     /// Check whether the extension uses mutation.
     let getImperative (xtension : Xtension) = xtension.Imperative
