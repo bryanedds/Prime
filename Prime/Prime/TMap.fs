@@ -8,12 +8,12 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module TMap =
 
-    type [<NoEquality; NoComparison>] private Log<'k, 'v when 'k : equality> =
+    type [<NoEquality; NoComparison>] private Log<'k, 'v> =
         | Add of key : 'k * value : 'v
         | Remove of remove : 'k
         | Clear
 
-    type [<NoEquality; NoComparison>] TMap<'k, 'v when 'k : equality> =
+    type [<NoEquality; NoComparison>] TMap<'k, 'v> =
         private
             { mutable TMapOpt : TMap<'k, 'v>
               TConfig : TConfig
@@ -76,7 +76,7 @@ module TMap =
         then validate2 map
         else map
 
-    let makeFromSeq<'k, 'v when 'k : equality> (comparer : 'k IEqualityComparer) config (entries : ('k * 'v) seq) =
+    let makeFromSeq<'k, 'v> (comparer : 'k IEqualityComparer) config (entries : ('k * 'v) seq) =
         if TConfig.isFunctional config then 
             let dict = dictPlus comparer entries
             let dictOrigin = Dictionary (dict, comparer)
@@ -97,7 +97,7 @@ module TMap =
               Logs = []
               LogsLength = 0 }
 
-    let makeEmpty<'k, 'v when 'k : equality> comparer config =
+    let makeEmpty<'k, 'v> comparer config =
         makeFromSeq<'k, 'v> comparer config Seq.empty
         
     let getComparer map =
@@ -207,9 +207,9 @@ module TMap =
             (makeEmpty map.Dict.Comparer map.TConfig)
             map
 
-type TMap<'k, 'v when 'k : equality> = TMap.TMap<'k, 'v>
+type TMap<'k, 'v> = TMap.TMap<'k, 'v>
 
 [<AutoOpen>]
 module TMapBuilder = 
 
-    let tmap<'k, 'v when 'k : equality> = TExprBuilder<TMap<'k, 'v>> ()
+    let tmap<'k, 'v> = TExprBuilder<TMap<'k, 'v>> ()

@@ -25,7 +25,7 @@ module OMap =
 
     /// An ordered persistent map based on UMap and FStack.
     /// NOTE: not supported by SymbolicConverter.
-    type [<NoEquality; NoComparison>] OMap<'k, 'v when 'k : equality> =
+    type [<NoEquality; NoComparison>] OMap<'k, 'v> =
         private
             { Indices : UMap<'k, int>
               Entries : struct (bool * 'k * 'v) FStack
@@ -66,7 +66,7 @@ module OMap =
           InactiveCount = 0 }
 
     /// Create an empty OMap.
-    let makeEmpty<'k, 'v when 'k : equality> comparer config =
+    let makeEmpty<'k, 'v> comparer config =
         { Indices = UMap.makeEmpty<'k, int> comparer config
           Entries = (FStack.empty : struct (bool * 'k * 'v) FStack)
           InactiveCount = 0 }
@@ -196,10 +196,10 @@ module OMap =
             pairs
 
     /// Make an OMap with a single entry.
-    let makeSingleton<'k, 'v when 'k : equality> comparer config key value =
+    let makeSingleton<'k, 'v> comparer config key value =
         let empty = makeEmpty<'k, 'v> comparer config
         add key value empty
 
 /// An ordered persistent map based on UMap and FStack.
 /// NOTE: not supported by SymbolicConverter.
-type OMap<'k, 'v when 'k : equality> = OMap.OMap<'k, 'v>
+type OMap<'k, 'v> = OMap.OMap<'k, 'v>

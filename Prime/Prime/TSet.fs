@@ -8,12 +8,12 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module TSet =
 
-    type [<NoEquality; NoComparison>] private Log<'a when 'a : equality> =
+    type [<NoEquality; NoComparison>] private Log<'a> =
         | Add of add : 'a
         | Remove of remove : 'a
         | Clear
 
-    type [<NoEquality; NoComparison>] TSet<'a when 'a : equality> =
+    type [<NoEquality; NoComparison>] TSet<'a> =
         private
             { mutable TSetOpt : 'a TSet
               TConfig : TConfig
@@ -95,11 +95,11 @@ module TSet =
               Logs = []
               LogsLength = 0 }
 
-    let makeFromSeq<'a when 'a : equality> comparer config (items : 'a seq) =
+    let makeFromSeq<'a> comparer config (items : 'a seq) =
         let hashSet = hashSetPlus comparer items
         makeFromHashSet comparer config hashSet
 
-    let makeEmpty<'a when 'a : equality> comparer config =
+    let makeEmpty<'a> comparer config =
         makeFromSeq<'a> comparer config Seq.empty
 
     let getComparer set =
@@ -229,9 +229,9 @@ module TSet =
         let struct (result, set, set2) = differenceFast set set2
         struct (makeFromHashSet set.HashSet.Comparer config result, set, set2)
 
-type TSet<'a when 'a : equality> = TSet.TSet<'a>
+type TSet<'a> = TSet.TSet<'a>
 
 [<AutoOpen>]
 module TSetBuilder =
 
-        let tset<'a when 'a : equality> = TExprBuilder<'a TSet> ()
+        let tset<'a> = TExprBuilder<'a TSet> ()

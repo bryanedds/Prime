@@ -9,7 +9,7 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module UMap =
 
-    type [<NoEquality; NoComparison>] UMap<'k, 'v when 'k : equality> =
+    type [<NoEquality; NoComparison>] UMap<'k, 'v> =
         private
             { mutable Map : TMap<'k, 'v> }
     
@@ -33,10 +33,10 @@ module UMap =
             this.Map <- tmap
             item
 
-    let makeFromSeq<'k, 'v when 'k : equality> comparer config entries =
+    let makeFromSeq<'k, 'v> comparer config entries =
         { Map = TMap.makeFromSeq<'k, 'v> comparer config entries }
 
-    let makeEmpty<'k, 'v when 'k : equality> comparer config =
+    let makeEmpty<'k, 'v> comparer config =
         { Map = TMap.makeEmpty<'k, 'v> comparer config }
 
     let getComparer map =
@@ -124,4 +124,4 @@ module UMap =
         map.Map <- tmap
         { Map = result }
 
-type UMap<'k, 'v when 'k : equality> = UMap.UMap<'k, 'v>
+type UMap<'k, 'v> = UMap.UMap<'k, 'v>

@@ -48,7 +48,7 @@ module DictionaryOperators =
 
     /// Like dict, but returns a concrete Dictionary instance with structural hashing.
     /// NOTE: Also uses forced adding, allowing multiple of the same key in the kvps.
-    let dictPlus<'k, 'v when 'k : equality> (comparer : 'k IEqualityComparer) (kvps : ('k * 'v) seq) =
+    let dictPlus<'k, 'v> (comparer : 'k IEqualityComparer) (kvps : ('k * 'v) seq) =
         let dictionary = Dictionary<'k, 'v> comparer
         for (key, value) in kvps do dictionary.ForceAdd (key, value)
         dictionary
