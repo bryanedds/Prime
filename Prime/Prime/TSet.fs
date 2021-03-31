@@ -8,12 +8,12 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module TSet =
 
-    type [<NoEquality; NoComparison>] private Log<'a> =
+    type [<NoEquality; NoComparison>] private 'a Log =
         | Add of add : 'a
         | Remove of remove : 'a
         | Clear
 
-    type [<NoEquality; NoComparison>] TSet<'a> =
+    type [<NoEquality; NoComparison>] 'a TSet =
         private
             { mutable TSetOpt : 'a TSet
               TConfig : TConfig
@@ -76,7 +76,7 @@ module TSet =
         then validate2 set
         else set
 
-    let makeFromHashSet (comparer : 'a IEqualityComparer) config (hashSet : HashSet<'a>) =
+    let makeFromHashSet (comparer : 'a IEqualityComparer) config (hashSet : 'a HashSet) =
         if TConfig.isFunctional config then
             let set =
                 { TSetOpt = Unchecked.defaultof<'a TSet>
@@ -229,7 +229,7 @@ module TSet =
         let struct (result, set, set2) = differenceFast set set2
         struct (makeFromHashSet set.HashSet.Comparer config result, set, set2)
 
-type TSet<'a> = TSet.TSet<'a>
+type 'a TSet = 'a TSet.TSet
 
 [<AutoOpen>]
 module TSetBuilder =
