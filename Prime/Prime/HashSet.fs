@@ -8,8 +8,8 @@ open System.Collections.Generic
 module HashSet =
 
     /// Make a hash set with a single item.
-    let inline singleton item =
-        List.toHashSet [item]
+    let inline singleton comparer item =
+        List.toHashSet comparer [item]
 
 [<AutoOpen>]
 module HashSetExtension =
@@ -33,7 +33,7 @@ module HashSetOperators =
         hashSet
 
     /// Make a concrete HashSet instance populated with the given items and using structural hashing.
-    let hashSetPlus items =
-        let hashSet = HashSet HashIdentity.Structural
+    let hashSetPlus (comparer : 'a IEqualityComparer) items =
+        let hashSet = HashSet comparer
         for item in items do hashSet.TryAdd item |> ignore
         hashSet

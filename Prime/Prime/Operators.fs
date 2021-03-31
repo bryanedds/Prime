@@ -14,7 +14,7 @@ open Prime
 module Operators =
 
     /// Memoized union tags.
-    let private TagsMemo = Dictionary<obj, int> (HashIdentity.Structural)
+    let private TagsMemo = Dictionary<obj, int> HashIdentity.Structural // TODO: P1: make sure this is the best comparer for obj...
 
     /// The constant function.
     /// No matter what you pass it, it evaluates to the first argument.

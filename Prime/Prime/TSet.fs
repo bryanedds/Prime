@@ -96,7 +96,7 @@ module TSet =
               LogsLength = 0 }
 
     let makeFromSeq<'a when 'a : equality> comparer config (items : 'a seq) =
-        let hashSet = hashSetPlus items
+        let hashSet = hashSetPlus comparer items
         makeFromHashSet comparer config hashSet
 
     let makeEmpty<'a when 'a : equality> comparer config =

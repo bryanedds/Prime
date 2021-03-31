@@ -78,7 +78,7 @@ module TMap =
 
     let makeFromSeq<'k, 'v when 'k : equality> (comparer : 'k IEqualityComparer) config (entries : ('k * 'v) seq) =
         if TConfig.isFunctional config then 
-            let dict = dictPlus entries
+            let dict = dictPlus comparer entries
             let dictOrigin = Dictionary (dict, comparer)
             let map =
                 { TMapOpt = Unchecked.defaultof<TMap<'k, 'v>>
@@ -92,7 +92,7 @@ module TMap =
         else
             { TMapOpt = Unchecked.defaultof<TMap<'k, 'v>>
               TConfig = config
-              Dict = dictPlus entries
+              Dict = dictPlus comparer entries
               DictOrigin = Dictionary comparer
               Logs = []
               LogsLength = 0 }

@@ -8,8 +8,8 @@ open System.Collections.Generic
 module Dictionary =
 
     /// Make a dictionary with a single entry.
-    let inline singleton key value =
-        List.toDict [(key, value)]
+    let inline singleton comparer key value =
+        List.toDict comparer [(key, value)]
 
     /// Map over a dictionary. A new dictionary is produced.
     let map (mapper : KeyValuePair<'k, 'v> -> 'v) (dictionary : Dictionary<'k, 'v>) =
@@ -48,7 +48,7 @@ module DictionaryOperators =
 
     /// Like dict, but returns a concrete Dictionary instance with structural hashing.
     /// NOTE: Also uses forced adding, allowing multiple of the same key in the kvps.
-    let dictPlus<'k, 'v when 'k : equality> (kvps : ('k * 'v) seq) =
-        let dictionary = Dictionary<'k, 'v> HashIdentity.Structural
+    let dictPlus<'k, 'v when 'k : equality> (comparer : 'k IEqualityComparer) (kvps : ('k * 'v) seq) =
+        let dictionary = Dictionary<'k, 'v> comparer
         for (key, value) in kvps do dictionary.ForceAdd (key, value)
         dictionary

@@ -166,7 +166,7 @@ module ScriptingMarshalling =
          (typedefof<_ Set>.Name, (fun tryImportExt ty value -> tryImportSet tryImportExt ty value))
          (typedefof<Map<_, _>>.Name, (fun tryImportExt ty value -> tryImportMap tryImportExt ty value))
          (typedefof<Symbol>.Name, (fun tryImportExt ty value -> tryImportSymbol tryImportExt ty value))] |>
-        dictPlus
+        dictPlus StringComparer.Ordinal
 
     let rec tryExport tryExportExt (ty : Type) (value : Expr) =
 
@@ -364,4 +364,4 @@ module ScriptingMarshalling =
          (typedefof<_ Set>.Name, tryExportSet)
          (typedefof<Map<_, _>>.Name, tryExportMap)
          (typedefof<Symbol>.Name, tryExportSymbol)] |>
-        dictPlus
+        dictPlus StringComparer.Ordinal

@@ -193,7 +193,7 @@ module ScriptingSystem =
                  ("remove", { Fn = evalDoublet evalRemove; Pars = [|"a"; "context"|]; DocOpt = Some "Remove an inhabitant from a context." })
                  ("toTable", { Fn = evalSinglet evalToTable; Pars = [|"context"|]; DocOpt = Some "Convert a context to a Table." })
                  ("info", { Fn = evalSinglet evalInfo; Pars = [|"f"|]; DocOpt = Some "Get information on a function's metadata." })] |>
-                dictPlus
+                dictPlus StringComparer.Ordinal
             Intrinsics <- intrinsics
             intrinsics
         else Intrinsics :?> Dictionary<string, 'w ScriptingTrinsic>

@@ -249,20 +249,20 @@ module List =
         List.iter (by >> dictionary.Add) list
 
     /// Convert a list of pairs to a Dictionary.
-    let toDict list =
-        let dictionary = Dictionary HashIdentity.Structural
+    let toDict (comparer : 'a IEqualityComparer) list =
+        let dictionary = Dictionary comparer
         addToDict dictionary list
         dictionary
 
     /// Convert a list of values to a Dictionary.
-    let toDictBy by list =
-        let dictionary = Dictionary HashIdentity.Structural
+    let toDictBy by (comparer : 'a IEqualityComparer) list =
+        let dictionary = Dictionary comparer
         addToDictBy by dictionary list
         dictionary
 
     /// Convert a list to a HashSet.
-    let toHashSet list =
-        let hashSet = HashSet HashIdentity.Structural
+    let toHashSet (comparer : 'a IEqualityComparer) list =
+        let hashSet = HashSet comparer
         List.iter (hashSet.Add >> ignore) list
         hashSet
 
