@@ -33,14 +33,14 @@ module TMap =
 
     let private commit map =
         let oldMap = map
-        let dictOrigin = Dictionary<'k, 'v> (map.DictOrigin, HashIdentity.Structural)
+        let dictOrigin = Dictionary<'k, 'v> (map.DictOrigin, map.DictOrigin.Comparer)
         List.foldBack (fun log () ->
             match log with
             | Add (key, value) -> dictOrigin.ForceAdd (key, value)
             | Remove key -> dictOrigin.Remove key |> ignore
             | Clear -> dictOrigin.Clear ())
             map.Logs ()
-        let dict = Dictionary<'k, 'v> (dictOrigin, HashIdentity.Structural)
+        let dict = Dictionary<'k, 'v> (dictOrigin, dictOrigin.Comparer)
         let map = { map with Dict = dict; DictOrigin = dictOrigin; Logs = []; LogsLength = 0 }
         oldMap.TMapOpt <- Unchecked.defaultof<TMap<'k, 'v>>
         map.TMapOpt <- map
@@ -48,7 +48,7 @@ module TMap =
 
     let private compress map =
         let oldMap = map
-        let dictOrigin = Dictionary<'k, 'v> (map.Dict, HashIdentity.Structural)
+        let dictOrigin = Dictionary<'k, 'v> (map.Dict, map.Dict.Comparer)
         let map = { map with DictOrigin = dictOrigin; Logs = []; LogsLength = 0 }
         oldMap.TMapOpt <- Unchecked.defaultof<TMap<'k, 'v>>
         map.TMapOpt <- map
@@ -76,10 +76,10 @@ module TMap =
         then validate2 map
         else map
 
-    let makeFromSeq<'k, 'v when 'k : equality> config (entries : ('k * 'v) seq) =
+    let makeFromSeq<'k, 'v when 'k : equality> (comparer : 'k IEqualityComparer) config (entries : ('k * 'v) seq) =
         if TConfig.isFunctional config then 
             let dict = dictPlus entries
-            let dictOrigin = Dictionary (dict, HashIdentity.Structural)
+            let dictOrigin = Dictionary (dict, comparer)
             let map =
                 { TMapOpt = Unchecked.defaultof<TMap<'k, 'v>>
                   TConfig = config
@@ -93,12 +93,15 @@ module TMap =
             { TMapOpt = Unchecked.defaultof<TMap<'k, 'v>>
               TConfig = config
               Dict = dictPlus entries
-              DictOrigin = Dictionary HashIdentity.Structural
+              DictOrigin = Dictionary comparer
               Logs = []
               LogsLength = 0 }
 
-    let makeEmpty<'k, 'v when 'k : equality> config =
-        makeFromSeq<'k, 'v> config Seq.empty
+    let makeEmpty<'k, 'v when 'k : equality> comparer config =
+        makeFromSeq<'k, 'v> comparer config Seq.empty
+        
+    let getComparer map =
+        struct (map.Dict.Comparer, map)
 
     let getConfig map =
         struct (map.TConfig, map)
@@ -184,7 +187,7 @@ module TMap =
     /// Convert a TMap to a Dictionary.
     let toDict map =
         let dict = validate map
-        let result = Dictionary<'k, 'v> (dict.Dict, HashIdentity.Structural)
+        let result = Dictionary<'k, 'v> (dict.Dict, map.Dict.Comparer)
         struct (result, dict)
 
     let fold folder state map =
@@ -195,13 +198,13 @@ module TMap =
     let map mapper map =
         fold
             (fun map key value -> add key (mapper value) map)
-            (makeEmpty map.TConfig)
+            (makeEmpty map.Dict.Comparer map.TConfig)
             map
 
     let filter pred map =
         fold
             (fun state k v -> if pred k v then add k v state else state)
-            (makeEmpty map.TConfig)
+            (makeEmpty map.Dict.Comparer map.TConfig)
             map
 
 type TMap<'k, 'v when 'k : equality> = TMap.TMap<'k, 'v>

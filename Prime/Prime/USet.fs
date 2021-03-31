@@ -23,11 +23,16 @@ module USet =
             member this.GetEnumerator () =
                 (this :> seq<'a>).GetEnumerator () :> IEnumerator
 
-    let makeFromSeq<'a when 'a : equality> config items =
-        { Set = TSet.makeFromSeq<'a> config items }
+    let makeFromSeq<'a when 'a : equality> comparer config items =
+        { Set = TSet.makeFromSeq<'a> comparer config items }
 
-    let makeEmpty<'a when 'a : equality> config =
-        { Set = TSet.makeEmpty<'a> config }
+    let makeEmpty<'a when 'a : equality> comparer config =
+        { Set = TSet.makeEmpty<'a> comparer config }
+
+    let getComparer set =
+        let struct (result, tset) = TSet.getComparer set.Set
+        set.Set <- tset
+        result
 
     let getConfig set =
         let struct (result, tset) = TSet.getConfig set.Set
@@ -77,10 +82,10 @@ module USet =
         set.Set <- tset
         hashSet
 
-    let ofSeq values config =
+    let ofSeq comparer config values =
         Seq.fold
             (fun map value -> add value map)
-            (makeEmpty config)
+            (makeEmpty comparer config)
             values
 
     let fold folder state set =

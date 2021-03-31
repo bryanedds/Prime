@@ -60,14 +60,14 @@ module OMap =
 
     let private compact map =
         let entries = FStack.filter (fun (struct (a, _, _)) -> a) map.Entries
-        let indices = Seq.foldi (fun i u (struct (_, k, _)) -> UMap.add k i u) (UMap.makeEmpty (UMap.getConfig map.Indices)) entries
+        let indices = Seq.foldi (fun i u (struct (_, k, _)) -> UMap.add k i u) (UMap.makeEmpty (UMap.getComparer map.Indices) (UMap.getConfig map.Indices)) entries
         { Indices = indices
           Entries = entries
           InactiveCount = 0 }
 
     /// Create an empty OMap.
-    let makeEmpty<'k, 'v when 'k : equality> config =
-        { Indices = UMap.makeEmpty<'k, int> config
+    let makeEmpty<'k, 'v when 'k : equality> comparer config =
+        { Indices = UMap.makeEmpty<'k, int> comparer config
           Entries = (FStack.empty : struct (bool * 'k * 'v) FStack)
           InactiveCount = 0 }
 
@@ -174,14 +174,14 @@ module OMap =
     let map mapper map =
         fold
             (fun state key value -> add key (mapper key value) state)
-            (makeEmpty (UMap.getConfig map.Indices))
+            (makeEmpty (UMap.getComparer map.Indices) (UMap.getConfig map.Indices))
             map
 
     /// Filter an OMap.
     let filter pred map =
         fold
             (fun state key value -> if pred key value then add key value state else state)
-            (makeEmpty (UMap.getConfig map.Indices))
+            (makeEmpty (UMap.getComparer map.Indices) (UMap.getConfig map.Indices))
             map
 
     /// Convert an OMap to a sequence of pairs of keys and values.
@@ -189,15 +189,15 @@ module OMap =
         map :> _ IEnumerable
 
     /// Convert a sequence of keys and values to an OMap.
-    let ofSeq pairs config =
+    let ofSeq comparer config pairs =
         Seq.fold
             (fun map (key, value) -> add key value map)
-            (makeEmpty config)
+            (makeEmpty comparer config)
             pairs
 
     /// Make an OMap with a single entry.
-    let makeSingleton<'k, 'v when 'k : equality> key value config =
-        let empty = makeEmpty<'k, 'v> config
+    let makeSingleton<'k, 'v when 'k : equality> comparer config key value =
+        let empty = makeEmpty<'k, 'v> comparer config
         add key value empty
 
 /// An ordered persistent map based on UMap and FStack.

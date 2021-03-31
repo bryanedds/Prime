@@ -33,14 +33,14 @@ module TSet =
 
     let private commit set =
         let oldSet = set
-        let hashSetOrigin = HashSet<'a> (set.HashSetOrigin, HashIdentity.Structural)
+        let hashSetOrigin = HashSet<'a> (set.HashSetOrigin, set.HashSetOrigin.Comparer)
         List.foldBack (fun log () ->
             match log with
             | Add value -> hashSetOrigin.TryAdd value |> ignore
             | Remove value -> hashSetOrigin.Remove value |> ignore
             | Clear -> hashSetOrigin.Clear ())
             set.Logs ()
-        let hashSet = HashSet<'a> (hashSetOrigin, HashIdentity.Structural)
+        let hashSet = HashSet<'a> (hashSetOrigin, hashSetOrigin.Comparer)
         let set = { set with HashSet = hashSet; HashSetOrigin = hashSetOrigin; Logs = []; LogsLength = 0 }
         oldSet.TSetOpt <- Unchecked.defaultof<'a TSet>
         set.TSetOpt <- set
@@ -48,7 +48,7 @@ module TSet =
 
     let private compress set =
         let oldSet = set
-        let hashSetOrigin = HashSet<'a> (set.HashSet, HashIdentity.Structural)
+        let hashSetOrigin = HashSet<'a> (set.HashSet, set.HashSet.Comparer)
         let set = { set with HashSetOrigin = hashSetOrigin; Logs = []; LogsLength = 0 }
         oldSet.TSetOpt <- Unchecked.defaultof<'a TSet>
         set.TSetOpt <- set
@@ -76,13 +76,13 @@ module TSet =
         then validate2 set
         else set
 
-    let makeFromHashSet config (hashSet : HashSet<'a>) =
+    let makeFromHashSet (comparer : 'a IEqualityComparer) config (hashSet : HashSet<'a>) =
         if TConfig.isFunctional config then
             let set =
                 { TSetOpt = Unchecked.defaultof<'a TSet>
                   TConfig = config
                   HashSet = hashSet
-                  HashSetOrigin = HashSet<'a> (hashSet, HashIdentity.Structural)
+                  HashSetOrigin = HashSet<'a> (hashSet, comparer)
                   Logs = []
                   LogsLength = 0 }
             set.TSetOpt <- set
@@ -91,16 +91,19 @@ module TSet =
             { TSetOpt = Unchecked.defaultof<'a TSet>
               TConfig = config
               HashSet = hashSet
-              HashSetOrigin = HashSet<'a> HashIdentity.Structural
+              HashSetOrigin = HashSet<'a> comparer
               Logs = []
               LogsLength = 0 }
 
-    let makeFromSeq<'a when 'a : equality> config (items : 'a seq) =
+    let makeFromSeq<'a when 'a : equality> comparer config (items : 'a seq) =
         let hashSet = hashSetPlus items
-        makeFromHashSet config hashSet
+        makeFromHashSet comparer config hashSet
 
-    let makeEmpty<'a when 'a : equality> config =
-        makeFromSeq<'a> config Seq.empty
+    let makeEmpty<'a when 'a : equality> comparer config =
+        makeFromSeq<'a> comparer config Seq.empty
+
+    let getComparer set =
+        struct (set.HashSet.Comparer, set)
 
     let getConfig set =
         struct (set.TConfig, set)
@@ -166,7 +169,7 @@ module TSet =
     /// Convert a TSet to a HashSet.
     let toHashSet set =
         let set = validate set
-        let result = HashSet<'a> (set.HashSet, HashIdentity.Structural)
+        let result = HashSet<'a> (set.HashSet, set.HashSet.Comparer)
         struct (result, set)
 
     let fold folder state set =
@@ -177,54 +180,54 @@ module TSet =
     let map mapper set =
         fold
             (fun set value -> add (mapper value) set)
-            (makeEmpty set.TConfig)
+            (makeEmpty set.HashSet.Comparer set.TConfig)
             set
 
     let filter pred set =
         fold
             (fun set value -> if pred value then add value set else set)
-            (makeEmpty set.TConfig)
+            (makeEmpty set.HashSet.Comparer set.TConfig)
             set
 
     let unionFast set set2 =
         let (set, set2) = (validate set, validate set2)
-        let result = HashSet<'a> (set.HashSet, HashIdentity.Structural)
+        let result = HashSet<'a> (set.HashSet, set.HashSet.Comparer)
         result.UnionWith set2.HashSet
         struct (result, set, set2)
 
     let intersectFast set set2 =
         let (set, set2) = (validate set, validate set2)
-        let result = HashSet<'a> (set.HashSet, HashIdentity.Structural)
+        let result = HashSet<'a> (set.HashSet, set.HashSet.Comparer)
         result.IntersectWith set2.HashSet
         struct (result, set, set2)
 
     let disjointFast set set2 =
         let (set, set2) = (validate set, validate set2)
-        let result = HashSet<'a> (set.HashSet, HashIdentity.Structural)
+        let result = HashSet<'a> (set.HashSet, set.HashSet.Comparer)
         result.SymmetricExceptWith set2.HashSet
         struct (result, set, set2)
 
     let differenceFast set set2 =
         let (set, set2) = (validate set, validate set2)
-        let result = HashSet<'a> (set.HashSet, HashIdentity.Structural)
+        let result = HashSet<'a> (set.HashSet, set.HashSet.Comparer)
         result.ExceptWith set2.HashSet
         struct (result, set, set2)
 
     let union config set set2 =
         let struct (result, set, set2) = unionFast set set2
-        struct (makeFromHashSet config result, set, set2)
+        struct (makeFromHashSet set.HashSet.Comparer config result, set, set2)
 
     let intersect config set set2 =
         let struct (result, set, set2) = intersectFast set set2
-        struct (makeFromHashSet config result, set, set2)
+        struct (makeFromHashSet set.HashSet.Comparer config result, set, set2)
 
     let disjoint config set set2 =
         let struct (result, set, set2) = disjointFast set set2
-        struct (makeFromHashSet config result, set, set2)
+        struct (makeFromHashSet set.HashSet.Comparer config result, set, set2)
 
     let difference config set set2 =
         let struct (result, set, set2) = differenceFast set set2
-        struct (makeFromHashSet config result, set, set2)
+        struct (makeFromHashSet set.HashSet.Comparer config result, set, set2)
 
 type TSet<'a when 'a : equality> = TSet.TSet<'a>
 

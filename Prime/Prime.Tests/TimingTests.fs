@@ -64,19 +64,19 @@ module TimingTests =
         
         // run tmap timings with computation expressions
         runMapTimings
-            (fun entries -> Array.fold (fun map (k, v) -> TMap.add k v map) (TMap.makeEmpty Functional) entries)
+            (fun entries -> Array.fold (fun map (k, v) -> TMap.add k v map) (TMap.makeEmpty HashIdentity.Structural Functional) entries)
             (fun entries map -> entries |> Array.iter (fun (k, _) -> TMap.find k map |> ignore))
             "TMap"
         
         // run umap timings without computation expressions
         runMapTimings
-            (fun entries -> Array.fold (fun map (k, v) -> UMap.add k v map) (UMap.makeEmpty Functional) entries)
+            (fun entries -> Array.fold (fun map (k, v) -> UMap.add k v map) (UMap.makeEmpty HashIdentity.Structural Functional) entries)
             (fun entries map -> Array.iter (fun (k, _) -> UMap.find k map |> ignore) entries)
             "UMap"
         
         // run umap imperative timings without computation expressions
         runMapTimings
-            (fun entries -> Array.fold (fun map (k, v) -> UMap.add k v map) (UMap.makeEmpty Imperative) entries)
+            (fun entries -> Array.fold (fun map (k, v) -> UMap.add k v map) (UMap.makeEmpty HashIdentity.Structural Functional) entries)
             (fun entries map -> Array.iter (fun (k, _) -> UMap.find k map |> ignore) entries)
             "UMap Imperative"
         

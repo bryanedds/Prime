@@ -228,7 +228,7 @@ module EventSystem =
                         UMap.add eventAddressObj subscriptionEntries subscriptions
                 | None ->
                     let subscriptionEntry = { SubscriptionId = subscriptionId; Subscriber = subscriber; CallbackBoxed = boxCallback callback }
-                    UMap.add eventAddressObj (OMap.makeSingleton subscriptionId subscriptionEntry Functional) subscriptions
+                    UMap.add eventAddressObj (OMap.makeSingleton HashIdentity.Structural Functional subscriptionId subscriptionEntry) subscriptions
             let unsubscriptions = UMap.add subscriptionId (eventAddressObj, subscriber :> Simulant) unsubscriptions
             let world = setSubscriptions subscriptions world
             let world = setUnsubscriptions unsubscriptions world

@@ -33,11 +33,16 @@ module UMap =
             this.Map <- tmap
             item
 
-    let makeFromSeq<'k, 'v when 'k : equality> config entries =
-        { Map = TMap.makeFromSeq<'k, 'v> config entries }
+    let makeFromSeq<'k, 'v when 'k : equality> comparer config entries =
+        { Map = TMap.makeFromSeq<'k, 'v> comparer config entries }
 
-    let makeEmpty<'k, 'v when 'k : equality> config =
-        { Map = TMap.makeEmpty<'k, 'v> config }
+    let makeEmpty<'k, 'v when 'k : equality> comparer config =
+        { Map = TMap.makeEmpty<'k, 'v> comparer config }
+
+    let getComparer map =
+        let struct (result, tmap) = TMap.getComparer map.Map
+        map.Map <- tmap
+        result
 
     let getConfig map =
         let struct (result, tmap) = TMap.getConfig map.Map
@@ -98,10 +103,10 @@ module UMap =
         dict
 
     /// Convert a sequence of keys and values to a UMap.
-    let ofSeq pairs config =
+    let ofSeq comparer config pairs =
         Seq.fold
             (fun map (key, value) -> add key value map)
-            (makeEmpty config)
+            (makeEmpty comparer config)
             pairs
 
     let fold folder state map =

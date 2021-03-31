@@ -245,9 +245,9 @@ module EventSystemDelegate =
     /// Make an event delegate.
     let make eventTracerOpt eventFilter globalSimulantSpecialized globalSimulantGeneralized config =
         let esd =
-            { Subscriptions = UMap.makeEmpty config
-              Unsubscriptions = UMap.makeEmpty config
-              EventStates = UMap.makeEmpty config
+            { Subscriptions = UMap.makeEmpty HashIdentity.Structural config
+              Unsubscriptions = UMap.makeEmpty HashIdentity.Structural config
+              EventStates = UMap.makeEmpty HashIdentity.Structural config
               EventTracerOpt = eventTracerOpt
               EventFilter = eventFilter }
         GlobalSimulantSpecialized <- globalSimulantSpecialized
