@@ -17,7 +17,6 @@ and SimulantPropertyChangeUnhandler<'w when 'w :> 'w EventSystem> =
 /// Effectively a mix-in for the 'w type, where 'w is a type that represents the client program.
 and EventSystem<'w when 'w :> 'w EventSystem> =
     interface
-        inherit PropertySystem<'w>
         abstract member GetLiveness : unit -> Liveness
         abstract member GetSimulantExists : Simulant -> bool
         abstract member GetGlobalSimulantSpecialized : unit -> Simulant

@@ -8,7 +8,6 @@ open Prime
 /// A participant in the observable-property system.
 type Simulant =
     interface
-        inherit Propertied
         abstract member SimulantAddress : Simulant Address
         end
 

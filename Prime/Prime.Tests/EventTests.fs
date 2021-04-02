@@ -17,9 +17,6 @@ module EventTests =
         { TestState : int
           TestEventSystemDelegate : TestWorld EventSystemDelegate }
         interface EventSystem<TestWorld> with
-            member this.GetPropertyOpt _ _ = None
-            member this.SetPropertyOpt _ _ _ = this
-            member this.HandlePropertyChange _ _ _ = (id, this)
             member this.GetLiveness () = Live
             member this.GetSimulantExists simulant = simulant.GetType () = typeof<TestSimulant>
             member this.GetGlobalSimulantSpecialized () = EventSystemDelegate.getGlobalSimulantSpecialized this.TestEventSystemDelegate

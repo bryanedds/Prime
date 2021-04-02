@@ -99,7 +99,6 @@
     <Compile Include="Molder.fs" />
     <Compile Include="Whisp.fs" />
     <Compile Include="Xtension.fs" />
-    <Compile Include="PropertySystem.fs" />
     <Compile Include="EventTrace.fs" />
     <Compile Include="EventFilter.fs" />
     <Compile Include="EventSimulant.fs" />
