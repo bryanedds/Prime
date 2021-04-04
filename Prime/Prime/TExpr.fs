@@ -5,21 +5,14 @@ namespace Prime
 open System
 
 type [<StructuralEquality; StructuralComparison>] TConfig =
-    | BasedOnBuild
     | Functional
     | Imperative
 
 [<RequireQualifiedAccess>]
 module TConfig =
 
-    let isFunctional config =
+    let inline isFunctional config =
         match config with
-        | BasedOnBuild ->
-#if DEBUG
-            true
-#else
-            false
-#endif
         | Functional -> true
         | Imperative -> false
 
