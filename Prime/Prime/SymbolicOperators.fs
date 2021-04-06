@@ -10,7 +10,7 @@ open Prime
 module SymbolicOperators =
 
     let private SCValueMemo = Dictionary<string, obj> StringComparer.Ordinal
-    let private SCStringMemo = Dictionary<obj, string> HashIdentity.Structural // TODO: P1: make sure this is the best comparer for obj...
+    let private SCStringMemo = Dictionary<obj, string> HashIdentity.Structural
 
     /// Convert a value to a symbol.
     let valueToSymbol<'a> (value : 'a) =

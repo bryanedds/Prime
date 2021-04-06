@@ -268,7 +268,7 @@ module Scripting =
             | Keyword keyword
             | Union (keyword, _) ->
                 let typeOpt =
-                    // TODO: try caching the union types to speed this up
+                    // TODO: try caching the union types to speed this up.
                     AppDomain.CurrentDomain.GetAssemblies () |>
                     Array.map (fun asm -> Array.filter FSharpType.IsUnion (asm.GetTypes ())) |>
                     Array.concat |>
@@ -282,7 +282,7 @@ module Scripting =
                 typeOpt
             | Record (keyword, _, _) ->
                 let typeOpt =
-                    // TODO: try caching the record types to speed this up
+                    // TODO: try caching the record types to speed this up.
                     AppDomain.CurrentDomain.GetAssemblies () |>
                     Array.map (fun asm -> Array.filter FSharpType.IsRecord (asm.GetTypes ())) |>
                     Array.concat |>

@@ -185,7 +185,7 @@ module Whisp =
     
     let createParserWithArgsForwardedToRef () =
         // TODO: put this in FParsec.fs?
-        let dummyParser = fun _ _ -> failwith "A parser created with createParserWithArgsForwardedToRef was not initialized"
+        let dummyParser = fun _ _ -> failwith "A parser created with createParserWithArgsForwardedToRef was not initialized."
         let r = ref dummyParser
         (fun arg stream -> !r arg stream), r : ('t -> Parser<'a, 'u>) * ('t -> Parser<'a, 'u>) ref
 
