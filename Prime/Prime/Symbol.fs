@@ -363,4 +363,6 @@ type ConversionException (message : string, symbolOpt : Symbol option) =
 [<AutoOpen>]
 module ConversionExceptionOperators =
     let failconv message symbolOpt =
-        raise (ConversionException (message, symbolOpt))
+        match symbolOpt with
+        | Some symbol -> raise (ConversionException (message + "\nConversion source: " + Symbol.toString symbol, symbolOpt))
+        | None -> raise (ConversionException (message + "\nConversion source not available.", symbolOpt))
