@@ -40,8 +40,6 @@ module Scripting =
         | Unfold of Expr * Expr
         | Conversion of Expr list
 
-    /// TODO: P1: Consider turning this into a [<Struct>] and making each case refer to a single item.
-    /// This might signficantly speed up numeric operations.
     and [<Syntax
             ((* Built-in Identifiers *)
              "true false nil " +
