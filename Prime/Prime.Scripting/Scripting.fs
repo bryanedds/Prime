@@ -970,7 +970,7 @@ module Scripting =
             let isTopLevel = List.isEmpty env.ProceduralFrames
             if isTopLevel then
 #if DEBUG
-                env.LocalFrame.ForceAdd (name, value); true
+                env.LocalFrame.[name] <- value; true
 #else
                 env.LocalFrame.TryAdd (name, value)
 #endif

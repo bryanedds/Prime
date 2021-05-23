@@ -521,7 +521,7 @@ module ScriptingSystem =
         else
 #if DEBUG
             ignore originOpt // not used in this static branch
-            intrinsics.ForceAdd (name, intrinsic)
+            intrinsics.[name] <- intrinsic
             struct (Unit, world)
 #else       
             struct (Violation (["IntrinsicRedefinition"], "Cannot redefine intrinsics outside of debug mode.", originOpt), world)
