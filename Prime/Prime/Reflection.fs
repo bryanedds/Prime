@@ -133,6 +133,15 @@ module Reflection =
             (fun (assembly : Assembly) -> assembly.FullName.StartsWith ("FSharp.Core,", StringComparison.Ordinal))
             (AppDomain.CurrentDomain.GetAssemblies ())
 
+    /// Check that a property is either a DesignerProperty or a ComputedProperty.
+    let isRuntimeProperty property =
+        property.PropertyValue :? DesignerProperty ||
+        property.PropertyValue :? ComputedProperty
+    
+    /// Check that a UMap contains any runtime properties.
+    let containsRuntimeProperties (properties : (string * Property) seq) =
+        properties |> Seq.exists (snd >> isRuntimeProperty)
+
     let objToObjSeq (source : obj) =
         enumerable<obj> (source :?> IEnumerable)
 

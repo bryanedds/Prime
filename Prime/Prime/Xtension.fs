@@ -9,9 +9,8 @@ open Prime
 module Xtension =
 
     // OPTIMIZATION: Xtension flag bit-masks; only for use by internal facilities.
-    let [<Literal>] internal CanDefaultMask =   0b0000000001
-    let [<Literal>] internal SealedMask =       0b0000000010
-    let [<Literal>] internal ImperativeMask =   0b0000000100
+    let [<Literal>] internal ImperativeMask =                   0b0000000001
+    let [<Literal>] internal ContainsRuntimePropertiesMask =    0b0000000010
 
     /// Xtensions are a dynamic, functional, and convenient way to implement both dynamic properties
     /// and designer properties.
@@ -22,21 +21,15 @@ module Xtension =
               Flags : int }
 
             // Member properties; only for use by internal facilities.
-            member this.CanDefault with get () = this.Flags &&& CanDefaultMask <> 0
-            member this.Sealed with get () = this.Flags &&& SealedMask <> 0
             member this.Imperative with get () = this.Flags &&& ImperativeMask <> 0
-
-        /// Try to get the default value for a given xtension member, returning None when defaulting is disallowed.
-        static member private tryGetDefaultValue (this : Xtension) propertyName : 'a =
-            if this.CanDefault then scdefaultof ()
-            else failwith ("Xtension property '" + propertyName + "' does not exist and no default is permitted because CanDefault is false.")
+            member this.ContainsRuntimeProperties with get () = this.Flags &&& ContainsRuntimePropertiesMask <> 0
 
         /// The dynamic look-up operator for an Xtension.
         /// Example:
         ///     let parallax : single = xtn?Parallax
         static member (?) (xtension, propertyName) : 'a =
 
-            // check if dynamic member is an existing property
+            // try to find an existing property
             match UMap.tryFind propertyName xtension.Properties with
             | Some property ->
 
@@ -49,19 +42,19 @@ module Xtension =
                 | :? 'a as value -> value
                 | _ -> failwith ("Xtension property '" + propertyName + "' of type '" + property.PropertyType.Name + "' is not of the expected type '" + typeof<'a>.Name + "'.")
 
-            // presume we're looking for a property that doesn't exist, so try to get the default value
-            | None -> Xtension.tryGetDefaultValue xtension propertyName
+            // can't find the required property.
+            | None -> failwith ("No property '" + propertyName + "' found.")
 
         /// The dynamic assignment operator for an Xtension.
         /// Example:
         ///     let xtn = xtn.Position <- Vector2 (4.0, 5.0).
         static member (?<-) (xtension, propertyName, value : 'a) =
-            if typeof<'a> = typeof<DesignerProperty> then
-                failwith "Cannot directly set an Xtension property to a DesignerProperty."
             match UMap.tryFind propertyName xtension.Properties with
             | Some property ->
-                if xtension.Sealed && property.PropertyType <> typeof<'a> then
-                    failwith "Cannot change the type of a sealed Xtension's property."
+#if DEBUG
+                if property.PropertyType <> typeof<'a> then
+                    failwith "Cannot change the type of an existing Xtension property."
+#endif
                 if xtension.Imperative then
                     match property.PropertyValue with
                     | :? DesignerProperty as dp -> dp.DesignerValue <- value :> obj
@@ -77,36 +70,33 @@ module Xtension =
                         let property = { property with PropertyValue = value :> obj }
                         let properties = UMap.add propertyName property xtension.Properties
                         { xtension with Properties = properties }
-            | None ->
-                if xtension.Sealed then failwith "Cannot add property to a sealed Xtension."
-                let property = { PropertyType = typeof<'a>; PropertyValue = value :> obj }
-                let properties = UMap.add propertyName property xtension.Properties
-                { xtension with Properties = properties }
+            | None -> failwith "Cannot add property to a sealed Xtension."
 
-    /// Make an extension.
-    let make properties canDefault isSealed imperative =
+    /// Make an Xtension.
+    let make imperative properties =
         { Properties = properties
           Flags =
-            (if canDefault then CanDefaultMask else 0) |||
-            (if isSealed then SealedMask else 0) |||
-            (if imperative then ImperativeMask else 0) }
+            (if imperative then ImperativeMask else 0) |||
+            (if Reflection.containsRuntimeProperties properties then ContainsRuntimePropertiesMask else 0) }
 
-    /// An Xtension that cannot default, is sealed, and is imperative.
-    let makeImperative () = make (UMap.makeEmpty StringComparer.Ordinal Imperative) false true true
+    /// Make an empty Xtension.
+    let makeEmpty imperative =
+        make imperative (UMap.makeEmpty StringComparer.Ordinal (if imperative then Imperative else Functional))
 
-    /// An Xtension that can default, isn't sealed, and isn't imperative.
-    let makeEmpty () = make (UMap.makeEmpty StringComparer.Ordinal Functional) true false false
+    /// An Xtension that is imperative.
+    let makeImperative () = make true (UMap.makeEmpty StringComparer.Ordinal Imperative)
 
-    /// An Xtension that cannot default, is sealed, and isn't imperative.
-    let makeSafe () = make (UMap.makeEmpty StringComparer.Ordinal Functional) false true false
+    /// An Xtension that isn't imperative.
+    let makeFunctional () = make false (UMap.makeEmpty StringComparer.Ordinal Functional)
 
-    /// An Xtension that cannot default, isn't sealed, and isn't imperative.
-    let makeMixed () = make (UMap.makeEmpty StringComparer.Ordinal Functional) false false false
-
-    /// Check whether the extension uses mutation.
+    /// Check whether the Xtension uses mutation.
     let getImperative (xtension : Xtension) = xtension.Imperative
 
-    /// Try to get a property from an xtension.
+    /// Check whether the Xtension contains any DesignerProperty's or ComputedProperty's in constant-time (via an
+    /// internally-cached flag).
+    let containsRuntimeProperties (xtension : Xtension) = xtension.ContainsRuntimeProperties
+
+    /// Try to get a property from an Xtension.
     let tryGetProperty (name, xtension, propertyRef : _ outref) =
         UMap.tryGetValue (name, xtension.Properties, &propertyRef)
 
@@ -118,15 +108,15 @@ module Xtension =
         let mutable propertyRef = Unchecked.defaultof<_>
         match UMap.tryGetValue (name, xtension.Properties, &propertyRef) with
         | true ->
+#if DEBUG
+            if property.PropertyType <> propertyRef.PropertyType then
+                failwith "Cannot change the type of an existing Xtension property."
+#endif
             if xtension.Imperative then
-                propertyRef.PropertyType <- property.PropertyType
                 propertyRef.PropertyValue <- property.PropertyValue
                 struct (true, xtension)
             else struct (true, { xtension with Properties = UMap.add name property xtension.Properties })
-        | false ->
-            if not xtension.Sealed
-            then struct (true, { xtension with Properties = UMap.add name property xtension.Properties })
-            else struct (false, xtension)
+        | false -> struct (false, xtension)
 
     /// Set a property on an Xtension.
     let setProperty name property xtension =
@@ -135,22 +125,38 @@ module Xtension =
         | struct (false, _) -> failwith "Cannot add property to a sealed Xtension."
 
     /// Attach a property to an Xtension.
-    let attachProperty name property xtension = { xtension with Properties = UMap.add name property xtension.Properties }
+    let attachProperty name property xtension =
+        let isRuntimeProperty = if Reflection.isRuntimeProperty property then ContainsRuntimePropertiesMask else 0
+        { xtension with Properties = UMap.add name property xtension.Properties; Flags = xtension.Flags ||| isRuntimeProperty }
 
     /// Attach multiple properties to an Xtension.
-    let attachProperties namesAndProperties xtension = { xtension with Properties = UMap.addMany namesAndProperties xtension.Properties }
+    let attachProperties properties xtension =
+        let containsRuntimeProperties = if Reflection.containsRuntimeProperties properties then ContainsRuntimePropertiesMask else 0
+        { xtension with Properties = UMap.addMany properties xtension.Properties; Flags = xtension.Flags ||| containsRuntimeProperties }
 
     /// Detach a property from an Xtension.
-    let detachProperty name xtension = { xtension with Properties = UMap.remove name xtension.Properties }
+    let detachProperty name xtension =
+        let properties = UMap.remove name xtension.Properties
+        let containsRuntimeProperties = if Reflection.containsRuntimeProperties xtension.Properties then ContainsRuntimePropertiesMask else 0
+        { xtension with
+            Properties = properties
+            Flags = xtension.Flags &&& ImperativeMask ||| containsRuntimeProperties }
 
     /// Detach multiple properties from an Xtension.
-    let detachProperties names xtension = { xtension with Properties = UMap.removeMany names xtension.Properties }
+    let detachProperties names xtension =
+        let properties = UMap.removeMany names xtension.Properties
+        let containsRuntimeProperties = if Reflection.containsRuntimeProperties xtension.Properties then ContainsRuntimePropertiesMask else 0
+        { xtension with
+            Properties = properties
+            Flags = xtension.Flags &&& ImperativeMask ||| containsRuntimeProperties }
 
     /// Convert an xtension to a sequence of its entries.
-    let toSeq xtension = xtension.Properties :> _ seq
+    let toSeq xtension =
+        xtension.Properties :> _ seq
 
     /// Convert an xtension to a sequence of its entries.
-    let ofSeq seq = attachProperties seq (makeEmpty ())
+    let ofSeq seq imperative =
+        attachProperties seq (makeEmpty imperative)
 
 /// Xtensions (and their supporting types) are a dynamic, functional, and convenient way
 /// to implement dynamic properties.

@@ -64,7 +64,6 @@
     <Compile Include="RandTests.fs" />
     <Compile Include="AddressTests.fs" />
     <Compile Include="SymbolTests.fs" />
-    <Compile Include="XtensionTests.fs" />
     <Compile Include="EventTests.fs" />
     <Compile Include="ScriptingTests.fs" />
     <Compile Include="TimingTests.fs" />
