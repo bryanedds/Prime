@@ -33,11 +33,11 @@ module DictionaryExtension =
     /// Dictionary extension methods.
     type Dictionary<'k, 'v> with
 
-        /// Force the addition of an entry, replacing the existing one if necessary.
-        member inline this.ForceAdd (key, value) =
+        /// Assign a keyed value.
+        member inline this.Assign (key, value) =
             this.[key] <- value
 
-        /// Try to add an entry, returning false upon failure.
+        /// Try to add a keyed value, returning false if the key is already present.
         member inline this.TryAdd (key, value) =
             if not (this.ContainsKey key)
             then this.Add (key, value); true
@@ -50,5 +50,5 @@ module DictionaryOperators =
     /// NOTE: Also uses forced adding, allowing multiple of the same key in the kvps.
     let dictPlus<'k, 'v> (comparer : 'k IEqualityComparer) (kvps : ('k * 'v) seq) =
         let dictionary = Dictionary<'k, 'v> comparer
-        for (key, value) in kvps do dictionary.ForceAdd (key, value)
+        for (key, value) in kvps do dictionary.Assign (key, value)
         dictionary

@@ -114,13 +114,13 @@ and [<NoEquality; NoComparison>] ComputedProperty =
 [<AutoOpen>]
 module ReflectionSyntax =
 
-    /// In tandem with the ValueDefinition type, grants a nice syntax to define value properties.
+    /// In tandem with the ValueDescription type, grants a nice syntax to define value properties.
     let Define = { ValueDescription = () }
 
-    /// In tandem with the VariableDefinition type, grants a nice syntax to define variable properties.
+    /// In tandem with the VariableDescription type, grants a nice syntax to define variable properties.
     let Variable = { VariableDescription = () }
 
-    /// In tandem with the PropertyDescriptor type, grants a nice syntax to denote properties.
+    /// In tandem with the PropertyDescription type, grants a nice syntax to denote properties.
     let Property = { PropertyDescription = () }
 
 [<RequireQualifiedAccess>]

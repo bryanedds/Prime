@@ -190,20 +190,20 @@ module FStack =
         balance stack
 
     let tryUnconj stack =
-            match stack.Back with
-            | [||] ->
-                match stack.Front with
-                | [||] -> None
-                | _ ->
-                    let front = Array.zeroCreate (stack.Front.Length - 1)
-                    Array.blit stack.Front 0 front 0 front.Length
-                    let stack = { Front = front; Back = stack.Back }
-                    Some (balance stack)
+        match stack.Back with
+        | [||] ->
+            match stack.Front with
+            | [||] -> None
             | _ ->
-                let back = Array.zeroCreate (stack.Back.Length - 1)
-                Array.blit stack.Back 0 back 0 back.Length
-                let stack = { Front = stack.Front; Back = back }
+                let front = Array.zeroCreate (stack.Front.Length - 1)
+                Array.blit stack.Front 0 front 0 front.Length
+                let stack = { Front = front; Back = stack.Back }
                 Some (balance stack)
+        | _ ->
+            let back = Array.zeroCreate (stack.Back.Length - 1)
+            Array.blit stack.Back 0 back 0 back.Length
+            let stack = { Front = stack.Front; Back = back }
+            Some (balance stack)
 
     let unconj stack =
         match tryUnconj stack with
