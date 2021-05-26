@@ -94,13 +94,12 @@ module EventSystemDelegate =
     /// The implementation portion of EventSystem.
     type [<ReferenceEquality; NoComparison>] 'w EventSystemDelegate =
         private
-            { // cache line begin
+            { // cache line 1 (assuming 16 byte header)
               Subscriptions : SubscriptionEntries
               Unsubscriptions : UnsubscriptionEntries
               EventStates : UMap<Guid, obj>
               EventTracerOpt : (string -> unit) option
               EventFilter : EventFilter.Filter }
-              // 12 free cache line bytes here
 
     /// Add event state.
     let addEventState<'a, 'w> key (state : 'a) (esd : 'w EventSystemDelegate) =
