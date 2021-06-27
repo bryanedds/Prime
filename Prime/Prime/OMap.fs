@@ -39,6 +39,7 @@ module OMap =
             member this.GetEnumerator () =
                 new OMapEnumerator<'k, 'v> (this.Entries.GetEnumerator ()) :> IEnumerator
 
+        /// Get the enumerator.
         member this.GetEnumerator () =
             new OMapEnumerator<'k, 'v> (this.Entries.GetEnumerator ())
 
@@ -53,6 +54,7 @@ module OMap =
                 true
             | false -> false
 
+        /// The index operator.
         member this.Item
             with get (key : 'k) =
                 let index = this.Indices.[key]
