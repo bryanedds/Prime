@@ -251,6 +251,7 @@ module Symbol =
     do readSymbolRef :=
         chainl1 readSymbolBirecursive readIndex
 
+    // TODO: P1: implement this with StringBuilder for efficiency!
     let rec writeSymbol symbol =
         match symbol with
         | Atom (str, _) ->
