@@ -8,6 +8,8 @@ open Prime
 type [<StructuralEquality; StructuralComparison>] Signal<'message, 'command> =
     | Message of message : 'message
     | Command of command : 'command
+    //| Update of transform : 'model -> 's -> 'w -> 'model
+    //| Effect of effect : 'model -> 's -> 'w -> 'w
 
 type [<NoEquality; NoComparison>] Channel<'m, 'c, 's, 'w when 's :> Simulant and 'w :> EventSystem<'w>> =
     { Source : Either<obj Address, Stream<obj, 'w>>
