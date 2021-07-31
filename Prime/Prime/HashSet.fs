@@ -12,28 +12,16 @@ module HashSet =
         List.toHashSet comparer [item]
 
 [<AutoOpen>]
-module HashSetExtension =
-
-    /// HashSet extension methods.
-    type HashSet<'a> with
-
-        /// Try to add an item, returning false upon failure.
-        member inline this.TryAdd item =
-            if not (this.Contains item)
-            then this.Add item
-            else false
-
-[<AutoOpen>]
 module HashSetOperators =
 
     /// Make a concrete HashSet instance populated with the given items and using vanilla hashing.
     let hashSet<'a> items =
         let hashSet = HashSet ()
-        for item in items do hashSet.TryAdd item |> ignore
+        for item in items do hashSet.Add item |> ignore
         hashSet
 
     /// Make a concrete HashSet instance populated with the given items and using structural hashing.
     let hashSetPlus<'a> (comparer : 'a IEqualityComparer) items =
         let hashSet = HashSet comparer
-        for item in items do hashSet.TryAdd item |> ignore
+        for item in items do hashSet.Add item |> ignore
         hashSet
