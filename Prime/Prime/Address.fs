@@ -79,7 +79,7 @@ module Address =
             { Names = names; HashCode = String.hashMany names }
 
         /// Hash an Address.
-        static member hash (address : 'a Address) =
+        static member inline hash (address : 'a Address) =
             address.HashCode
 
         /// Equate Addresses.
