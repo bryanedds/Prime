@@ -36,7 +36,7 @@ module TSet =
         let hashSetOrigin = HashSet<'a> (set.HashSetOrigin, set.HashSetOrigin.Comparer)
         List.foldBack (fun log () ->
             match log with
-            | Add value -> hashSetOrigin.TryAdd value |> ignore
+            | Add value -> hashSetOrigin.Add value |> ignore
             | Remove value -> hashSetOrigin.Remove value |> ignore
             | Clear -> hashSetOrigin.Clear ())
             set.Logs ()
@@ -112,10 +112,10 @@ module TSet =
         if TConfig.isFunctional set.TConfig then
             update (fun set ->
                 let set = { set with Logs = Add value :: set.Logs; LogsLength = set.LogsLength + 1 }
-                set.HashSet.TryAdd value |> ignore
+                set.HashSet.Add value |> ignore
                 set)
                 set
-        else set.HashSet.TryAdd value |> ignore; set
+        else set.HashSet.Add value |> ignore; set
 
     let remove value set =
         if TConfig.isFunctional set.TConfig then

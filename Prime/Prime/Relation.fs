@@ -56,8 +56,7 @@ module Relation =
 
     /// A relation that can be resolved to an address via contextual resolution.
     type [<CustomEquality; NoComparison; TypeConverter (typeof<RelationConverter>)>] 'a Relation =
-        private
-            { NameOpts : string option array }
+        { NameOpts : string option array }
 
         /// Make a relation from an array of names where "?" names are empty.
         static member makeFromArray<'a> (names : string array) : 'a Relation =
@@ -82,7 +81,7 @@ module Relation =
         /// Hash a Relation.
         static member inline hash (relation : 'a Relation) =
             Array.hash relation.NameOpts
-                
+
         /// Equate Relations.
         static member equals (relation : 'a Relation) (relation2 : 'a Relation) =
             Object.ReferenceEquals (relation, relation2) || // OPTIMIZATION: first check ref equality

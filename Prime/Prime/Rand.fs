@@ -79,6 +79,26 @@ module Rand =
         let (number, rand) = nextInt64 rand
         (number % max, rand)
 
+    /// Get a random element from a sequence if there are any elements or None.
+    let nextItemOpt seq rand =
+        let arr = Seq.toArray seq
+        if Array.notEmpty arr then
+            let (index, rand) = nextIntUnder arr.Length rand
+            (Some arr.[index], rand)
+        else (None, rand)
+
+    /// Get a random element from a sequence if there are any elements or raise exception.
+    let nextItem seq rand =
+        let (itemOpt, rand) = nextItemOpt seq rand
+        (Option.get itemOpt, rand)
+
+    /// Randomize a sequence.
+    let nextPermutation items rand =
+        items |>
+        Seq.toList |>
+        List.fold (fun (items, rand) item -> let (i, rand) = nextInt rand in (Map.add i item items, rand)) (Map.empty, rand) |>
+        mapFst Map.toValueList
+
     /// Make a rand value generator from the given seed state.
     /// May not be zero.
     let makeFromSeedState seedState =
