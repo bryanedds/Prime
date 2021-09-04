@@ -110,7 +110,7 @@ module Seq =
         let mutable state = state // make mutable
         let mutable enr = seq.GetEnumerator ()
         while Either.isRight state && enr.MoveNext () do
-            state <- folder (Either.getRightValue state) enr.Current
+            state <- folder (Either.getRight state) enr.Current
         state
 
     /// Implement a fold until folder results in Some.
@@ -132,7 +132,7 @@ module Seq =
         let mutable state = state // make mutable
         let mutable enr = seq.GetEnumerator ()
         while Either.isLeft state && enr.MoveNext () do
-            state <- folder (Either.getLeftValue state) enr.Current
+            state <- folder (Either.getLeft state) enr.Current
         state
 
     /// Check that a predicate passes for NO items in a sequence.

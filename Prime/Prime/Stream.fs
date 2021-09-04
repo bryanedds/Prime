@@ -490,11 +490,11 @@ module Stream =
 
     /// Filter the left values out from the stream.
     let [<DebuggerHidden; DebuggerStepThrough>] inline filterLeft stream =
-        filter Either.isLeft stream |> map Either.getLeftValue
+        filter Either.isLeft stream |> map Either.getLeft
 
     /// Filter the right values out from the stream.
     let [<DebuggerHidden; DebuggerStepThrough>] inline filterRight stream =
-        filter Either.isRight stream |> map Either.getRightValue
+        filter Either.isRight stream |> map Either.getRight
 
     /// Transform a stream into a running average of its event's numeric data.
     let [<DebuggerHidden; DebuggerStepThrough>] inline average (stream : Stream<'a, 'w>) : Stream<'a, 'w> =

@@ -14,7 +14,7 @@ type [<StructuralEquality; StructuralComparison>] PrettyPrinter =
       ThresholdMin : int
       ThresholdMax : int }
 
-    static member defaulted =
+    static member defaultPrinter =
         { TitleWords = Set.empty
           HeaderWords = Set.empty
           DetailWords = Set.empty
@@ -167,6 +167,6 @@ type [<AttributeUsage (AttributeTargets.Class); AllowNullLiteral>]
         | null ->
             SyntaxAttribute
                 ("", "", "", "", "",
-                 PrettyPrinter.defaulted.ThresholdMin,
-                 PrettyPrinter.defaulted.ThresholdMax)
+                 PrettyPrinter.defaultPrinter.ThresholdMin,
+                 PrettyPrinter.defaultPrinter.ThresholdMax)
         | syntax -> syntax

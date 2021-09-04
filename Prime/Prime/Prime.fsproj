@@ -65,6 +65,7 @@
     <Compile Include="Triple.fs" />
     <Compile Include="PartialCompare.fs" />
     <Compile Include="Either.fs" />
+    <Compile Include="ValueEither.fs" />
     <Compile Include="Seq.fs" />
     <Compile Include="Array.fs" />
     <Compile Include="String.fs" />

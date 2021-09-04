@@ -59,63 +59,63 @@ module Either =
     /// Monadic bind for Either.
     let inline bind a f = either.Bind (a, f)
 
-    /// Check whether an Either value is a Left value.
+    /// Check whether an Either is Left.
     let isLeft eir =
         match eir with
         | Right _ -> false
         | Left _ -> true
     
-    /// Check whether an Either value is a Right value.
+    /// Check whether an Either is Right.
     let isRight eir =
         match eir with
         | Right _ -> true
         | Left _ -> false
 
-    /// Get the Left value of an Either value, failing if not available.
-    let getLeftValue eir =
+    /// Get the Left of an Either, failing if not available.
+    let getLeft eir =
         match eir with
         | Right _ -> failwith "Could not get Left value from a Right value."
         | Left l -> l
 
-    /// Get the Right value of an Either value, failing if not available.
-    let getRightValue eir =
+    /// Get the Right of an Either, failing if not available.
+    let getRight eir =
         match eir with
         | Right r -> r
         | Left _ -> failwith "Could not get Right value from a Left value."
 
-    /// Get only the Left values of a sequence of an Either value.
-    let getLeftValues eirs =
+    /// Get only the Lefts of a sequence of Eithers.
+    let getLefts eirs =
         List.foldBack
             (fun eir lefts -> match eir with Right _ -> lefts | Left left -> left :: lefts)
             (List.ofSeq eirs)
             []
 
-    /// Get only the Right values of a sequence of an Either value.
-    let getRightValues eirs =
+    /// Get only the Rights of a sequence of Eithers.
+    let getRights eirs =
         List.foldBack
             (fun eir rights -> match eir with Right right -> right :: rights | Left _ -> rights)
             (List.ofSeq eirs)
             []
 
-    /// Map over the left side of an Either value.
+    /// Map over the left side of an Either.
     let mapLeft mapper eir =
         match eir with
         | Right r -> Right r
         | Left l -> Left (mapper l)
 
-    /// Map over the right side of an Either value.
+    /// Map over the right side of an Either.
     let mapRight mapper eir =
         match eir with
         | Right r -> Right (mapper r)
         | Left l -> Left l
 
-    /// Map both sides of an either value.
+    /// Map both sides of an Either.
     let map fnl fnr eir =
         eir |>
         mapLeft fnl |>
         mapRight fnr
 
-    /// Split a sequences of Either values into a pair of left and right value lists.
+    /// Split a sequence of Eithers into a pair of left and right lists.
     let split eirs =
         List.foldBack
             (fun eir (ls, rs) ->
@@ -125,13 +125,13 @@ module Either =
             (List.ofSeq eirs)
             ([], [])
 
-    /// Pick whichever of the eir values exists so long as they are the same type.
+    /// Pick whichever of the Eithers exists so long as they are the same type.
     let amb (eir : Either<'a, 'a>) =
         match eir with
         | Right value -> value
         | Left value -> value
 
-    /// Pick whichever of the eir values exists.
+    /// Pick whichever of the sides exists.
     let ambBy pickFst pickSnd (eir : Either<'a, 'b>) =
         match eir with
         | Right value -> pickFst value
