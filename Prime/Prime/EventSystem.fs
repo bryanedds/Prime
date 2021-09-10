@@ -153,6 +153,7 @@ module EventSystem =
         eventTrace
         (publisher : 'p)
         (sorterOpt : SubscriptionSorter option)
+        (filterOpt : 'w PublishFilter option)
         (world : 'w) =
         let eventAddressObj = atooa eventAddress
 #if DEBUG
@@ -171,8 +172,14 @@ module EventSystem =
                 (fun (handling, world : 'w) (_ : Guid, subscription : SubscriptionEntry) ->
                     match (handling, world.GetLiveness ()) with
                     | (Cascade, Live) ->
-                        let (handling, world) = world.PublishEventHook subscription.Subscriber publisher eventData eventAddress eventTrace subscription.CallbackBoxed world
-                        Some (handling, world)
+                        let shouldPublish =
+                            match filterOpt with
+                            | Some filter -> filter subscription.Subscriber world
+                            | None -> true
+                        if shouldPublish then
+                            let (handling, world) = world.PublishEventHook subscription.Subscriber publisher eventData eventAddress eventTrace subscription.CallbackBoxed world
+                            Some (handling, world)
+                        else Some (handling, world)
                     | (_, _) -> None)
                 (Cascade, world)
                 subscriptions
@@ -181,7 +188,7 @@ module EventSystem =
     /// Publish an event with no subscription sorting.
     let publish<'a, 'p, 'w when 'p :> Simulant and 'w :> 'w EventSystem>
         (eventData : 'a) (eventAddress : 'a Address) eventTrace (publisher : 'p) (world : 'w) =
-        publishPlus<'a, 'p, 'w> eventData eventAddress eventTrace publisher None world
+        publishPlus<'a, 'p, 'w> eventData eventAddress eventTrace publisher None None world
 
     /// Unsubscribe from an event.
     let unsubscribe<'w when 'w :> 'w EventSystem> subscriptionId (world : 'w) =

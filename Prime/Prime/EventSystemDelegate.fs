@@ -52,6 +52,10 @@ module Event =
           Address = atoa evt.Address
           Trace = evt.Trace }
 
+/// Filters simulants for publishing.
+type 'w PublishFilter =
+    Simulant -> 'w -> bool
+
 /// Abstracts over a subscription sorting procedure.
 type SubscriptionSorter =
     (Guid * SubscriptionEntry) seq -> obj -> (Guid * SubscriptionEntry) seq
