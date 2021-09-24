@@ -122,8 +122,13 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
 
     member this.ChangeEvent =
         let changeEventAddress = rtoa<ChangeData> [|"Change"; this.Name; "Event"|]
-        let changeEvent = changeEventAddress --> this.This.SimulantAddress
-        changeEvent
+        match box this.This with
+        | null ->
+            // HACK: this case is a hack to be able to insert events into the elmish event handler.
+            changeEventAddress
+        | _ ->
+            let changeEvent = changeEventAddress --> this.This.SimulantAddress
+            changeEvent
 
     member this.Type =
         typeof<'a>
