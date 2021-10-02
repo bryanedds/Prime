@@ -120,6 +120,16 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
           SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (unmapper value)) | None -> None
           This = this.This }
 
+    member this.BimapWorld mapper unmapper : Lens<'b, 'w> =
+        { Name = this.Name
+          ValidateOpt = this.ValidateOpt
+          GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world) world
+          SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper value world) world) | None -> None
+          This = this.This }
+
+    member this.WithValidateOpt validateOpt lens : Lens<'a, 'w> =
+        { lens with ValidateOpt = validateOpt }
+
     member this.ChangeEvent =
         let changeEventAddress = rtoa<ChangeData> [|"Change"; this.Name; "Event"|]
         match box this.This with
@@ -225,6 +235,12 @@ module Lens =
 
     let bimap<'a, 'b, 'w> mapper unmapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
         lens.Bimap mapper unmapper
+
+    let bimapWorld<'a, 'b, 'w> mapper unmapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
+        lens.BimapWorld mapper unmapper
+
+    let withValidateOpt validateOpt (lens : Lens<'a, 'w>) =
+        lens.WithValidateOpt validateOpt
 
     let changeEvent<'a, 'w> (lens : Lens<'a, 'w>) =
         lens.ChangeEvent
