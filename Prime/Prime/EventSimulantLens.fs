@@ -5,6 +5,8 @@ namespace Prime
 open System
 open Prime
 
+// TODO: P1: document!
+
 /// A generalized simulant lens.
 type 'w Lens =
     interface
@@ -127,8 +129,12 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
           SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper value world) world) | None -> None
           This = this.This }
 
-    member this.WithValidateOpt validateOpt lens : Lens<'a, 'w> =
-        { lens with ValidateOpt = validateOpt }
+    member this.Augment validate lens : Lens<'a, 'w> =
+        { lens with
+            ValidateOpt =
+                match lens.ValidateOpt with
+                | Some validate' -> Some (fun world -> validate' world && validate world)
+                | None -> Some validate }
 
     member this.ChangeEvent =
         let changeEventAddress = rtoa<ChangeData> [|"Change"; this.Name; "Event"|]
@@ -239,8 +245,8 @@ module Lens =
     let bimapWorld<'a, 'b, 'w> mapper unmapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
         lens.BimapWorld mapper unmapper
 
-    let withValidateOpt validateOpt (lens : Lens<'a, 'w>) =
-        lens.WithValidateOpt validateOpt
+    let augment validate (lens : Lens<'a, 'w>) =
+        lens.Augment validate
 
     let changeEvent<'a, 'w> (lens : Lens<'a, 'w>) =
         lens.ChangeEvent
