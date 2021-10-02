@@ -129,7 +129,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
           SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper value world) world) | None -> None
           This = this.This }
 
-    member this.Augment validate lens : Lens<'a, 'w> =
+    member this.Refine validate lens : Lens<'a, 'w> =
         { lens with
             ValidateOpt =
                 match lens.ValidateOpt with
@@ -245,8 +245,8 @@ module Lens =
     let bimapWorld<'a, 'b, 'w> mapper unmapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
         lens.BimapWorld mapper unmapper
 
-    let augment validate (lens : Lens<'a, 'w>) =
-        lens.Augment validate
+    let refine validate (lens : Lens<'a, 'w>) =
+        lens.Refine validate
 
     let changeEvent<'a, 'w> (lens : Lens<'a, 'w>) =
         lens.ChangeEvent
