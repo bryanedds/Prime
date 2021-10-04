@@ -129,7 +129,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
           SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper value world) world) | None -> None
           This = this.This }
 
-    member this.Refine validate lens : Lens<'a, 'w> =
+    member this.Narrow validate lens : Lens<'a, 'w> =
         { lens with
             ValidateOpt =
                 match lens.ValidateOpt with
@@ -245,8 +245,8 @@ module Lens =
     let bimapWorld<'a, 'b, 'w> mapper unmapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
         lens.BimapWorld mapper unmapper
 
-    let refine validate (lens : Lens<'a, 'w>) =
-        lens.Refine validate
+    let narrow validate (lens : Lens<'a, 'w>) =
+        lens.Narrow validate
 
     let changeEvent<'a, 'w> (lens : Lens<'a, 'w>) =
         lens.ChangeEvent
@@ -285,6 +285,9 @@ module Lens =
 
     let dereference (lens : Lens<'a option, 'w>) : Lens<'a, 'w> =
         lens.Map Option.get
+        
+    let makePlus<'a, 'w> name validateOpt get setOpt this : Lens<'a, 'w> =
+        { Name = name; ValidateOpt = validateOpt; GetWithoutValidation = get; SetOpt = setOpt; This = this }
 
     let makeReadOnly<'a, 'w> name get this : Lens<'a, 'w> =
         { Name = name; ValidateOpt = None; GetWithoutValidation = get; SetOpt = None; This = this }
