@@ -40,7 +40,7 @@ type RexprConverter () =
         | :? Rexpr -> source
         | _ -> failconv "Invalid RexprConverter conversion from source." None
 
-/// Effectively new-types the Regex type to implement custom type-conversation without needing
+/// Effectively new-types the Regex type to implement custom type-conversion without needing
 /// explicit initialization by the client program.
 and [<NoEquality; NoComparison; TypeConverter (typeof<RexprConverter>)>] Rexpr (pattern) =
     inherit Regex (pattern)

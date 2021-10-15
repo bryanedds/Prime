@@ -26,6 +26,14 @@ module PairOperators =
     let inline pair a b =
         (a, b)
 
+    /// Prepend an item to another build a pair.
+    let inline prepend a b =
+        (a, b)
+
+    /// Append an item to another build a pair.
+    let inline append a b =
+        (b, a)
+
     /// Make a pair from a duplicated value.
     let inline dup a =
         pair a a
