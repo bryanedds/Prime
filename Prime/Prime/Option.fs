@@ -32,3 +32,15 @@ module Option =
         match opt with
         | Some _ -> 1
         | None -> 0
+
+    /// Concatenate a sequence of options.
+    let concat opts =
+        match Seq.tryFind Option.isSome opts with
+        | Some _ as opt -> opt
+        | None -> None
+
+    /// Concatenate two options, prefering leftOpt over rightOpt.
+    let concat2 leftOpt rightOpt =
+        match leftOpt with
+        | Some _ -> leftOpt
+        | None -> rightOpt
