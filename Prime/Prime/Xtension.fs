@@ -17,7 +17,7 @@ module Xtension =
     /// OPTIMIZATION: Booleans are packed into the Flags field.
     type [<NoEquality; NoComparison>] Xtension =
         private
-            { Properties : UMap<string, Property>
+            { Properties : UMap<string, Property> // TODO: see if a quadratic searching dictionary could improve perf here.
               Flags : int }
 
             // Member properties; only for use by internal facilities.
