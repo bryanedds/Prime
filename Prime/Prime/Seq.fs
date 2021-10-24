@@ -20,7 +20,7 @@ module Seq =
     /// Get a seq head or a default value if there is none.
     let inline headOrDefault seq aDefault =
         match tryHead seq with
-        | Some _ as head -> head
+        | Some head -> head
         | None -> aDefault
 
     /// Convert option values to definite values.

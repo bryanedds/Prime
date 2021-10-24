@@ -129,10 +129,10 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
           SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper value world) world) | None -> None
           This = this.This }
 
-    member this.Narrow validate lens : Lens<'a, 'w> =
-        { lens with
+    member this.Narrow validate : Lens<'a, 'w> =
+        { this with
             ValidateOpt =
-                match lens.ValidateOpt with
+                match this.ValidateOpt with
                 | Some validate' -> Some (fun world -> validate' world && validate world)
                 | None -> Some validate }
 
