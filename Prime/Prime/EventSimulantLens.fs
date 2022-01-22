@@ -142,7 +142,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
         | null -> changeEventAddress // HACK: this case is a hack to be able to insert events into the elmish event handler.
         | _ -> changeEventAddress --> this.This.SimulantAddress
 
-    member this.Type =
+    member inline this.Type =
         typeof<'a>
 
     (* Lensing Operators *)

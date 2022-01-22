@@ -5,6 +5,7 @@ namespace Prime
 open Prime
 
 /// A model-message-command signal.
+/// TODO: consider if there is any wisdom in making this a struct.
 type [<StructuralEquality; StructuralComparison>] Signal<'message, 'command> =
     | Message of message : 'message
     | Command of command : 'command

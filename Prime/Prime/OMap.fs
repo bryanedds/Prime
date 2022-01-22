@@ -25,6 +25,8 @@ module OMap =
 
     /// An ordered persistent map based on UMap and FStack.
     /// NOTE: not supported by SymbolicConverter.
+    /// TODO: see if it would make sense to build UOrderedMap based on the more efficently-traversible
+    /// OrderedDictionary.
     type [<NoEquality; NoComparison>] OMap<'k, 'v> =
         private
             { Indices : UMap<'k, int>
