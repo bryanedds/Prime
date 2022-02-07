@@ -17,6 +17,7 @@ and SimulantPropertyChangeUnhandler<'w when 'w :> 'w EventSystem> =
 /// Effectively a mix-in for the 'w type, where 'w is a type that represents the client program.
 and EventSystem<'w when 'w :> 'w EventSystem> =
     interface
+        abstract member GetConfig : unit -> TConfig
         abstract member GetLiveness : unit -> Liveness
         abstract member GetSimulantExists : Simulant -> bool
         abstract member GetGlobalSimulantSpecialized : unit -> Simulant
@@ -234,7 +235,7 @@ module EventSystem =
                         UMap.add eventAddressObj subscriptionEntries subscriptions
                 | None ->
                     let subscriptionEntry = { SubscriptionId = subscriptionId; Subscriber = subscriber; CallbackBoxed = boxCallback callback }
-                    UMap.add eventAddressObj (OMap.makeSingleton HashIdentity.Structural Functional subscriptionId subscriptionEntry) subscriptions
+                    UMap.add eventAddressObj (OMap.makeSingleton HashIdentity.Structural (world.GetConfig ()) subscriptionId subscriptionEntry) subscriptions
             let unsubscriptions = UMap.add subscriptionId (eventAddressObj, subscriber :> Simulant) unsubscriptions
             let world = setSubscriptions subscriptions world
             let world = setUnsubscriptions unsubscriptions world
