@@ -15,6 +15,7 @@ type 'w Lens =
         abstract Validate : 'w -> bool
         abstract GetWithoutValidation : 'w -> obj
         abstract SetOpt : (obj -> 'w -> 'w) option
+        abstract TrySet : obj -> 'w -> 'w
         abstract This : Simulant
         abstract ChangeEvent : ChangeData Address
         abstract Type : Type
@@ -35,6 +36,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
         member this.Validate world = match this.ValidateOpt with Some validate -> validate world | None -> true
         member this.GetWithoutValidation world = this.GetWithoutValidation world :> obj
         member this.SetOpt = Option.map (fun set -> fun (value : obj) world -> set (value :?> 'a) world) this.SetOpt
+        member this.TrySet value world = match this.SetOpt with Some set -> set (value :?> 'a) world | None -> world
         member this.This = this.This
         member this.ChangeEvent = this.ChangeEvent
         member this.Type = typeof<'a>
