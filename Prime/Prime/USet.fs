@@ -103,6 +103,12 @@ module USet =
         set.Set <- tset
         { Set = result }
 
+    let equals set set2 =
+        let struct (result, tset, tset2) = TSet.equals set.Set set2.Set
+        set.Set <- tset
+        set2.Set <- tset2
+        result
+
     let unionFast set set2 =
         let struct (result, tset, tset2) = TSet.unionFast set.Set set2.Set
         set.Set <- tset

@@ -189,6 +189,10 @@ module TSet =
             (makeEmpty set.HashSet.Comparer set.TConfig)
             set
 
+    let equals set set2 =
+        let (set, set2) = (validate set, validate set2)
+        struct (set.HashSet.SetEqualsFast set2.HashSet, set, set2)
+
     let unionFast set set2 =
         let (set, set2) = (validate set, validate set2)
         let result = HashSet<'a> (set.HashSet, set.HashSet.Comparer)
