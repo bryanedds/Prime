@@ -21,26 +21,8 @@ module Option =
         | Some value -> mapper value
         | None -> aDefault
 
-    /// Remove a value if contained by an option.
-    let remove value opt =
-        match opt with
-        | Some value2 -> if value2 = value then None else opt
-        | None -> None
-
-    /// The number of value contained by an option.
+    /// The number of values contained by an option.
     let length opt =
         match opt with
         | Some _ -> 1
         | None -> 0
-
-    /// Concatenate a sequence of options.
-    let concat opts =
-        match Seq.tryFind Option.isSome opts with
-        | Some _ as opt -> opt
-        | None -> None
-
-    /// Concatenate two options, prefering leftOpt over rightOpt.
-    let concat2 leftOpt rightOpt =
-        match leftOpt with
-        | Some _ -> leftOpt
-        | None -> rightOpt
