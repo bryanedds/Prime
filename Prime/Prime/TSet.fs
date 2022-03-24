@@ -233,6 +233,9 @@ module TSet =
         let struct (result, set, set2) = differenceFast set set2
         struct (makeFromHashSet set.HashSet.Comparer config result, set, set2)
 
+    let singleton<'a> comparer config (item : 'a) =
+        makeFromSeq comparer config [item]
+
 type 'a TSet = 'a TSet.TSet
 
 [<AutoOpen>]

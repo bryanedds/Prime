@@ -207,6 +207,9 @@ module TMap =
             (makeEmpty map.Dict.Comparer map.TConfig)
             map
 
+    let singleton<'k, 'v> comparer config (key : 'k) (value : 'v) =
+        makeFromSeq comparer config [(key, value)]
+
 type TMap<'k, 'v> = TMap.TMap<'k, 'v>
 
 [<AutoOpen>]

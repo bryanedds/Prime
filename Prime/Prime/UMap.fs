@@ -124,4 +124,7 @@ module UMap =
         map.Map <- tmap
         { Map = result }
 
+    let singleton<'k, 'v> comparer config key value =
+        { Map = TMap.singleton<'k, 'v> comparer config key value }
+
 type UMap<'k, 'v> = UMap.UMap<'k, 'v>

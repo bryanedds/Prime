@@ -157,4 +157,7 @@ module USet =
         set2.Set <- tset2
         { Set = result }
 
+    let singleton<'a> comparer config item =
+        { Set = TSet.singleton<'a> comparer config item }
+
 type 'a USet = 'a USet.USet

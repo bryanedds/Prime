@@ -70,8 +70,8 @@
     <Compile Include="Array.fs" />
     <Compile Include="String.fs" />
     <Compile Include="List.fs" />
-    <Compile Include="Set.fs" />
     <Compile Include="Map.fs" />
+    <Compile Include="Set.fs" />
     <Compile Include="HashSet.fs" />
     <Compile Include="Dictionary.fs" />
     <Compile Include="Rand.fs" />
@@ -92,6 +92,7 @@
     <Compile Include="HSet.fs" />
     <Compile Include="FStack.fs" />
     <Compile Include="OMap.fs" />
+    <Compile Include="OSet.fs" />
     <Compile Include="Vsync.fs" />
     <Compile Include="Reflection.fs" />
     <Compile Include="SymbolicConverter.fs" />
