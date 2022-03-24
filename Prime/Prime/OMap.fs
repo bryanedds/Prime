@@ -200,7 +200,7 @@ module OMap =
             pairs
 
     /// Make an OMap with a single entry.
-    let makeSingleton<'k, 'v> comparer config key value =
+    let singleton<'k, 'v> comparer config key value =
         let empty = makeEmpty<'k, 'v> comparer config
         add key value empty
 

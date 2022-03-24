@@ -144,7 +144,7 @@ module OSet =
             pairs
 
     /// Make an OSet with a single entry.
-    let makeSingleton<'a> comparer config item =
+    let singleton<'a> comparer config item =
         let empty = makeEmpty<'a> comparer config
         add item empty
 
