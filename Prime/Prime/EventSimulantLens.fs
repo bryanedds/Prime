@@ -47,7 +47,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
     member this.Generalize () =
         let this = this :> 'w Lens
         { Name = this.Name
-          ParentOpt = None
+          ParentOpt = this.ParentOpt
           ValidateOpt = this.ValidateOpt
           GetWithoutValidation = this.GetWithoutValidation
           SetOpt = this.SetOpt
@@ -109,7 +109,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
 
     member this.Map mapper : Lens<'b, 'w> =
         { Name = this.Name
-          ParentOpt = None
+          ParentOpt = this.ParentOpt
           ValidateOpt = this.ValidateOpt
           GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world)
           SetOpt = None
@@ -117,7 +117,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
 
     member this.MapWorld mapper : Lens<'b, 'w> =
         { Name = this.Name
-          ParentOpt = None
+          ParentOpt = this.ParentOpt
           ValidateOpt = this.ValidateOpt
           GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world) world
           SetOpt = None
@@ -125,7 +125,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
 
     member this.Bimap mapper unmapper : Lens<'b, 'w> =
         { Name = this.Name
-          ParentOpt = None
+          ParentOpt = this.ParentOpt
           ValidateOpt = this.ValidateOpt
           GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world)
           SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (unmapper value)) | None -> None
@@ -133,7 +133,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
 
     member this.BimapWorld mapper unmapper : Lens<'b, 'w> =
         { Name = this.Name
-          ParentOpt = None
+          ParentOpt = this.ParentOpt
           ValidateOpt = this.ValidateOpt
           GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world) world
           SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper value world) world) | None -> None
@@ -296,8 +296,8 @@ module Lens =
     let dereference (lens : Lens<'a option, 'w>) : Lens<'a, 'w> =
         lens.Map Option.get
         
-    let makePlus<'a, 'w> name validateOpt get setOpt this : Lens<'a, 'w> =
-        { Name = name; ParentOpt = None; ValidateOpt = validateOpt; GetWithoutValidation = get; SetOpt = setOpt; This = this }
+    let makePlus<'a, 'w> name parentOpt validateOpt get setOpt this : Lens<'a, 'w> =
+        { Name = name; ParentOpt = parentOpt; ValidateOpt = validateOpt; GetWithoutValidation = get; SetOpt = setOpt; This = this }
 
     let makeReadOnly<'a, 'w> name get this : Lens<'a, 'w> =
         { Name = name; ParentOpt = None; ValidateOpt = None; GetWithoutValidation = get; SetOpt = None; This = this }
