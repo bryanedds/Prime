@@ -67,11 +67,11 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
         match this.SetOpt with
         | Some setter -> (true, setter value world)
         | None -> (false, world)
-      
+
     member this.Set value world =
         match this.TrySet value world with
         | (true, world) -> world
-        | (false, _) -> failwith ("PropertyTag for '" + this.Name + "' is readonly.")
+        | (false, _) -> failwith ("Lens for '" + this.Name + "' is readonly.")
 
     member this.TryUpdateEffect updater world =
         match this.ValidateOpt with
