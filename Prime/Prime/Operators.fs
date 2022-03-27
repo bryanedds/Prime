@@ -6,6 +6,7 @@ open System
 open System.Collections.Generic
 open System.ComponentModel
 open System.Diagnostics
+open System.Linq
 open System.Reflection
 open FSharp.Reflection
 open Prime
@@ -123,6 +124,12 @@ module Operators =
     /// Test for inequality generically, usually faster than (=).
     let inline genNeq (a : 'a) (b : 'a) = not (LanguagePrimitives.GenericEquality a b)
 
+    /// Test for sequence equality.
+    let inline seqEq seq seq2 = Enumerable.SequenceEqual (seq, seq2)
+
+    /// Test for sequence equality.
+    let inline seqNeq seq seq2 = not (Enumerable.SequenceEqual (seq, seq2))
+
     /// Cast as a function.
     let inline cast<'a> (target : obj) =
         target :?> 'a
@@ -201,6 +208,9 @@ module Operators =
 
     /// Sequences two functions like Haskell ($).
     let inline ($) f g = f g
+
+namespace System.IO
+open System
 
 // TODO: Find a better place for this?
 [<RequireQualifiedAccess>]

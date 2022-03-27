@@ -16,8 +16,10 @@ module Constants =
     [<RequireQualifiedAccess>]
     module Relation =
     
-        let [<Literal>] Slot = '?'
-        let [<Literal>] SlotStr = "?"
+        let [<Literal>] Current = '~'
+        let [<Literal>] CurrentStr = "~"
+        let [<Literal>] Parent = '^'
+        let [<Literal>] ParentStr = "^"
 
     [<RequireQualifiedAccess>]
     module Scripting =

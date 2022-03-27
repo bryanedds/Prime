@@ -4,9 +4,15 @@
 namespace Prime
 open System
 open System.ComponentModel
+open System.IO
 open System.Reflection
 open Prime
-    
+
+type Token =
+    | Current
+    | Parent
+    | Name of string
+
 /// Converts Relation types.
 type RelationConverter (targetType : Type) =
     inherit TypeConverter ()
@@ -27,7 +33,7 @@ type RelationConverter (targetType : Type) =
             else Atom (relationStr, None) :> obj
         elif destType = targetType then source
         else failconv "Invalid RelationConverter conversion to source." None
-        
+
     override this.CanConvertFrom (_, sourceType) =
         sourceType = typeof<string> ||
         sourceType = typeof<Symbol> ||
@@ -56,23 +62,29 @@ module Relation =
 
     /// A relation that can be resolved to an address via contextual resolution.
     type [<CustomEquality; NoComparison; TypeConverter (typeof<RelationConverter>)>] 'a Relation =
-        { NameOpts : string option array }
+        { Tokens : Token array }
 
-        /// Make a relation from an array of names where "?" names are empty.
+        /// Make a relation from an array of names.
         static member makeFromArray<'a> (names : string array) : 'a Relation =
-            let nameOpts = Array.map (fun name -> match name with Constants.Relation.SlotStr -> None | _ -> Some name) names
-            { NameOpts = nameOpts }
+            let tokens =
+                Array.map (fun name ->
+                    match name with
+                    | Constants.Relation.CurrentStr -> Current
+                    | Constants.Relation.ParentStr -> Parent
+                    | _ -> Name name)
+                    names
+            { Tokens = tokens }
 
-        /// Make a relation from a list of names where "?" names are empty.
+        /// Make a relation from a list of names.
         static member makeFromList<'a> (names : string list) : 'a Relation =
             Relation.makeFromArray<'a> (List.toArray names)
 
-        /// Make a relation from an address where "?" names are empty.
+        /// Make a relation from an address.
         static member makeFromAddress<'a> (address : 'a Address) : 'a Relation =
             let names = Address.getNames address
             Relation.makeFromArray<'a> names
     
-        /// Make a relation from a '/' delimited string where '?' names are empty.
+        /// Make a relation from a '/' delimited string.
         /// NOTE: do not move this function as the RelationConverter's reflection code relies on it being exactly here!
         static member makeFromString<'a> (relationStr : string) : 'a Relation =
             let names = relationStr.Split Constants.Address.Separator
@@ -80,25 +92,22 @@ module Relation =
 
         /// Hash a Relation.
         static member inline hash (relation : 'a Relation) =
-            Array.hash relation.NameOpts
+            Array.hash relation.Tokens
 
         /// Equate Relations.
         static member equals (relation : 'a Relation) (relation2 : 'a Relation) =
-            Object.ReferenceEquals (relation, relation2) || // OPTIMIZATION: first check ref equality
-            String.equateManyOpts relation.NameOpts relation2.NameOpts
+            refEq relation relation2 || // OPTIMIZATION: first check ref equality
+            seqEq relation.Tokens relation2.Tokens
 
         /// Resolve a relation from an address.
         static member resolve<'a, 'b> (address : 'a Address) (relation : 'b Relation) : 'b Address =
-            // OPTIMIZATION: using array for speed.
-            let addressNames = Address.getNames address
-            let nameOpts = relation.NameOpts
-            for i in 0 .. Math.Min (addressNames.Length, nameOpts.Length) - 1 do
-                match nameOpts.[i] with
-                | None -> nameOpts.[i] <- Some addressNames.[i]
-                | Some _ -> ()
-            match Array.definitizePlus nameOpts with
-            | (true, names) -> Address.makeFromArray<'b> names
-            | (false, _) -> failwith ("Invalid relation resolution for address '" + string address + "' and relation '" + string relation + "'.")
+            // TODO: optimize this with hand-written code.
+            let addressStr = string address
+            let relationStr = string relation
+            let pathStr = relationStr.Replace("^", "..").Replace('~', '.')
+            let resultStr = addressStr + Constants.Address.SeparatorStr + pathStr |> Path.Simplify
+            let result = Address.makeFromString resultStr
+            result
 
         /// Relate the second address to the first.
         static member relate<'a, 'b> (address : 'a Address) (address2 : 'b Address) : 'b Relation =
@@ -113,7 +122,8 @@ module Relation =
                         namesMatching <- inc namesMatching
                 namesMatching
             let names3 = Array.trySkip namesMatching names2
-            { NameOpts = (Array.append (Array.init namesMatching (fun _ -> None)) (Array.map Some names3)) }
+            let tokens = Array.map Name names3
+            { Tokens = Array.append [|Current|] tokens }
 
         interface 'a Relation IEquatable with
             member this.Equals that =
@@ -128,31 +138,37 @@ module Relation =
             Relation<'a>.hash this
         
         override this.ToString () =
-            let names = Array.map (fun nameOpt -> match nameOpt with Some name -> name | None -> Constants.Relation.SlotStr) this.NameOpts
+            let names =
+                Array.map (fun token ->
+                    match token with
+                    | Current -> Constants.Relation.CurrentStr
+                    | Parent -> Constants.Relation.ParentStr
+                    | Name name -> name)
+                    this.Tokens
             String.concat Constants.Address.SeparatorStr names
 
     [<RequireQualifiedAccess>]
     module Relation =
 
         /// Make a relation from a list of option names.
-        let makeFromArray<'a> nameOpts : 'a Relation =
-            { NameOpts = nameOpts }
+        let makeFromArray<'a> tokens : 'a Relation =
+            { Tokens = tokens }
 
         /// Make a relation from a list of option names.
-        let makeFromList<'a> nameOpts : 'a Relation =
-            { NameOpts = List.toArray nameOpts }
+        let makeFromList<'a> tokens : 'a Relation =
+            { Tokens = List.toArray tokens }
 
         /// Make a relation from a '/' delimited string.
         let makeFromString<'a> relationStr =
             Relation<'a>.makeFromString relationStr
 
-        /// Get the optional names of a relation.
-        let getNameOpts relation =
-            relation.NameOpts
+        /// Get the tokens of a relation.
+        let getTokens relation =
+            relation.Tokens
 
         /// Change the type of an address.
         let changeType<'a, 'b> (relation : 'a Relation) : 'a Relation =
-            { NameOpts = relation.NameOpts }
+            { Tokens = relation.Tokens }
 
 /// A relation that can be resolved to an address via projection.
 type 'a Relation = 'a Relation.Relation
