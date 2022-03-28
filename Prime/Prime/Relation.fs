@@ -127,8 +127,13 @@ module Relation =
                         namesMatching <- inc namesMatching
                 namesMatching
             let names3 = Array.trySkip namesMatching names2
-            let tokens = Array.map Name names3
-            { Tokens = Array.append [|Current|] tokens }
+            match names3 with
+            | [||] ->
+                { Tokens = [|Current|] }
+            | _ ->
+                let parents = Array.init (names.Length - namesMatching) (fun _ -> Parent)
+                let tokens = Array.map Name names3
+                { Tokens = Array.append parents tokens }
 
         interface 'a Relation IEquatable with
             member this.Equals that =
