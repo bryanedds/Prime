@@ -106,6 +106,11 @@ module Relation =
             let relationStr = string relation
             let pathStr = relationStr.Replace("^", "..").Replace('~', '.')
             let resultStr = addressStr + Constants.Address.SeparatorStr + pathStr |> Path.Simplify
+            let resultStr =
+                let resultStrLen = resultStr.Length
+                if resultStrLen > 0 && resultStr.[dec resultStrLen] = '/'
+                then resultStr.Substring (0, dec resultStrLen)
+                else resultStr
             let result = Address.makeFromString resultStr
             result
 
@@ -161,6 +166,14 @@ module Relation =
         /// Make a relation from a '/' delimited string.
         let makeFromString<'a> relationStr =
             Relation<'a>.makeFromString relationStr
+
+        /// Make a current relation.
+        let makeCurrent () =
+            Relation.makeFromArray [|Constants.Relation.CurrentStr|]
+
+        /// Make a parent relation.
+        let makeParent () =
+            Relation.makeFromArray [|Constants.Relation.ParentStr|]
 
         /// Get the tokens of a relation.
         let getTokens relation =

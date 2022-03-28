@@ -207,20 +207,20 @@ module Address =
             Address.ntoa<'a> name
 
         /// Get the names of an address.
-        let getNames address =
+        let inline getNames address =
             address.Names
 
-        /// Change the type of an address.
-        let changeType<'a, 'b> (address : 'a Address) =
-            Address.atoa<'a, 'b> address
-
         /// Get the name of an address.
-        let getName address =
+        let inline getName address =
             getNames address |> Array.last
 
         /// Attempt to get the name of an address if it exists.
         let tryGetName address =
             address |> getNames |> Array.tryLast
+
+        /// Change the type of an address.
+        let changeType<'a, 'b> (address : 'a Address) =
+            Address.atoa<'a, 'b> address
 
         /// Get the address's hash code.
         let getHashCode address =
