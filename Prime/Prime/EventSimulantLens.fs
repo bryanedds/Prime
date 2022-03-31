@@ -5,8 +5,6 @@ namespace Prime
 open System
 open Prime
 
-// TODO: P1: document!
-
 /// A generalized simulant lens.
 type 'w Lens =
     interface
