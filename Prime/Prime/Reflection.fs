@@ -9,7 +9,6 @@ open System.Collections.Generic
 open System.Text
 open System.Reflection
 open FSharp.Reflection
-open Microsoft.FSharp.Reflection
 
 /// An attribute to specify the default value of a property.
 type [<AttributeUsage (AttributeTargets.Class); AllowNullLiteral>] DefaultValueAttribute (defaultValue : obj) =
@@ -59,25 +58,25 @@ and [<NoEquality; NoComparison>] ValueDescription =
     { ValueDescription : unit }
     
     /// Some magic syntax for composing value properties.
-    static member (?) (_, propertyName) =
-        fun (value : 'v) ->
-            PropertyDefinition.makeValidated propertyName typeof<'v> (DefineExpr value)
+    static member (?) (_ : 'a, propertyName) =
+        fun (value : 'a) ->
+            PropertyDefinition.makeValidated propertyName typeof<'a> (DefineExpr value)
 
 /// In tandem with the variable literal, grants a nice syntax to define variable properties.
 and [<NoEquality; NoComparison>] VariableDescription =
     { VariableDescription : unit }
 
     /// Some magic syntax for composing variable properties.
-    static member (?) (_, propertyName) =
-        fun (variable : 'w -> 'v) ->
-            PropertyDefinition.makeValidated propertyName typeof<'v> (VariableExpr (fun context -> variable (context :?> 'w) :> obj))
+    static member (?) (_ : 'a, propertyName) =
+        fun (variable : 'w -> 'a) ->
+            PropertyDefinition.makeValidated propertyName typeof<'a> (VariableExpr (fun context -> variable (context :?> 'w) :> obj))
 
 /// In tandem with the property literal, grants a nice syntax to denote properties.
 and [<NoEquality; NoComparison>] PropertyDescription =
     { PropertyDescription : unit }
     
     /// Some magic syntax for composing value properties.
-    static member inline (?) (_, propertyName : string) =
+    static member inline (?) (_ : 'a, propertyName : string) =
         propertyName
     
 /// Describes a property.
