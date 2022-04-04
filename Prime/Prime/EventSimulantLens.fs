@@ -306,18 +306,23 @@ module Lens =
 [<AutoOpen>]
 module LensOperators =
 
+    /// Make a writable lens.
     let lens<'a, 'w> name get set this =
         Lens.make name get set this
 
+    /// Make a read-only lens.
     let lensReadOnly<'a, 'w> name get this =
         Lens.makeReadOnly name get this
 
+    /// Define a property along with its initial value.
     let define (lens : Lens<'a, 'w>) (value : 'a) =
         PropertyDefinition.makeValidated lens.Name typeof<'a> (DefineExpr value)
 
+    /// Define a variable property.
     let variable (lens : Lens<'a, 'w>) (variable : 'w -> 'a) =
         PropertyDefinition.makeValidated lens.Name typeof<'a> (VariableExpr (fun world -> variable (world :?> 'w) :> obj))
 
+    /// Define a computed property.
     let computed (lens : Lens<'a, 'w>) (get : 't -> 'w -> 'a) (setOpt : ('a -> 't -> 'w -> 'w) option) =
         let computedProperty =
             ComputedProperty.make
