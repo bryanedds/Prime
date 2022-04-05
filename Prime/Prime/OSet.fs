@@ -66,6 +66,14 @@ module OSet =
     let notEmpty set =
         UMap.notEmpty set.Indices
 
+    /// Get the set key comparer.
+    let getComparer set =
+        UMap.getComparer set.Indices
+
+    /// Get the set configuration.
+    let getConfig set =
+        UMap.getConfig set.Indices
+
     /// Add a value with the key to an OSet.
     let add (item : 'a) set =
         match UMap.tryFind item set.Indices with

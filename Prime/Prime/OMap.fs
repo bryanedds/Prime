@@ -83,6 +83,14 @@ module OMap =
     let notEmpty map =
         UMap.notEmpty map.Indices
 
+    /// Get the map key comparer.
+    let getComparer map =
+        UMap.getComparer map.Indices
+
+    /// Get the map configuration.
+    let getConfig map =
+        UMap.getConfig map.Indices
+
     /// Add a value with the key to an OMap.
     let add (key : 'k) (value : 'v) map =
         match UMap.tryFind key map.Indices with
