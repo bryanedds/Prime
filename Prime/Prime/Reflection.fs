@@ -58,7 +58,7 @@ and [<NoEquality; NoComparison>] ValueDescription =
     { ValueDescription : unit }
     
     /// Some magic syntax for composing value properties.
-    static member (?) (_ : 'a, propertyName) =
+    static member (?) (_, propertyName) =
         fun (value : 'a) ->
             PropertyDefinition.makeValidated propertyName typeof<'a> (DefineExpr value)
 
@@ -67,7 +67,7 @@ and [<NoEquality; NoComparison>] VariableDescription =
     { VariableDescription : unit }
 
     /// Some magic syntax for composing variable properties.
-    static member (?) (_ : 'a, propertyName) =
+    static member (?) (_, propertyName) =
         fun (variable : 'w -> 'a) ->
             PropertyDefinition.makeValidated propertyName typeof<'a> (VariableExpr (fun context -> variable (context :?> 'w) :> obj))
 
@@ -76,7 +76,7 @@ and [<NoEquality; NoComparison>] PropertyDescription =
     { PropertyDescription : unit }
     
     /// Some magic syntax for composing value properties.
-    static member inline (?) (_ : 'a, propertyName : string) =
+    static member inline (?) (_, propertyName : string) =
         propertyName
     
 /// Describes a property.

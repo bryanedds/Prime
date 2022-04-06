@@ -239,15 +239,19 @@ module TList =
         for list in listsAsSeq do tempList.AddRange (toSeq list |> fst')
         makeFromSeq config tempList
 
-    /// Add all the given values to the list.
-    let addMany (values : 'a seq) list =
+    /// Add all the given items to the list.
+    let addMany (items : 'a seq) list =
         let list = validate list
-        let lists = add list (makeFromArray list.TConfig [|makeFromSeq list.TConfig values|])
+        let lists = add list (makeFromArray list.TConfig [|makeFromSeq list.TConfig items|])
         makeFromLists list.TConfig lists
 
-    /// Remove all the given values from the list.
-    let removeMany values list =
-        Seq.fold (flip remove) list values
+    /// Remove all the given items from the list.
+    let removeMany items list =
+        Seq.fold (flip remove) list items
+
+    /// Make a TList with a single item.
+    let singleton<'a> config (item : 'a) =
+        makeFromSeq config [item]
 
 type 'a TList = 'a TList.TList
 

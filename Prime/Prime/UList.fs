@@ -141,12 +141,16 @@ module UList =
         let tlist = TList.makeFromLists config tlists
         { List = tlist }
 
-    /// Add all the given values to the list.
-    let addMany values list =
-        { List = TList.addMany values list.List }
+    /// Add all the given items to the list.
+    let addMany items list =
+        { List = TList.addMany items list.List }
 
-    /// Remove all the given values from the list.
-    let removeMany values list =
-        { List = TList.removeMany values list.List }
+    /// Remove all the given items from the list.
+    let removeMany items list =
+        { List = TList.removeMany items list.List }
+
+    /// Make a UList with a single item.
+    let singleton<'a> config item =
+        { List = TList.singleton<'a> config item }
 
 type 'a UList = 'a UList.UList

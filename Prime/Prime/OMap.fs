@@ -175,11 +175,11 @@ module OMap =
         Seq.fold (flip (uncurry add)) map map2
 
     /// Fold over an OMap.
-    let fold folder state (map : OMap<'k, 'v>) =
+    let fold folder (state : 's) (map : OMap<'k, 'v>) =
         Seq.fold (fun s struct (a, k, v) -> if a then folder s k v else s) state map.Entries
 
     /// Fold over the values of an OMap.
-    let foldv folder state (map : OMap<'k, 'v>) =
+    let foldv folder (state : 's) (map : OMap<'k, 'v>) =
         Seq.fold (fun s struct (a, _, v) -> if a then folder s v else s) state map.Entries
 
     /// Map over an OMap.
