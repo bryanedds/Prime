@@ -3,6 +3,7 @@
 
 namespace Prime
 open System
+open System.Globalization
 open FParsec
 open Csv
 open Prime
@@ -96,6 +97,8 @@ module Symbol =
     let [<Literal>] WhitespaceChars = "\t " + NewlineChars
     let [<Literal>] IndexChar = '.'
     let [<Literal>] IndexStr = "."
+    let [<Literal>] HashChar = '#'
+    let [<Literal>] HashStr = "#"
     let [<Literal>] OpenSymbolsChar = '['
     let [<Literal>] OpenSymbolsStr = "["
     let [<Literal>] CloseSymbolsChar = ']'
@@ -111,8 +114,8 @@ module Symbol =
     let [<Literal>] OpenMultilineCommentStr = "#|"
     let [<Literal>] CloseMultilineCommentStr = "|#"
     let [<Literal>] IndexExpansion = "Index"
-    let [<Literal>] ReservedChars = "(){}\\#$:,"
-    let [<Literal>] StructureCharsNoStrNoIndex = "[]`"
+    let [<Literal>] ReservedChars = "(){}\\$:,"
+    let [<Literal>] StructureCharsNoStrNoIndex = "#[]`"
     let [<Literal>] StructureCharsNoStr = StructureCharsNoStrNoIndex + IndexStr
     let [<Literal>] StructureCharsNoIndex = "\"" + StructureCharsNoStrNoIndex
     let [<Literal>] StructureChars = "\"" + StructureCharsNoStr
@@ -157,7 +160,12 @@ module Symbol =
     
     let isNumberParser = numberLiteral NumberFormat "number" >>. eof
     let isNumber str = match run isNumberParser str with Success (_, _, position) -> position.Index = int64 str.Length | Failure _ -> false
-    let shouldBeExplicit str = Seq.exists (fun chr -> Char.IsWhiteSpace chr || Seq.contains chr StructureCharsNoStr) str
+    let isColor (str : string) =
+        let mutable n = 0UL
+        str.StartsWith HashStr && UInt64.TryParse (str.Substring 1, NumberStyles.HexNumber, CultureInfo.CurrentCulture, &n)
+    let shouldBeExplicit (str : string) =
+        not (isColor str) &&
+        Seq.exists (fun chr -> Char.IsWhiteSpace chr || Seq.contains chr StructureCharsNoStr) str
 
     let readAtomChars = many1 (noneOf NonAtomChars)
     let readStringChars = many (noneOf [CloseStringChar])
@@ -214,6 +222,28 @@ module Symbol =
             let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
             return Quote (quoted, originOpt) }
 
+    let readSymbolsAsColor =
+        parse {
+            let! userState = getUserState
+            let! start = getPosition
+            let! packed = skipChar HashChar >>. (many1 (anyOf "0123456789ABCDEFabcdef"))
+            let! stop = getPosition
+            do! skipWhitespaces
+            let packedStr = String.implode packed
+            let color = match UInt32.TryParse (packedStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture) with (true, color) -> uint color | (false, _) -> 0u
+            let r8 = color &&& (uint 0xFF000000) >>> 24
+            let g8 = color &&& (uint 0x00FF0000) >>> 16
+            let b8 = color &&& (uint 0x0000FF00) >>> 8
+            let a8 = color &&& (uint 0x000000FF)
+            let originOpt = Some { Source = userState.SymbolSource; Start = start; Stop = stop }
+            let symbols =
+                Symbols
+                    ([Number (string (single r8 / 255.0f), None)
+                      Number (string (single g8 / 255.0f), None)
+                      Number (string (single b8 / 255.0f), None)
+                      Number (string (single a8 / 255.0f), None)], originOpt)
+            return symbols }
+
     let readSymbols =
         parse {
             let! userState = getUserState
@@ -242,6 +272,7 @@ module Symbol =
                 | _ -> Symbols ([Atom (IndexExpansion, originOpt); indexer; target], originOpt) }
 
     let readSymbolBirecursive =
+        attempt readSymbolsAsColor <|>
         attempt readQuote <|>
         attempt readString <|>
         attempt readNumber <|>
