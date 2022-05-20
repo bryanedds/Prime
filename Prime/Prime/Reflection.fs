@@ -241,6 +241,17 @@ module Type =
 [<AutoOpen>]
 module TypeExtension =
 
+    let private propertyArrays =
+        Dictionary<Type, PropertyInfo array> ()
+
+    let private getProperties (ty : Type) =
+        match propertyArrays.TryGetValue ty with
+        | (true, properties) -> properties
+        | (false, _) ->
+            let properties = ty.GetProperties ()
+            propertyArrays.Add (ty, properties)
+            properties
+
     /// Type extension for Type.
     type Type with
 
@@ -260,6 +271,10 @@ module TypeExtension =
                 else None
             elif notNull (this.GetConstructor [||]) then Some (Activator.CreateInstance ())
             else None
+
+        /// Get the public instance properties of a type.
+        member this.GetProperties () =
+            getProperties this
 
         /// Get the default value for a type.
         /// Never returns null.
@@ -297,37 +312,10 @@ module TypeExtension =
             let propertyOpt =
                 Array.tryFind
                     (fun (property : PropertyInfo) -> property.Name = propertyName && property.CanWrite)
-                    (this.GetProperties ())
+                    (getProperties this)
             match propertyOpt with
             | Some property -> property
             | None -> null
-
-        /// Get all the properties with the given name.
-        member this.GetProperties propertyName =
-            Array.filter
-                (fun (property : PropertyInfo) -> property.Name = propertyName)
-                (this.GetProperties ())
-
-        /// Get all the properties that can be written to.
-        member this.GetPropertiesWritable () =
-            Array.filter
-                (fun (property : PropertyInfo) -> property.CanWrite)
-                (this.GetProperties ())
-
-        /// Get all the properties with the give name that can be written to.
-        member this.GetPropertiesWritable propertyName =
-            Array.filter
-                (fun (property : PropertyInfo) -> property.Name = propertyName && property.CanWrite)
-                (this.GetProperties ())
-
-        /// Get the first property with the given name that is signalled to be preferred by the 'preference' predicate.
-        member this.GetPropertyByPreference (preference, propertyName) =
-            let properties = this.GetProperties propertyName
-            Type.GetPropertyByPreference (preference, properties)
-
-        /// Get the property with the given name, preferring the variant that can be written to, or null if none found.
-        member this.GetPropertyPreferWritable propertyName =
-            this.GetPropertyByPreference ((fun (property : PropertyInfo) -> property.CanWrite), propertyName)
 
         /// Get all the properties that are signalled to be preferred by the 'preference' predicate.
         member this.GetPropertiesByPreference preference =
@@ -344,6 +332,12 @@ module TypeExtension =
         /// Get all the properties, preferring those that can be written to if there is a name clash.
         member this.GetPropertiesPreferWritable () =
             this.GetPropertiesByPreference (fun (property : PropertyInfo) -> property.CanWrite)
+
+        /// Get all the properties that can be written to.
+        member this.GetPropertiesWritable () =
+            Array.filter
+                (fun (property : PropertyInfo) -> property.CanWrite)
+                (this.GetProperties ())
 
         /// Get the generic name of the type, EG - Option<String>
         member this.GetGenericName () : string =

@@ -75,9 +75,6 @@ module Operators =
     /// Get the .NET type name of a target.
     let inline getTypeName target = (getType target).Name
 
-    /// Get the properties of a type.
-    let inline getProperties (t : Type) = t.GetProperties (BindingFlags.Instance ||| BindingFlags.Public)
-
     /// Get the union tag for the give case value.
     /// OPTIMIZATION: memoizes zero-field unions for speed.
     let getTag<'u> (unionCase : 'u) =
