@@ -25,7 +25,7 @@ type ScriptingSystem<'w when 'w :> 'w ScriptingSystem> =
 
 /// The type for intrinsic and extrinsic scripting functions.
 and [<NoEquality; NoComparison>] ScriptingTrinsic<'w when 'w :> 'w ScriptingSystem> =
-    { Fn : string -> Expr array -> SymbolOrigin option -> 'w -> struct (Expr * 'w)
+    { Fn : string -> Expr array -> SymbolOrigin ValueOption -> 'w -> struct (Expr * 'w)
       Pars : string array
       DocOpt : string option }
 
@@ -206,7 +206,7 @@ module ScriptingSystem =
 
     and evalOverload5 targetName fnName argsEvaled originOpt world =
         let xfnName = toOverloadName fnName targetName
-        let xfnBinding = Binding (xfnName, ref UncachedBinding, ref UnknownBindingType, None)
+        let xfnBinding = Binding (xfnName, ref UncachedBinding, ref UnknownBindingType, ValueNone)
         let evaleds = Array.cons xfnBinding argsEvaled
         evalApply evaleds originOpt world
 
@@ -390,7 +390,7 @@ module ScriptingSystem =
             struct (evaled, world)
         | None -> struct (evaled, world)
 
-    and evalApply<'w when 'w :> 'w ScriptingSystem> (exprs : Expr array) (originOpt : SymbolOrigin option) (world : 'w) : struct (Expr * 'w) =
+    and evalApply<'w when 'w :> 'w ScriptingSystem> (exprs : Expr array) (originOpt : SymbolOrigin ValueOption) (world : 'w) : struct (Expr * 'w) =
         if Array.notEmpty exprs then
             let (exprsHead, exprsTail) = (Array.head exprs, Array.tail exprs)
             let struct (headEvaled, world) = eval exprsHead world in annotateWorld world // force the type checker to see the world as it is
@@ -605,7 +605,7 @@ module ScriptingSystem =
                 struct (tryAddDeclarationBinding name fn world, world)
         if bound
         then struct (Unit, world)
-        else struct (Violation (["InvalidDeclaration"], "Can make declarations only at the top-level.", None), world)
+        else struct (Violation (["InvalidDeclaration"], "Can make declarations only at the top-level.", ValueNone), world)
 
     /// Evaluate an expression.
     and eval expr (world : 'w) =

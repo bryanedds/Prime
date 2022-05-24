@@ -20,7 +20,7 @@ module Scripting =
         | DeclarationBinding of Expr
         | ProceduralBinding of int * int
 
-    and [<NoEquality; NoComparison>] BindingType =
+    and [<NoEquality; NoComparison; Struct>] BindingType =
         | UnknownBindingType
         | IntrinsicBinding
         | ExtrinsicBinding
@@ -30,7 +30,7 @@ module Scripting =
         | VariableBinding of VarName : string * VarValue : Expr
         | FunctionBinding of FunName : string * FunArgs : string array * FunLambda : Expr
 
-    and [<StructuralEquality; StructuralComparison>] Breakpoint =
+    and [<StructuralEquality; StructuralComparison; Struct>] Breakpoint =
         { mutable BreakEnabled : bool
           mutable BreakCondition : Expr }
 
@@ -95,7 +95,7 @@ module Scripting =
         Expr =
 
         (* Primitive Value Types *)
-        | Violation of string list * string * SymbolOrigin option
+        | Violation of string list * string * SymbolOrigin ValueOption
         | Unit
         | Bool of bool
         | Int of int
@@ -123,25 +123,25 @@ module Scripting =
         | RecordUnevaled of string * (string * Expr) list
 
         (* Special Forms *)
-        | Binding of string * CachedBinding ref * BindingType ref * SymbolOrigin option
-        | TryAlter of Expr * Expr * Expr * Breakpoint * SymbolOrigin option
-        | Alter of Expr * Expr * Expr * Breakpoint * SymbolOrigin option
-        | Apply of Expr array * Breakpoint * SymbolOrigin option
-        | ApplyAnd of Expr array * Breakpoint * SymbolOrigin option
-        | ApplyOr of Expr array * Breakpoint * SymbolOrigin option
-        | Let of Binding * Expr * SymbolOrigin option
-        | LetMany of Binding list * Expr * SymbolOrigin option
-        | Intrinsic of string * string array * int * Expr option * SymbolOrigin option
-        | Fun of string array * int * Expr * bool * obj option * string option * SymbolOrigin option
-        | If of Expr * Expr * Expr * SymbolOrigin option
-        | Match of Expr * (Expr * Expr) array * SymbolOrigin option
-        | Select of (Expr * Expr) array * SymbolOrigin option
-        | Try of Expr * (string list * Expr) list * SymbolOrigin option
-        | Do of Expr list * SymbolOrigin option
-        | Quote of Expr * SymbolOrigin option
+        | Binding of string * CachedBinding ref * BindingType ref * SymbolOrigin ValueOption
+        | TryAlter of Expr * Expr * Expr * Breakpoint * SymbolOrigin ValueOption
+        | Alter of Expr * Expr * Expr * Breakpoint * SymbolOrigin ValueOption
+        | Apply of Expr array * Breakpoint * SymbolOrigin ValueOption
+        | ApplyAnd of Expr array * Breakpoint * SymbolOrigin ValueOption
+        | ApplyOr of Expr array * Breakpoint * SymbolOrigin ValueOption
+        | Let of Binding * Expr * SymbolOrigin ValueOption
+        | LetMany of Binding list * Expr * SymbolOrigin ValueOption
+        | Intrinsic of string * string array * int * Expr option * SymbolOrigin ValueOption
+        | Fun of string array * int * Expr * bool * obj option * string option * SymbolOrigin ValueOption
+        | If of Expr * Expr * Expr * SymbolOrigin ValueOption
+        | Match of Expr * (Expr * Expr) array * SymbolOrigin ValueOption
+        | Select of (Expr * Expr) array * SymbolOrigin ValueOption
+        | Try of Expr * (string list * Expr) list * SymbolOrigin ValueOption
+        | Do of Expr list * SymbolOrigin ValueOption
+        | Quote of Expr * SymbolOrigin ValueOption
 
         (* Declarations - only work at the top level. *)
-        | Define of Binding * SymbolOrigin option
+        | Define of Binding * SymbolOrigin ValueOption
 
         static member tryGetOrigin expr =
             match expr with
@@ -166,7 +166,7 @@ module Scripting =
             | Record _
             | UnionUnevaled _
             | TableUnevaled _
-            | RecordUnevaled _ -> None
+            | RecordUnevaled _ -> ValueNone
             | Binding (_, _, _, originOpt)
             | TryAlter (_, _, _, _, originOpt)
             | Alter (_, _, _, _, originOpt)
@@ -429,35 +429,35 @@ module Scripting =
         member this.BindingToSymbols (binding : Binding) =
             match binding with
             | VariableBinding (name, value) ->
-                let nameSymbol = Atom (name, None)
+                let nameSymbol = Atom (name, ValueNone)
                 let valueSymbol = this.ExprToSymbol value
                 [nameSymbol; valueSymbol]
             | FunctionBinding (name, pars, body) ->
-                let nameSymbol = Atom (name, None)
-                let parSymbols = Array.map (fun par -> Atom (par, None)) pars
-                let parsSymbol = Symbols (List.ofArray parSymbols, None)
+                let nameSymbol = Atom (name, ValueNone)
+                let parSymbols = Array.map (fun par -> Atom (par, ValueNone)) pars
+                let parsSymbol = Symbols (List.ofArray parSymbols, ValueNone)
                 let bodySymbol = this.ExprToSymbol body
                 [nameSymbol; parsSymbol; bodySymbol]
 
         member this.BindingToSymbol binding =
-            Symbols (this.BindingToSymbols binding, None)
+            Symbols (this.BindingToSymbols binding, ValueNone)
 
         member this.CodataToSymbol codata =
             match codata with
-            | Empty -> Atom ("coempty", None)
-            | Add (left, right) -> Symbols ([Atom ("+", None); this.CodataToSymbol left; this.CodataToSymbol right], None)
-            | Unfold (unfolder, state) -> Symbols ([Atom ("codata", None); this.ExprToSymbol unfolder; this.ExprToSymbol state], None)
-            | Conversion source -> Symbols ([Atom ("toCodata", None); this.ExprsToSymbol source], None)
+            | Empty -> Atom ("coempty", ValueNone)
+            | Add (left, right) -> Symbols ([Atom ("+", ValueNone); this.CodataToSymbol left; this.CodataToSymbol right], ValueNone)
+            | Unfold (unfolder, state) -> Symbols ([Atom ("codata", ValueNone); this.ExprToSymbol unfolder; this.ExprToSymbol state], ValueNone)
+            | Conversion source -> Symbols ([Atom ("toCodata", ValueNone); this.ExprsToSymbol source], ValueNone)
 
         member this.ExprToSymbol (expr : Expr) =
             this.ConvertTo (expr, typeof<Symbol>) :?> Symbol
 
         member this.ExprsToSymbol exprs =
-            Symbols (List.map this.ExprToSymbol exprs, None)
+            Symbols (List.map this.ExprToSymbol exprs, ValueNone)
 
         member this.ExprsToIndex expr expr2 =
-            let indexSymbol = Atom ("Index", None)
-            Symbols ([indexSymbol; this.ExprToSymbol expr; this.ExprToSymbol expr2], None)
+            let indexSymbol = Atom ("Index", ValueNone)
+            Symbols ([indexSymbol; this.ExprToSymbol expr; this.ExprToSymbol expr2], ValueNone)
 
         member this.IndexToExprs indices =
             match indices with
@@ -487,176 +487,176 @@ module Scripting =
                 let expr = source :?> Expr
                 match expr with
                 | Violation (names, error, originOpt) ->
-                    let violationSymbol = Atom ("violation", None)
-                    let namesSymbol = Atom (String.concat Constants.Scripting.ViolationSeparatorStr names, None)
-                    let errorSymbol = Atom (error, None)
+                    let violationSymbol = Atom ("violation", ValueNone)
+                    let namesSymbol = Atom (String.concat Constants.Scripting.ViolationSeparatorStr names, ValueNone)
+                    let errorSymbol = Atom (error, ValueNone)
                     Symbols ([violationSymbol; namesSymbol; errorSymbol], originOpt) :> obj
-                | Unit -> Symbols ([], None) :> obj
-                | Bool bool -> Atom (String.boolToCodeString bool, None) :> obj
-                | Int int -> Number (string int, None) :> obj
-                | Int64 int64 -> Number (String.int64ToCodeString int64, None) :> obj
-                | Single single -> Number (String.singleToCodeString single, None) :> obj
-                | Double double -> Number (String.doubleToCodeString double, None) :> obj
-                | String string -> Symbol.Text (string, None) :> obj
-                | Keyword string -> Atom ((if String.isEmpty string then "nil" else string), None) :> obj
+                | Unit -> Symbols ([], ValueNone) :> obj
+                | Bool bool -> Atom (String.boolToCodeString bool, ValueNone) :> obj
+                | Int int -> Number (string int, ValueNone) :> obj
+                | Int64 int64 -> Number (String.int64ToCodeString int64, ValueNone) :> obj
+                | Single single -> Number (String.singleToCodeString single, ValueNone) :> obj
+                | Double double -> Number (String.doubleToCodeString double, ValueNone) :> obj
+                | String string -> Symbol.Text (string, ValueNone) :> obj
+                | Keyword string -> Atom ((if String.isEmpty string then "nil" else string), ValueNone) :> obj
                 | Pluggable pluggable -> pluggable.ToSymbol () :> obj
                 | Tuple elems ->
-                    let headingSymbol = Atom ((if Array.length elems = 2 then "pair" else "tuple"), None)
+                    let headingSymbol = Atom ((if Array.length elems = 2 then "pair" else "tuple"), ValueNone)
                     let elemSymbols = elems |> Array.map (fun elem -> this.ExprToSymbol elem) |> List.ofArray
-                    Symbols (headingSymbol :: elemSymbols, None) :> obj
+                    Symbols (headingSymbol :: elemSymbols, ValueNone) :> obj
                 | Union (name, fields) ->
-                    let nameSymbol = Atom (name, None)
+                    let nameSymbol = Atom (name, ValueNone)
                     let elemSymbols = fields |> Array.map this.ExprToSymbol |> List.ofArray
                     match elemSymbols with
                     | [] -> nameSymbol :> obj
-                    | _ :: _ -> Symbols (nameSymbol :: elemSymbols, None) :> obj
+                    | _ :: _ -> Symbols (nameSymbol :: elemSymbols, ValueNone) :> obj
                 | Option option ->
                     match option with
-                    | Some value -> Symbols ([Atom ("some", None); this.ExprToSymbol value], None) :> obj
-                    | None -> Atom ("none", None) :> obj
+                    | Some value -> Symbols ([Atom ("some", ValueNone); this.ExprToSymbol value], ValueNone) :> obj
+                    | None -> Atom ("none", ValueNone) :> obj
                 | Either either ->
                     match either with
-                    | Right value -> Symbols ([Atom ("right", None); this.ExprToSymbol value], None) :> obj
-                    | Left value -> Symbols ([Atom ("left", None); this.ExprToSymbol value], None) :> obj
+                    | Right value -> Symbols ([Atom ("right", ValueNone); this.ExprToSymbol value], ValueNone) :> obj
+                    | Left value -> Symbols ([Atom ("left", ValueNone); this.ExprToSymbol value], ValueNone) :> obj
                 | Codata codata ->
                     this.CodataToSymbol codata :> obj
                 | List elems ->
-                    let listSymbol = Atom ("list", None)
+                    let listSymbol = Atom ("list", ValueNone)
                     let elemSymbols = List.map this.ExprToSymbol elems
-                    Symbols (listSymbol :: elemSymbols, None) :> obj
+                    Symbols (listSymbol :: elemSymbols, ValueNone) :> obj
                 | Ring set ->
-                    let ringSymbol = Atom ("ring", None)
+                    let ringSymbol = Atom ("ring", ValueNone)
                     let elemSymbols = List.map this.ExprToSymbol (Set.toList set)
-                    Symbols (ringSymbol :: elemSymbols, None) :> obj
+                    Symbols (ringSymbol :: elemSymbols, ValueNone) :> obj
                 | Table map ->
-                    let tableSymbol = Atom ("table", None)
+                    let tableSymbol = Atom ("table", ValueNone)
                     let elemSymbols =
                         List.map (fun (key, value) ->
                             let keySymbol = this.ExprToSymbol key
                             let valueSymbol = this.ExprToSymbol value
-                            Symbols ([keySymbol; valueSymbol], None))
+                            Symbols ([keySymbol; valueSymbol], ValueNone))
                             (Map.toList map)
-                    Symbols (tableSymbol :: elemSymbols, None) :> obj
+                    Symbols (tableSymbol :: elemSymbols, ValueNone) :> obj
                 | Record (name, map, fields) ->
-                    let recordSymbol = Atom ("record", None)
-                    let nameSymbol = Atom (name, None)
+                    let recordSymbol = Atom ("record", ValueNone)
+                    let nameSymbol = Atom (name, ValueNone)
                     let mapSwap = Map.ofSeqBy (fun (kvp : KeyValuePair<_, _>) -> (kvp.Value, kvp.Key)) map
                     let fieldSymbols =
                         Seq.map (fun (kvp : KeyValuePair<_, _>) ->
                             let key = kvp.Value
                             let value = fields.[kvp.Key]
-                            let keySymbol = Atom (key, None)
+                            let keySymbol = Atom (key, ValueNone)
                             let valueSymbol = this.ExprToSymbol value
-                            Symbols ([keySymbol; valueSymbol], None))
+                            Symbols ([keySymbol; valueSymbol], ValueNone))
                             mapSwap
-                    Symbols (recordSymbol :: nameSymbol :: List.ofSeq fieldSymbols, None) :> obj
+                    Symbols (recordSymbol :: nameSymbol :: List.ofSeq fieldSymbols, ValueNone) :> obj
                 | UnionUnevaled (name, fields) ->
-                    let nameSymbol = Atom (name, None)
+                    let nameSymbol = Atom (name, ValueNone)
                     let elemSymbols = fields |> Array.map this.ExprToSymbol |> List.ofArray
-                    Symbols (nameSymbol :: elemSymbols, None) :> obj
+                    Symbols (nameSymbol :: elemSymbols, ValueNone) :> obj
                 | TableUnevaled entries ->
-                    let tableSymbol = Atom ("table", None)
+                    let tableSymbol = Atom ("table", ValueNone)
                     let elemSymbols =
                         List.map (fun (key, value) ->
                             let keySymbol = this.ExprToSymbol key
                             let valueSymbol = this.ExprToSymbol value
-                            Symbols ([keySymbol; valueSymbol], None))
+                            Symbols ([keySymbol; valueSymbol], ValueNone))
                             entries
-                    Symbols (tableSymbol :: elemSymbols, None) :> obj
+                    Symbols (tableSymbol :: elemSymbols, ValueNone) :> obj
                 | RecordUnevaled (name, fields) ->
-                    let recordSymbol = Atom ("record", None)
-                    let nameSymbol = Atom (name, None)
-                    let fieldSymbols = List.map (fun (name, field) -> Symbols ([Atom (name, None); this.ExprToSymbol field], None)) fields
-                    Symbols (recordSymbol :: nameSymbol :: fieldSymbols, None) :> obj
+                    let recordSymbol = Atom ("record", ValueNone)
+                    let nameSymbol = Atom (name, ValueNone)
+                    let fieldSymbols = List.map (fun (name, field) -> Symbols ([Atom (name, ValueNone); this.ExprToSymbol field], ValueNone)) fields
+                    Symbols (recordSymbol :: nameSymbol :: fieldSymbols, ValueNone) :> obj
                 | Binding (name, _, _, originOpt) ->
                     if name = "index" then Atom ("Index", originOpt) :> obj
                     else Atom (name, originOpt) :> obj
                 | TryAlter (expr, expr2, expr3, _, originOpt) ->
                     let index = this.ExprsToIndex expr expr2
-                    let tryAlterSymbol = Atom ("tryAlter", None)
+                    let tryAlterSymbol = Atom ("tryAlter", ValueNone)
                     Symbols ([tryAlterSymbol; index; this.ExprToSymbol expr3], originOpt) :> obj
                 | Alter (expr, expr2, expr3, _, originOpt) ->
                     let index = this.ExprsToIndex expr expr2
-                    let alterSymbol = Atom ("alter", None)
+                    let alterSymbol = Atom ("alter", ValueNone)
                     Symbols ([alterSymbol; index; this.ExprToSymbol expr3], originOpt) :> obj
                 | Apply (exprs, _, originOpt) ->
                     let exprSymbols = Array.map this.ExprToSymbol exprs
                     Symbols (List.ofArray exprSymbols, originOpt) :> obj
                 | ApplyAnd (exprs, _, originOpt) ->
-                    let logicSymbol = Atom ("&&", None)
+                    let logicSymbol = Atom ("&&", ValueNone)
                     let exprSymbols = List.map this.ExprToSymbol (List.ofArray exprs)
                     Symbols (logicSymbol :: exprSymbols, originOpt) :> obj
                 | ApplyOr (exprs, _, originOpt) ->
-                    let logicSymbol = Atom ("||", None)
+                    let logicSymbol = Atom ("||", ValueNone)
                     let exprSymbols = List.map this.ExprToSymbol (List.ofArray exprs)
                     Symbols (logicSymbol :: exprSymbols, originOpt) :> obj
                 | Let (binding, body, originOpt) ->
-                    let letSymbol = Atom ("let", None)
+                    let letSymbol = Atom ("let", ValueNone)
                     let bindingSymbol = this.BindingToSymbol binding
                     let bodySymbol = this.ExprToSymbol body
                     Symbols ([letSymbol; bindingSymbol; bodySymbol], originOpt) :> obj
                 | LetMany (bindings, body, originOpt) ->
-                    let letSymbol = Atom ("let", None)
+                    let letSymbol = Atom ("let", ValueNone)
                     let bindingSymbols = List.map (fun binding -> this.BindingToSymbol binding) bindings
                     let bodySymbol = this.ExprToSymbol body
                     Symbols (letSymbol :: bindingSymbols @ [bodySymbol], originOpt) :> obj
                 | Intrinsic (name, pars, _, bodyOpt, originOpt) ->
-                    let intrinsicSymbol = Atom ("intrinsic", None)
-                    let nameSymbol = Atom (name, None)
-                    let parSymbols = Array.map (fun par -> Atom (par, None)) pars
-                    let parsSymbol = Symbols (List.ofArray parSymbols, None)
+                    let intrinsicSymbol = Atom ("intrinsic", ValueNone)
+                    let nameSymbol = Atom (name, ValueNone)
+                    let parSymbols = Array.map (fun par -> Atom (par, ValueNone)) pars
+                    let parsSymbol = Symbols (List.ofArray parSymbols, ValueNone)
                     match bodyOpt with
                     | Some body -> Symbols ([intrinsicSymbol; nameSymbol; parsSymbol; this.ExprToSymbol body], originOpt) :> obj
                     | None -> Symbols ([intrinsicSymbol; nameSymbol; parsSymbol], originOpt) :> obj
                 | Fun (pars, _, body, _, _, _, originOpt) ->
-                    let funSymbol = Atom ("fun", None)
-                    let parSymbols = Array.map (fun par -> Atom (par, None)) pars
-                    let parsSymbol = Symbols (List.ofArray parSymbols, None)
+                    let funSymbol = Atom ("fun", ValueNone)
+                    let parSymbols = Array.map (fun par -> Atom (par, ValueNone)) pars
+                    let parsSymbol = Symbols (List.ofArray parSymbols, ValueNone)
                     let bodySymbol = this.ExprToSymbol body
                     Symbols ([funSymbol; parsSymbol; bodySymbol], originOpt) :> obj
                 | If (condition, consequent, alternative, originOpt) ->
-                    let ifSymbol = Atom ("if", None)
+                    let ifSymbol = Atom ("if", ValueNone)
                     let conditionSymbol = this.ExprToSymbol condition
                     let consequentSymbol = this.ExprToSymbol consequent
                     let alternativeSymbol = this.ExprToSymbol alternative
                     Symbols ([ifSymbol; conditionSymbol; consequentSymbol; alternativeSymbol], originOpt) :> obj
                 | Match (input, cases, originOpt) ->
-                    let matchSymbol = Atom ("match", None)
+                    let matchSymbol = Atom ("match", ValueNone)
                     let inputSymbol = this.ExprToSymbol input
                     let caseSymbols =
                         List.map (fun (condition, consequent) ->
                             let conditionSymbol = this.ExprToSymbol condition
                             let consequentSymbol = this.ExprToSymbol consequent
-                            Symbols ([conditionSymbol; consequentSymbol], None))
+                            Symbols ([conditionSymbol; consequentSymbol], ValueNone))
                             (List.ofArray cases)
                     Symbols (matchSymbol :: inputSymbol :: caseSymbols, originOpt) :> obj
                 | Select (cases, originOpt) ->
-                    let selectSymbol = Atom ("select", None)
+                    let selectSymbol = Atom ("select", ValueNone)
                     let caseSymbols =
                         List.map (fun (condition, consequent) ->
                             let conditionSymbol = this.ExprToSymbol condition
                             let consequentSymbol = this.ExprToSymbol consequent
-                            Symbols ([conditionSymbol; consequentSymbol], None))
+                            Symbols ([conditionSymbol; consequentSymbol], ValueNone))
                             (List.ofArray cases)
                     Symbols (selectSymbol :: caseSymbols, originOpt) :> obj
                 | Try (input, cases, originOpt) ->
-                    let trySymbol = Atom ("try", None)
+                    let trySymbol = Atom ("try", ValueNone)
                     let inputSymbol = this.ExprToSymbol input
                     let caseSymbols =
                         List.map (fun ((tagNames : string list), consequent) ->
-                            let tagSymbol = Atom (String.concat Constants.Scripting.ViolationSeparatorStr tagNames, None)
+                            let tagSymbol = Atom (String.concat Constants.Scripting.ViolationSeparatorStr tagNames, ValueNone)
                             let consequentSymbol = this.ExprToSymbol consequent
-                            Symbols ([tagSymbol; consequentSymbol], None))
+                            Symbols ([tagSymbol; consequentSymbol], ValueNone))
                             cases
                     Symbols (trySymbol :: inputSymbol :: caseSymbols, originOpt) :> obj
                 | Do (exprs, originOpt) ->
-                    let doSymbol = Atom ("do", None)
+                    let doSymbol = Atom ("do", ValueNone)
                     let exprSymbols = List.map this.ExprToSymbol exprs
                     Symbols (doSymbol :: exprSymbols, originOpt) :> obj
                 | Quote (expr, originOpt) ->
                     Symbol.Quote (this.ExprToSymbol expr, originOpt) :> obj
                 | Define (binding, originOpt) ->
-                    let defineSymbol = Atom ("define", None)
+                    let defineSymbol = Atom ("define", ValueNone)
                     Symbols (defineSymbol :: this.BindingToSymbols binding, originOpt) :> obj
             elif destType = typeof<Expr> then source
             else failconv "Invalid ExprConverter conversion to source." None
@@ -875,19 +875,19 @@ module Scripting =
 
     /// The true value in scripting.
     let TrueValue = Bool true
-    
+
     /// The false value in scripting.
     let FalseValue = Bool false
-    
+
     /// The none value in scripting.
     let NoneValue = Option None
-    
+
     /// A declaration bindings frame in a scripting environment.
     type DeclarationFrame = Dictionary<string, Expr>
-    
+
     /// A declaration bindings frame in a scripting environment.
     type ProceduralFrame = (struct (string * Expr)) array
-    
+
     /// The manner in which bindings are added to a frame.
     type [<StructuralEquality; StructuralComparison>] AddType =
         | AddToNewFrame of Size : int
@@ -904,7 +904,7 @@ module Scripting =
                   mutable ProceduralFrames : ProceduralFrame list }
     
         let private BottomBinding =
-            struct (String.Empty, Violation (["BottomAccess"], "Accessed a Bottom value.", None))
+            struct (String.Empty, Violation (["BottomAccess"], "Accessed a Bottom value.", ValueNone))
 
         let getLocalFrame env =
             env.LocalFrame

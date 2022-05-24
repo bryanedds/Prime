@@ -1005,7 +1005,7 @@ module ScriptingPrimitives =
             match value with
             | Tuple [|v1; v2|] -> struct (Table (Map.singleton v1 v2), world)
             | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Application of " + fnName + " for Table must be a 2-value Tuple.", originOpt), world)
-        | [|Fun _; value|] -> struct (Fun ([||], 0, value, false, None, None, None), world)
+        | [|Fun _; value|] -> struct (Fun ([||], 0, value, false, None, None, ValueNone), world)
         | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Native application of " + fnName + " must be used for a function, String, Option, Codata, Ring, Table or List.", originOpt), world)
 
     let evalApplyScript evalApply fnName argsEvaled originOpt world =

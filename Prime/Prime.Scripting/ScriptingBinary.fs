@@ -8,21 +8,21 @@ open Prime.Scripting
 module ScriptingBinary =
 
     type [<NoEquality; NoComparison>] BinaryFns =
-        { Bool : bool -> bool -> SymbolOrigin option -> Expr
-          Int : int -> int -> SymbolOrigin option -> Expr
-          Int64 : int64 -> int64 -> SymbolOrigin option -> Expr
-          Single : single -> single -> SymbolOrigin option -> Expr
-          Double : double -> double -> SymbolOrigin option -> Expr
-          String : string -> string -> SymbolOrigin option -> Expr
-          Keyword : string -> string -> SymbolOrigin option -> Expr
-          Tuple : Expr array -> Expr array -> SymbolOrigin option -> Expr
-          Union : string -> Expr array -> string -> Expr array -> SymbolOrigin option -> Expr
-          Option : Expr option -> Expr option -> SymbolOrigin option -> Expr
-          Codata : Codata -> Codata -> SymbolOrigin option -> Expr
-          List : Expr list -> Expr list -> SymbolOrigin option -> Expr
-          Ring : Expr Set -> Expr Set -> SymbolOrigin option -> Expr
-          Table : Map<Expr, Expr> -> Map<Expr, Expr> -> SymbolOrigin option -> Expr
-          Record : string -> Map<string, int> -> Expr array -> string -> Map<string, int> -> Expr array -> SymbolOrigin option -> Expr }
+        { Bool : bool -> bool -> SymbolOrigin ValueOption -> Expr
+          Int : int -> int -> SymbolOrigin ValueOption -> Expr
+          Int64 : int64 -> int64 -> SymbolOrigin ValueOption -> Expr
+          Single : single -> single -> SymbolOrigin ValueOption -> Expr
+          Double : double -> double -> SymbolOrigin ValueOption -> Expr
+          String : string -> string -> SymbolOrigin ValueOption -> Expr
+          Keyword : string -> string -> SymbolOrigin ValueOption -> Expr
+          Tuple : Expr array -> Expr array -> SymbolOrigin ValueOption -> Expr
+          Union : string -> Expr array -> string -> Expr array -> SymbolOrigin ValueOption -> Expr
+          Option : Expr option -> Expr option -> SymbolOrigin ValueOption -> Expr
+          Codata : Codata -> Codata -> SymbolOrigin ValueOption -> Expr
+          List : Expr list -> Expr list -> SymbolOrigin ValueOption -> Expr
+          Ring : Expr Set -> Expr Set -> SymbolOrigin ValueOption -> Expr
+          Table : Map<Expr, Expr> -> Map<Expr, Expr> -> SymbolOrigin ValueOption -> Expr
+          Record : string -> Map<string, int> -> Expr array -> string -> Map<string, int> -> Expr array -> SymbolOrigin ValueOption -> Expr }
 
     let EqFns =
         { Bool = fun left right _ -> Bool (left = right)

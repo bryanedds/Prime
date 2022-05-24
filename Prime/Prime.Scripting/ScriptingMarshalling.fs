@@ -327,19 +327,19 @@ module ScriptingMarshalling =
         match expr with
         | Union (name, exprs) ->
             match (name, exprs) with
-            | ("Atom", [|String str|]) -> Some (Symbol.Atom (str, None) :> obj)
-            | ("Number", [|String str|]) -> Some (Symbol.Number (str, None) :> obj)
-            | ("String", [|String str|]) -> Some (Symbol.Text (str, None) :> obj)
+            | ("Atom", [|String str|]) -> Some (Symbol.Atom (str, ValueNone) :> obj)
+            | ("Number", [|String str|]) -> Some (Symbol.Number (str, ValueNone) :> obj)
+            | ("String", [|String str|]) -> Some (Symbol.Text (str, ValueNone) :> obj)
             | ("Quote", [|expr|]) ->
                 match tryExportSymbol tryExportExt ty expr with
-                | Some symbol -> Some (Symbol.Quote (symbol :?> Symbol, None) :> obj)
+                | Some symbol -> Some (Symbol.Quote (symbol :?> Symbol, ValueNone) :> obj)
                 | None -> None
             | ("Symbols", exprs) ->
                 let symbolsOpts =
                     Array.map (tryExportSymbol tryExportExt ty) exprs |>
                     Array.map (Option.map cast<Symbol>)
                 match Array.definitizePlus symbolsOpts with
-                | (true, symbols) -> Some (Symbols (Array.toList symbols, None) :> obj)
+                | (true, symbols) -> Some (Symbols (Array.toList symbols, ValueNone) :> obj)
                 | (false, _) -> None
             | (_, _) -> None
         | _ -> None

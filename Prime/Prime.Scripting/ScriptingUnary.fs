@@ -8,21 +8,21 @@ open Prime.Scripting
 module ScriptingUnary =
 
     type [<NoEquality; NoComparison>] UnaryFns =
-        { Bool : bool -> SymbolOrigin option -> Expr
-          Int : int -> SymbolOrigin option -> Expr
-          Int64 : int64 -> SymbolOrigin option -> Expr
-          Single : single -> SymbolOrigin option -> Expr
-          Double : double -> SymbolOrigin option -> Expr
-          String : string -> SymbolOrigin option -> Expr
-          Keyword : string -> SymbolOrigin option -> Expr
-          Tuple : Expr array -> SymbolOrigin option -> Expr
-          Union : string -> Expr array -> SymbolOrigin option -> Expr
-          Option : Expr option -> SymbolOrigin option -> Expr
-          Codata : Codata -> SymbolOrigin option -> Expr
-          List : Expr list -> SymbolOrigin option -> Expr
-          Ring : Expr Set -> SymbolOrigin option -> Expr
-          Table : Map<Expr, Expr> -> SymbolOrigin option -> Expr
-          Record : string -> Map<string, int> -> Expr array -> SymbolOrigin option -> Expr }
+        { Bool : bool -> SymbolOrigin ValueOption -> Expr
+          Int : int -> SymbolOrigin ValueOption -> Expr
+          Int64 : int64 -> SymbolOrigin ValueOption -> Expr
+          Single : single -> SymbolOrigin ValueOption -> Expr
+          Double : double -> SymbolOrigin ValueOption -> Expr
+          String : string -> SymbolOrigin ValueOption -> Expr
+          Keyword : string -> SymbolOrigin ValueOption -> Expr
+          Tuple : Expr array -> SymbolOrigin ValueOption -> Expr
+          Union : string -> Expr array -> SymbolOrigin ValueOption -> Expr
+          Option : Expr option -> SymbolOrigin ValueOption -> Expr
+          Codata : Codata -> SymbolOrigin ValueOption -> Expr
+          List : Expr list -> SymbolOrigin ValueOption -> Expr
+          Ring : Expr Set -> SymbolOrigin ValueOption -> Expr
+          Table : Map<Expr, Expr> -> SymbolOrigin ValueOption -> Expr
+          Record : string -> Map<string, int> -> Expr array -> SymbolOrigin ValueOption -> Expr }
 
     let HashFns =
         { Bool = fun value _ -> Int (hash value)
