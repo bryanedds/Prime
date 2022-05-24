@@ -1224,7 +1224,7 @@ module ScriptingPrimitives =
                 | Violation _ as error -> struct (error, world)
                 | String str2 -> struct (String (str.Replace (str2, "")), world)
                 | _ -> struct (Violation (["InvalidArgumentType"; String.capitalize fnName], "Incorrect type of argument for " + fnName + "; argument must be string.", originOpt), world)
-            | Option opt -> struct (Option (Option.remove value opt), world)
+            | Option opt -> struct (Option (match opt with Some value2 -> (if Expr.equals value value2 then None else opt) | None -> None), world)
             | List list -> struct (List (List.remove ((=) value) list), world)
             | Ring set -> struct (Ring (Set.remove value set), world)
             | Table map -> struct (Table (Map.remove value map), world)

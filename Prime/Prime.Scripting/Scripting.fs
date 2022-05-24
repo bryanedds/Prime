@@ -365,7 +365,12 @@ module Scripting =
             | _ -> None
 
         static member internal isKeyword (str : string) =
-            str.Length > 0 && str.[0] = Constants.Relation.Slot || Char.IsUpper str.[0]
+            if str.Length > 0 then
+                let chr = str.[0]
+                chr = Constants.Relation.Current ||
+                chr = Constants.Relation.Parent ||
+                Char.IsUpper chr
+            else false
 
         static member internal isBinding (str : string) =
             str.Length > 0 && not (Expr.isKeyword str)
