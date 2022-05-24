@@ -48,16 +48,16 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
             // symbolize .NET primitive
             if sourceType.IsPrimitive then
                 let converted = (TypeDescriptor.GetConverter sourceType).ConvertTo (source, typeof<string>) :?> string
-                if sourceType = typeof<bool> then Atom (converted, None)
-                elif sourceType = typeof<char> then Text (converted, None)
-                else Number (converted, None)
+                if sourceType = typeof<bool> then Atom (converted, ValueNone)
+                elif sourceType = typeof<char> then Text (converted, ValueNone)
+                else Number (converted, ValueNone)
 
             // symbolize string
             elif sourceType = typeof<string> then
                 let sourceStr = string source
-                if printing && sourceType = typeof<string> || Symbol.shouldBeExplicit sourceStr then Text (sourceStr, None)
-                elif Symbol.isNumber sourceStr then Number (sourceStr, None)
-                else Atom (sourceStr, None)
+                if printing && sourceType = typeof<string> || Symbol.shouldBeExplicit sourceStr then Text (sourceStr, ValueNone)
+                elif Symbol.isNumber sourceStr then Number (sourceStr, ValueNone)
+                else Atom (sourceStr, ValueNone)
 
             // symbolize Symbol (no transformation)
             elif sourceType = typeof<Symbol> then
@@ -69,39 +69,39 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                 let kvp = Reflection.objToKeyValuePair source
                 let keySymbol = toSymbol gargs.[0] kvp.Key
                 let valueSymbol = toSymbol gargs.[1] kvp.Value
-                Symbols ([keySymbol; valueSymbol], None)
+                Symbols ([keySymbol; valueSymbol], ValueNone)
 
             // symbolize DesignerProperty
             elif sourceType = typeof<DesignerProperty> then
                 let property = source :?> DesignerProperty
-                let nameString = Text (property.DesignerType.AssemblyQualifiedName, None)
+                let nameString = Text (property.DesignerType.AssemblyQualifiedName, ValueNone)
                 let valueSymbol = toSymbol property.DesignerType property.DesignerValue
                 if Option.isSome designTypeOpt then valueSymbol
-                else Symbols ([nameString; valueSymbol], None)
+                else Symbols ([nameString; valueSymbol], ValueNone)
 
             // symbolize array
             elif sourceType.IsArray then
                 let items = Reflection.objToObjList source
                 let symbols = List.map (toSymbol (sourceType.GetElementType ())) items
-                Symbols (symbols, None)
+                Symbols (symbols, ValueNone)
 
             // symbolize unit
             elif sourceType.Name = typeof<unit>.Name then
-                Symbols ([], None)
+                Symbols ([], ValueNone)
 
             // symbolize list
             elif sourceType.Name = typedefof<_ list>.Name then
                 let gargs = sourceType.GetGenericArguments ()
                 let items = Reflection.objToObjList source
                 let symbols = List.map (toSymbol gargs.[0]) items
-                Symbols (symbols, None)
+                Symbols (symbols, ValueNone)
 
             // symbolize Set
             elif sourceType.Name = typedefof<_ Set>.Name then
                 let gargs = sourceType.GetGenericArguments ()
                 let items = Reflection.objToComparableSet source |> List.ofSeq
                 let symbols = List.map (toSymbol gargs.[0]) items
-                Symbols (symbols, None)
+                Symbols (symbols, ValueNone)
 
             // symbolize Map
             elif sourceType.Name = typedefof<Map<_, _>>.Name then
@@ -109,7 +109,7 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                 let itemType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs.[0]; gargs.[1]|]
                 let items = Reflection.objToObjList source
                 let symbols = List.map (toSymbol itemType) items
-                Symbols (symbols, None)
+                Symbols (symbols, ValueNone)
 
             // symbolize SymbolicCompression
             elif sourceType.Name = typedefof<SymbolicCompression<_, _>>.Name then
@@ -128,7 +128,7 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                 let tupleFields = FSharpValue.GetTupleFields source
                 let tupleElementTypes = FSharpType.GetTupleElements sourceType
                 let tupleFieldSymbols = Array.mapi (fun i tupleField -> toSymbol tupleElementTypes.[i] tupleField) tupleFields
-                Symbols (List.ofArray tupleFieldSymbols, None)
+                Symbols (List.ofArray tupleFieldSymbols, ValueNone)
 
             // symbolize Record
             elif FSharpType.IsRecord sourceType || FSharpType.isRecordAbstract sourceType then
@@ -137,13 +137,13 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                     let recordFields = Array.map (fun info -> (info, FSharpValue.GetRecordField (source, info))) recordFieldInfos
                     let recordFieldSymbols =
                         recordFields |>
-                        Array.map (fun (info, field) -> Symbols ([Atom (info.Name, None); toSymbol info.PropertyType field], None))
-                    Symbols (List.ofArray recordFieldSymbols, None)
+                        Array.map (fun (info, field) -> Symbols ([Atom (info.Name, ValueNone); toSymbol info.PropertyType field], ValueNone))
+                    Symbols (List.ofArray recordFieldSymbols, ValueNone)
                 else
                     let recordFields = FSharpValue.GetRecordFields (source, true);
                     let recordFieldTypes = FSharpType.GetRecordFields (sourceType, true);
                     let recordFieldSymbols = Array.mapi (fun i recordField -> toSymbol recordFieldTypes.[i].PropertyType recordField) recordFields
-                    Symbols (List.ofArray recordFieldSymbols, None)
+                    Symbols (List.ofArray recordFieldSymbols, ValueNone)
 
             // symbolize Union
             elif FSharpType.IsUnion sourceType || FSharpType.isUnionAbstract sourceType then
@@ -151,9 +151,9 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                 let unionFieldInfos = unionCase.GetFields ()
                 if not (Array.isEmpty unionFields) then
                     let unionFieldSymbols = Array.mapi (fun i unionField -> toSymbol unionFieldInfos.[i].PropertyType unionField) unionFields
-                    let unionSymbols = Array.cons (Atom (unionCase.Name, None)) unionFieldSymbols
-                    Symbols (List.ofArray unionSymbols, None)
-                else Atom (unionCase.Name, None)
+                    let unionSymbols = Array.cons (Atom (unionCase.Name, ValueNone)) unionFieldSymbols
+                    Symbols (List.ofArray unionSymbols, ValueNone)
+                else Atom (unionCase.Name, ValueNone)
 
             // symbolize vanilla .NET type
             else
@@ -162,11 +162,11 @@ type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designType
                 | :? DateTimeOffsetConverter ->
                     // HACK: we do not want to use this converter here as it strips the time when converting to string!
                     let dateTimeOffsetStr = string source
-                    Text (dateTimeOffsetStr, None)
+                    Text (dateTimeOffsetStr, ValueNone)
                 | _ ->
                     if typeConverter.CanConvertTo typeof<Symbol>
                     then typeConverter.ConvertTo (source, typeof<Symbol>) :?> Symbol
-                    else (typeConverter.ConvertTo (source, typeof<string>) :?> string, None) |> Atom
+                    else (typeConverter.ConvertTo (source, typeof<string>) :?> string, ValueNone) |> Atom
 
     let toString (sourceType : Type) (source : obj) =
         let symbol = toSymbol sourceType source

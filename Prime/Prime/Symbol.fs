@@ -73,16 +73,16 @@ type [<StructuralEquality; StructuralComparison>] SymbolOrigin =
 
     static member tryPrint originOpt =
         match originOpt with
-        | Some origin -> SymbolOrigin.print origin
-        | None -> "Error origin unknown or not applicable."
+        | ValueSome origin -> SymbolOrigin.print origin
+        | ValueNone -> "Error origin unknown or not applicable."
 
 /// A lisp-style symbolic type.
 type [<StructuralEquality; StructuralComparison>] Symbol =
-    | Atom of string * SymbolOrigin option
-    | Number of string * SymbolOrigin option
-    | Text of string * SymbolOrigin option
-    | Quote of Symbol * SymbolOrigin option
-    | Symbols of Symbol list * SymbolOrigin option
+    | Atom of string * SymbolOrigin ValueOption
+    | Number of string * SymbolOrigin ValueOption
+    | Text of string * SymbolOrigin ValueOption
+    | Quote of Symbol * SymbolOrigin ValueOption
+    | Symbols of Symbol list * SymbolOrigin ValueOption
 
     /// Try to get the origin of the symbol if it has one.
     static member getOriginOpt symbol =
@@ -191,7 +191,7 @@ module Symbol =
             let! stop = getPosition
             do! skipWhitespaces
             let str = chars |> String.implode |> fun str -> str.TrimEnd ()
-            let originOpt = Some { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
+            let originOpt = ValueSome { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
             return Atom (str, originOpt) }
 
     let readNumber =
@@ -202,7 +202,7 @@ module Symbol =
             do! followedByWhitespaceOrStructureCharOrAtEof
             let! stop = getPosition
             do! skipWhitespaces
-            let originOpt = Some { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
+            let originOpt = ValueSome { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
             let suffix =
                 (if number.SuffixChar1 <> (char)65535 then string number.SuffixChar1 else "") + 
                 (if number.SuffixChar2 <> (char)65535 then string number.SuffixChar2 else "") + 
@@ -220,7 +220,7 @@ module Symbol =
             let! stop = getPosition
             do! skipWhitespaces
             let str = String.implode escaped
-            let originOpt = Some { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
+            let originOpt = ValueSome { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
             return Text (str, originOpt) }
 
     let readQuote =
@@ -231,7 +231,7 @@ module Symbol =
             let! quoted = readSymbol
             let! stop = getPosition
             do! skipWhitespaces
-            let originOpt = Some { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
+            let originOpt = ValueSome { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
             return Quote (quoted, originOpt) }
 
     let readSymbolsAsColor =
@@ -247,13 +247,13 @@ module Symbol =
             let g8 = color &&& (uint 0x00FF0000) >>> 16
             let b8 = color &&& (uint 0x0000FF00) >>> 8
             let a8 = color &&& (uint 0x000000FF)
-            let originOpt = Some { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
+            let originOpt = ValueSome { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
             let symbols =
                 Symbols
-                    ([Number (string (single r8 / 255.0f), None)
-                      Number (string (single g8 / 255.0f), None)
-                      Number (string (single b8 / 255.0f), None)
-                      Number (string (single a8 / 255.0f), None)], originOpt)
+                    ([Number (string (single r8 / 255.0f), ValueNone)
+                      Number (string (single g8 / 255.0f), ValueNone)
+                      Number (string (single b8 / 255.0f), ValueNone)
+                      Number (string (single a8 / 255.0f), ValueNone)], originOpt)
             return symbols }
 
     let readSymbols =
@@ -266,7 +266,7 @@ module Symbol =
             do! closeSymbols
             let! stop = getPosition
             do! skipWhitespaces
-            let originOpt = Some { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
+            let originOpt = ValueSome { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
             return Symbols (symbols, originOpt) }
 
     let readIndex =
@@ -277,7 +277,7 @@ module Symbol =
             do! skipWhitespaces
             let! stop = getPosition
             do! skipWhitespaces
-            let originOpt = Some { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
+            let originOpt = ValueSome { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
             return fun target indexer ->
                 match indexer with
                 | Symbols ([Number _ as number], _) -> Symbols ([Atom (IndexExpansion, originOpt); number; target], originOpt)
@@ -358,15 +358,15 @@ module Symbol =
             List.map (fun values ->
                 let symbols =
                     List.map (fun str ->
-                        if str = "" then Text ("", None)
-                        elif str.[0] <> OpenSymbolsChar && str.IndexOfAny (Seq.toArray NonAtomChars) <> -1 then Text (str, None)
+                        if str = "" then Text ("", ValueNone)
+                        elif str.[0] <> OpenSymbolsChar && str.IndexOfAny (Seq.toArray NonAtomChars) <> -1 then Text (str, ValueNone)
                         else ofString str None)
                         values
-                Symbols (symbols, None))
+                Symbols (symbols, ValueNone))
                 valueLists
         let symbolSource = { FilePathOpt = filePathOpt; Text = csvStr }
         let symbolOrigin = { Source = symbolSource; Start = SymbolPosition.empty; Stop = SymbolPosition.empty }
-        let symbol = Symbols (symbols, Some symbolOrigin)
+        let symbol = Symbols (symbols, ValueSome symbolOrigin)
         symbol
 
     /// Convert a symbol to a string, with the following unparses:
@@ -401,7 +401,7 @@ type ConversionException (message : string, symbolOpt : Symbol option) =
     member this.SymbolOpt = symbolOpt
     override this.ToString () =
         message + "\n" +
-        (match symbolOpt with Some symbol -> SymbolOrigin.tryPrint (Symbol.getOriginOpt symbol) + "\n" | _ -> "") +
+        (match symbolOpt with Some symbol -> SymbolOrigin.tryPrint (Symbol.getOriginOpt symbol) + "\n" | None -> "") +
         base.ToString ()
 
 [<AutoOpen>]

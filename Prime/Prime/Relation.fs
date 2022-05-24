@@ -29,8 +29,8 @@ type RelationConverter (targetType : Type) =
         elif destType = typeof<Symbol> then
             let toStringMethod = targetType.GetMethod "ToString"
             let relationStr = toStringMethod.Invoke (source, null) :?> string
-            if Symbol.shouldBeExplicit relationStr then Text (relationStr, None) :> obj
-            else Atom (relationStr, None) :> obj
+            if Symbol.shouldBeExplicit relationStr then Text (relationStr, ValueNone) :> obj
+            else Atom (relationStr, ValueNone) :> obj
         elif destType = targetType then source
         else failconv "Invalid RelationConverter conversion to source." None
 

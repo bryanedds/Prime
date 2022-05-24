@@ -21,7 +21,7 @@ type RexprConverter () =
             string source :> obj
         elif destType = typeof<Symbol> then
             let rexpr = source :?> Rexpr
-            Text (string rexpr, None) :> obj
+            Text (string rexpr, ValueNone) :> obj
         elif destType = typeof<Rexpr> then source
         else failconv "Invalid RexprConverter conversion to source." None
 

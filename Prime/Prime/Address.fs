@@ -23,8 +23,8 @@ type AddressConverter (targetType : Type) =
         elif destType = typeof<Symbol> then
             let toStringMethod = targetType.GetMethod "ToString"
             let addressStr = toStringMethod.Invoke (source, null) :?> string
-            if Symbol.shouldBeExplicit addressStr then Text (addressStr, None) :> obj
-            else Atom (addressStr, None) :> obj
+            if Symbol.shouldBeExplicit addressStr then Text (addressStr, ValueNone) :> obj
+            else Atom (addressStr, ValueNone) :> obj
         elif destType = targetType then source
         else failconv "Invalid AddressConverter conversion to source." None
 
