@@ -25,29 +25,3 @@ module HashSetOperators =
         let hashSet = HashSet comparer
         for item in items do hashSet.Add item |> ignore
         hashSet
-
-    type 'a HashSet with
-
-        member this.SetEqualsFast (that : 'a HashSet) =
-            if this.Count = that.Count then
-                let comparer = this.Comparer
-                let mutable result = true
-                let mutable enr = this.GetEnumerator ()
-                let mutable enr2 = that.GetEnumerator ()
-                let mutable enrGoing = enr.MoveNext ()
-                let mutable enr2Going = enr2.MoveNext ()
-                while enrGoing do
-                    if enr2Going then
-                        let item = enr.Current
-                        let item2 = enr2.Current
-                        if comparer.Equals (item, item2) then
-                            enrGoing <- enr.MoveNext ()
-                            enr2Going <- enr2.MoveNext ()
-                        else
-                            result <- false
-                            enrGoing <- false
-                    else
-                        result <- false
-                        enrGoing <- false
-                result
-            else false
