@@ -26,6 +26,13 @@ module Dictionary =
     /// Try to get a value in a dictonary without allocating.
     let inline tryGetValue (key, dictionary : Dictionary<'k, 'v>, value : 'v outref) =
         dictionary.TryGetValue (key, &value)
+        
+    /// Hash a dictionary.
+    let hash (dictionary : Dictionary<_, _>) =
+        let mutable h = 0
+        for entry in dictionary do
+            h <- h ^^^ entry.Key.GetHashCode () ^^^ (entry.Value.GetHashCode () * 13)
+        h
 
 [<AutoOpen>]
 module DictionaryExtension =

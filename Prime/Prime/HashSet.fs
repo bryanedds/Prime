@@ -10,6 +10,13 @@ module HashSet =
     /// Make a hash set with a single item.
     let inline singleton comparer item =
         List.toHashSet comparer [item]
+        
+    /// Hash a hash set.
+    let hash (hashSet : _ HashSet) =
+        let mutable h = 0
+        for item in hashSet do
+            h <- h ^^^ item.GetHashCode ()
+        h
 
 [<AutoOpen>]
 module HashSetOperators =
