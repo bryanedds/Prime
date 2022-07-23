@@ -36,7 +36,7 @@ module TMap =
         let dictOrigin = Dictionary<'k, 'v> (map.DictOrigin, map.DictOrigin.Comparer)
         List.foldBack (fun log () ->
             match log with
-            | Add (key, value) -> dictOrigin.Assign (key, value)
+            | Add (key, value) -> dictOrigin.[key] <- value
             | Remove key -> dictOrigin.Remove key |> ignore
             | Clear -> dictOrigin.Clear ())
             map.Logs ()
@@ -110,10 +110,10 @@ module TMap =
         if TConfig.isFunctional map.TConfig then
             update (fun map ->
                 let map = { map with Logs = Add (key, value) :: map.Logs; LogsLength = map.LogsLength + 1 }
-                map.Dict.Assign (key, value)
+                map.Dict.[key] <- value
                 map)
                 map
-        else map.Dict.Assign (key, value); map
+        else map.Dict.[key] <- value; map
 
     let remove key map =
         if TConfig.isFunctional map.TConfig then
