@@ -9,14 +9,8 @@ type 'a FSharpOption = 'a option
 [<RequireQualifiedAccess>]
 module Option =
 
-    /// Get an option's value, or missing that, return a default value.
-    let getOrDefault aDefault opt =
-        match opt with
-        | Some value -> value
-        | None -> aDefault
-
     /// Map an option's value, or missing that, return a default value.
-    let mapOrDefault mapper aDefault opt =
+    let mapOrDefaultValue mapper aDefault opt =
         match opt with
         | Some value -> mapper value
         | None -> aDefault

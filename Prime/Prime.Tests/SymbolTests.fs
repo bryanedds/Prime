@@ -137,7 +137,7 @@ module SymbolTests =
         Assert.Equal (ComplexUnionAbstract.make 1, value)
 
     let [<Fact>] canPrettyPrintGuid () =
-        let prettyPrinter = (SyntaxAttribute.getOrDefault typeof<Guid>).PrettyPrinter
+        let prettyPrinter = (SyntaxAttribute.defaultValue typeof<Guid>).PrettyPrinter
         let symbolStr = "[5ec8734f-6a3d-4472-b86a-78125d238dc2]"
         let prettyStr = PrettyPrinter.prettyPrint symbolStr prettyPrinter
         Assert.Equal (symbolStr, prettyStr)

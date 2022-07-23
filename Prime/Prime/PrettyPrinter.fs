@@ -162,7 +162,7 @@ type [<AttributeUsage (AttributeTargets.Class); AllowNullLiteral>]
           DetailWords = Set.ofArray (detailWordsStr.Split ' ')
           ThresholdMin = prettyPrinterThresholdMin
           ThresholdMax = prettyPrinterThresholdMax }
-    static member getOrDefault (ty : Type) =
+    static member defaultValue (ty : Type) =
         match ty.GetCustomAttribute<SyntaxAttribute> true with
         | null ->
             SyntaxAttribute
