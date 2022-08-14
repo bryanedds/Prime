@@ -70,14 +70,6 @@ and [<NoEquality; NoComparison>] VariableDescription =
     static member (?) (_, propertyName) =
         fun (variable : 'w -> 'a) ->
             PropertyDefinition.makeValidated propertyName typeof<'a> (VariableExpr (fun context -> variable (context :?> 'w) :> obj))
-
-/// In tandem with the property literal, grants a nice syntax to denote properties.
-and [<NoEquality; NoComparison>] PropertyDescription =
-    { PropertyDescription : unit }
-    
-    /// Some magic syntax for composing value properties.
-    static member inline (?) (_, propertyName : string) =
-        propertyName
     
 /// Describes a property.
 and [<StructuralEquality; NoComparison>] PropertyDescriptor =
@@ -118,9 +110,6 @@ module ReflectionSyntax =
 
     /// In tandem with the VariableDescription type, grants a nice syntax to define variable properties.
     let Variable = { VariableDescription = () }
-
-    /// In tandem with the PropertyDescription type, grants a nice syntax to denote properties.
-    let Property = { PropertyDescription = () }
 
 [<RequireQualifiedAccess>]
 module Reflection =
