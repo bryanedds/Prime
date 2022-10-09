@@ -13,7 +13,7 @@ module TMap =
         | Remove of remove : 'k
         | Clear
 
-    type [<NoEquality; NoComparison>] TMap<'k, 'v> =
+    type [<ReferenceEquality; NoComparison>] TMap<'k, 'v> =
         private
             { mutable TMapOpt : TMap<'k, 'v>
               TConfig : TConfig

@@ -27,7 +27,7 @@ module OMap =
     /// NOTE: not supported by SymbolicConverter.
     /// TODO: see if it would make sense to build UOrderedMap based on the more efficently-traversible
     /// OrderedDictionary.
-    type [<NoEquality; NoComparison>] OMap<'k, 'v> =
+    type [<ReferenceEquality; NoComparison>] OMap<'k, 'v> =
         private
             { Indices : UMap<'k, int>
               Entries : struct (bool * 'k * 'v) FStack

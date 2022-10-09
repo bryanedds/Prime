@@ -182,6 +182,10 @@ module Relation =
         let makeParent () =
             Relation.makeFromArray [|Constants.Relation.ParentStr|]
 
+        /// Test relation equality.
+        let equals<'a> left right =
+            Relation<'a>.equals left right
+
         /// Get the tokens of a relation.
         let getTokens relation =
             relation.Tokens

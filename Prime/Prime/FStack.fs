@@ -49,7 +49,9 @@ module FStack =
 
         override this.Equals (thatObj : obj) =
             match thatObj with
-            | :? ('a FStack) as that -> Seq.forall2 Unchecked.equals this that
+            | :? ('a FStack) as that ->
+                refEq this that || // OPTIMIZATION: first check ref equality
+                Seq.forall2 Unchecked.equals this that
             | _ -> false
 
         override this.GetHashCode () =

@@ -83,13 +83,14 @@ module Address =
             address.HashCode
 
         /// Equate Addresses.
-        static member equals address address2 =
-            address.HashCode = address2.HashCode && // OPTIMIZATION: check hash equality to bail as quickly as possible
-            String.equateMany address.Names address2.Names
+        static member equals left right =
+            refEq left right || // OPTIMIZATION: first check ref equality
+            left.HashCode = right.HashCode && // OPTIMIZATION: check hash equality to bail as quickly as possible
+            String.equateMany left.Names right.Names
 
         /// Compare Addresses.
-        static member compare address address2 =
-            String.compareMany address.Names address2.Names
+        static member compare left right =
+            String.compareMany left.Names right.Names
 
         /// Convert any address to an obj Address.
         static member generalize<'a> (address : 'a Address) : obj Address =
@@ -165,25 +166,25 @@ module Address =
         interface 'a Address IComparable with
             member this.CompareTo that =
                 Address<'a>.compare this that
-    
+
         interface IComparable with
             member this.CompareTo that =
                 match that with
                 | :? ('a Address) as that -> Address<'a>.compare this that
                 | _ -> failwith "Invalid Address comparison (comparee not of type Address)."
-    
+
         interface 'a Address IEquatable with
             member this.Equals that =
                 Address<'a>.equals this that
-    
+
         override this.Equals that =
             match that with
             | :? ('a Address) as that -> Address<'a>.equals this that
             | _ -> false
-    
+
         override this.GetHashCode () =
             this.HashCode
-        
+
         override this.ToString () =
             Address.atos<'a> this
 
@@ -193,6 +194,10 @@ module Address =
         /// The empty address.
         let empty<'a> : 'a Address =
             { Names = [||]; HashCode = String.hashMany [||] }
+
+        /// Test address equality.
+        let equals<'a> left right =
+            Address<'a>.equals left right
 
         /// Make an address from a list of names.
         let makeFromArray<'a> names : 'a Address =

@@ -13,7 +13,7 @@ module TSet =
         | Remove of remove : 'a
         | Clear
 
-    type [<NoEquality; NoComparison>] 'a TSet =
+    type [<ReferenceEquality; NoComparison>] 'a TSet =
         private
             { mutable TSetOpt : 'a TSet
               TConfig : TConfig

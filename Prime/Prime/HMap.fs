@@ -191,9 +191,8 @@ module HMap =
         override this.Equals that =
             match that with
             | :? HMap<'k, 'v> as that ->
-                // OPTIMIZATION: elide deep comparison with reference equality.
-                if obj.ReferenceEquals (this, that) then true
-                else obj.Equals (this.Node, that.Node)
+                refEq this that || // OPTIMIZATION: first check ref equality
+                obj.Equals (this.Node, that.Node)
             | _ -> false
 
         override this.GetHashCode () =

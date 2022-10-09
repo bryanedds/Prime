@@ -14,7 +14,7 @@ module TList =
         | Set of index : int * value : 'a
         | Clear
         
-    type [<NoEquality; NoComparison>] 'a TList =
+    type [<ReferenceEquality; NoComparison>] 'a TList =
         private
             { mutable TListOpt : 'a TList
               TConfig : TConfig

@@ -8,7 +8,7 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module UList =
 
-    type [<NoEquality; NoComparison>] 'a UList =
+    type [<ReferenceEquality; NoComparison>] 'a UList =
         private
             { mutable List : 'a TList }
     
