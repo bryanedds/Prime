@@ -196,7 +196,7 @@ module Address =
             { Names = [||]; HashCode = String.hashMany [||] }
 
         /// Test address equality.
-        let equals<'a> left right =
+        let equals (left : 'a Address) (right : 'a Address) =
             Address<'a>.equals left right
 
         /// Make an address from a list of names.
