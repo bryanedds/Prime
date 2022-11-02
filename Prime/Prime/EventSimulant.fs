@@ -32,6 +32,7 @@ module SimulantOperators =
 /// The data for a change in a simulant.
 type [<StructuralEquality; NoComparison>] ChangeData =
     { Name : string
+      Previous : obj
       Value : obj }
 
 /// A simulant in the event system that is globalized and compatible with generalized events.
