@@ -64,6 +64,11 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
         | Some validate when not (validate world) -> failwith "Invalid lens."
         | Some _ | None _ -> by (this.GetWithoutValidation world)
 
+    member this.GetByWorld by world =
+        match this.ValidateOpt with
+        | Some validate when not (validate world) -> failwith "Invalid lens."
+        | Some _ | None _ -> by (this.GetWithoutValidation world) world
+
     member this.TrySet value world =
         match this.SetOpt with
         | Some setter -> (true, setter value world)
@@ -252,6 +257,12 @@ module Lens =
         | Some validate when not (validate world) -> failwith "Invalid lens."
         | Some _ | None _ -> lens.GetWithoutValidation world
 
+    let getBy<'a, 'b, 'w> mapper (lens : Lens<'a, 'w>) world : 'b =
+        lens.GetBy mapper world
+
+    let getByWorld<'a, 'b, 'w> mapper (lens : Lens<'a, 'w>) world : 'b =
+        lens.GetByWorld mapper world
+
     let setOpt<'a, 'w> a (lens : Lens<'a, 'w>) world =
         match lens.SetOpt with
         | Some set -> set a world
@@ -263,14 +274,29 @@ module Lens =
     let generalize (lens : Lens<'a, 'w>) =
         lens.Generalize ()
 
-    let getBy<'a, 'b, 'w> mapper (lens : Lens<'a, 'w>) world : 'b =
-        lens.GetBy mapper world
-
     let trySet<'a, 'w> a (lens : Lens<'a, 'w>) world =
         lens.TrySet a world
 
     let set<'a, 'w> a (lens : Lens<'a, 'w>) world =
         lens.Set a world
+
+    let tryUpdateEffect<'a, 'w> updater (lens : Lens<'a, 'w>) world =
+        lens.TryUpdateEffect updater world
+
+    let tryUpdateWorld<'a, 'w> updater (lens : Lens<'a, 'w>) world =
+        lens.TryUpdateWorld updater world
+
+    let tryUpdate<'a, 'w> updater (lens : Lens<'a, 'w>) world =
+        lens.TryUpdate updater world
+
+    let updateEffect<'a, 'w> updater (lens : Lens<'a, 'w>) world =
+        lens.UpdateEffect updater world
+
+    let updateWorld<'a, 'w> updater (lens : Lens<'a, 'w>) world =
+        lens.UpdateWorld updater world
+
+    let update<'a, 'w> updater (lens : Lens<'a, 'w>) world =
+        lens.Update updater world
 
     let map<'a, 'b, 'w> mapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
         lens.Map mapper
