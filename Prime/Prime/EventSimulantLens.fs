@@ -133,6 +133,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
           SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (unmapper value)) | None -> None
           This = this.This }
 
+    [<Obsolete "Avoid use of IsomapWorld in bindings.">]
     member this.IsomapWorld mapper unmapper : Lens<'b, 'w> =
         { Name = this.Name
           ParentOpt = this.ParentOpt
