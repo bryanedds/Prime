@@ -5,6 +5,9 @@ namespace Prime
 open System
 open Prime
 
+// NOTE: ignoring map world alias warnings.
+#nowarn "0044"
+
 /// A generalized simulant lens.
 type 'w Lens =
     interface
@@ -113,6 +116,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
           SetOpt = None
           This = this.This }
 
+    [<Obsolete "Avoid use of MapWorld in bindings.">]
     member this.MapWorld mapper : Lens<'b, 'w> =
         { Name = this.Name
           ParentOpt = this.ParentOpt
@@ -121,7 +125,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
           SetOpt = None
           This = this.This }
 
-    member this.Bimap mapper unmapper : Lens<'b, 'w> =
+    member this.Isomap mapper unmapper : Lens<'b, 'w> =
         { Name = this.Name
           ParentOpt = this.ParentOpt
           ValidateOpt = this.ValidateOpt
@@ -129,12 +133,37 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
           SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (unmapper value)) | None -> None
           This = this.This }
 
-    member this.BimapWorld mapper unmapper : Lens<'b, 'w> =
+    member this.IsomapWorld mapper unmapper : Lens<'b, 'w> =
         { Name = this.Name
           ParentOpt = this.ParentOpt
           ValidateOpt = this.ValidateOpt
           GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world) world
           SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper value world) world) | None -> None
+          This = this.This }
+
+    member this.Bimap mapper unmapper : Lens<'b, 'w> =
+        let validate =
+            match this.ValidateOpt with
+            | Some validate' -> fun world -> validate' world && Option.isSome (mapper (this.GetWithoutValidation world))
+            | None -> fun world -> Option.isSome (mapper (this.GetWithoutValidation world))
+        { Name = this.Name
+          ParentOpt = this.ParentOpt
+          ValidateOpt = Some validate
+          GetWithoutValidation = fun world -> Option.get (mapper (this.GetWithoutValidation world))
+          SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper (this.Get world) value) world) | None -> None
+          This = this.This }
+
+    [<Obsolete "Avoid use of BimapWorld in bindings.">]
+    member this.BimapWorld mapper unmapper : Lens<'b, 'w> =
+        let validate =
+            match this.ValidateOpt with
+            | Some validate' -> fun world -> validate' world && Option.isSome (mapper (this.GetWithoutValidation world) world)
+            | None -> fun world -> Option.isSome (mapper (this.GetWithoutValidation world) world)
+        { Name = this.Name
+          ParentOpt = this.ParentOpt
+          ValidateOpt = Some validate
+          GetWithoutValidation = fun world -> Option.get (mapper (this.GetWithoutValidation world) world)
+          SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper (this.Get world) value) world) | None -> None
           This = this.This }
 
     member this.Narrow validate : Lens<'a, 'w> =
@@ -186,6 +215,7 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
     static member inline (~~~)  (lens : Lens<_, 'w>) =         lens.Map (~~~)
 
     /// Map over a lens in the given world context (read-only).
+    [<Obsolete "Avoid use of MapWorld (--|>) in bindings.">]
     static member inline (--|>) (lens : Lens<_, 'w>, mapper) = lens.MapWorld mapper
 
     /// Map over a lens (read-only).
@@ -244,12 +274,21 @@ module Lens =
     let map<'a, 'b, 'w> mapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
         lens.Map mapper
 
+    [<Obsolete "Avoid use of mapWorld in bindings.">]
     let mapWorld<'a, 'b, 'w> mapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
         lens.MapWorld mapper
+
+    let isomap<'a, 'b, 'w> mapper unmapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
+        lens.Isomap mapper unmapper
+
+    [<Obsolete "Avoid use of isomapWorld in bindings.">]
+    let isomapWorld<'a, 'b, 'w> mapper unmapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
+        lens.IsomapWorld mapper unmapper
 
     let bimap<'a, 'b, 'w> mapper unmapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
         lens.Bimap mapper unmapper
 
+    [<Obsolete "Avoid use of bimapWorld in bindings.">]
     let bimapWorld<'a, 'b, 'w> mapper unmapper (lens : Lens<'a, 'w>) : Lens<'b, 'w> =
         lens.BimapWorld mapper unmapper
 
