@@ -33,7 +33,7 @@ type [<CustomEquality; CustomComparison>] PartialComparable<'a, 'b when 'a : com
             | :? PartialComparable<'a, 'b> as that -> PartialComparable<'a, 'b>.compare this that
             | _ -> failwith "Invalid PartialComparable comparison (comparee not of type PartialComparable)."
 
-/// PartialComparable functions.
+[<RequireQualifiedAccess>]
 module PartialComparable =
 
     /// Make a partially-comparable value.

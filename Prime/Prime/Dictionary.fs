@@ -40,6 +40,10 @@ module DictionaryExtension =
     /// Dictionary extension methods.
     type Dictionary<'k, 'v> with
 
+        /// Convert entries to struct pairs.
+        member this.Pairs =
+            this |> Seq.map (fun entry -> struct (entry.Key, entry.Value))
+
         /// Try to add a keyed value, returning false if the key is already present.
         member inline this.TryAdd (key, value) =
             if not (this.ContainsKey key)

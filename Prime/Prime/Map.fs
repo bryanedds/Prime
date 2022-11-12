@@ -107,6 +107,16 @@ module Map =
         Seq.fold (fun map (kvp : KeyValuePair<_, _>) -> Map.add kvp.Key kvp.Value map) map map2
 
 [<AutoOpen>]
+module MapExtensions =
+
+    /// Map extension methods.
+    type Map<'k, 'v when 'k : comparison> with
+
+        /// Convert entries to struct pairs.
+        member this.Pairs =
+            this |> Seq.map (fun entry -> struct (entry.Key, entry.Value))
+
+[<AutoOpen>]
 module MapOperators =
 
     /// Combine the contents of two maps, taking an item from the second map in case of a key overlap.

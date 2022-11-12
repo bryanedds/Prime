@@ -63,6 +63,7 @@
     <Compile Include="Pair.fs" />
     <Compile Include="ValuePair.fs" />
     <Compile Include="Triple.fs" />
+    <Compile Include="PartialEquate.fs" />
     <Compile Include="PartialCompare.fs" />
     <Compile Include="Either.fs" />
     <Compile Include="ValueEither.fs" />
