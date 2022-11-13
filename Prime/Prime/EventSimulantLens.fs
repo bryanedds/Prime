@@ -12,13 +12,13 @@ open Prime
 type 'w Lens =
     interface
         abstract Name : string
-        abstract This : Simulant
         abstract ParentOpt : 'w Lens option
         abstract ValidateOpt : ('w -> bool) option
         abstract Validate : 'w -> bool
         abstract GetWithoutValidation : 'w -> obj
         abstract SetOpt : (obj -> 'w -> 'w) option
         abstract TrySet : obj -> 'w -> 'w
+        abstract This : Simulant
         abstract ChangeEvent : ChangeData Address
         abstract Type : Type
         end
@@ -27,32 +27,32 @@ type 'w Lens =
 /// Similar to a Haskell lens, but specialized to simulant properties.
 type [<NoEquality; NoComparison>] Lens<'a, 'w> =
     { Name : string
-      This : Simulant
       ParentOpt : 'w Lens option
       ValidateOpt : ('w -> bool) option
       GetWithoutValidation : 'w -> 'a
-      SetOpt : ('a -> 'w -> 'w) option }
+      SetOpt : ('a -> 'w -> 'w) option
+      This : Simulant }
 
     interface 'w Lens with
         member this.Name = this.Name
-        member this.This = this.This
         member this.ParentOpt = this.ParentOpt
         member this.ValidateOpt = this.ValidateOpt
         member this.Validate world = match this.ValidateOpt with Some validate -> validate world | None -> true
         member this.GetWithoutValidation world = this.GetWithoutValidation world :> obj
         member this.SetOpt = Option.map (fun set -> fun (value : obj) world -> set (value :?> 'a) world) this.SetOpt
         member this.TrySet value world = match this.SetOpt with Some set -> set (value :?> 'a) world | None -> world
+        member this.This = this.This
         member this.ChangeEvent = this.ChangeEvent
         member this.Type = typeof<'a>
 
     member this.Generalize () =
         let this = this :> 'w Lens
         { Name = this.Name
-          This = this.This
           ParentOpt = this.ParentOpt
           ValidateOpt = this.ValidateOpt
           GetWithoutValidation = this.GetWithoutValidation
-          SetOpt = this.SetOpt }
+          SetOpt = this.SetOpt
+          This = this.This }
 
     member this.Get world =
         match this.ValidateOpt with
@@ -115,35 +115,37 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
 
     member this.Map mapper : Lens<'b, 'w> =
         { Name = this.Name
-          This = this.This
           ParentOpt = this.ParentOpt
           ValidateOpt = this.ValidateOpt
           GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world)
-          SetOpt = None }
+          SetOpt = None
+          This = this.This }
 
+    [<Obsolete "Avoid use of MapWorld in bindings.">]
     member this.MapWorld mapper : Lens<'b, 'w> =
         { Name = this.Name
-          This = this.This
           ParentOpt = this.ParentOpt
           ValidateOpt = this.ValidateOpt
           GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world) world
-          SetOpt = None }
+          SetOpt = None
+          This = this.This }
 
     member this.Isomap mapper unmapper : Lens<'b, 'w> =
         { Name = this.Name
-          This = this.This
           ParentOpt = this.ParentOpt
           ValidateOpt = this.ValidateOpt
           GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world)
-          SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (unmapper value)) | None -> None }
+          SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (unmapper value)) | None -> None
+          This = this.This }
 
+    [<Obsolete "Avoid use of IsomapWorld in bindings.">]
     member this.IsomapWorld mapper unmapper : Lens<'b, 'w> =
         { Name = this.Name
-          This = this.This
           ParentOpt = this.ParentOpt
           ValidateOpt = this.ValidateOpt
           GetWithoutValidation = fun world -> mapper (this.GetWithoutValidation world) world
-          SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper value world) world) | None -> None }
+          SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper value world) world) | None -> None
+          This = this.This }
 
     member this.Bimap mapper unmapper : Lens<'b, 'w> =
         let validate =
@@ -151,23 +153,24 @@ type [<NoEquality; NoComparison>] Lens<'a, 'w> =
             | Some validate' -> fun world -> validate' world && Option.isSome (mapper (this.GetWithoutValidation world))
             | None -> fun world -> Option.isSome (mapper (this.GetWithoutValidation world))
         { Name = this.Name
-          This = this.This
           ParentOpt = this.ParentOpt
           ValidateOpt = Some validate
           GetWithoutValidation = fun world -> Option.get (mapper (this.GetWithoutValidation world))
-          SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper (this.Get world) value) world) | None -> None }
+          SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper (this.Get world) value) world) | None -> None
+          This = this.This }
 
+    [<Obsolete "Avoid use of BimapWorld in bindings.">]
     member this.BimapWorld mapper unmapper : Lens<'b, 'w> =
         let validate =
             match this.ValidateOpt with
             | Some validate' -> fun world -> validate' world && Option.isSome (mapper (this.GetWithoutValidation world) world)
             | None -> fun world -> Option.isSome (mapper (this.GetWithoutValidation world) world)
         { Name = this.Name
-          This = this.This
           ParentOpt = this.ParentOpt
           ValidateOpt = Some validate
           GetWithoutValidation = fun world -> Option.get (mapper (this.GetWithoutValidation world) world)
-          SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper (this.Get world) value) world) | None -> None }
+          SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper (this.Get world) value) world) | None -> None
+          This = this.This }
 
     member this.Narrow validate : Lens<'a, 'w> =
         { this with
@@ -356,26 +359,26 @@ module Lens =
 
     let dereference (lens : Lens<'a option, 'w>) : Lens<'a, 'w> =
         lens.Map Option.get
+        
+    let makePlus<'a, 'w> name parentOpt validateOpt get setOpt this : Lens<'a, 'w> =
+        { Name = name; ParentOpt = parentOpt; ValidateOpt = validateOpt; GetWithoutValidation = get; SetOpt = setOpt; This = this }
 
-    let makePlus<'a, 'w> name this parentOpt validateOpt get setOpt : Lens<'a, 'w> =
-        { Name = name; This = this; ParentOpt = parentOpt; ValidateOpt = validateOpt; GetWithoutValidation = get; SetOpt = setOpt }
+    let makeReadOnly<'a, 'w> name get this : Lens<'a, 'w> =
+        { Name = name; ParentOpt = None; ValidateOpt = None; GetWithoutValidation = get; SetOpt = None; This = this }
 
-    let makeReadOnly<'a, 'w> name this get : Lens<'a, 'w> =
-        { Name = name; This = this; ParentOpt = None; ValidateOpt = None; GetWithoutValidation = get; SetOpt = None }
-
-    let make<'a, 'w> name this get set : Lens<'a, 'w> =
-        { Name = name; This = this; ParentOpt = None; ValidateOpt = None; GetWithoutValidation = get; SetOpt = Some set }
+    let make<'a, 'w> name get set this : Lens<'a, 'w> =
+        { Name = name; ParentOpt = None; ValidateOpt = None; GetWithoutValidation = get; SetOpt = Some set; This = this }
 
 [<AutoOpen>]
 module LensOperators =
 
     /// Make a writable lens.
-    let lens<'a, 'w> this name get set =
-        Lens.make this name get set
+    let lens<'a, 'w> name get set this =
+        Lens.make name get set this
 
     /// Make a read-only lens.
-    let lensReadOnly<'a, 'w> this name get =
-        Lens.makeReadOnly this name get
+    let lensReadOnly<'a, 'w> name get this =
+        Lens.makeReadOnly name get this
 
     /// Define a property along with its initial value.
     let define (lens : Lens<'a, 'w>) (value : 'a) =
