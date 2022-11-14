@@ -75,38 +75,12 @@ type [<NoEquality; NoComparison>] Lens<'a, 's, 'w when 's :> Simulant> =
         | (true, world) -> world
         | (false, _) -> failwithumf ()
 
-    member this.Map mapper : Lens<'b, 's, 'w> =
-        { Name = this.Name
-          Get = fun simulant world -> mapper (this.Get simulant world)
-          SetOpt = ValueNone }
-
-    member this.MapWorld mapper : Lens<'b, 's, 'w> =
-        { Name = this.Name
-          Get = fun simulant world -> mapper (this.Get simulant world) world
-          SetOpt = ValueNone }
-
-    member this.Isomap mapper unmapper : Lens<'b, 's, 'w> =
-        { Name = this.Name
-          Get = fun simulant world -> mapper (this.Get simulant world)
-          SetOpt = match this.SetOpt with ValueSome set -> ValueSome (fun value -> set (unmapper value)) | ValueNone -> ValueNone }
-
-    member this.IsomapWorld mapper unmapper : Lens<'b, 's, 'w> =
-        { Name = this.Name
-          Get = fun simulant world -> mapper (this.Get simulant world) world
-          SetOpt = match this.SetOpt with ValueSome set -> ValueSome (fun value world -> set (unmapper value world) world) | ValueNone -> ValueNone }
-
     member this.ChangeEvent : ChangeData Address =
         let names = [|Constants.Address.ChangeName; this.Name; Constants.Address.EventName|]
         { Names = names; HashCode = Constants.Address.ChangeNameHash ^^^ hash this.Name ^^^ Constants.Address.EventNameHash; Anonymous = true }
 
     member inline this.Type =
         typeof<'a>
-
-    /// Map over a lens in the given world context (read-only).
-    static member inline (--|>) (lens : Lens<_, 's, 'w>, mapper) = lens.MapWorld mapper
-
-    /// Map over a lens (read-only).
-    static member inline (-->) (lens : Lens<_, 's, 'w>, mapper) = lens.Map mapper
 
 [<RequireQualifiedAccess>]
 module Lens =
@@ -117,11 +91,11 @@ module Lens =
     let get<'a, 's, 'w when 's :> Simulant> (lens : Lens<'a, 's, 'w>) simulant world =
         lens.Get simulant world
 
-    let getBy<'a, 'b, 's, 'w when 's :> Simulant> mapper (lens : Lens<'a, 's, 'w>) simulant world : 'b =
-        lens.GetBy mapper simulant world
+    let getBy<'a, 'b, 's, 'w when 's :> Simulant> by (lens : Lens<'a, 's, 'w>) simulant world : 'b =
+        lens.GetBy by simulant world
 
-    let getByWorld<'a, 'b, 's, 'w when 's :> Simulant> mapper (lens : Lens<'a, 's, 'w>) simulant world : 'b =
-        lens.GetByWorld mapper simulant world
+    let getByWorld<'a, 'b, 's, 'w when 's :> Simulant> by (lens : Lens<'a, 's, 'w>) simulant world : 'b =
+        lens.GetByWorld by simulant world
 
     let setOpt<'a, 's, 'w when 's :> Simulant> a (lens : Lens<'a, 's, 'w>) simulant world =
         match lens.SetOpt with
@@ -151,18 +125,6 @@ module Lens =
 
     let update<'a, 's, 'w when 's :> Simulant> updater (lens : Lens<'a, 's, 'w>) simulant world =
         lens.Update updater simulant world
-
-    let map<'a, 'b, 's, 'w when 's :> Simulant> mapper (lens : Lens<'a, 's, 'w>) : Lens<'b, 's, 'w> =
-        lens.Map mapper
-
-    let mapWorld<'a, 'b, 's, 'w when 's :> Simulant> mapper (lens : Lens<'a, 's, 'w>) : Lens<'b, 's, 'w> =
-        lens.MapWorld mapper
-
-    let isomap<'a, 'b, 's, 'w when 's :> Simulant> mapper unmapper (lens : Lens<'a, 's, 'w>) : Lens<'b, 's, 'w> =
-        lens.Isomap mapper unmapper
-
-    let isomapWorld<'a, 'b, 's, 'w when 's :> Simulant> mapper unmapper (lens : Lens<'a, 's, 'w>) : Lens<'b, 's, 'w> =
-        lens.IsomapWorld mapper unmapper
 
     let changeEvent<'a, 's, 'w when 's :> Simulant> (lens : Lens<'a, 's, 'w>) =
         lens.ChangeEvent
