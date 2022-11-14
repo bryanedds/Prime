@@ -613,26 +613,3 @@ module Stream =
 
     /// Identity for streams.
     let [<DebuggerHidden; DebuggerStepThrough>] id (stream : Stream<_, _>) = stream
-
-[<AutoOpen>]
-module StreamOperators =
-
-    /// Stream sequencing operator.
-    let [<DebuggerHidden; DebuggerStepThrough>] (---) = (|>)
-
-    /// Make a stream of the subscriber's change events.
-    let [<DebuggerHidden; DebuggerStepThrough>] (!--) (lens : Lens<'b, 'w>) =
-        let changeEventAddress = rtoa<ChangeData> [|"Change"; lens.Name; "Event"|] --> lens.This.SimulantAddress
-        Stream.make changeEventAddress --- Stream.mapEvent (fun _ world -> lens.Get world)
-
-    /// Propagate the event data of a stream to a property in the observing simulant when the
-    /// subscriber exists (doing nothing otherwise).
-    let [<DebuggerHidden; DebuggerStepThrough>] (-|>) stream (lens : Lens<'b, 'w>) =
-        Stream.subscribe (fun a world ->
-            if world.GetSimulantExists a.Subscriber then
-                match lens.SetOpt with
-                | Some set -> set a.Data world
-                | None -> world // TODO: log info here about property not being set-able?
-            else world)
-            lens.This
-            stream

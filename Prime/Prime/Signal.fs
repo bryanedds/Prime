@@ -66,21 +66,21 @@ module Signal =
         processSignal
         (processMessage : 'model * 'message * 's * 'w -> Signal<'message, 'command> list * 'model)
         (processCommand : 'model * 'command * 's * 'w -> Signal<'message, 'command> list * 'w)
-        (modelLens : Lens<'model, 'w>)
+        (modelLens : Lens<'model, 's, 'w>)
         (signal : Signal<'message, 'command>)
         (simulant : 's)
         (world : 'w) :
         'w =
         match signal with
         | Message message ->
-            let model = Lens.get modelLens world
+            let model = Lens.get modelLens simulant world
             let (signals, model) = processMessage (model, message, simulant, world)
-            let world = Lens.set model modelLens world
+            let world = Lens.set model modelLens simulant world
             match signals with
             | _ :: _ -> processSignals processMessage processCommand modelLens signals simulant world
             | [] -> world
         | Command command ->
-            let model = Lens.get modelLens world
+            let model = Lens.get modelLens simulant world
             let (signals, world) = processCommand (model, command, simulant, world)
             match signals with
             | _ :: _ -> processSignals processMessage processCommand modelLens signals simulant world

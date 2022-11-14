@@ -60,23 +60,26 @@ module Address =
             inherit IComparable
             abstract Names : string array
             abstract HashCode : int
+            abstract Anonymous : bool
             end
 
     /// Specifies the address of an identifiable value.
     /// TODO: P1: have Address constructor throw if multiple wildcards are used.
     type [<CustomEquality; CustomComparison; TypeConverter (typeof<AddressConverter>)>] 'a Address =
         { Names : string array
-          HashCode : int } // OPTIMIZATION: hash is cached for speed
+          HashCode : int // OPTIMIZATION: hash is cached for speed
+          Anonymous : bool } // HACK: allows for Nu to internally indicate the anonymity of an address.
 
         interface Address with
             member this.Names = this.Names
             member this.HashCode = this.HashCode
+            member this.Anonymous = this.Anonymous
 
         /// Make an address from a '/' delimited string.
         /// NOTE: do not move this function as the AddressConverter's reflection code relies on it being exactly here!
         static member makeFromString<'a> (addressStr : string) : 'a Address =
             let names = addressStr.Split Constants.Address.Separator
-            { Names = names; HashCode = String.hashMany names }
+            { Names = names; HashCode = String.hashMany names; Anonymous = false }
 
         /// Hash an Address.
         static member inline hash (address : 'a Address) =
@@ -94,11 +97,11 @@ module Address =
 
         /// Convert any address to an obj Address.
         static member generalize<'a> (address : 'a Address) : obj Address =
-            { Names = address.Names; HashCode = address.HashCode }
+            { Names = address.Names; HashCode = address.HashCode; Anonymous = address.Anonymous }
 
         /// Convert an obj address to any Address.
         static member specialize<'a> (address : obj Address) : 'a Address =
-            { Names = address.Names; HashCode = address.HashCode }
+            { Names = address.Names; HashCode = address.HashCode; Anonymous = address.Anonymous }
 
         /// Convert a string into an address.
         static member stoa<'a> str =
@@ -106,7 +109,7 @@ module Address =
 
         /// Convert a names array into an address.
         static member rtoa<'a> (names : string array) : 'a Address =
-            { Names = names; HashCode = String.hashMany names }
+            { Names = names; HashCode = String.hashMany names; Anonymous = false }
 
         /// Convert a names list into an address.
         static member ltoa<'a> (names : string list) : 'a Address =
@@ -116,13 +119,17 @@ module Address =
         static member ntoa<'a> name : 'a Address =
             Address.rtoa<'a> [|name|]
 
+        /// Convert a weakly-typed Address interface into a strongly-typed address.
+        static member itoa (address : Address) =
+            { Names = address.Names; HashCode = address.HashCode; Anonymous = address.Anonymous }
+
         /// Convert a string into an address.
         static member atos<'a> (address : 'a Address) =
             String.concat Constants.Address.SeparatorStr address.Names
 
         /// Convert an address of type 'a to an address of type 'b.
         static member atoa<'a, 'b> (address : 'a Address) : 'b Address =
-            { Names = address.Names; HashCode = address.HashCode }
+            { Names = address.Names; HashCode = address.HashCode; Anonymous = address.Anonymous }
 
         /// Convert any address to an obj Address.
         static member atooa<'a> (address : 'a Address) : obj Address =
@@ -193,7 +200,7 @@ module Address =
 
         /// The empty address.
         let empty<'a> : 'a Address =
-            { Names = [||]; HashCode = String.hashMany [||] }
+            { Names = [||]; HashCode = String.hashMany [||]; Anonymous = false }
 
         /// Test address equality.
         let equals (left : 'a Address) (right : 'a Address) =
@@ -210,6 +217,14 @@ module Address =
         /// Make an address from a name.
         let makeFromName<'a> name : 'a Address =
             Address.ntoa<'a> name
+
+        /// Convert a weakly-typed Address interface into a strongly-typed address.
+        let makeFromInterface address : 'a Address =
+            Address.itoa<'a> address
+
+        /// Anonymize an address.
+        let anonymize<'a> (address : 'a Address) : 'a Address =
+            { Names = address.Names; HashCode = address.HashCode; Anonymous = true }
 
         /// Get the names of an address.
         let inline getNames address =
@@ -296,6 +311,9 @@ module AddressOperators =
 
     /// Convert a single name into an address.
     let inline ntoa<'a> name : 'a Address  = Address<'a>.ntoa<'a> name
+
+    /// Convert a weakly-typed Address interface into a strongly-typed address.
+    let inline itoa<'a> address : 'a Address  = Address<'a>.itoa<'a> address
 
     /// Convert an address into a string.
     let inline atos<'a> (address : 'a Address) = Address.atos<'a> address

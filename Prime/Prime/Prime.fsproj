@@ -106,7 +106,6 @@
     <Compile Include="EventFilter.fs" />
     <Compile Include="EventSimulant.fs" />
     <Compile Include="EventSimulantLens.fs" />
-    <Compile Include="EventSimulantLens2.fs" />
     <Compile Include="EventSystemDelegate.fs" />
     <Compile Include="EventSystem.fs" />
     <Compile Include="Stream.fs" />

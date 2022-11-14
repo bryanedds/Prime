@@ -24,7 +24,6 @@ and EventSystem<'w when 'w :> 'w EventSystem> =
         abstract member GetGlobalSimulantGeneralized : unit -> GlobalSimulantGeneralized
         abstract member GetEventSystemDelegate : unit -> 'w EventSystemDelegate
         abstract member UpdateEventSystemDelegate : ('w EventSystemDelegate -> 'w EventSystemDelegate) -> 'w
-        abstract member HandleUserDefinedCallback : obj -> obj -> 'w -> Handling * 'w
         abstract member PublishEventHook<'a, 'p when 'p :> Simulant> : Simulant -> 'p -> obj -> 'a Address -> EventTrace -> obj -> 'w -> Handling * 'w
         abstract member SubscribeEventHook : obj Address -> Simulant -> 'w -> 'w
         abstract member UnsubscribeEventHook : obj Address -> Simulant -> 'w -> 'w

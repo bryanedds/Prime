@@ -12,6 +12,10 @@ module Constants =
     
         let [<Literal>] Separator = '/'
         let [<Literal>] SeparatorStr = "/"
+        let [<Literal>] ChangeName = "Change"
+        let [<Literal>] EventName = "Event"
+        let ChangeNameHash = hash ChangeName
+        let EventNameHash = hash EventName
 
     [<RequireQualifiedAccess>]
     module Relation =
