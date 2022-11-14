@@ -73,14 +73,14 @@ module Signal =
         'w =
         match signal with
         | Message message ->
-            let model = Lens.get modelLens simulant world
+            let model = Lens.get modelLens world
             let (signals, model) = processMessage (model, message, simulant, world)
-            let world = Lens.set model modelLens simulant world
+            let world = Lens.set model modelLens world
             match signals with
             | _ :: _ -> processSignals processMessage processCommand modelLens signals simulant world
             | [] -> world
         | Command command ->
-            let model = Lens.get modelLens simulant world
+            let model = Lens.get modelLens world
             let (signals, world) = processCommand (model, command, simulant, world)
             match signals with
             | _ :: _ -> processSignals processMessage processCommand modelLens signals simulant world

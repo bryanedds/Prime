@@ -9,9 +9,10 @@ open Prime
 type 'w Lens =
     interface
         abstract Name : string
-        abstract Get : Simulant -> 'w -> obj
-        abstract SetOpt : (obj -> Simulant -> 'w -> 'w) voption
-        abstract TrySet : obj -> Simulant -> 'w -> 'w
+        abstract This : Simulant
+        abstract Get : 'w -> obj
+        abstract SetOpt : (obj -> 'w -> 'w) voption
+        abstract TrySet : obj -> 'w -> 'w
         abstract ChangeEvent : ChangeData Address
         abstract Type : Type
         end
@@ -20,58 +21,60 @@ type 'w Lens =
 /// Similar to a Haskell lens, but specialized to simulant properties.
 type [<NoEquality; NoComparison>] Lens<'a, 's, 'w when 's :> Simulant> =
     { Name : string
-      Get : 's -> 'w -> 'a
-      SetOpt : ('a -> 's -> 'w -> 'w) voption }
+      This : 's
+      Get : 'w -> 'a
+      SetOpt : ('a -> 'w -> 'w) voption }
 
     interface 'w Lens with
         member this.Name = this.Name
-        member this.Get simulant world = this.Get (simulant :?> 's) world :> obj
-        member this.SetOpt = ValueOption.map (fun set -> fun (value : obj) simulant world -> set (value :?> 'a) (simulant :?> 's) world) this.SetOpt
-        member this.TrySet value simulant world = match this.SetOpt with ValueSome set -> set (value :?> 'a) (simulant :?> 's) world | ValueNone -> world
+        member this.This = this.This :> Simulant
+        member this.Get world = this.Get world :> obj
+        member this.SetOpt = ValueOption.map (fun set -> fun (value : obj) world -> set (value :?> 'a) world) this.SetOpt
+        member this.TrySet value world = match this.SetOpt with ValueSome set -> set (value :?> 'a) world | ValueNone -> world
         member this.ChangeEvent = this.ChangeEvent
         member this.Type = typeof<'a>
 
-    member this.GetBy by simulant world =
-        by (this.Get simulant world)
+    member this.GetBy by world =
+        by (this.Get world)
 
-    member this.GetByWorld by simulant world =
-        by (this.Get simulant world) world
+    member this.GetByWorld by world =
+        by (this.Get world) world
 
-    member this.TrySet value simulant world =
+    member this.TrySet value world =
         match this.SetOpt with
-        | ValueSome setter -> (true, setter value simulant world)
+        | ValueSome setter -> (true, setter value world)
         | ValueNone -> (false, world)
 
-    member this.Set value simulant world =
-        match this.TrySet value simulant world with
+    member this.Set value world =
+        match this.TrySet value world with
         | (true, world) -> world
         | (false, _) -> failwith ("Lens for '" + this.Name + "' is readonly.")
 
-    member this.TryUpdateWorld (updater : 'a -> 's -> 'w -> 'a) simulant world =
-        let value = this.Get simulant world
-        let value' = updater value simulant world
-        this.TrySet value' simulant world
+    member this.TryUpdateWorld (updater : 'a -> 'w -> 'a) world =
+        let value = this.Get world
+        let value' = updater value world
+        this.TrySet value' world
 
-    member this.TryUpdateEffect (updater : 'a -> 's -> 'w -> ('a * 'w)) simulant (world : 'w) =
-        let value = this.Get simulant world
-        let (value', world) = updater value simulant world
-        this.TrySet value' simulant world
+    member this.TryUpdateEffect (updater : 'a -> 'w -> ('a * 'w)) (world : 'w) =
+        let value = this.Get world
+        let (value', world) = updater value world
+        this.TrySet value' world
 
-    member this.TryUpdate (updater : 'a -> 's -> 'a) simulant world =
-        this.TryUpdateWorld (fun value simulant _ -> updater value simulant) simulant world
+    member this.TryUpdate (updater : 'a -> 'a) world =
+        this.TryUpdateWorld (fun value _ -> updater value) world
 
-    member this.UpdateEffect updater simulant world =
-        match this.TryUpdateEffect updater simulant world with
+    member this.UpdateEffect updater world =
+        match this.TryUpdateEffect updater world with
         | (true, world) -> world
         | (false, _) -> failwithumf ()
 
-    member this.UpdateWorld updater simulant world =
-        match this.TryUpdateWorld updater simulant world with
+    member this.UpdateWorld updater world =
+        match this.TryUpdateWorld updater world with
         | (true, world) -> world
         | (false, _) -> failwithumf ()
 
-    member this.Update updater simulant world =
-        match this.TryUpdate updater simulant world with
+    member this.Update updater world =
+        match this.TryUpdate updater world with
         | (true, world) -> world
         | (false, _) -> failwithumf ()
 
@@ -82,49 +85,68 @@ type [<NoEquality; NoComparison>] Lens<'a, 's, 'w when 's :> Simulant> =
     member inline this.Type =
         typeof<'a>
 
+    (* Lensing Operators *)
+    static member inline ( += ) (lens : Lens<_, _, 'w>, value) =  lens.Update (flip (+) value)
+    static member inline ( -= ) (lens : Lens<_, _, 'w>, value) =  lens.Update (flip (-) value)
+    static member inline ( *= ) (lens : Lens<_, _, 'w>, value) =  lens.Update (flip (*) value)
+    static member inline ( /= ) (lens : Lens<_, _, 'w>, value) =  lens.Update (flip (/) value)
+    static member inline ( %= ) (lens : Lens<_, _, 'w>, value) =  lens.Update (flip (%) value)
+    static member inline (~+)   (lens : Lens<_, _, 'w>) =         lens.Update (~+)
+    static member inline (~-)   (lens : Lens<_, _, 'w>) =         lens.Update (~-)
+    static member inline (!+)   (lens : Lens<_, _, 'w>) =         lens.Update inc
+    static member inline (!-)   (lens : Lens<_, _, 'w>) =         lens.Update dec
+
+    /// Set a lensed property.
+    static member inline (<--) (lens : Lens<_, _, 'w>, value) = lens.Set value
+
+    /// Get a lensed property.
+    /// TODO: see if this operator is actually useful / understandable.
+    static member inline (!.) (lens : Lens<_, _, 'w>) =
+        fun world -> lens.Get world
+
 [<RequireQualifiedAccess>]
 module Lens =
 
     let name<'a, 's, 'w when 's :> Simulant> (lens : Lens<'a, 's, 'w>) =
         lens.Name
 
-    let get<'a, 's, 'w when 's :> Simulant> (lens : Lens<'a, 's, 'w>) simulant world =
-        lens.Get simulant world
+    let get<'a, 's, 'w when 's :> Simulant> (lens : Lens<'a, 's, 'w>) world =
+        lens.Get world
 
-    let getBy<'a, 'b, 's, 'w when 's :> Simulant> by (lens : Lens<'a, 's, 'w>) simulant world : 'b =
-        lens.GetBy by simulant world
+    let getBy<'a, 'b, 's, 'w when 's :> Simulant> by (lens : Lens<'a, 's, 'w>) world : 'b =
+        lens.GetBy by world
 
-    let getByWorld<'a, 'b, 's, 'w when 's :> Simulant> by (lens : Lens<'a, 's, 'w>) simulant world : 'b =
-        lens.GetByWorld by simulant world
+    let getByWorld<'a, 'b, 's, 'w when 's :> Simulant> by (lens : Lens<'a, 's, 'w>) world : 'b =
+        lens.GetByWorld by world
 
-    let setOpt<'a, 's, 'w when 's :> Simulant> a (lens : Lens<'a, 's, 'w>) simulant world =
+    let setOpt<'a, 's, 'w when 's :> Simulant> a (lens : Lens<'a, 's, 'w>) world =
         match lens.SetOpt with
-        | ValueSome set -> set a simulant world
+        | ValueSome set -> set a world
         | ValueNone -> world
 
-    let trySet<'a, 's, 'w when 's :> Simulant> a (lens : Lens<'a, 's, 'w>) simulant world =
-        lens.TrySet a simulant world
+    let trySet<'a, 's, 'w when 's :> Simulant> a (lens : Lens<'a, 's, 'w>) world =
+        lens.TrySet a world
 
-    let set<'a, 's, 'w when 's :> Simulant> a (lens : Lens<'a, 's, 'w>) simulant world =
-        lens.Set a simulant world
+    let set<'a, 's, 'w when 's :> Simulant> a (lens : Lens<'a, 's, 'w>) world =
+        lens.Set a world
 
-    let tryUpdateEffect<'a, 's, 'w when 's :> Simulant> updater (lens : Lens<'a, 's, 'w>) simulant world =
-        lens.TryUpdateEffect updater simulant world
+    let tryUpdateEffect<'a, 's, 'w when 's :> Simulant> updater (lens : Lens<'a, 's, 'w>) world =
+        lens.TryUpdateEffect updater world
 
-    let tryUpdateWorld<'a, 's, 'w when 's :> Simulant> updater (lens : Lens<'a, 's, 'w>) simulant world =
-        lens.TryUpdateWorld updater simulant world
+    let tryUpdateWorld<'a, 's, 'w when 's :> Simulant> updater (lens : Lens<'a, 's, 'w>) world =
+        lens.TryUpdateWorld updater world
 
-    let tryUpdate<'a, 's, 'w when 's :> Simulant> updater (lens : Lens<'a, 's, 'w>) simulant world =
-        lens.TryUpdate updater simulant world
+    let tryUpdate<'a, 's, 'w when 's :> Simulant> updater (lens : Lens<'a, 's, 'w>) world =
+        lens.TryUpdate updater world
 
-    let updateEffect<'a, 's, 'w when 's :> Simulant> updater (lens : Lens<'a, 's, 'w>) simulant world =
-        lens.UpdateEffect updater simulant world
+    let updateEffect<'a, 's, 'w when 's :> Simulant> updater (lens : Lens<'a, 's, 'w>) world =
+        lens.UpdateEffect updater world
 
-    let updateWorld<'a, 's, 'w when 's :> Simulant> updater (lens : Lens<'a, 's, 'w>) simulant world =
-        lens.UpdateWorld updater simulant world
+    let updateWorld<'a, 's, 'w when 's :> Simulant> updater (lens : Lens<'a, 's, 'w>) world =
+        lens.UpdateWorld updater world
 
-    let update<'a, 's, 'w when 's :> Simulant> updater (lens : Lens<'a, 's, 'w>) simulant world =
-        lens.Update updater simulant world
+    let update<'a, 's, 'w when 's :> Simulant> updater (lens : Lens<'a, 's, 'w>) world =
+        lens.Update updater world
 
     let changeEvent<'a, 's, 'w when 's :> Simulant> (lens : Lens<'a, 's, 'w>) =
         lens.ChangeEvent
@@ -132,22 +154,22 @@ module Lens =
     let ty<'a, 's, 'w when 's :> Simulant> (lens : Lens<'a, 's, 'w>) =
         lens.Type
 
-    let make<'a, 's, 'w when 's :> Simulant> name (get : 's -> 'w -> 'a) set : Lens<'a, 's, 'w> =
-        { Name = name; Get = get; SetOpt = ValueSome set }
+    let make<'a, 's, 'w when 's :> Simulant> name this (get : 'w -> 'a) set : Lens<'a, 's, 'w> =
+        { Name = name; This = this; Get = get; SetOpt = ValueSome set }
 
-    let makeReadOnly<'a, 's, 'w when 's :> Simulant> name (get : 's -> 'w -> 'a) : Lens<'a, 's, 'w> =
-        { Name = name; Get = get; SetOpt = ValueNone }
+    let makeReadOnly<'a, 's, 'w when 's :> Simulant> name this (get : 'w -> 'a) : Lens<'a, 's, 'w> =
+        { Name = name; This = this; Get = get; SetOpt = ValueNone }
 
 [<AutoOpen>]
 module LensOperators =
 
     /// Make a writable lens.
-    let lens<'a, 's, 'w when 's :> Simulant> name (get : 's -> 'w -> 'a) set =
-        Lens.make name get set
+    let lens<'a, 's, 'w when 's :> Simulant> name this (get : 'w -> 'a) set =
+        Lens.make name this get set
 
     /// Make a read-only lens.
-    let lensReadOnly<'a, 's, 'w when 's :> Simulant> name (get : 's -> 'w -> 'a) =
-        Lens.makeReadOnly name get
+    let lensReadOnly<'a, 's, 'w when 's :> Simulant> name this (get : 'w -> 'a) =
+        Lens.makeReadOnly this name get
 
     /// Define a property along with its initial value.
     let define (lens : Lens<'a, 's, 'w>) (value : 'a) =
