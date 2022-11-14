@@ -10,7 +10,7 @@ type 'w Lens =
     interface
         abstract Name : string
         abstract Get : Simulant -> 'w -> obj
-        abstract SetOpt : (obj -> Simulant -> 'w -> 'w) option
+        abstract SetOpt : (obj -> Simulant -> 'w -> 'w) voption
         abstract TrySet : obj -> Simulant -> 'w -> 'w
         abstract ChangeEvent : ChangeData Address
         abstract Type : Type
@@ -21,13 +21,13 @@ type 'w Lens =
 type [<NoEquality; NoComparison>] Lens<'a, 's, 'w when 's :> Simulant> =
     { Name : string
       Get : 's -> 'w -> 'a
-      SetOpt : ('a -> 's -> 'w -> 'w) option }
+      SetOpt : ('a -> 's -> 'w -> 'w) voption }
 
     interface 'w Lens with
         member this.Name = this.Name
         member this.Get simulant world = this.Get (simulant :?> 's) world :> obj
-        member this.SetOpt = Option.map (fun set -> fun (value : obj) simulant world -> set (value :?> 'a) (simulant :?> 's) world) this.SetOpt
-        member this.TrySet value simulant world = match this.SetOpt with Some set -> set (value :?> 'a) (simulant :?> 's) world | None -> world
+        member this.SetOpt = ValueOption.map (fun set -> fun (value : obj) simulant world -> set (value :?> 'a) (simulant :?> 's) world) this.SetOpt
+        member this.TrySet value simulant world = match this.SetOpt with ValueSome set -> set (value :?> 'a) (simulant :?> 's) world | ValueNone -> world
         member this.ChangeEvent = this.ChangeEvent
         member this.Type = typeof<'a>
 
@@ -39,8 +39,8 @@ type [<NoEquality; NoComparison>] Lens<'a, 's, 'w when 's :> Simulant> =
 
     member this.TrySet value simulant world =
         match this.SetOpt with
-        | Some setter -> (true, setter value simulant world)
-        | None -> (false, world)
+        | ValueSome setter -> (true, setter value simulant world)
+        | ValueNone -> (false, world)
 
     member this.Set value simulant world =
         match this.TrySet value simulant world with
@@ -78,22 +78,22 @@ type [<NoEquality; NoComparison>] Lens<'a, 's, 'w when 's :> Simulant> =
     member this.Map mapper : Lens<'b, 's, 'w> =
         { Name = this.Name
           Get = fun simulant world -> mapper (this.Get simulant world)
-          SetOpt = None }
+          SetOpt = ValueNone }
 
     member this.MapWorld mapper : Lens<'b, 's, 'w> =
         { Name = this.Name
           Get = fun simulant world -> mapper (this.Get simulant world) world
-          SetOpt = None }
+          SetOpt = ValueNone }
 
     member this.Isomap mapper unmapper : Lens<'b, 's, 'w> =
         { Name = this.Name
           Get = fun simulant world -> mapper (this.Get simulant world)
-          SetOpt = match this.SetOpt with Some set -> Some (fun value -> set (unmapper value)) | None -> None }
+          SetOpt = match this.SetOpt with ValueSome set -> ValueSome (fun value -> set (unmapper value)) | ValueNone -> ValueNone }
 
     member this.IsomapWorld mapper unmapper : Lens<'b, 's, 'w> =
         { Name = this.Name
           Get = fun simulant world -> mapper (this.Get simulant world) world
-          SetOpt = match this.SetOpt with Some set -> Some (fun value world -> set (unmapper value world) world) | None -> None }
+          SetOpt = match this.SetOpt with ValueSome set -> ValueSome (fun value world -> set (unmapper value world) world) | ValueNone -> ValueNone }
 
     member this.ChangeEvent : ChangeData Address =
         let names = [|Constants.Address.ChangeName; this.Name; Constants.Address.EventName|]
@@ -125,8 +125,8 @@ module Lens =
 
     let setOpt<'a, 's, 'w when 's :> Simulant> a (lens : Lens<'a, 's, 'w>) simulant world =
         match lens.SetOpt with
-        | Some set -> set a simulant world
-        | None -> world
+        | ValueSome set -> set a simulant world
+        | ValueNone -> world
 
     let trySet<'a, 's, 'w when 's :> Simulant> a (lens : Lens<'a, 's, 'w>) simulant world =
         lens.TrySet a simulant world
@@ -171,10 +171,10 @@ module Lens =
         lens.Type
 
     let make<'a, 's, 'w when 's :> Simulant> name (get : 's -> 'w -> 'a) set : Lens<'a, 's, 'w> =
-        { Name = name; Get = get; SetOpt = Some set }
+        { Name = name; Get = get; SetOpt = ValueSome set }
 
     let makeReadOnly<'a, 's, 'w when 's :> Simulant> name (get : 's -> 'w -> 'a) : Lens<'a, 's, 'w> =
-        { Name = name; Get = get; SetOpt = None }
+        { Name = name; Get = get; SetOpt = ValueNone }
 
 [<AutoOpen>]
 module LensOperators =
