@@ -154,22 +154,22 @@ module Lens =
     let ty<'a, 's, 'w when 's :> Simulant> (lens : Lens<'a, 's, 'w>) =
         lens.Type
 
-    let make<'a, 's, 'w when 's :> Simulant> name this (get : 'w -> 'a) set : Lens<'a, 's, 'w> =
+    let make<'a, 's, 'w when 's :> Simulant> (name : string) (this : 's) (get : 'w -> 'a) set : Lens<'a, 's, 'w> =
         { Name = name; This = this; Get = get; SetOpt = ValueSome set }
 
-    let makeReadOnly<'a, 's, 'w when 's :> Simulant> name this (get : 'w -> 'a) : Lens<'a, 's, 'w> =
+    let makeReadOnly<'a, 's, 'w when 's :> Simulant> (name : string) (this : 's) (get : 'w -> 'a) : Lens<'a, 's, 'w> =
         { Name = name; This = this; Get = get; SetOpt = ValueNone }
 
 [<AutoOpen>]
 module LensOperators =
 
     /// Make a writable lens.
-    let lens<'a, 's, 'w when 's :> Simulant> name this (get : 'w -> 'a) set =
+    let lens<'a, 's, 'w when 's :> Simulant> name (this : 's) (get : 'w -> 'a) set =
         Lens.make name this get set
 
     /// Make a read-only lens.
-    let lensReadOnly<'a, 's, 'w when 's :> Simulant> name this (get : 'w -> 'a) =
-        Lens.makeReadOnly this name get
+    let lensReadOnly<'a, 's, 'w when 's :> Simulant> name (this : 's) (get : 'w -> 'a) =
+        Lens.makeReadOnly name this get
 
     /// Define a property along with its initial value.
     let define (lens : Lens<'a, 's, 'w>) (value : 'a) =
