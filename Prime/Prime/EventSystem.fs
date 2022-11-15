@@ -261,7 +261,7 @@ module EventSystem =
             let world = unsubscribe monitorId world
             world
         let callback' = fun _ eventSystem -> (Cascade, unsubscribe eventSystem)
-        let removingEventAddress = rtoa<obj> [|"Unregistering"; "Event"|] --> subscriber.SimulantAddress
+        let removingEventAddress = rtoa<obj> [|"Unregistering"; "Event"|] ==> subscriber.SimulantAddress
         let world = subscribePlus<obj, Simulant, 'w> removalId callback' removingEventAddress subscriber world |> snd
         (unsubscribe, world)
 
