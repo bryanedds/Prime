@@ -40,15 +40,15 @@ module DictionaryExtension =
     /// Dictionary extension methods.
     type Dictionary<'k, 'v> with
 
-        /// Convert entries to struct pairs.
-        member this.Pairs =
-            this |> Seq.map (fun entry -> struct (entry.Key, entry.Value))
-
         /// Try to add a keyed value, returning false if the key is already present.
         member inline this.TryAdd (key, value) =
             if not (this.ContainsKey key)
             then this.Add (key, value); true
             else false
+
+        /// Convert entries to struct pairs.
+        member this.Pairs =
+            this |> Seq.map (fun entry -> struct (entry.Key, entry.Value))
 
 [<AutoOpen>]
 module DictionaryOperators =
@@ -59,3 +59,7 @@ module DictionaryOperators =
         let dictionary = Dictionary<'k, 'v> comparer
         for (key, value) in kvps do dictionary.[key] <- value
         dictionary
+
+
+    /// Convert entries to struct pairs.
+    let inline pairs (dict : Dictionary<'k, 'v>) = dict.Pairs
