@@ -442,7 +442,7 @@ module Stream =
     /// Terminate a stream when the subscriber is unregistered from the world.
     let [<DebuggerHidden; DebuggerStepThrough>] lifetime<'s, 'a, 'w when 's :> Simulant and 'w :> EventSystem<'w>>
         (subscriber : 's) (stream_ : Stream<'a, 'w>) : Stream<'a, 'w> =
-        let unregisteringEventAddress = rtoa<unit> [|"Unregistering"; "Event"|] ==> subscriber.SimulantAddress
+        let unregisteringEventAddress = rtoa<unit> [|"Unregistering"; "Event"|] --> subscriber.SimulantAddress
         let removingStream = make unregisteringEventAddress
         until removingStream stream_
 

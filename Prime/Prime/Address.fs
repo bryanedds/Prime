@@ -156,19 +156,19 @@ module Address =
             Address.acats (Address.atooa address) address2
 
         /// Concatenate two addresses of the same type.
-        static member (=|=) (address : 'a Address, address2 : 'a Address) = Address.acat address address2
+        static member (-|-) (address : 'a Address, address2 : 'a Address) = Address.acat address address2
 
         /// Concatenate two addresses, taking the type of first address.
-        static member (=>=) (address : 'a Address, address2 : obj Address) = Address.acatf address address2
+        static member (->-) (address : 'a Address, address2 : obj Address) = Address.acatf address address2
 
         /// Concatenate two addresses, forcing the type of first address.
-        static member (==>) (address : 'a Address, address2 : 'b Address) = Address.acatff address address2
+        static member (-->) (address : 'a Address, address2 : 'b Address) = Address.acatff address address2
 
         /// Concatenate two addresses, taking the type of the second address.
-        static member (=<=) (address : obj Address, address2 : 'b Address) = Address.acats address address2
+        static member (-<-) (address : obj Address, address2 : 'b Address) = Address.acats address address2
 
         /// Concatenate two addresses, forcing the type of second address.
-        static member (<==) (address : 'a Address, address2 : 'b Address) = Address.acatsf address address2
+        static member (<--) (address : 'a Address, address2 : 'b Address) = Address.acatsf address address2
 
         interface 'a Address IComparable with
             member this.CompareTo that =

@@ -122,3 +122,6 @@ module MapOperators =
     /// Combine the contents of two maps, taking an item from the second map in case of a key overlap.
     let inline (@@) map map2 =
         Map.concat map map2
+
+    /// Convert entries to struct pairs.
+    let inline pairs (map : Map<'k, 'v>) = map.Pairs

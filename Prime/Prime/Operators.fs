@@ -85,6 +85,9 @@ module Operators =
             if Array.isEmpty (unionCaseInfo.GetFields ()) then TagsMemo.Add (unionCase, tag)
             tag
 
+    /// (=) as a function.
+    let inline eq left right = left = right
+
     /// Compare two strings.
     let inline strCmp str str2 = String.CompareOrdinal (str, str2)
 

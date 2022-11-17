@@ -60,6 +60,5 @@ module DictionaryOperators =
         for (key, value) in kvps do dictionary.[key] <- value
         dictionary
 
-
     /// Convert entries to struct pairs.
     let inline pairs (dict : Dictionary<'k, 'v>) = dict.Pairs
