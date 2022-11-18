@@ -7,17 +7,17 @@ open System.Collections.Generic
 open Prime
 
 /// Specifies whether a process is live or dead.
-type [<NoEquality; NoComparison; Struct>] Liveness =
+type [<StructuralEquality; NoComparison; Struct>] Liveness =
    | Live
    | Dead
 
 /// Describes whether an in-flight event has been resolved or should cascade to down-stream handlers.
-type [<NoEquality; NoComparison; Struct>] Handling =
+type [<StructuralEquality; NoComparison; Struct>] Handling =
     | Resolve
     | Cascade
 
 /// An entry in the subscription map.
-type [<NoEquality; NoComparison>] SubscriptionEntry =
+type [<ReferenceEquality; NoComparison>] SubscriptionEntry =
     { SubscriptionId : Guid
       Subscriber : Simulant
       CallbackBoxed : obj }
@@ -26,7 +26,7 @@ type [<NoEquality; NoComparison>] SubscriptionEntry =
 type Event = Event<obj, Simulant>
 
 /// An event used by the event system.
-and [<NoEquality; NoComparison>] Event<'a, 's when 's :> Simulant> =
+and [<StructuralEquality; NoComparison>] Event<'a, 's when 's :> Simulant> =
     { Data : 'a
       Subscriber : 's
       Publisher : Simulant

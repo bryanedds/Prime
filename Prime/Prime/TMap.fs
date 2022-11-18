@@ -8,7 +8,7 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module TMap =
 
-    type [<NoEquality; NoComparison>] private Log<'k, 'v> =
+    type [<StructuralEquality; NoComparison>] private Log<'k, 'v> =
         | Add of key : 'k * value : 'v
         | Remove of remove : 'k
         | Clear

@@ -16,7 +16,7 @@ type [<AttributeUsage (AttributeTargets.Class); AllowNullLiteral>] DefaultValueA
     member this.DefaultValue = defaultValue
 
 /// An evaluatable expression for defining a property.
-type [<NoEquality; NoComparison>] PropertyExpr =
+type [<ReferenceEquality; NoComparison>] PropertyExpr =
     | DefineExpr of DefineExpr : obj
     | VariableExpr of VariableExpr : (obj -> obj)
     | ComputedExpr of ComputedProperty : ComputedProperty
@@ -29,7 +29,7 @@ type [<NoEquality; NoComparison>] PropertyExpr =
         | ComputedExpr cp -> cp :> obj
 
 /// The definition of a data-driven property.
-and [<NoEquality; NoComparison>] PropertyDefinition =
+and [<ReferenceEquality; NoComparison>] PropertyDefinition =
     { PropertyName : string
       PropertyType : Type
       PropertyExpr : PropertyExpr }
@@ -87,7 +87,7 @@ and [<StructuralEquality; NoComparison>] DesignerProperty =
       mutable DesignerValue : obj }
 
 /// A computed property.
-and [<NoEquality; NoComparison>] ComputedProperty =
+and [<ReferenceEquality; NoComparison>] ComputedProperty =
     { ComputedType : Type
       ComputedGet : obj -> obj -> obj
       ComputedSetOpt : (obj -> obj -> obj -> obj) option }

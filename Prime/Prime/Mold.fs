@@ -12,7 +12,7 @@ module Mold =
           MemberName : string }
 
     /// Describes the means through which a member is instantiated.
-    type [<NoEquality; NoComparison>] InstantiationRule =
+    type [<ReferenceEquality; NoComparison>] InstantiationRule =
         | Constant of obj
         | Variable of (unit -> obj)
 

@@ -316,11 +316,11 @@ module Symbol =
                 OpenSymbolsStr + String.concat " " (List.map writeSymbol symbols) + CloseSymbolsStr
 
     /// Convert a string to a symbol, with the following parses:
-    /// 
+    ///
     /// (* Atom values *)
     /// None
     /// CharacterAnimationFacing
-    /// 
+    ///
     /// (* Number values *)
     /// 0.0f
     /// -5
@@ -330,7 +330,7 @@ module Symbol =
     ///
     /// (* Quoted value *)
     /// `[Some 1]
-    /// 
+    ///
     /// (* Symbols values *)
     /// []
     /// [Some 0]
@@ -370,11 +370,11 @@ module Symbol =
         symbol
 
     /// Convert a symbol to a string, with the following unparses:
-    /// 
+    ///
     /// (* Atom values *)
     /// None
     /// CharacterAnimationFacing
-    /// 
+    ///
     /// (* Number values *)
     /// 0.0f
     /// -5
@@ -384,7 +384,7 @@ module Symbol =
     ///
     /// (* Quoted value *)
     /// `[Some 1]
-    /// 
+    ///
     /// (* Symbols values *)
     /// []
     /// [Some 0]

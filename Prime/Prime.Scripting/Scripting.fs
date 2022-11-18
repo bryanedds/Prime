@@ -15,12 +15,12 @@ module Scripting =
         abstract member FSharpType : Type
         abstract member ToSymbol : unit -> Symbol
 
-    and [<NoEquality; NoComparison>] CachedBinding =
+    and [<ReferenceEquality; NoComparison>] CachedBinding =
         | UncachedBinding
         | DeclarationBinding of Expr
         | ProceduralBinding of int * int
 
-    and [<NoEquality; NoComparison; Struct>] BindingType =
+    and [<StructuralEquality; NoComparison; Struct>] BindingType =
         | UnknownBindingType
         | IntrinsicBinding
         | ExtrinsicBinding
@@ -897,7 +897,7 @@ module Scripting =
     module Env =
     
         /// The execution environment for scripts.
-        type [<NoEquality; NoComparison>] Env =
+        type [<ReferenceEquality; NoComparison>] Env =
             private
                 { GlobalFrame : DeclarationFrame
                   mutable LocalFrame : DeclarationFrame

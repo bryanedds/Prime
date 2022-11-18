@@ -18,7 +18,7 @@ type [<StructuralEquality; StructuralComparison>] SymbolicCompression<'a, 'b> =
     | SymbolicCompressionA of 'a
     | SymbolicCompressionB of 'b
 
-type [<NoEquality; NoComparison>] SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType : Type) =
+type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType : Type) =
     inherit TypeConverter ()
 
     let padWithDefaultsInternal (fieldTypes : Type array) (values : obj array) =

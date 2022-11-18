@@ -42,7 +42,7 @@ type RexprConverter () =
 
 /// Effectively new-types the Regex type to implement custom type-conversion without needing
 /// explicit initialization by the client program.
-and [<NoEquality; NoComparison; TypeConverter (typeof<RexprConverter>)>] Rexpr (pattern) =
+and [<TypeConverter (typeof<RexprConverter>)>] Rexpr (pattern) =
     inherit Regex (pattern)
 
 [<RequireQualifiedAccess>]
@@ -53,7 +53,7 @@ module EventFilter =
         ("Any NotAny All Pattern Empty", "", "", "", "",
          Constants.PrettyPrinter.DefaultThresholdMin,
          Constants.PrettyPrinter.DefaultThresholdMax)>]
-    type [<NoEquality; NoComparison>] Filter =
+    type [<ReferenceEquality; NoComparison>] Filter =
         | All of Filter list
         | Any of Filter list
         | NotAny of Filter list

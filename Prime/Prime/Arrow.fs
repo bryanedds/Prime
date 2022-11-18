@@ -6,7 +6,7 @@ open System
 open Prime
 
 /// Arrow and ArrowChoice defined in terms of streams.
-type [<NoEquality; NoComparison>]
+type [<ReferenceEquality; NoComparison>]
     Arrow<'a, 'b, 'w when 'w :> EventSystem<'w>> =
     Arrow of (Stream<'a, 'w> -> Stream<'b, 'w>) with
 

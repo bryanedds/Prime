@@ -11,7 +11,7 @@ open FSharp.Reflection
 module Molder =
 
     /// Automatically converts F# types, molds, and instances as specified by user-defined rules.
-    type [<NoEquality; NoComparison>] Molder =
+    type [<ReferenceEquality; NoComparison>] Molder =
         private
             { Randomizing : bool
               RequireIdentification : bool
