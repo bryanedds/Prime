@@ -97,10 +97,10 @@ type [<ReferenceEquality; NoComparison>] Lens<'a, 's, 'w when 's :> Simulant> =
     static member inline ( *= ) (lens : Lens<_, _, 'w>, value) =  lens.Update (flip (*) value)
     static member inline ( /= ) (lens : Lens<_, _, 'w>, value) =  lens.Update (flip (/) value)
     static member inline ( %= ) (lens : Lens<_, _, 'w>, value) =  lens.Update (flip (%) value)
-    static member inline (~+)   (lens : Lens<_, _, 'w>) =         lens.Update (~+)
-    static member inline (~-)   (lens : Lens<_, _, 'w>) =         lens.Update (~-)
-    static member inline (!+)   (lens : Lens<_, _, 'w>) =         lens.Update inc
-    static member inline (!-)   (lens : Lens<_, _, 'w>) =         lens.Update dec
+    static member inline ( ~+ ) (lens : Lens<_, _, 'w>) =         lens.Update (~+)
+    static member inline ( ~- ) (lens : Lens<_, _, 'w>) =         lens.Update (~-)
+    static member inline ( !+ ) (lens : Lens<_, _, 'w>) =         lens.Update inc
+    static member inline ( !- ) (lens : Lens<_, _, 'w>) =         lens.Update dec
 
     /// Set a lensed property.
     static member inline (<--) (lens : Lens<_, _, 'w>, value) = lens.Set value

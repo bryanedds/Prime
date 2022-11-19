@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>Prime.Scripting</id>
+        <version>8.0.0</version>
+        <title>Prime.Scripting - A dynamic scripting language for .NET.</title>
+        <authors>Bryan Edds</authors>
+        <owners>Bryan Edds</owners>
+        <licenseUrl>https://github.com/bryanedds/Prime/blob/master/License.md</licenseUrl>
+        <projectUrl>https://github.com/bryanedds/Prime</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>A dynamic scripting language for .NET.</description>
+        <summary />
+        <releaseNotes>Updated Prime.</releaseNotes>
+        <copyright>Copyright (c) 2020 Bryan Edds</copyright>
+        <language>en-US</language>
+        <tags>F# Functional Programming Scripting Script Language</tags>
+        <dependencies>
+            <dependency id="Prime" version="8.0.0" />
+            <dependency id="FSharp.Core" version="4.7.2" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\Prime.Scripting\bin\Release\Prime.Scripting.exe" target="lib\net472\Prime.Scripting.exe" />
+        <file src="..\Prime.Scripting\bin\Release\Prime.Scripting.exe.config" target="lib\net472\Prime.Scripting.exe.config" />
+        <file src="..\Prime.Scripting\bin\Release\Prime.Scripting.pdb" target="lib\net472\Prime.Scripting.pdb" />
+        <file src="..\Prime.Scripting\bin\Release\Prime.Scripting.xml" target="lib\net472\Prime.Scripting.xml" />
+        <file src="..\Prime.Scripting\bin\Release\Prelude.amsl" target="lib\net472\Prelude.amsl" />
+    </files>
+</package>
