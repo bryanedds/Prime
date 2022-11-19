@@ -112,8 +112,12 @@ module MapExtensions =
     /// Map extension methods.
     type Map<'k, 'v when 'k : comparison> with
 
-        /// Convert entries to struct pairs.
+        /// Convert entries to pairs.
         member this.Pairs =
+            this |> Seq.map (fun entry -> (entry.Key, entry.Value))
+
+        /// Convert entries to struct pairs.
+        member this.Pairs' =
             this |> Seq.map (fun entry -> struct (entry.Key, entry.Value))
 
 [<AutoOpen>]
@@ -125,3 +129,6 @@ module MapOperators =
 
     /// Convert entries to struct pairs.
     let inline pairs (map : Map<'k, 'v>) = map.Pairs
+
+    /// Convert entries to struct pairs.
+    let inline pairs' (dict : Map<'k, 'v>) = dict.Pairs'

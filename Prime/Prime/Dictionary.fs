@@ -46,8 +46,12 @@ module DictionaryExtension =
             then this.Add (key, value); true
             else false
 
-        /// Convert entries to struct pairs.
+        /// Convert entries to pairs.
         member this.Pairs =
+            this |> Seq.map (fun entry -> (entry.Key, entry.Value))
+
+        /// Convert entries to struct pairs.
+        member this.Pairs' =
             this |> Seq.map (fun entry -> struct (entry.Key, entry.Value))
 
 [<AutoOpen>]
@@ -60,5 +64,8 @@ module DictionaryOperators =
         for (key, value) in kvps do dictionary.[key] <- value
         dictionary
 
-    /// Convert entries to struct pairs.
+    /// Convert entries to pairs.
     let inline pairs (dict : Dictionary<'k, 'v>) = dict.Pairs
+
+    /// Convert entries to struct pairs.
+    let inline pairs' (dict : Dictionary<'k, 'v>) = dict.Pairs'
