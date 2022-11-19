@@ -347,7 +347,7 @@ open System
 [<RequireQualifiedAccess>]
 module FSharpType =
 
-    /// Test that the given type has null as an actual value.
+    /// Check that the given type has null as an actual value.
     let isNullTrueValue (ty : Type) =
         let isUnit = ty = typeof<unit>
         let isNullTrueValueByAttribute =

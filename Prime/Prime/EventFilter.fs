@@ -44,6 +44,13 @@ type RexprConverter () =
 /// explicit initialization by the client program.
 and [<TypeConverter (typeof<RexprConverter>)>] Rexpr (pattern) =
     inherit Regex (pattern)
+    member this.Pattern = pattern
+    override this.Equals that =
+        match that with
+        | :? Rexpr as that -> strEq this.Pattern that.Pattern
+        | _ -> false
+    override this.GetHashCode () =
+        hash pattern
 
 [<RequireQualifiedAccess>]
 module EventFilter =
@@ -53,7 +60,7 @@ module EventFilter =
         ("Any NotAny All Pattern Empty", "", "", "", "",
          Constants.PrettyPrinter.DefaultThresholdMin,
          Constants.PrettyPrinter.DefaultThresholdMax)>]
-    type [<ReferenceEquality; NoComparison>] Filter =
+    type [<StructuralEquality; NoComparison>] Filter =
         | All of Filter list
         | Any of Filter list
         | NotAny of Filter list

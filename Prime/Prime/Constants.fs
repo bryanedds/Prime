@@ -12,10 +12,6 @@ module Constants =
     
         let [<Literal>] Separator = '/'
         let [<Literal>] SeparatorStr = "/"
-        let [<Literal>] ChangeName = "Change"
-        let [<Literal>] EventName = "Event"
-        let ChangeNameHash = hash ChangeName
-        let EventNameHash = hash EventName
 
     [<RequireQualifiedAccess>]
     module Relation =
@@ -24,6 +20,14 @@ module Constants =
         let [<Literal>] CurrentStr = "~"
         let [<Literal>] Parent = '^'
         let [<Literal>] ParentStr = "^"
+
+    [<RequireQualifiedAccess>]
+    module Lens =
+
+        let [<Literal>] ChangeName = "Change"
+        let [<Literal>] EventName = "Event"
+        let ChangeNameHash = hash ChangeName
+        let EventNameHash = hash EventName
 
     [<RequireQualifiedAccess>]
     module Scripting =

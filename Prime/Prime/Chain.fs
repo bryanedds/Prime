@@ -100,8 +100,7 @@ module Chain =
         Chain (fun world -> (world, Left (fun _ -> returnM ())))
 
     /// React to the next event, using the event's data in the reaction.
-    // TODO: See if we can make this acceptable to F#'s type system -
-    //let [<DebuggerHidden; DebuggerStepThrough>] reactData<'a, 's, 'e, 'w when 's :> Simulant and 'e :> Event<'a, 's> and 'w :> EventSystem<'w>> expr : Chain<'e, unit, 'w> =
+    // TODO: See if we can make this acceptable to F#'s type system: let [<DebuggerHidden; DebuggerStepThrough>] reactData<'a, 's, 'e, 'w when 's :> Simulant and 'e :> Event<'a, 's> and 'w :> EventSystem<'w>> expr : Chain<'e, unit, 'w> =
     //    chain {
     //        let! e = next
     //        let! world = get

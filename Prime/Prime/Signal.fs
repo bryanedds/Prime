@@ -12,40 +12,8 @@ type [<StructuralEquality; StructuralComparison>] Signal<'message, 'command> =
     //| Update of transform : 'model -> 's -> 'w -> 'model
     //| Effect of effect : 'model -> 's -> 'w -> 'w
 
-type [<ReferenceEquality; NoComparison>] Channel<'m, 'c, 's, 'w when 's :> Simulant and 'w :> EventSystem<'w>> =
-    { Source : Either<obj Address, Stream<obj, 'w>>
-      Handler : Event<obj, 's> -> Signal<'m, 'c> }
-
-type Channel<'m, 'c, 's, 'w when 's :> Simulant and 'w :> EventSystem<'w>> with
-
-    static member (=>) (_ : Channel<'m, 'c, 's, 'w>, source : Address<'a>) =
-        fun (signal : Signal<'m, 'c>) ->
-            { Source = source |> atooa |> Left
-              Handler = fun (_ : Event<obj, 's>) -> signal }
-
-    static member (=>) (_ : Channel<'m, 'c, 's, 'w>, source : Stream<'a, 'w>) =
-        fun (signal : Signal<'m, 'c>) ->
-            { Source = source |> Stream.generalize |> Right
-              Handler = fun (_ : Event<obj, 's>) -> signal }
-
-    static member (=|>) (_ : Channel<'m, 'c, 's, 'w>, source : Address<'a>) =
-        fun (handler : Event<'a, 's> -> Signal<'m, 'c>) ->
-            { Source = source |> atooa |> Left
-              Handler = fun evt -> Event.generalize evt |> Event.specialize |> handler }
-  
-    static member (=|>) (_ : Channel<'m, 'c, 's, 'w>, source : Stream<'a, 'w>) =
-        fun (handler : Event<'a, 's> -> Signal<'m, 'c>) ->
-            { Source = source |> Stream.generalize |> Right
-              Handler = fun evt -> Event.generalize evt |> Event.specialize |> handler }
-
 [<AutoOpen>]
 module SignalOperators =
-
-    let inline (=>) source signals : Channel<'m, 'c, 's, 'w> =
-        (Unchecked.defaultof<Channel<'m, 'c, 's, 'w>> => source) signals
-
-    let inline (=|>) source signals : Channel<'m, 'c, 's, 'w> =
-        (Unchecked.defaultof<Channel<'m, 'c, 's, 'w>> =|> source) signals
 
     let msg message = Message message
     let msgs messages = List.map Message messages
@@ -90,20 +58,3 @@ module Signal =
         List.fold
             (fun world signal -> processSignal processMessage processCommand modelLens signal simulant world)
             world signals
-
-    let processChannels processMessage processCommand modelLens channels simulant world =
-        List.fold (fun world channel ->
-            match channel.Source with
-            | Left address ->
-                EventSystem.monitor (fun evt world ->
-                    let signal = channel.Handler evt
-                    let world = processSignal processMessage processCommand modelLens signal simulant world
-                    (Cascade, world))
-                    address simulant world
-            | Right stream ->
-                Stream.monitor (fun evt world ->
-                    let signal = channel.Handler evt
-                    processSignal processMessage processCommand modelLens signal simulant world)
-                    simulant stream world)
-            world
-            channels

@@ -79,11 +79,11 @@ type [<ReferenceEquality; NoComparison>] Lens<'a, 's, 'w when 's :> Simulant> =
         | (false, _) -> failwithumf ()
 
     member this.ChangeEvent : ChangeData Address =
-        let names = [|Constants.Address.ChangeName; this.Name; Constants.Address.EventName|]
+        let names = [|Constants.Lens.ChangeName; this.Name; Constants.Lens.EventName|]
         match box this.This with
         | null ->
             // HACK: this case is a hack to allow Nu to resolve events contextually.
-            let hashCode = Constants.Address.ChangeNameHash ^^^ hash this.Name ^^^ Constants.Address.EventNameHash
+            let hashCode = Constants.Lens.ChangeNameHash ^^^ hash this.Name ^^^ Constants.Lens.EventNameHash
             let changeEventAddress = { Names = names; HashCode = hashCode; Anonymous = true }
             changeEventAddress 
         | _ -> rtoa names --> this.This.SimulantAddress
