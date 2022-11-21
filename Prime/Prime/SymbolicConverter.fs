@@ -111,6 +111,20 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 let symbols = List.map (toSymbol itemType) items
                 Symbols (symbols, ValueNone)
 
+            // symbolize Queue
+            elif sourceType.Name = typedefof<_ Queue>.Name then
+                let gargs = sourceType.GetGenericArguments ()
+                let items = Reflection.objToObjSeq source |> List.ofSeq
+                let symbols = List.map (toSymbol gargs.[0]) items
+                Symbols (symbols, ValueNone)
+
+            // symbolize Deque
+            elif sourceType.Name = typedefof<_ Deque>.Name then
+                let gargs = sourceType.GetGenericArguments ()
+                let items = Reflection.objToObjSeq source |> List.ofSeq
+                let symbols = List.map (toSymbol gargs.[0]) items
+                Symbols (symbols, ValueNone)
+
             // symbolize SymbolicCompression
             elif sourceType.Name = typedefof<SymbolicCompression<_, _>>.Name then
                 let (unionCase, unionFields) = FSharpValue.GetUnionFields (source, sourceType)
@@ -288,6 +302,28 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to Map." (Some symbol)
 
+                // desymbolize Queue
+                elif destType.Name = typedefof<_ Queue>.Name then
+                    match symbol with
+                    | Symbols (symbols, _) ->
+                        let gargs = destType.GetGenericArguments ()
+                        let elementType = gargs.[0]
+                        let elements = List.map (ofSymbol elementType) symbols
+                        Reflection.objsToCollection typedefof<_ Queue>.Name destType elements
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
+                        failconv "Expected Symbols for conversion to Set." (Some symbol)
+
+                // desymbolize Deque
+                elif destType.Name = typedefof<_ Deque>.Name then
+                    match symbol with
+                    | Symbols (symbols, _) ->
+                        let gargs = destType.GetGenericArguments ()
+                        let elementType = gargs.[0]
+                        let elements = List.map (ofSymbol elementType) symbols
+                        Reflection.objsToCollection typedefof<_ Deque>.Name destType elements
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
+                        failconv "Expected Symbols for conversion to Set." (Some symbol)
+
                 // desymbolize SymbolicCompression
                 elif destType.Name = typedefof<SymbolicCompression<_, _>>.Name then
                     match symbol with
@@ -384,9 +420,10 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 else
                     match symbol with
                     | Atom (str, _) | Number (str, _) | Text (str, _) ->
-                        (TypeDescriptor.GetConverter destType).ConvertFromString str
+                        try (TypeDescriptor.GetConverter destType).ConvertFromString str
+                        with _ -> failconv ("Cannot convert from string '" + str + "' to vanilla .NET object of type '" + destType.Name + "'.") (Some symbol)
                     | Quote (_, _) | Symbols (_, _) ->
-                        failconv ("Expected Atom, Number, or String value for conversion to vanilla .NET type '" + destType.Name + "'.") (Some symbol)
+                        failconv ("Expected Atom, Number, or String value for conversion to vanilla .NET object of type '" + destType.Name + "'.") (Some symbol)
 
     let ofString (destType : Type) (source : string) =
         let symbol = Symbol.ofString source None

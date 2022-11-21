@@ -89,6 +89,8 @@
     <Compile Include="UList.fs" />
     <Compile Include="UMap.fs" />
     <Compile Include="USet.fs" />
+    <Compile Include="Queue.fs" />
+    <Compile Include="Deque.fs" />
     <Compile Include="HMap.fs" />
     <Compile Include="HSet.fs" />
     <Compile Include="FStack.fs" />

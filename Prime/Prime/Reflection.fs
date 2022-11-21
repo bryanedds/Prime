@@ -169,8 +169,13 @@ module Reflection =
     let objsToCollection collectionTypeName (sequenceType : Type) (objs : _ seq) =
         let gargs = if sequenceType.IsArray then [|sequenceType.GetElementType ()|] else (sequenceType.GetGenericArguments ())
         let cast = (typeof<System.Linq.Enumerable>.GetMethod ("Cast", BindingFlags.Static ||| BindingFlags.Public)).MakeGenericMethod gargs
-        let ofSeq = ((FSharpCoreAssembly.GetType collectionTypeName).GetMethod ("OfSeq", BindingFlags.Static ||| BindingFlags.Public)).MakeGenericMethod gargs
-        ofSeq.Invoke (null, [|cast.Invoke (null, [|objs|])|])
+        match FSharpCoreAssembly.GetType collectionTypeName with
+        | null ->
+            let ofSeq = sequenceType.GetMethod ("OfSeq", BindingFlags.Static ||| BindingFlags.Public)
+            ofSeq.Invoke (null, [|cast.Invoke (null, [|objs|])|])
+        | fscType ->
+            let ofSeq = (fscType.GetMethod ("OfSeq", BindingFlags.Static ||| BindingFlags.Public)).MakeGenericMethod gargs
+            ofSeq.Invoke (null, [|cast.Invoke (null, [|objs|])|])
         
     let pairsToMapping collectionTypeName (mappingType : Type) (pairs : _ seq) =
         let gargs = mappingType.GetGenericArguments ()
@@ -178,8 +183,13 @@ module Reflection =
         | [|fstType; sndType|] ->
             let pairType = typedefof<Tuple<_, _>>.MakeGenericType [|fstType; sndType|]
             let cast = (typeof<System.Linq.Enumerable>.GetMethod ("Cast", BindingFlags.Static ||| BindingFlags.Public)).MakeGenericMethod [|pairType|]
-            let ofSeq = ((FSharpCoreAssembly.GetType collectionTypeName).GetMethod ("OfSeq", BindingFlags.Static ||| BindingFlags.Public)).MakeGenericMethod [|fstType; sndType|]
-            ofSeq.Invoke (null, [|cast.Invoke (null, [|pairs|])|])
+            match FSharpCoreAssembly.GetType collectionTypeName with
+            | null ->
+                let ofSeq = mappingType.GetMethod ("OfSeq", BindingFlags.Static ||| BindingFlags.Public)
+                ofSeq.Invoke (null, [|cast.Invoke (null, [|pairs|])|])
+            | fscType ->
+                let ofSeq = (fscType.GetMethod ("OfSeq", BindingFlags.Static ||| BindingFlags.Public)).MakeGenericMethod [|fstType; sndType|]
+                ofSeq.Invoke (null, [|cast.Invoke (null, [|pairs|])|])
         | _ -> failwithumf ()
 
     let objsToArray arrayType objs =

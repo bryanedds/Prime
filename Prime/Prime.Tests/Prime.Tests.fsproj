@@ -61,6 +61,7 @@
     <Compile Include="ListTests.fs" />
     <Compile Include="MapTests.fs" />
     <Compile Include="SetTests.fs" />
+    <Compile Include="QueueTests.fs" />
     <Compile Include="RandTests.fs" />
     <Compile Include="AddressTests.fs" />
     <Compile Include="SymbolTests.fs" />
