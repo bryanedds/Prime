@@ -4,55 +4,58 @@
 namespace Prime
 open Prime
 
-/// A model-message-command signal.
-/// TODO: consider if there is any wisdom in making this a struct.
-type [<StructuralEquality; StructuralComparison>] Signal<'message, 'command> =
-    | Message of message : 'message
-    | Command of command : 'command
-    //| Update of transform : 'model -> 's -> 'w -> 'model
-    //| Effect of effect : 'model -> 's -> 'w -> 'w
+/// A model-message-command-content (MMCC) signal tag type.
+type Signal = interface end
+
+/// A model-message-command-content (MMCC) message tag type.
+type Message = inherit Signal
+
+/// A model-message-command-content (MMCC) command tag type.
+type Command = inherit Signal
 
 [<AutoOpen>]
 module SignalOperators =
 
-    let msg message = Message message
-    let msgs messages = List.map Message messages
-    let cmd command = Command command
-    let cmds commands = List.map Command commands
-    let withMsg message value = ([Message message], value)
-    let withMsgs messages value = (msgs messages, value)
-    let withCmd command value = ([Command command], value)
-    let withCmds commands value = (cmds commands, value)
-    let withSig (signal : Signal<_, _>) value = ([signal], value)
-    let withSigs signals value = (signals, value)
-    let just value = ([], value)
+    /// Signal constructor.
+    /// Wonky name because F# reserve `sig` as a keyword.
+    let ``sig``<'s when 's :> Signal> (signal : 's) = signal :> Signal
+
+    /// Singleton signal-value pair constructor.
+    let withSig (signal : Signal) value = ([signal], value)
+
+    /// Signals-value pair constructor.
+    let withSigs (signals : Signal list) value = (signals, value)
+
+    /// Signaless signals-value pair constructor.
+    let just value = (([] : Signal list), value)
 
 [<RequireQualifiedAccess>]
 module Signal =
 
     let rec
-        processSignal
-        (processMessage : 'model * 'message * 's * 'w -> Signal<'message, 'command> list * 'model)
-        (processCommand : 'model * 'command * 's * 'w -> Signal<'message, 'command> list * 'w)
+        processSignal<'model, 'message, 'command, 's, 'w when 'message :> Message and 'command :> Command and 's :> Simulant>
+        (processMessage : 'model * 'message * 's * 'w -> Signal list * 'model)
+        (processCommand : 'model * 'command * 's * 'w -> Signal list * 'w)
         (modelLens : Lens<'model, 's, 'w>)
-        (signal : Signal<'message, 'command>)
+        (signal : Signal)
         (simulant : 's)
         (world : 'w) :
         'w =
-        match signal with
-        | Message message ->
+        match signal :> obj with
+        | :? 'message as message ->
             let model = Lens.get modelLens world
             let (signals, model) = processMessage (model, message, simulant, world)
             let world = Lens.set model modelLens world
             match signals with
             | _ :: _ -> processSignals processMessage processCommand modelLens signals simulant world
             | [] -> world
-        | Command command ->
+        | :? 'command as command ->
             let model = Lens.get modelLens world
             let (signals, world) = processCommand (model, command, simulant, world)
             match signals with
             | _ :: _ -> processSignals processMessage processCommand modelLens signals simulant world
             | [] -> world
+        | _ -> failwithumf ()
 
     and processSignals processMessage processCommand modelLens signals simulant world =
         List.fold
