@@ -18,16 +18,16 @@ module SignalOperators =
 
     /// Signal constructor.
     /// Wonky name because F# reserve `sig` as a keyword.
-    let ``sig``<'s when 's :> Signal> (signal : 's) = signal :> Signal
+    let inline signal<'s when 's :> Signal> (signal : 's) = signal :> Signal
 
     /// Singleton signal-value pair constructor.
-    let withSig (signal : Signal) value = ([signal], value)
+    let inline withSignal (signal : Signal) value = ([signal], value)
 
     /// Signals-value pair constructor.
-    let withSigs (signals : Signal list) value = (signals, value)
+    let inline withSignals (signals : Signal list) value = (signals, value)
 
     /// Signaless signals-value pair constructor.
-    let just value = (([] : Signal list), value)
+    let inline just value = (([] : Signal list), value)
 
 [<RequireQualifiedAccess>]
 module Signal =
