@@ -112,7 +112,6 @@
     <Compile Include="EventSystem.fs" />
     <Compile Include="Stream.fs" />
     <Compile Include="Arrow.fs" />
-    <Compile Include="Signal.fs" />
     <Compile Include="Chain.fs" />
     <Compile Include="Timings.fs" />
     <Compile Include="AssemblyInfo.fs" />
