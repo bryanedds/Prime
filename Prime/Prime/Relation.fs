@@ -8,6 +8,7 @@ open System.IO
 open System.Reflection
 open Prime
 
+/// Represents a relational token.
 type Token =
     | Current
     | Parent
