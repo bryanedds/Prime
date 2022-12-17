@@ -52,7 +52,7 @@ and [<TypeConverter (typeof<RexprConverter>)>] Rexpr (pattern) =
     override this.GetHashCode () =
         hash pattern
 
-[<RequireQualifiedAccess>]
+/// Event filtering.
 module EventFilter =
 
     /// Describes how events are filtered.
