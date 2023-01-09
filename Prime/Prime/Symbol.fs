@@ -132,8 +132,8 @@ module Symbol =
     let [<Literal>] StructureCharsNoIndex = "\"" + StructureCharsNoStrNoIndex
     let [<Literal>] StructureChars = "\"" + StructureCharsNoStr
     let [<Literal>] NonAtomChars = WhitespaceChars + StructureChars
-    let (*Literal*) IllegalNameChars = ReservedChars + StructureChars + WhitespaceChars
-    let (*Literal*) IllegalNameCharsArray = Array.ofSeq IllegalNameChars
+    let [<Uniform>] IllegalNameChars = ReservedChars + StructureChars + WhitespaceChars
+    let [<Uniform>] IllegalNameCharsArray = Array.ofSeq IllegalNameChars
     let [<Literal>] NumberFormat =
         NumberLiteralOptions.AllowMinusSign |||
         NumberLiteralOptions.AllowPlusSign |||

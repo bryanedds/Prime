@@ -3,6 +3,7 @@
 
 namespace Prime
 open System
+open Prime
 
 [<RequireQualifiedAccess>]
 module Constants =
@@ -26,8 +27,8 @@ module Constants =
 
         let [<Literal>] ChangeName = "Change"
         let [<Literal>] EventName = "Event"
-        let ChangeNameHash = hash ChangeName
-        let EventNameHash = hash EventName
+        let [<Uniform>] ChangeNameHash = hash ChangeName
+        let [<Uniform>] EventNameHash = hash EventName
 
     [<RequireQualifiedAccess>]
     module Scripting =

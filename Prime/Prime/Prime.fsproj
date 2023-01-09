@@ -24,7 +24,9 @@
     <DocumentationFile>bin\Debug\Prime.xml</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <OtherFlags>--warnon:1182</OtherFlags>
+    <OtherFlags>--warnon:1182 --nowarn:3536</OtherFlags>
+    <NoWarn>
+    </NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -36,7 +38,9 @@
     <DocumentationFile>bin\Release\Prime.xml</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <OtherFlags>--warnon:1182</OtherFlags>
+    <OtherFlags>--warnon:1182 --nowarn:3536</OtherFlags>
+    <NoWarn>
+    </NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -56,6 +60,7 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
+    <Compile Include="Core.fs" />
     <Compile Include="Constants.fs" />
     <Compile Include="Operators.fs" />
     <Compile Include="Generics.fs" />
