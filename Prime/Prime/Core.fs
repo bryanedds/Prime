@@ -4,6 +4,6 @@
 namespace Prime
 open System
 
-/// Denotes that a value should not be directly mutated by the consumer.
+/// Denotes that a value should not be altered by the consumer of the API.
 type [<AttributeUsage (AttributeTargets.Field)>] UniformAttribute () =
     inherit Attribute ()
