@@ -143,7 +143,7 @@ module List =
         match list with
         | [] -> true
         | head :: tail -> not (pred head) && fornone pred tail
-    
+
     /// Foldi for lists.
     let foldi folder state (list : _ list) =
         Seq.foldi folder state list

@@ -76,6 +76,10 @@ module Array =
     let inline notExists pred arr =
         not (Array.exists pred arr)
 
+    /// Foldi for arrays.
+    let foldi folder state (array : _ array) =
+        Seq.foldi folder state array
+
     /// Convert option values to definite values.
     let inline definitize opts =
         Array.choose id opts
