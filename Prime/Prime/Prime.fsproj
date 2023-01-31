@@ -1,145 +1,92 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{fe09ae81-b66b-42e0-8192-eadecefc9893}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Prime</RootNamespace>
-    <AssemblyName>Prime</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Name>Prime</Name>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <Tailcalls>false</Tailcalls>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <WarningLevel>5</WarningLevel>
-    <DocumentationFile>bin\Debug\Prime.xml</DocumentationFile>
-    <Prefer32Bit>false</Prefer32Bit>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <OtherFlags>--warnon:1182 --nowarn:1178 --nowarn:3536</OtherFlags>
-    <NoWarn>
-    </NoWarn>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <Tailcalls>true</Tailcalls>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <WarningLevel>5</WarningLevel>
-    <DocumentationFile>bin\Release\Prime.xml</DocumentationFile>
-    <Prefer32Bit>false</Prefer32Bit>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <OtherFlags>--warnon:1182 --nowarn:1178 --nowarn:3536</OtherFlags>
-    <NoWarn>
-    </NoWarn>
-  </PropertyGroup>
-  <PropertyGroup>
-    <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
-  </PropertyGroup>
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <Choose>
-    <When Condition="'$(VisualStudioVersion)' == '11.0'">
-      <PropertyGroup>
-        <FSharpTargetsPath>$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets</FSharpTargetsPath>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <FSharpTargetsPath>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets</FSharpTargetsPath>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
-  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
-  <ItemGroup>
-    <Compile Include="Core.fs" />
-    <Compile Include="Constants.fs" />
-    <Compile Include="Operators.fs" />
-    <Compile Include="Generics.fs" />
-    <Compile Include="Option.fs" />
-    <Compile Include="Pair.fs" />
-    <Compile Include="ValuePair.fs" />
-    <Compile Include="Triple.fs" />
-    <Compile Include="PartialEquate.fs" />
-    <Compile Include="PartialCompare.fs" />
-    <Compile Include="Either.fs" />
-    <Compile Include="ValueEither.fs" />
-    <Compile Include="Seq.fs" />
-    <Compile Include="Array.fs" />
-    <Compile Include="String.fs" />
-    <Compile Include="List.fs" />
-    <Compile Include="Map.fs" />
-    <Compile Include="Set.fs" />
-    <Compile Include="HashSet.fs" />
-    <Compile Include="Dictionary.fs" />
-    <Compile Include="Rand.fs" />
-    <Compile Include="Symbol.fs" />
-    <Compile Include="PrettyPrinter.fs" />
-    <Compile Include="Address.fs" />
-    <Compile Include="Relation.fs" />
-    <Compile Include="KeyedCache.fs" />
-    <Compile Include="MutantCache.fs" />
-    <Compile Include="TExpr.fs" />
-    <Compile Include="TList.fs" />
-    <Compile Include="TMap.fs" />
-    <Compile Include="TSet.fs" />
-    <Compile Include="UList.fs" />
-    <Compile Include="UMap.fs" />
-    <Compile Include="USet.fs" />
-    <Compile Include="Queue.fs" />
-    <Compile Include="Deque.fs" />
-    <Compile Include="HMap.fs" />
-    <Compile Include="HSet.fs" />
-    <Compile Include="FStack.fs" />
-    <Compile Include="OMap.fs" />
-    <Compile Include="OSet.fs" />
-    <Compile Include="Vsync.fs" />
-    <Compile Include="Reflection.fs" />
-    <Compile Include="SymbolicConverter.fs" />
-    <Compile Include="SymbolicOperators.fs" />
-    <Compile Include="Mold.fs" />
-    <Compile Include="Molder.fs" />
-    <Compile Include="Whisp.fs" />
-    <Compile Include="Xtension.fs" />
-    <Compile Include="EventTrace.fs" />
-    <Compile Include="EventFilter.fs" />
-    <Compile Include="EventSimulant.fs" />
-    <Compile Include="EventSystemDelegate.fs" />
-    <Compile Include="EventSystem.fs" />
-    <Compile Include="Stream.fs" />
-    <Compile Include="Arrow.fs" />
-    <Compile Include="Chain.fs" />
-    <Compile Include="Timings.fs" />
-    <Compile Include="AssemblyInfo.fs" />
-    <None Include="Interactive.fsx" />
-    <None Include="App.config" />
-    <Content Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Csv">
-      <HintPath>..\..\packages\Csv.1.0.58\lib\net40\Csv.dll</HintPath>
-    </Reference>
-    <Reference Include="FParsec">
-      <HintPath>..\..\packages\FParsec.1.0.3\lib\net40-client\FParsec.dll</HintPath>
-    </Reference>
-    <Reference Include="FParsecCS">
-      <HintPath>..\..\packages\FParsec.1.0.3\lib\net40-client\FParsecCS.dll</HintPath>
-    </Reference>
-    <Reference Include="FSharp.Core">
-      <HintPath>..\..\packages\FSharp.Core.4.7.2\lib\net45\FSharp.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-  </ItemGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<ProjectGuid>{fe09ae81-b66b-42e0-8192-eadecefc9893}</ProjectGuid>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<WarnOn>FS1182</WarnOn>
+		<NoWarn>FS1178;FS3536</NoWarn>
+		<WarningLevel>5</WarningLevel>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<WarnOn>FS1182</WarnOn>
+		<NoWarn>FS1178;FS3536</NoWarn>
+		<Tailcalls>False</Tailcalls>
+		<WarningLevel>5</WarningLevel>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Include="Core.fs" />
+		<Compile Include="Constants.fs" />
+		<Compile Include="Operators.fs" />
+		<Compile Include="Generics.fs" />
+		<Compile Include="Option.fs" />
+		<Compile Include="Pair.fs" />
+		<Compile Include="ValuePair.fs" />
+		<Compile Include="Triple.fs" />
+		<Compile Include="PartialEquate.fs" />
+		<Compile Include="PartialCompare.fs" />
+		<Compile Include="Either.fs" />
+		<Compile Include="ValueEither.fs" />
+		<Compile Include="Seq.fs" />
+		<Compile Include="Array.fs" />
+		<Compile Include="String.fs" />
+		<Compile Include="List.fs" />
+		<Compile Include="Map.fs" />
+		<Compile Include="Set.fs" />
+		<Compile Include="HashSet.fs" />
+		<Compile Include="Dictionary.fs" />
+		<Compile Include="Rand.fs" />
+		<Compile Include="Symbol.fs" />
+		<Compile Include="PrettyPrinter.fs" />
+		<Compile Include="Address.fs" />
+		<Compile Include="Relation.fs" />
+		<Compile Include="KeyedCache.fs" />
+		<Compile Include="MutantCache.fs" />
+		<Compile Include="TExpr.fs" />
+		<Compile Include="TList.fs" />
+		<Compile Include="TMap.fs" />
+		<Compile Include="TSet.fs" />
+		<Compile Include="UList.fs" />
+		<Compile Include="UMap.fs" />
+		<Compile Include="USet.fs" />
+		<Compile Include="Queue.fs" />
+		<Compile Include="Deque.fs" />
+		<Compile Include="HMap.fs" />
+		<Compile Include="HSet.fs" />
+		<Compile Include="FStack.fs" />
+		<Compile Include="OMap.fs" />
+		<Compile Include="OSet.fs" />
+		<Compile Include="Vsync.fs" />
+		<Compile Include="Reflection.fs" />
+		<Compile Include="SymbolicConverter.fs" />
+		<Compile Include="SymbolicOperators.fs" />
+		<Compile Include="Mold.fs" />
+		<Compile Include="Molder.fs" />
+		<Compile Include="Whisp.fs" />
+		<Compile Include="Xtension.fs" />
+		<Compile Include="EventTrace.fs" />
+		<Compile Include="EventFilter.fs" />
+		<Compile Include="EventSimulant.fs" />
+		<Compile Include="EventSystemDelegate.fs" />
+		<Compile Include="EventSystem.fs" />
+		<Compile Include="Stream.fs" />
+		<Compile Include="Arrow.fs" />
+		<Compile Include="Chain.fs" />
+		<Compile Include="Timings.fs" />
+		<Compile Include="AssemblyInfo.fs" />
+		<None Include="Interactive.fsx" />
+		<None Include="App.config" />
+		<Content Include="packages.config" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Csv" Version="1.0.58" />
+	  <PackageReference Include="FParsec" Version="1.0.3" />
+	</ItemGroup>
+
 </Project>

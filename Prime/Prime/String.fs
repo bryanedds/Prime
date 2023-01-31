@@ -36,7 +36,7 @@ module String =
         String.Join (insert, strs)
 
     /// Check that a string is a guid.
-    let isGuid str =
+    let isGuid (str : string) =
         fst (Guid.TryParse str)
 
     /// Convert a bool to a string that works well in code.
