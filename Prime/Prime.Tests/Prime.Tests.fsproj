@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>netstandard2.0</TargetFramework>
 		<ProjectGuid>{258a92a0-3223-4326-af16-62df653a3080}</ProjectGuid>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<GenerateProgramFile>false</GenerateProgramFile>
@@ -37,8 +37,6 @@
 		<Content Include="Prelude.amsl">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<None Include="App.config" />
-		<Content Include="packages.config" />
 	</ItemGroup>
 
 	<ItemGroup>
