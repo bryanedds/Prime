@@ -8,12 +8,12 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module TMap =
 
-    type [<StructuralEquality; NoComparison>] private Log<'k, 'v> =
+    type private Log<'k, 'v> =
         | Add of key : 'k * value : 'v
         | Remove of remove : 'k
         | Clear
 
-    type [<ReferenceEquality; NoComparison>] TMap<'k, 'v> =
+    type [<ReferenceEquality>] TMap<'k, 'v> =
         private
             { mutable TMapOpt : TMap<'k, 'v>
               TConfig : TConfig

@@ -6,7 +6,7 @@ open System
 open Prime
 module Program =
 
-    type [<ReferenceEquality; NoComparison>] private ScriptingWorld =
+    type [<ReferenceEquality>] private ScriptingWorld =
         { ScriptingEnv : Scripting.Env }
         interface ScriptingWorld ScriptingSystem with
             member this.GetEnv () = this.ScriptingEnv

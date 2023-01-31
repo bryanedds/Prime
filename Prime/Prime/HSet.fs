@@ -11,7 +11,7 @@ open Prime
 module HSet =
 
     /// A hash-value pair, implemented with a struct for efficiency.
-    type [<StructuralEquality; NoComparison>] private Hv<'a when 'a : equality> =
+    type private Hv<'a when 'a : equality> =
         struct
             new (h, v) = { H = h; V = v }
             val H : int
@@ -19,7 +19,7 @@ module HSet =
             end
 
     /// Hash set node.
-    type [<StructuralEquality; NoComparison; CompilationRepresentation (CompilationRepresentationFlags.UseNullAsTrueValue)>]
+    type [<CompilationRepresentation (CompilationRepresentationFlags.UseNullAsTrueValue)>]
         private HNode<'a when 'a : equality> =
         | Nil
         | Singleton of 'a Hv

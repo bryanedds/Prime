@@ -8,7 +8,7 @@ open System
 module Rand =
 
     /// An immutable random number generator using the xorshift* algorithm.
-    type [<StructuralEquality; NoComparison>] Rand =
+    type Rand =
         private
             { RandState : uint64 }
 

@@ -17,7 +17,7 @@ type [<StructuralEquality; NoComparison; Struct>] Handling =
     | Cascade
 
 /// An entry in the subscription map.
-type [<ReferenceEquality; NoComparison>] SubscriptionEntry =
+type [<ReferenceEquality>] SubscriptionEntry =
     { SubscriptionId : Guid
       Subscriber : Simulant
       CallbackBoxed : obj }
@@ -26,7 +26,7 @@ type [<ReferenceEquality; NoComparison>] SubscriptionEntry =
 type Event = Event<obj, Simulant>
 
 /// An event used by the event system.
-and [<StructuralEquality; NoComparison>] Event<'a, 's when 's :> Simulant> =
+and Event<'a, 's when 's :> Simulant> =
     { Data : 'a
       Subscriber : 's
       Publisher : Simulant
@@ -96,7 +96,7 @@ module EventSystemDelegate =
     let mutable private GlobalSimulantGeneralized : GlobalSimulantGeneralized = Unchecked.defaultof<_>
 
     /// The implementation portion of EventSystem.
-    type [<ReferenceEquality; NoComparison>] 'w EventSystemDelegate =
+    type [<ReferenceEquality>] 'w EventSystemDelegate =
         private
             { // cache line 1 (assuming 16 byte header)
               Subscriptions : SubscriptionEntries

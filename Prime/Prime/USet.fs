@@ -9,7 +9,7 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module USet =
 
-    type [<ReferenceEquality; NoComparison>] 'a USet =
+    type [<ReferenceEquality>] 'a USet =
         private
             { mutable Set : 'a TSet }
     

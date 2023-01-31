@@ -60,7 +60,7 @@ module EventFilter =
         ("Any NotAny All Pattern Empty", "", "", "", "",
          Constants.PrettyPrinter.DefaultThresholdMin,
          Constants.PrettyPrinter.DefaultThresholdMax)>]
-    type [<StructuralEquality; NoComparison>] Filter =
+    type Filter =
         | All of Filter list
         | Any of Filter list
         | NotAny of Filter list

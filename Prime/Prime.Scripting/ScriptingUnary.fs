@@ -7,7 +7,7 @@ open Prime
 open Prime.Scripting
 module ScriptingUnary =
 
-    type [<ReferenceEquality; NoComparison>] UnaryFns =
+    type [<ReferenceEquality>] UnaryFns =
         { Bool : bool -> SymbolOrigin ValueOption -> Expr
           Int : int -> SymbolOrigin ValueOption -> Expr
           Int64 : int64 -> SymbolOrigin ValueOption -> Expr

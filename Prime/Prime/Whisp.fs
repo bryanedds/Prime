@@ -161,7 +161,7 @@ module Whisp =
                 root.Children.Add block
             root
 
-    type [<ReferenceEquality; NoComparison>] ParseScope =
+    type [<ReferenceEquality>] ParseScope =
         { Limiter : Block
           Root : Block }
 

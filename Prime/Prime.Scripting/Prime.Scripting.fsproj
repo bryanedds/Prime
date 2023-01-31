@@ -23,7 +23,7 @@
     <DocumentationFile>bin\Debug\Prime.Scripting.xml</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <OtherFlags>--warnon:1182 --nowarn:3536</OtherFlags>
+    <OtherFlags>--warnon:1182 --nowarn:1178 --nowarn:3536</OtherFlags>
     <NoWarn>
     </NoWarn>
   </PropertyGroup>
@@ -37,7 +37,7 @@
     <DocumentationFile>bin\Release\Prime.Scripting.xml</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <OtherFlags>--warnon:1182 --nowarn:3536</OtherFlags>
+    <OtherFlags>--warnon:1182 --nowarn:1178 --nowarn:3536</OtherFlags>
     <NoWarn>
     </NoWarn>
   </PropertyGroup>

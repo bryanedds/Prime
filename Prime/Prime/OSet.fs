@@ -27,7 +27,7 @@ module OSet =
     /// NOTE: not supported by SymbolicConverter.
     /// TODO: see if it would make sense to build UOrderedSet based on the more efficently-traversible
     /// OrderedDictionary.
-    type [<ReferenceEquality; NoComparison>] OSet<'a> =
+    type [<ReferenceEquality>] OSet<'a> =
         private
             { Indices : UMap<'a, int>
               Entries : struct (bool * 'a) FStack

@@ -8,13 +8,13 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module TList =
 
-    type [<StructuralEquality; NoComparison>] private 'a Log =
+    type private 'a Log =
         | Add of add : 'a
         | Remove of remove : 'a
         | Set of index : int * value : 'a
         | Clear
         
-    type [<ReferenceEquality; NoComparison>] 'a TList =
+    type [<ReferenceEquality>] 'a TList =
         private
             { mutable TListOpt : 'a TList
               TConfig : TConfig

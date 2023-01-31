@@ -9,7 +9,7 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module UMap =
 
-    type [<ReferenceEquality; NoComparison>] UMap<'k, 'v> =
+    type [<ReferenceEquality>] UMap<'k, 'v> =
         private
             { mutable Map : TMap<'k, 'v> }
     

@@ -8,12 +8,12 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module TSet =
 
-    type [<StructuralEquality; NoComparison>] private 'a Log =
+    type private 'a Log =
         | Add of add : 'a
         | Remove of remove : 'a
         | Clear
 
-    type [<ReferenceEquality; NoComparison>] 'a TSet =
+    type [<ReferenceEquality>] 'a TSet =
         private
             { mutable TSetOpt : 'a TSet
               TConfig : TConfig

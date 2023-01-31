@@ -7,7 +7,7 @@ open System.Diagnostics
 open Prime
 
 /// The Stream comonad.
-type [<ReferenceEquality; NoComparison>] Stream<'a, 'w when 'w :> EventSystem<'w>> =
+type [<ReferenceEquality>] Stream<'a, 'w when 'w :> EventSystem<'w>> =
     { Subscribe : 'w -> 'a Address * ('w -> 'w) * 'w }
 
 // TODO: document track functions.

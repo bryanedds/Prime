@@ -24,7 +24,7 @@ type ScriptingSystem<'w when 'w :> 'w ScriptingSystem> =
         end
 
 /// The type for intrinsic and extrinsic scripting functions.
-and [<ReferenceEquality; NoComparison>] ScriptingTrinsic<'w when 'w :> 'w ScriptingSystem> =
+and [<ReferenceEquality>] ScriptingTrinsic<'w when 'w :> 'w ScriptingSystem> =
     { Fn : string -> Expr array -> SymbolOrigin ValueOption -> 'w -> struct (Expr * 'w)
       Pars : string array
       DocOpt : string option }

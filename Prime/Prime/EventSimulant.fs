@@ -30,13 +30,13 @@ module SimulantOperators =
         // Disabled due to extension types not supporting operators: static member (-->) (address, simulant : Simulant) = Simulant.acatff address simulant
 
 /// The data for a change in a simulant.
-type [<StructuralEquality; NoComparison>] ChangeData =
+type ChangeData =
     { Name : string
       Previous : obj
       Value : obj }
 
 /// A simulant in the event system that is globalized and compatible with generalized events.
-type [<StructuralEquality; NoComparison>] GlobalSimulantGeneralized =
+type GlobalSimulantGeneralized =
     { GsgAddress : GlobalSimulantGeneralized Address }
     interface Simulant with
         member this.SimulantAddress = atoa<GlobalSimulantGeneralized, Simulant> this.GsgAddress

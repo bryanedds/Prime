@@ -39,7 +39,7 @@ module Vsync =
     /// The 'Vsync' (AKA, 'Variable Synchrony') monad.
     /// Allows code to run in either an async or synchronous fashion to aid in debugging.
     /// NOTE: to reference how all this stuff works in F#, see here - https://msdn.microsoft.com/en-us/library/dd233182.aspx
-    type [<ReferenceEquality; NoComparison>] 'a Vsync =
+    type [<ReferenceEquality>] 'a Vsync =
         private
             | Sync of (unit -> 'a)
             | Async of 'a Async

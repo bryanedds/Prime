@@ -7,7 +7,7 @@ open Xunit
 open Prime
 module ScriptingTests =
 
-    type [<ReferenceEquality; NoComparison>] TestWorld =
+    type [<ReferenceEquality>] TestWorld =
         { ScriptingEnv : Scripting.Env }
         interface TestWorld ScriptingSystem with
             member this.GetEnv () = this.ScriptingEnv
