@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<ProjectGuid>{c81b670f-101f-49ec-8eca-d3f673a6ab55}</ProjectGuid>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net7.0</TargetFramework>
+		<ProjectGuid>{40456B38-40EB-4A15-99EC-3B4D5AF939A5}</ProjectGuid>
 		<Version>9.0.0</Version>
 	</PropertyGroup>
 
@@ -21,22 +21,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Include="Scripting.fs" />
-		<Compile Include="ScriptingUnary.fs" />
-		<Compile Include="ScriptingBinary.fs" />
-		<Compile Include="ScriptingMarshalling.fs" />
-		<Compile Include="ScriptingPrimitives.fs" />
-		<Compile Include="ScriptingSystem.fs" />
-		<Compile Include="AssemblyInfo.fs" />
-		<Content Include="Prelude.amsl">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
+		<Compile Include="Program.fs" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Csv" Version="1.0.58" />
 		<PackageReference Include="FParsec" Version="1.0.3" />
-		<PackageReference Include="Prime" Version="9.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Prime\Prime.fsproj" />
+		<ProjectReference Include="..\Prime.Scripting\Prime.Scripting.fsproj" />
 	</ItemGroup>
 
 </Project>

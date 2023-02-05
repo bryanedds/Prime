@@ -2,14 +2,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Prime", "Prime\Prime\Prime.fsproj", "{FE09AE81-B66B-42E0-8192-EADECEFC9893}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Prime", "Prime\Prime\Prime.fsproj", "{FE09AE81-B66B-42E0-8192-EADECEFC9893}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Prime.Tests", "Prime\Prime.Tests\Prime.Tests.fsproj", "{258A92A0-3223-4326-AF16-62DF653A3080}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Prime.Tests", "Prime\Prime.Tests\Prime.Tests.fsproj", "{258A92A0-3223-4326-AF16-62DF653A3080}"
 	ProjectSection(ProjectDependencies) = postProject
 		{FE09AE81-B66B-42E0-8192-EADECEFC9893} = {FE09AE81-B66B-42E0-8192-EADECEFC9893}
 	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Prime.Scripting", "Prime\Prime.Scripting\Prime.Scripting.fsproj", "{C81B670F-101F-49EC-8ECA-D3F673A6AB55}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Prime.Scripting", "Prime\Prime.Scripting\Prime.Scripting.fsproj", "{C81B670F-101F-49EC-8ECA-D3F673A6AB55}"
+EndProject
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Prime.Scripting.Repl", "Prime\Prime.Scripting.Repl\Prime.Scripting.Repl.fsproj", "{40456B38-40EB-4A15-99EC-3B4D5AF939A5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,6 +31,10 @@ Global
 		{C81B670F-101F-49EC-8ECA-D3F673A6AB55}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C81B670F-101F-49EC-8ECA-D3F673A6AB55}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C81B670F-101F-49EC-8ECA-D3F673A6AB55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40456B38-40EB-4A15-99EC-3B4D5AF939A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40456B38-40EB-4A15-99EC-3B4D5AF939A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40456B38-40EB-4A15-99EC-3B4D5AF939A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40456B38-40EB-4A15-99EC-3B4D5AF939A5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
