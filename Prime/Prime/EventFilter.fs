@@ -68,7 +68,7 @@ module EventFilter =
         | Empty
 
     /// Filter events.
-    let rec filter addressStr (traceRev : EventInfo list) eventFilter =
+    let rec filter (addressStr : string) (traceRev : EventInfo list) eventFilter =
         match eventFilter with
         | All exprs -> List.fold (fun passed eventFilter -> passed && filter addressStr traceRev eventFilter) true exprs
         | Any exprs -> List.fold (fun passed eventFilter -> passed || filter addressStr traceRev eventFilter) false exprs
