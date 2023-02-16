@@ -4,6 +4,7 @@
 namespace Prime
 open System
 open System.Globalization
+open System.Text
 open FParsec
 open Csv
 open Prime
@@ -294,26 +295,45 @@ module Symbol =
     do readSymbolRef :=
         chainl1 readSymbolBirecursive readIndex
 
-    // TODO: P1: implement this with StringBuilder for efficiency!
-    let rec writeSymbol symbol =
+    /// Build a symbol into a string builder.
+    let rec internal buildSymbol symbol (stringBuilder : StringBuilder) =
         match symbol with
         | Atom (str, _) ->
             let str = distill str
-            if Seq.isEmpty str then OpenStringStr + CloseStringStr
-            elif not (isExplicit str) && shouldBeExplicit str then OpenStringStr + str + CloseStringStr
-            elif isExplicit str && not (shouldBeExplicit str) then str.Substring (1, str.Length - 2)
-            else str
-        | Number (str, _) -> distill str
-        | Text (str, _) -> OpenStringStr + distill str + CloseStringStr
-        | Quote (symbol, _) -> QuoteStr + writeSymbol symbol
+            if Seq.isEmpty str then stringBuilder.Append (OpenStringStr + CloseStringStr) |> ignore
+            elif not (isExplicit str) && shouldBeExplicit str then stringBuilder.Append (OpenStringStr + str + CloseStringStr) |> ignore
+            elif isExplicit str && not (shouldBeExplicit str) then stringBuilder.Append (str.Substring (1, str.Length - 2)) |> ignore
+            else stringBuilder.Append str |> ignore
+        | Number (str, _) -> stringBuilder.Append (distill str) |> ignore
+        | Text (str, _) -> stringBuilder.Append (OpenStringStr + distill str + CloseStringStr) |> ignore
+        | Quote (symbol, _) ->
+            stringBuilder.Append QuoteStr |> ignore<StringBuilder>
+            buildSymbol symbol stringBuilder
         | Symbols (symbols, _) ->
             match symbols with
             | [Atom (str, _); Number _ as indexer; target] when str = IndexExpansion ->
-                writeSymbol target + IndexStr + OpenSymbolsStr + writeSymbol indexer + CloseSymbolsStr
+                buildSymbol target stringBuilder
+                stringBuilder.Append (IndexStr + OpenSymbolsStr) |> ignore
+                buildSymbol indexer stringBuilder
+                stringBuilder.Append CloseSymbolsStr |> ignore
             | [Atom (str, _); indexer; target] when str = IndexExpansion ->
-                writeSymbol target + IndexStr + writeSymbol indexer
+                buildSymbol target stringBuilder
+                stringBuilder.Append IndexStr |> ignore
+                buildSymbol indexer stringBuilder
             | _ ->
-                OpenSymbolsStr + String.concat " " (List.map writeSymbol symbols) + CloseSymbolsStr
+                let symbolsLength = symbols.Length
+                stringBuilder.Append OpenSymbolsStr |> ignore
+                List.iteri (fun i symbol ->
+                    buildSymbol symbol stringBuilder
+                    if i < dec symbolsLength then stringBuilder.Append " " |> ignore)
+                    symbols
+                stringBuilder.Append CloseSymbolsStr |> ignore
+
+    /// Write a symbol to a string.
+    let writeSymbol symbol =
+        let stringBuilder = StringBuilder ()
+        buildSymbol symbol stringBuilder
+        stringBuilder.ToString ()
 
     /// Convert a string to a symbol, with the following parses:
     ///

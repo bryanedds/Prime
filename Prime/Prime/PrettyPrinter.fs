@@ -4,6 +4,7 @@
 namespace Prime
 open System
 open System.Reflection
+open System.Text
 open Prime
 
 /// Pretty prints Symbols, as well as strings by converting them to Symbols.
@@ -88,57 +89,65 @@ module PrettyPrinter =
                 let maxDepth = if headered || detailed || empty then maxDepth else maxDepth + 1
                 PrettySymbols (titled, headered, maxDepth, prettySymbols)
 
-    let rec private prettySymbolsToPrettyStr titled headered depth unfolding symbols prettyPrinter =
+    let rec private prettySymbolsToPrettyStr titled headered depth unfolding symbols prettyPrinter (stringBuilder : StringBuilder) =
         if unfolding then
             let symbolsLength = List.length symbols
-            let prettyStrs =
-                List.mapi (fun i prettySymbol ->
-                    let whitespace =
-                        if titled then
-                            if i > 1 then "\n" + String.init (inc depth) (fun _ -> " ")
-                            elif i > 0 then " "
-                            else ""
-                        elif headered then
-                            if i = dec symbolsLength then "\n" + String.init (inc depth) (fun _ -> " ")
-                            elif i > 0 then " "
-                            else ""
-                        else
-                            if i > 0 then "\n" + String.init (inc depth) (fun _ -> " ")
-                            else ""
-                    let text = prettySymbolToPrettyStr (inc depth) prettySymbol prettyPrinter
-                    whitespace + text)
-                    symbols
-            let prettyStr = Symbol.OpenSymbolsStr + String.concat "" prettyStrs + Symbol.CloseSymbolsStr
-            prettyStr
+            stringBuilder.Append Symbol.OpenSymbolsStr |> ignore
+            List.iteri (fun i prettySymbol ->
+                let whitespace =
+                    if titled then
+                        if i > 1 then "\n" + String.init (inc depth) (fun _ -> " ")
+                        elif i > 0 then " "
+                        else ""
+                    elif headered then
+                        if i = dec symbolsLength then "\n" + String.init (inc depth) (fun _ -> " ")
+                        elif i > 0 then " "
+                        else ""
+                    else
+                        if i > 0 then "\n" + String.init (inc depth) (fun _ -> " ")
+                        else ""
+                stringBuilder.Append whitespace |> ignore
+                prettySymbolToPrettyStr (inc depth) prettySymbol prettyPrinter stringBuilder)
+                symbols
+            stringBuilder.Append Symbol.CloseSymbolsStr |> ignore
         else
-            let prettyStrs =
-                List.map (fun prettySymbol ->
-                    prettySymbolToPrettyStr (inc depth) prettySymbol prettyPrinter)
-                    symbols
-            let prettyStr = Symbol.OpenSymbolsStr + String.concat " " prettyStrs + Symbol.CloseSymbolsStr
-            prettyStr
+            let symbolsLength = List.length symbols
+            stringBuilder.Append Symbol.OpenSymbolsStr |> ignore
+            List.iteri (fun i prettySymbol ->
+                prettySymbolToPrettyStr (inc depth) prettySymbol prettyPrinter stringBuilder
+                if i < dec symbolsLength then stringBuilder.Append " " |> ignore)
+                symbols
+            stringBuilder.Append Symbol.CloseSymbolsStr |> ignore
 
-    and private prettySymbolToPrettyStr depth prettySymbol prettyPrinter =
+    and private prettySymbolToPrettyStr depth prettySymbol prettyPrinter stringBuilder =
         match prettySymbol with
         | PrettyAtom (_, _, _, _, symbol)
         | PrettyNumber (_, symbol)
-        | PrettyString (_, symbol) -> Symbol.writeSymbol symbol
+        | PrettyString (_, symbol) -> Symbol.buildSymbol symbol stringBuilder
         | PrettyIndex (depth, prettyIndexer, prettyTarget) ->
-            let prettyIndexerStr = prettySymbolToPrettyStr depth prettyIndexer prettyPrinter
-            let prettyTargetStr = prettySymbolToPrettyStr depth prettyTarget prettyPrinter
             match prettyIndexer with
-            | PrettyNumber _ -> prettyTargetStr + Symbol.IndexStr + Symbol.OpenSymbolsStr + prettyIndexerStr + Symbol.CloseSymbolsStr
-            | _ -> prettyTargetStr + Symbol.IndexStr + prettyIndexerStr
+            | PrettyNumber _ ->
+                prettySymbolToPrettyStr depth prettyTarget prettyPrinter stringBuilder
+                stringBuilder.Append Symbol.IndexStr |> ignore
+                stringBuilder.Append Symbol.OpenSymbolsStr |> ignore
+                prettySymbolToPrettyStr depth prettyIndexer prettyPrinter stringBuilder
+                stringBuilder.Append Symbol.CloseSymbolsStr |> ignore
+            | _ ->
+                prettySymbolToPrettyStr depth prettyTarget prettyPrinter stringBuilder
+                stringBuilder.Append Symbol.IndexStr |> ignore
+                prettySymbolToPrettyStr depth prettyIndexer prettyPrinter stringBuilder
         | PrettyQuote (_, prettySymbol) ->
-            let prettyStr = prettySymbolToPrettyStr (inc depth) prettySymbol prettyPrinter
-            Symbol.QuoteStr + prettyStr
+            stringBuilder.Append Symbol.QuoteStr |> ignore
+            prettySymbolToPrettyStr (inc depth) prettySymbol prettyPrinter stringBuilder
         | PrettySymbols (titled, headered, maxDepth, symbols) ->
             let unfolding = depth < prettyPrinter.ThresholdMin || maxDepth > prettyPrinter.ThresholdMax
-            prettySymbolsToPrettyStr titled headered depth unfolding symbols prettyPrinter
+            prettySymbolsToPrettyStr titled headered depth unfolding symbols prettyPrinter stringBuilder
 
     let prettyPrintSymbol symbol prettyPrinter =
         let prettySymbol = symbolToPrettySymbol symbol prettyPrinter
-        prettySymbolToPrettyStr 0 prettySymbol prettyPrinter
+        let stringBuilder = StringBuilder ()
+        prettySymbolToPrettyStr 0 prettySymbol prettyPrinter stringBuilder
+        stringBuilder.ToString ()
 
     let prettyPrint str prettyPrinter =
         let symbol = Symbol.ofString str None
