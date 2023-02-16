@@ -295,7 +295,6 @@ module Symbol =
     do readSymbolRef :=
         chainl1 readSymbolBirecursive readIndex
 
-    /// Build a symbol into a string builder.
     let rec internal buildSymbol symbol (stringBuilder : StringBuilder) =
         match symbol with
         | Atom (str, _) ->
