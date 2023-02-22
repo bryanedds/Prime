@@ -1,5 +1,4 @@
-﻿
-// Prime - A PRIMitivEs code library.
+﻿// Prime - A PRIMitivEs code library.
 // Copyright (C) Bryan Edds, 2013-2020.
 
 namespace Prime
@@ -10,9 +9,11 @@ open System.Reflection
 open FSharp.Reflection
 open Prime
 
-/// Expands a record so that its fields are named.
-type SymbolicExpansionAttribute () =
+/// Expands a record so that its fields are named, preserving field names exactly when specified.
+type SymbolicExpansionAttribute (prettifyFieldNames : bool) =
     inherit Attribute ()
+    new () = SymbolicExpansionAttribute false
+    member this.PrettifyFieldNames = prettifyFieldNames
 
 /// Compresses two unions into a single union in a symbolic-expression.
 type [<StructuralEquality; StructuralComparison>] SymbolicCompression<'a, 'b> =
@@ -148,14 +149,17 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             // symbolize Record
             elif FSharpType.IsRecord sourceType || FSharpType.isRecordAbstract sourceType then
                 if sourceType.IsDefined (typeof<SymbolicExpansionAttribute>, true) then
+                    let expansionAttribute = sourceType.GetCustomAttribute<SymbolicExpansionAttribute> true
                     let recordFieldInfos = FSharpType.GetRecordFields (sourceType, true)
                     let recordFields = Array.map (fun info -> (info, FSharpValue.GetRecordField (source, info))) recordFieldInfos
                     let recordFieldSymbols =
                         Array.map (fun (info : PropertyInfo, field) ->
                             let fieldName =
-                                if info.Name.EndsWith "_"
-                                then info.Name.Substring (0, dec info.Name.Length)
-                                else String.capitalize info.Name
+                                if expansionAttribute.PrettifyFieldNames then
+                                    if info.Name.EndsWith "_"
+                                    then info.Name.Substring (0, dec info.Name.Length)
+                                    else String.capitalize info.Name
+                                else info.Name
                             Symbols ([Atom (fieldName, ValueNone); toSymbol info.PropertyType field], ValueNone))
                             recordFields
                     Symbols (List.ofArray recordFieldSymbols, ValueNone)
@@ -369,6 +373,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         if destType.IsDefined (typeof<SymbolicExpansionAttribute>, true) then
+                            let expansionAttribute = destType.GetCustomAttribute<SymbolicExpansionAttribute> true                            
                             let fieldInfos = FSharpType.GetRecordFields (destType, true)
                             if List.forall (function Symbols ([Atom _; _], _) -> true | _ -> false) symbols then
                                 let fieldMap =
@@ -380,12 +385,14 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                                         match Map.tryFind info.Name fieldMap with
                                         | Some fieldSymbol -> ofSymbol info.PropertyType fieldSymbol
                                         | None ->
-                                            match Map.tryFind (info.Name.Substring (0, dec info.Name.Length)) fieldMap with
-                                            | Some fieldSymbol -> ofSymbol info.PropertyType fieldSymbol
-                                            | None ->
-                                                match Map.tryFind (String.uncapitalize info.Name) fieldMap with
+                                            if expansionAttribute.PrettifyFieldNames then
+                                                match Map.tryFind (info.Name.Substring (0, dec info.Name.Length)) fieldMap with
                                                 | Some fieldSymbol -> ofSymbol info.PropertyType fieldSymbol
-                                                | None -> info.PropertyType.GetDefaultValue ())
+                                                | None ->
+                                                    match Map.tryFind (String.uncapitalize info.Name) fieldMap with
+                                                    | Some fieldSymbol -> ofSymbol info.PropertyType fieldSymbol
+                                                    | None -> info.PropertyType.GetDefaultValue ()
+                                            else info.PropertyType.GetDefaultValue ())
                                         fieldInfos
                                 FSharpValue.MakeRecord (destType, fields, true)
                             else failconv "Expected Symbols in pairs for expanded Record" (Some symbol)
