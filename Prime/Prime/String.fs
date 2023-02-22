@@ -98,6 +98,13 @@ module String =
         | [head] -> [|Char.ToUpperInvariant head|] |> String
         | head :: tail -> Char.ToUpperInvariant head :: tail |> Array.ofList |> String
 
+    /// Uncapitalize a string.
+    let uncapitalize (str : string) =
+        match str.ToCharArray () |> List.ofArray with
+        | [] -> str
+        | [head] -> [|Char.ToLowerInvariant head|] |> String
+        | head :: tail -> Char.ToLowerInvariant head :: tail |> Array.ofList |> String
+
     /// Textualize a string for usage as text.
     let textualize (str : string) =
         str.Replace ('_', '\"')

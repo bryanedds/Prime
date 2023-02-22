@@ -155,7 +155,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                             let fieldName =
                                 if info.Name.EndsWith "_"
                                 then info.Name.Substring (0, dec info.Name.Length)
-                                else info.Name
+                                else String.capitalize info.Name
                             Symbols ([Atom (fieldName, ValueNone); toSymbol info.PropertyType field], ValueNone))
                             recordFields
                     Symbols (List.ofArray recordFieldSymbols, ValueNone)
@@ -382,7 +382,10 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                                         | None ->
                                             match Map.tryFind (info.Name.Substring (0, dec info.Name.Length)) fieldMap with
                                             | Some fieldSymbol -> ofSymbol info.PropertyType fieldSymbol
-                                            | None -> info.PropertyType.GetDefaultValue ())
+                                            | None ->
+                                                match Map.tryFind (String.uncapitalize info.Name) fieldMap with
+                                                | Some fieldSymbol -> ofSymbol info.PropertyType fieldSymbol
+                                                | None -> info.PropertyType.GetDefaultValue ())
                                         fieldInfos
                                 FSharpValue.MakeRecord (destType, fields, true)
                             else failconv "Expected Symbols in pairs for expanded Record" (Some symbol)
