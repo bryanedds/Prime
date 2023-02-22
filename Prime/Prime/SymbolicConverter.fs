@@ -1,4 +1,5 @@
-﻿// Prime - A PRIMitivEs code library.
+﻿
+// Prime - A PRIMitivEs code library.
 // Copyright (C) Bryan Edds, 2013-2020.
 
 namespace Prime
@@ -150,8 +151,13 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     let recordFieldInfos = FSharpType.GetRecordFields (sourceType, true)
                     let recordFields = Array.map (fun info -> (info, FSharpValue.GetRecordField (source, info))) recordFieldInfos
                     let recordFieldSymbols =
-                        recordFields |>
-                        Array.map (fun (info, field) -> Symbols ([Atom (info.Name, ValueNone); toSymbol info.PropertyType field], ValueNone))
+                        Array.map (fun (info : PropertyInfo, field) ->
+                            let fieldName =
+                                if info.Name.EndsWith "_"
+                                then info.Name.Substring (0, dec info.Name.Length)
+                                else info.Name
+                            Symbols ([Atom (fieldName, ValueNone); toSymbol info.PropertyType field], ValueNone))
+                            recordFields
                     Symbols (List.ofArray recordFieldSymbols, ValueNone)
                 else
                     let recordFields = FSharpValue.GetRecordFields (source, true);
@@ -370,9 +376,11 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                                     List.map (function Symbols ([Atom (fieldName, _); fieldSymbol], _) -> (fieldName, fieldSymbol) | _ -> failwithumf ()) |>
                                     Map.ofList
                                 let fields =
-                                    Array.map
-                                        (fun (info : PropertyInfo) ->
-                                            match Map.tryFind info.Name fieldMap with
+                                    Array.map (fun (info : PropertyInfo) ->
+                                        match Map.tryFind info.Name fieldMap with
+                                        | Some fieldSymbol -> ofSymbol info.PropertyType fieldSymbol
+                                        | None ->
+                                            match Map.tryFind (info.Name.Substring (0, dec info.Name.Length)) fieldMap with
                                             | Some fieldSymbol -> ofSymbol info.PropertyType fieldSymbol
                                             | None -> info.PropertyType.GetDefaultValue ())
                                         fieldInfos
