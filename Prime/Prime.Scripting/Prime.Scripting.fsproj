@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<ProjectGuid>{c81b670f-101f-49ec-8eca-d3f673a6ab55}</ProjectGuid>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<Version>9.1.0</Version>
+		<Version>9.0.0</Version>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
