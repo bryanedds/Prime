@@ -69,10 +69,10 @@ module Operators =
     let inline notNull a = match a with null -> false | _ -> true
 
     /// Get the .NET type of a target.
-    let inline getType target = target.GetType ()
+    let inline getType<'a> (target : 'a) = target.GetType ()
 
     /// Get the .NET type name of a target.
-    let inline getTypeName target = (getType target).Name
+    let inline getTypeName<'a> target = (getType<'a> target).Name
 
     /// Get the union tag for the give case value.
     /// OPTIMIZATION: memoizes zero-field unions for speed.
@@ -86,7 +86,7 @@ module Operators =
             tag
 
     /// (=) as a function.
-    let inline eq left right = left = right
+    let inline eq<'a when 'a : equality> (left : 'a) (right : 'a) = left = right
 
     /// Compare two strings.
     let inline strCmp str str2 = String.CompareOrdinal (str, str2)
@@ -112,22 +112,22 @@ module Operators =
         | _ -> not (obj.ReferenceEquals (a, b) || obj.Equals (a, b))
 
     /// Test for reference equality.
-    let inline refEq (a : 'a) (b : 'a) = obj.ReferenceEquals (a, b)
+    let inline refEq<'a> (a : 'a) (b : 'a) = obj.ReferenceEquals (a, b)
 
     /// Test for reference inequality.
-    let inline refNeq (a : 'a) (b : 'a) = not (obj.ReferenceEquals (a, b))
+    let inline refNeq<'a> (a : 'a) (b : 'a) = not (obj.ReferenceEquals (a, b))
 
     /// Test for equality generically, usually faster than (=).
-    let inline genEq (a : 'a) (b : 'a) = LanguagePrimitives.GenericEquality a b
+    let inline genEq<'a when 'a : equality> (a : 'a) (b : 'a) = LanguagePrimitives.GenericEquality a b
 
     /// Test for inequality generically, usually faster than (=).
-    let inline genNeq (a : 'a) (b : 'a) = not (LanguagePrimitives.GenericEquality a b)
+    let inline genNeq<'a when 'a : equality> (a : 'a) (b : 'a) = not (LanguagePrimitives.GenericEquality a b)
 
     /// Test for sequence equality.
-    let inline seqEq seq seq2 = Enumerable.SequenceEqual (seq, seq2)
+    let inline seqEq<'a> (seq : 'a seq) (seq2 : 'a seq) = Enumerable.SequenceEqual (seq, seq2)
 
     /// Test for sequence equality.
-    let inline seqNeq seq seq2 = not (Enumerable.SequenceEqual (seq, seq2))
+    let inline seqNeq<'a> (seq : 'a seq) (seq2 : 'a seq) = not (Enumerable.SequenceEqual (seq, seq2))
 
     /// Cast as a function.
     let inline cast<'a> (target : obj) =
