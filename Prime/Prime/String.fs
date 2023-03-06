@@ -8,6 +8,9 @@ open System.Text
 [<RequireQualifiedAccess>]
 module String =
 
+    /// The empty string.
+    let [<Literal>] empty = ""
+
     /// Check that a string is empty.
     let inline isEmpty str =
         String.length str = 0
