@@ -44,7 +44,7 @@ type ValueEitherBuilder () =
 [<AutoOpen>]
 module ValueEitherBuilder =
 
-    /// Builds the either monad.
+    /// Builds value eithers.
     let valueEither = ValueEitherBuilder ()
 
 [<RequireQualifiedAccess>]

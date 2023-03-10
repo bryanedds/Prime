@@ -38,6 +38,10 @@ module PairOperators =
     let inline dup a =
         pair a a
 
+    /// Swap the elements of a pair.
+    let inline swap (a, b) =
+        (b, a)
+
 [<RequireQualifiedAccess>]
 module Pair =
 

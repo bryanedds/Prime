@@ -44,7 +44,7 @@ type EitherBuilder () =
 [<AutoOpen>]
 module EitherBuilder =
 
-    /// Builds the either monad.
+    /// Builds eithers.
     let either = EitherBuilder ()
 
 [<RequireQualifiedAccess>]

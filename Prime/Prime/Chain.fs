@@ -53,7 +53,7 @@ type ChainBuilder () =
 [<AutoOpen>]
 module ChainBuilder =
 
-    /// Builds the chain monad.
+    /// Builds chains.
     let [<DebuggerHidden; DebuggerStepThrough>] chain = ChainBuilder ()
 
 [<RequireQualifiedAccess>]
