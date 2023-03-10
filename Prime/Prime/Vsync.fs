@@ -234,6 +234,7 @@ module Vsync =
 type 'a Vsync = 'a Vsync.Vsync
 
 /// The Vsync computation expression builder.
+/// TODO: see if removing inlining everything here would improve or worsen the debugging experience.
 type [<Sealed>] VsyncBuilder () =
 
     member inline this.Bind (m, f) = Vsync.Bind m f

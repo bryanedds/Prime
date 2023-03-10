@@ -12,9 +12,9 @@ type [<StructuralEquality; StructuralComparison; Struct>] ValueEither<'l, 'r> =
 
 /// Builds an either monad.
 type ValueEitherBuilder () =
-    member inline this.Return a = ValueRight a
-    member inline this.ReturnFrom a = a
-    member inline this.Bind (a, f) = match a with ValueRight r -> f r | ValueLeft l -> ValueLeft l
+    member this.Return a = ValueRight a
+    member this.ReturnFrom a = a
+    member this.Bind (a, f) = match a with ValueRight r -> f r | ValueLeft l -> ValueLeft l
     member this.Using (d, b) = use u = d in b u
     member this.TryWith (b, h) = try b () with exn -> h exn
     member this.TryFinally (b, h) = try b () finally h ()

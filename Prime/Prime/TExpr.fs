@@ -21,17 +21,17 @@ type TExpr<'a, 'env> =
 
 type TExprBuilder<'env> () =
 
-    member inline this.Bind (expr : TExpr<'a, 'env>, lift : 'a -> TExpr<'b, 'env>) : TExpr<'b, 'env> =
+    member this.Bind (expr : TExpr<'a, 'env>, lift : 'a -> TExpr<'b, 'env>) : TExpr<'b, 'env> =
         fun env ->
             let struct (result, env') = expr env
             let expr' = lift result
             expr' env'
 
-    member inline this.Return (value : 'a) : TExpr<'a, 'env> =
+    member this.Return (value : 'a) : TExpr<'a, 'env> =
         fun expr ->
             struct (value, expr)
 
-    member inline this.ReturnFrom (value : 'a) =
+    member this.ReturnFrom (value : 'a) =
         value
 
     member this.Zero () =

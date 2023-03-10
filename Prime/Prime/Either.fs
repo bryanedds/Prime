@@ -12,9 +12,9 @@ type [<StructuralEquality; StructuralComparison>] Either<'l, 'r> =
 
 /// Builds an either monad.
 type EitherBuilder () =
-    member inline this.Return a = Right a
-    member inline this.ReturnFrom a = a
-    member inline this.Bind (a, f) = match a with Right r -> f r | Left l -> Left l
+    member this.Return a = Right a
+    member this.ReturnFrom a = a
+    member this.Bind (a, f) = match a with Right r -> f r | Left l -> Left l
     member this.Using (d, b) = use u = d in b u
     member this.TryWith (b, h) = try b () with exn -> h exn
     member this.TryFinally (b, h) = try b () finally h ()
