@@ -21,6 +21,9 @@ module Generics =
     /// The generic monoidal append operation.
     let inline append a b = a + b
 
+    /// The generic negation operation.
+    let inline negate a = -a
+
     /// Generic (and sectioned) increment.
     let inline inc n = n + one ()
 
