@@ -4,7 +4,7 @@
 namespace Prime
 
 [<AutoOpen>]
-module Generics =
+module Generic =
 
     /// The generic zero value.
     let inline zero () = LanguagePrimitives.GenericZero
