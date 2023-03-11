@@ -8,7 +8,7 @@ open System.Threading
 open System.Threading.Tasks
 open Prime
 
-/// Async extension type.
+[<RequireQualifiedAccess>]
 module Async =
 
     /// Create an asynchronous operation that runs 'f' over computation of 'a'.
