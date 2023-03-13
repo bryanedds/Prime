@@ -18,9 +18,6 @@ module Generic =
     /// Check a value for non-equality with zero.
     let inline notZero a = a <> zero ()
 
-    /// The generic monoidal append operation.
-    let inline append a b = a + b
-
     /// The generic negation operation.
     let inline negate a = -a
 
