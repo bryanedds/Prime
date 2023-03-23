@@ -19,11 +19,12 @@ module Dictionary =
 
     /// Fold over dictionary.
     let fold<'s, 'k, 'v> folder (state : 's) (dictionary : Dictionary<'k, 'v>) =
+        let folder = OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt folder
         let mutable state = state
         let mutable enr = dictionary.GetEnumerator ()
         while enr.MoveNext () do
             let kvp = enr.Current
-            state <- folder state kvp.Key kvp.Value
+            state <- folder.Invoke (state, kvp.Key, kvp.Value)
         state
 
     /// Try to find a value in a dictonary.

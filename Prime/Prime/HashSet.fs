@@ -19,11 +19,12 @@ module HashSet =
 
     /// Fold over hash set.
     let fold<'s, 't> folder (state : 's) (set : 't HashSet) =
+        let folder = OptimizedClosures.FSharpFunc<_, _, _>.Adapt folder
         let mutable state = state
         let mutable enr = set.GetEnumerator ()
         while enr.MoveNext () do
             let item = enr.Current
-            state <- folder state item
+            state <- folder.Invoke (state, item)
         state
         
     /// Hash a hash set.
