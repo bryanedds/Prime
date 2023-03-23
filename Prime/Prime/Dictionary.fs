@@ -17,7 +17,7 @@ module Dictionary =
         for kvp in dictionary do result.Add (kvp.Key, mapper kvp)
         result
 
-    /// Fold over dictionary.
+    /// Fold over a dictionary.
     let fold<'s, 'k, 'v> folder (state : 's) (dictionary : Dictionary<'k, 'v>) =
         let folder = OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt folder
         let mutable state = state
