@@ -12,7 +12,7 @@ open Prime
 /// Expands a record so that its fields are named, preserving field names exactly when specified.
 type SymbolicExpansionAttribute (prettifyFieldNames : bool) =
     inherit Attribute ()
-    new () = SymbolicExpansionAttribute false
+    new () = SymbolicExpansionAttribute true
     member this.PrettifyFieldNames = prettifyFieldNames
 
 /// Compresses two unions into a single union in a symbolic-expression.
