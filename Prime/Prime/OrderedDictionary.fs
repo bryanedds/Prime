@@ -6,6 +6,10 @@ open System.ComponentModel
 open System.Diagnostics
 open System.Linq
 
+/// Allows OrderedDictionary order index operator to be used unambiguously.
+type OrderIndex (index) =
+    member this.Index = index
+
 /// <summary>
 /// Debugging view for OrderedDictionary.
 /// </summary>
@@ -165,8 +169,19 @@ and [<Sealed; DebuggerDisplay "Count = {Count}"; DebuggerTypeProxy (typedefof<Or
     /// <returns>The value at the given index.</returns>
     /// <exception cref="System.ArgumentOutOfRangeException">The index is negative -or- beyond the length of the dictionary.</exception>
     member this.Item
-        with get index = values.[index]
-        and set index value = values.[index] <- value
+        with get (index : OrderIndex) = values.[index.Index]
+        and set (index : OrderIndex) value = values.[index.Index] <- value
+
+    member private this.GetEnumeratorInternal () : IEnumerator<KeyValuePair<'TKey, 'TValue>> =
+        let startVersion = version
+        let kvps =
+            seq {
+                for index in 0 .. dec keys.Count do
+                    let key = keys.[index]
+                    let value = values.[index]
+                    yield KeyValuePair (key, value)
+                    if version <> startVersion then raise (InvalidOperationException "") }
+        kvps.GetEnumerator ()
             
     interface ICollection<KeyValuePair<'TKey, 'TValue>> with
 
@@ -206,27 +221,8 @@ and [<Sealed; DebuggerDisplay "Count = {Count}"; DebuggerTypeProxy (typedefof<Or
             | (true, index) -> (this :> IList<KeyValuePair<'TKey, 'TValue>>).RemoveAt index; true
             | (false, _) -> false
 
-        member this.GetEnumerator () : IEnumerator<KeyValuePair<'TKey, 'TValue>> =
-            let startVersion = version
-            let kvps =
-                seq {
-                    for index in 0 .. dec keys.Count do
-                        let key = keys.[index]
-                        let value = values.[index]
-                        yield KeyValuePair (key, value)
-                        if version <> startVersion then raise (InvalidOperationException "") }
-            kvps.GetEnumerator ()
-
-        member this.GetEnumerator () : IEnumerator =
-            let startVersion = version
-            let kvps =
-                seq {
-                    for index in 0 .. dec keys.Count do
-                        let key = keys.[index]
-                        let value = values.[index]
-                        yield KeyValuePair (key, value)
-                        if version <> startVersion then raise (InvalidOperationException "") }
-            kvps.GetEnumerator ()
+        member this.GetEnumerator () : IEnumerator = this.GetEnumeratorInternal ()
+        member this.GetEnumerator () : IEnumerator<KeyValuePair<'TKey, 'TValue>> = this.GetEnumeratorInternal ()
 
     interface IList<KeyValuePair<'TKey, 'TValue>> with
 
