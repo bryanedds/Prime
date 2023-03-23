@@ -10,6 +10,21 @@ module HashSet =
     /// Make a hash set with a single item.
     let inline singleton comparer item =
         List.toHashSet comparer [item]
+
+    /// Map over a hash set. A new hash set is produced.
+    let map (mapper : 'v -> 'v) (set : 'v HashSet) =
+        let result = HashSet<'v> set.Comparer
+        for item in set do result.Add (mapper item) |> ignore<bool>
+        result
+
+    /// Fold over hash set.
+    let inline fold<'s, 't> folder (state : 's) (set : 't HashSet) =
+        let mutable state = state
+        let mutable enr = set.GetEnumerator ()
+        while enr.MoveNext () do
+            let item = enr.Current
+            state <- folder state item
+        state
         
     /// Hash a hash set.
     let hash (hashSet : _ HashSet) =

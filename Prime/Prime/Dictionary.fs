@@ -17,6 +17,15 @@ module Dictionary =
         for kvp in dictionary do result.Add (kvp.Key, mapper kvp)
         result
 
+    /// Fold over dictionary.
+    let inline fold<'s, 'k, 'v> folder (state : 's) (dictionary : Dictionary<'k, 'v>) =
+        let mutable state = state
+        let mutable enr = dictionary.GetEnumerator ()
+        while enr.MoveNext () do
+            let kvp = enr.Current
+            state <- folder state kvp.Key kvp.Value
+        state
+
     /// Try to find a value in a dictonary.
     let inline tryFind key (dictionary : Dictionary<'k, 'v>) =
         match dictionary.TryGetValue key with
