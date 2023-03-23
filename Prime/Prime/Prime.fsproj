@@ -41,6 +41,7 @@
 		<Compile Include="Set.fs" />
 		<Compile Include="HashSet.fs" />
 		<Compile Include="Dictionary.fs" />
+		<Compile Include="OrderedDictionary.fs" />
 		<Compile Include="Rand.fs" />
 		<Compile Include="Symbol.fs" />
 		<Compile Include="PrettyPrinter.fs" />
