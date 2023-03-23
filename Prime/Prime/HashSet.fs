@@ -23,8 +23,7 @@ module HashSet =
         let mutable state = state
         let mutable enr = set.GetEnumerator ()
         while enr.MoveNext () do
-            let item = enr.Current
-            state <- folder.Invoke (state, item)
+            state <- folder.Invoke (state, enr.Current)
         state
         
     /// Hash a hash set.
