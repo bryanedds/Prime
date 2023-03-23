@@ -12,8 +12,8 @@ module HashSet =
         List.toHashSet comparer [item]
 
     /// Map over a hash set. A new hash set is produced.
-    let map (mapper : 'v -> 'v) (set : 'v HashSet) =
-        let result = HashSet<'v> set.Comparer
+    let map (mapper : 'a -> 'a) (set : 'a HashSet) =
+        let result = HashSet<'a> set.Comparer
         for item in set do result.Add (mapper item) |> ignore<bool>
         result
 

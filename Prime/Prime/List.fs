@@ -338,3 +338,18 @@ module List =
         Array.ofList |>
         Array.groupBy id |>
         Array.exists (fun (_, group) -> group.Length >= 3)
+
+    /// Map over a generic list. A new list is produced.
+    let mapGeneric (mapper : 'a -> 'a) (set : 'a System.Collections.Generic.List) =
+        let result = System.Collections.Generic.List ()
+        for item in set do result.Add (mapper item)
+        result
+
+    /// Fold over generic list.
+    let foldGeneric<'s, 't> folder (state : 's) (set : 't System.Collections.Generic.List) =
+        let folder = OptimizedClosures.FSharpFunc<_, _, _>.Adapt folder
+        let mutable state = state
+        let mutable enr = set.GetEnumerator ()
+        while enr.MoveNext () do
+            state <- folder.Invoke (state, enr.Current)
+        state
