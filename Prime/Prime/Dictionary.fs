@@ -18,7 +18,7 @@ module Dictionary =
         result
 
     /// Fold over dictionary.
-    let inline fold<'s, 'k, 'v> folder (state : 's) (dictionary : Dictionary<'k, 'v>) =
+    let fold<'s, 'k, 'v> folder (state : 's) (dictionary : Dictionary<'k, 'v>) =
         let mutable state = state
         let mutable enr = dictionary.GetEnumerator ()
         while enr.MoveNext () do

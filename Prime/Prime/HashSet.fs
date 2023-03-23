@@ -18,7 +18,7 @@ module HashSet =
         result
 
     /// Fold over hash set.
-    let inline fold<'s, 't> folder (state : 's) (set : 't HashSet) =
+    let fold<'s, 't> folder (state : 's) (set : 't HashSet) =
         let mutable state = state
         let mutable enr = set.GetEnumerator ()
         while enr.MoveNext () do
