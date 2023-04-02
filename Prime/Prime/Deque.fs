@@ -199,8 +199,6 @@ type Deque<'T>(front, rBack) =
     interface IReadOnlyCollection<'T> with
         member this.Count = this.Length
 
-
-
 [<RequireQualifiedAccess>]
 module Deque =
 
