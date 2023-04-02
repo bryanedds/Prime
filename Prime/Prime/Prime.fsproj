@@ -26,6 +26,7 @@
 		<Compile Include="Operators.fs" />
 		<Compile Include="Generic.fs" />
 		<Compile Include="Option.fs" />
+		<Compile Include="ValueOption.fs" />
 		<Compile Include="Pair.fs" />
 		<Compile Include="ValuePair.fs" />
 		<Compile Include="Triple.fs" />
