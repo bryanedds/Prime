@@ -19,7 +19,7 @@ module ScriptingTests =
     let evalPartial exprStr =
         let world = TestWorld.make ()
         match ScriptingSystem.tryEvalScript id Constants.Scripting.PreludeFilePath world with
-        | Right struct (_, _, world) ->
+        | Right (_, _, world) ->
             let expr = scvalue<Scripting.Expr> exprStr
             ScriptingSystem.eval expr world |> fst'
         | Left _ ->

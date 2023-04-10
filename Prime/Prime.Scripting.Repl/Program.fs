@@ -41,11 +41,11 @@ module Program =
         Console.Write "Attempting to evaluate Amsl prelude... "
         let world =
             match ScriptingSystem.tryEvalScript id Constants.Scripting.PreludeFilePath world with
-            | Left struct (err, _) ->
+            | Left (err, _) ->
                 Console.WriteLine "Error!"
                 Console.WriteLine err
                 world
-            | Right struct (_, _, world) ->
+            | Right (_, _, world) ->
                 Console.WriteLine "Success!"
                 world
         Console.WriteLine "Welcome to the Amsl Repl!"

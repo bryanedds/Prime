@@ -675,8 +675,8 @@ module ScriptingSystem =
         Array.iter log evaleds
         struct (evaleds, world)
 
-    /// Attempt to evaluate a script.
-    let tryEvalScript (choose : 'w -> 'w) (scriptFilePath : string) (world : 'w) =
+    /// Attempt to read a script.
+    let tryReadScript (scriptFilePath : string) =
         Trace.WriteLine ("Evaluating script '" + scriptFilePath + "'...")
         try let scriptStr =
                 scriptFilePath |>
@@ -686,10 +686,18 @@ module ScriptingSystem =
                 scriptStr |>
                 (fun str -> Symbol.OpenSymbolsStr + str + Symbol.CloseSymbolsStr) |>
                 scvalue<Expr array>
-            let struct (evaleds, world) = evalMany script world
-            Trace.WriteLine ("Successfully evaluated script '" + scriptFilePath + "'.")
-            Right struct (scriptStr, evaleds, world)
+            Right (scriptStr, script)
         with exn ->
-            let error = "Failed to evaluate script '" + scriptFilePath + "' due to: " + exn.Message
-            Trace.Fail error
-            Left struct (error, choose world)
+            Left ("Failed to read script '" + scriptFilePath + "' due to: " + exn.Message)
+
+    /// Attempt to evaluate a script.
+    let tryEvalScript (choose : 'w -> 'w) (scriptFilePath : string) (world : 'w) =
+        Trace.WriteLine ("Evaluating script '" + scriptFilePath + "'...")
+        try match tryReadScript scriptFilePath with
+            | Right (scriptStr, script) ->
+                let struct (evaleds, world) = evalMany script world
+                Trace.WriteLine ("Successfully evaluated script '" + scriptFilePath + "'.")
+                Right (scriptStr, evaleds, world)
+            | Left error -> Left (error, choose world)
+        with exn ->
+            Left ("Failed to evaluate script '" + scriptFilePath + "' due to: " + exn.Message, choose world)

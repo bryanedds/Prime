@@ -76,10 +76,23 @@ module EventTests =
 
     let [<Fact>] unsubscribeWorks () =
         let key = makeGuid ()
+        let key2 = makeGuid ()
+        let key3 = makeGuid ()
+        let key4 = makeGuid ()
+        let key5 = makeGuid ()
         let world = TestWorld.make None EventFilter.Empty TestSimulantSpecialized TestSimulantGeneralized
         let world = EventSystem.subscribePlus key incTestStateAndResolve TestEvent TestSimulantSpecialized world |> snd
+        let world = EventSystem.subscribePlus key2 incTestStateAndResolve TestEvent TestSimulantSpecialized world |> snd
+        let world = EventSystem.subscribePlus key3 incTestStateAndResolve TestEvent TestSimulantSpecialized world |> snd
+        let world = EventSystem.subscribePlus key4 incTestStateAndResolve TestEvent TestSimulantSpecialized world |> snd
+        let world = EventSystem.subscribePlus key5 incTestStateAndResolve TestEvent TestSimulantSpecialized world |> snd
         let world = EventSystem.unsubscribe key world
+        let world = EventSystem.unsubscribe key2 world
+        let world = EventSystem.unsubscribe key3 world
+        let world = EventSystem.unsubscribe key4 world
+        let world = EventSystem.unsubscribe key5 world
         let world = EventSystem.publish 0 TestEvent EventTrace.empty TestSimulantSpecialized world
+        Assert.True (UMap.isEmpty (EventSystem.getSubscriptions world))
         Assert.Equal (0, world.TestState)
 
     let [<Fact>] streamWorks () =
