@@ -677,7 +677,7 @@ module ScriptingSystem =
 
     /// Attempt to read a script.
     let tryReadScript (scriptFilePath : string) =
-        Trace.WriteLine ("Evaluating script '" + scriptFilePath + "'...")
+        Trace.WriteLine ("Reading script '" + scriptFilePath + "'...")
         try let scriptStr =
                 scriptFilePath |>
                 File.ReadAllText |>
