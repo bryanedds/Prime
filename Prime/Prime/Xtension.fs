@@ -74,23 +74,6 @@ module Xtension =
                         { xtension with Properties = properties }
             | None -> failwith "Cannot add property to a sealed Xtension."
 
-    /// Make an Xtension.
-    let make imperative properties =
-        { Properties = properties
-          Flags =
-            (if imperative then ImperativeMask else 0) |||
-            (if Reflection.containsRuntimeProperties properties then ContainsRuntimePropertiesMask else 0) }
-
-    /// Make an empty Xtension.
-    let makeEmpty imperative =
-        make imperative (UMap.makeEmpty StringComparer.Ordinal (if imperative then Imperative else Functional))
-
-    /// An Xtension that is imperative.
-    let makeImperative () = make true (UMap.makeEmpty StringComparer.Ordinal Imperative)
-
-    /// An Xtension that isn't imperative.
-    let makeFunctional () = make false (UMap.makeEmpty StringComparer.Ordinal Functional)
-
     /// Check whether the Xtension uses mutation.
     let getImperative (xtension : Xtension) = xtension.Imperative
 
@@ -152,12 +135,41 @@ module Xtension =
             Properties = properties
             Flags = xtension.Flags &&& ImperativeMask ||| containsRuntimeProperties }
 
+    /// Make an Xtension.
+    let make imperative properties =
+        { Properties = properties
+          Flags =
+            (if imperative then ImperativeMask else 0) |||
+            (if Reflection.containsRuntimeProperties properties then ContainsRuntimePropertiesMask else 0) }
+
+    /// Make an empty Xtension.
+    let makeEmpty imperative =
+        make imperative (UMap.makeEmpty StringComparer.Ordinal (if imperative then Imperative else Functional))
+
+    /// An Xtension that is imperative.
+    let makeImperative () = make true (UMap.makeEmpty StringComparer.Ordinal Imperative)
+
+    /// An Xtension that isn't imperative.
+    let makeFunctional () = make false (UMap.makeEmpty StringComparer.Ordinal Functional)
+
+    /// Make an Xtension by copying properties of another Xtension.
+    let rec makeFromXtension (xtension : Xtension) = 
+        xtension |>
+        toSeq |>
+        Seq.map (fun (n, p) ->
+            let propertyValue =
+                match p.PropertyValue with
+                | :? DesignerProperty as dp -> { dp with DesignerType = dp.DesignerType } :> obj
+                | value -> value
+            (n, { p with PropertyValue = propertyValue })) |>
+        ofSeq xtension.Imperative
+
     /// Convert an xtension to a sequence of its entries.
-    let toSeq xtension =
+    and toSeq xtension =
         xtension.Properties :> _ seq
 
     /// Convert an xtension to a sequence of its entries.
-    let ofSeq seq imperative =
+    and ofSeq imperative seq =
         attachProperties seq (makeEmpty imperative)
 
 /// Xtensions (and their supporting types) are a dynamic, functional, and convenient way
