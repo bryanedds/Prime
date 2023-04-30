@@ -101,17 +101,17 @@ module EventSystemDelegate =
             { // cache line 1 (assuming 16 byte header)
               Subscriptions : SubscriptionEntries
               Unsubscriptions : UnsubscriptionEntries
-              EventStates : UMap<Guid, obj>
+              EventStates : SUMap<Guid, obj>
               EventTracerOpt : (string -> unit) option
               EventFilter : EventFilter.Filter }
 
     /// Add event state.
     let addEventState<'a, 'w> key (state : 'a) (esd : 'w EventSystemDelegate) =
-        { esd with EventStates = UMap.add key (state :> obj) esd.EventStates }
+        { esd with EventStates = SUMap.add key (state :> obj) esd.EventStates }
 
     /// Remove event state.
     let removeEventState<'w> key (esd : 'w EventSystemDelegate) =
-        { esd with EventStates = UMap.remove key esd.EventStates }
+        { esd with EventStates = SUMap.remove key esd.EventStates }
 
     /// Get subscriptions.
     let getSubscriptions<'w> (esd : 'w EventSystemDelegate) =
@@ -131,7 +131,7 @@ module EventSystemDelegate =
 
     /// Get event state.
     let getEventState<'a, 'w> key (esd : 'w EventSystemDelegate) =
-        let state = UMap.find key esd.EventStates
+        let state = SUMap.find key esd.EventStates
         state :?> 'a
 
     /// Get how events are being traced.
@@ -250,7 +250,7 @@ module EventSystemDelegate =
         let esd =
             { Subscriptions = UMap.makeEmpty HashIdentity.Structural config
               Unsubscriptions = UMap.makeEmpty HashIdentity.Structural config
-              EventStates = UMap.makeEmpty HashIdentity.Structural config
+              EventStates = SUMap.makeEmpty HashIdentity.Structural config
               EventTracerOpt = eventTracerOpt
               EventFilter = eventFilter }
         GlobalSimulantSpecialized <- globalSimulantSpecialized
