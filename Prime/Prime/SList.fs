@@ -13,17 +13,17 @@ module SList =
 
     type [<ReferenceEquality>] 'a SList =
         private
-            { mutable Length_ : int
+            { mutable TotalLength_ : int
               mutable Capacity_ : int
               mutable Lists_ : 'a List List }
 
         static member internal Make () =
             let size = sizeof<'a>
             let listCapacity = Constants.Runtime.LohSize / size / 2 // divide by two since we seem to need some major slop to avoid LOH allocation...
-            { Length_ = 0; Capacity_ = listCapacity; Lists_ = List [List<'a> ()] }
+            { TotalLength_ = 0; Capacity_ = listCapacity; Lists_ = List [List<'a> ()] }
 
-        member this.Count =
-            this.Length_
+        member this.Length =
+            this.TotalLength_
 
         member this.Add item =
             let lastList = this.Lists_.[dec this.Lists_.Count]
@@ -33,7 +33,7 @@ module SList =
                 let newList = List this.Capacity_ // since we filled one list, let's presume to fill another
                 newList.Add item
                 this.Lists_.Add newList
-            this.Length_ <- inc this.Length_
+            this.TotalLength_ <- inc this.TotalLength_
 
         member this.AddRange (seq : 'a seq) =
             for item in seq do
@@ -47,7 +47,7 @@ module SList =
                     if EqualityComparer.Equals (item, item')
                     then result <- true
                     else list'.Add item'
-            this.Length_ <- list'.Length_
+            this.TotalLength_ <- list'.TotalLength_
             this.Capacity_ <- list'.Capacity_
             this.Lists_ <- list'.Lists_
             result
@@ -65,17 +65,17 @@ module SList =
             firstList.Clear ()
             this.Lists_.Clear ()
             this.Lists_.Add firstList
-            this.Length_ <- 0
+            this.TotalLength_ <- 0
 
         member this.Item
             with get (i : int) =
-                if i < this.Length_ then
+                if i < this.TotalLength_ then
                     let j = i / this.Capacity_
                     let k = i % this.Capacity_
                     this.Lists_.[j].[k]
                 else raise (IndexOutOfRangeException "Index out of range.")
             and set (i : int) (value : 'a) =
-                if i < this.Length_ then
+                if i < this.TotalLength_ then
                     let j = i / this.Capacity_
                     let k = i % this.Capacity_
                     this.Lists_.[j].[k] <- value
@@ -94,18 +94,18 @@ module SList =
         let lists = List ()
         for list in list.Lists_ do
             lists.Add (List list)
-        { Length_ = list.Length_
+        { TotalLength_ = list.TotalLength_
           Capacity_ = list.Capacity_
           Lists_ = lists }
 
     let isEmpty slist =
-        slist.Length_ = 0
+        slist.TotalLength_ = 0
 
     let notEmpty slist =
-        slist.Length_ > 0
+        slist.TotalLength_ > 0
 
-    let count slist =
-        slist.Length_
+    let length slist =
+        slist.TotalLength_
 
     let item index (slist : 'a SList) =
         slist.[index]
@@ -123,16 +123,16 @@ module SList =
         addMany right left
 
     let skip count (slist : 'a SList) =
-        if count > slist.Length_ then raise (ArgumentException ("Invalid argument.", nameof count))
+        if count > slist.TotalLength_ then raise (ArgumentException ("Invalid argument.", nameof count))
         let result = make ()
-        for i in count .. dec slist.Length_ do
+        for i in count .. dec slist.TotalLength_ do
             add slist.[i] result
         result
 
     let take count (slist : 'a SList) =
-        if count > slist.Length_ then raise (ArgumentException ("Invalid argument.", nameof count))
+        if count > slist.TotalLength_ then raise (ArgumentException ("Invalid argument.", nameof count))
         let result = make ()
-        for i in 0 .. dec slist.Length_ - count do
+        for i in 0 .. dec slist.TotalLength_ - count do
             add slist.[i] result
         result
 
@@ -143,9 +143,9 @@ module SList =
         result
 
     let map2 mapper left right =
-        if left.Length_ <> right.Length_ then raise (ArgumentException ("SList length does not match.", nameof right))
+        if left.TotalLength_ <> right.TotalLength_ then raise (ArgumentException ("SList length does not match.", nameof right))
         let result = make ()
-        for i in 0 .. dec left.Length_ do
+        for i in 0 .. dec left.TotalLength_ do
             add (mapper left.[i] right.[i]) result
         result
 

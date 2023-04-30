@@ -63,7 +63,7 @@ module STList =
             | target ->
                 match obj.ReferenceEquals (target, list) with
                 | true ->
-                    if list.LogsLength > list.ImpList.Count
+                    if list.LogsLength > list.ImpList.Length
                     then compress list
                     else list
                 | false -> commit list)
@@ -153,7 +153,7 @@ module STList =
 
     let isEmpty list =
         let list = validate list
-        struct (list.ImpList.Count = 0, list)
+        struct (list.ImpList.Length = 0, list)
 
     let notEmpty list =
         let list = validate list
@@ -162,7 +162,7 @@ module STList =
     /// Get the length of the list (constant-time).
     let length list =
         let list = validate list
-        struct (list.ImpList.Count, list)
+        struct (list.ImpList.Length, list)
 
     /// Check that a value is contain in the list.
     let contains value list =
