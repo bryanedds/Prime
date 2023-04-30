@@ -105,6 +105,7 @@ module ListTests =
     [<Property>]
     /// Proof of concept, we can delete this after we know test is correct
     let aryEqListsLookingBackwards (initialList : ResizeArray<int>) (actions : ListAction<int> []) =
+
         let ary = Array.ofSeq initialList
         let eq (ary : int[]) (fslist : int ResizeArray) = List.ofSeq ary = List.ofSeq fslist
         let pred i = i % 2 = 0
@@ -124,6 +125,36 @@ module ListTests =
 
         eqListsAfterSteps initialList ary actions add get set ((+) 1) Array.map pred Array.filter eq true
 
+    let ulistEqLists (initialList : ResizeArray<int>) (actions : ListAction<int>[]) (lookBackwards : bool) =
+        let testList = UList.addMany initialList (UList.makeEmpty Functional)
+        let eq (ulist : UList<_>) (fslist : _ ResizeArray) = List.ofSeq ulist = List.ofSeq fslist
+        let pred i = i % 2 = 0
+        eqListsAfterSteps initialList testList actions UList.add UList.get UList.set ((+) 1) UList.map pred UList.filter eq lookBackwards
+        
+    [<Property>]
+    let ulistEqList (initialList : ResizeArray<int>) (actions : ListAction<int>[]) =
+        ulistEqLists initialList actions false 
+
+    [<Property>]
+    let ulistEqListsLookingBackwards (initialList : ResizeArray<int>) =
+        let actionGen = getActionGen (fun _ -> true)
+        Prop.forAll actionGen (fun actions -> ulistEqLists initialList actions true)
+
+    [<Property>]
+    let ulistEqListsLookingBackwardsAddOnly (initialList : ResizeArray<int>) =
+        let actionGen = getActionGen (function ListAction.AddLast _ -> true | _ -> false)
+        Prop.forAll actionGen (fun actions -> ulistEqLists initialList actions true)
+
+    [<Property>]
+    let ulistEqListsLookingBackwardsAddSet (initialList : ResizeArray<int>) =
+        let actionGen = getActionGen (function ListAction.SetNthToNth (_, _) | ListAction.AddLast _ -> true | _ -> false)
+        Prop.forAll actionGen (fun actions -> ulistEqLists initialList actions true)
+
+    [<Property>]
+    let ulistEqListsLookingBackwardsMapFilter (initialList : ResizeArray<int>) =
+        let actionGen = getActionGen (function ListAction.MapIncrementFn _ | ListAction.FilterWithFn -> true | _ -> false)
+        Prop.forAll actionGen (fun actions -> ulistEqLists initialList actions true)
+
     let sulistEqLists (initialList : ResizeArray<int>) (actions : ListAction<int>[]) (lookBackwards : bool) =
         let testList = SUList.addMany initialList (SUList.makeEmpty Functional)
         let eq (ulist : SUList<_>) (fslist : _ ResizeArray) = List.ofSeq ulist = List.ofSeq fslist
@@ -137,34 +168,19 @@ module ListTests =
     [<Property>]
     let sulistEqListsLookingBackwards (initialList : ResizeArray<int>) =
         let actionGen = getActionGen (fun _ -> true)
-        Prop.forAll actionGen (fun actions ->
-            sulistEqLists initialList actions true)
+        Prop.forAll actionGen (fun actions -> sulistEqLists initialList actions true)
 
     [<Property>]
     let sulistEqListsLookingBackwardsAddOnly (initialList : ResizeArray<int>) =
-        let actionGen = getActionGen (function
-            | ListAction.AddLast(_) -> true
-            | _ -> false)
-
-        Prop.forAll actionGen (fun actions ->
-            sulistEqLists initialList actions true)
+        let actionGen = getActionGen (function ListAction.AddLast _ -> true | _ -> false)
+        Prop.forAll actionGen (fun actions -> sulistEqLists initialList actions true)
 
     [<Property>]
     let sulistEqListsLookingBackwardsAddSet (initialList : ResizeArray<int>) =
-        let actionGen = getActionGen (function
-            | ListAction.SetNthToNth(_,_)
-            | ListAction.AddLast(_) -> true
-            | _ -> false)
-
-        Prop.forAll actionGen (fun actions ->
-            sulistEqLists initialList actions true)
+        let actionGen = getActionGen (function ListAction.SetNthToNth (_, _) | ListAction.AddLast _ -> true | _ -> false)
+        Prop.forAll actionGen (fun actions -> sulistEqLists initialList actions true)
 
     [<Property>]
     let sulistEqListsLookingBackwardsMapFilter (initialList : ResizeArray<int>) =
-        let actionGen = getActionGen (function
-            | ListAction.MapIncrementFn(_)
-            | ListAction.FilterWithFn -> true
-            | _ -> false)
-
-        Prop.forAll actionGen (fun actions ->
-            sulistEqLists initialList actions true)
+        let actionGen = getActionGen (function ListAction.MapIncrementFn _ | ListAction.FilterWithFn -> true | _ -> false)
+        Prop.forAll actionGen (fun actions -> sulistEqLists initialList actions true)

@@ -62,6 +62,12 @@ module MapTests =
         eqMapsAfterSteps initialMap testMap actions HMap.add HMap.remove HMap.fold (+) eq
 
     [<Property>]
+    let umapsEqualFsmapsAfterSteps (initialMap : Map<int, string>) (actions : MapAction<int, string>[]) =
+        let testMap = UMap.makeFromSeq HashIdentity.Structural Functional (Map.toSeq initialMap)
+        let eq (umap : UMap<_,_>) (fsmap : Map<_,_>) = Map.ofSeq umap = fsmap
+        eqMapsAfterSteps initialMap testMap actions UMap.add UMap.remove UMap.fold (+) eq
+
+    [<Property>]
     let sumapsEqualFsmapsAfterSteps (initialMap : Map<int, string>) (actions : MapAction<int, string>[]) =
         let testMap = SUMap.makeFromSeq HashIdentity.Structural Functional (Map.toSeq initialMap)
         let eq (umap : SUMap<_,_>) (fsmap : Map<_,_>) = Map.ofSeq umap = fsmap

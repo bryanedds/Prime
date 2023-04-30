@@ -54,6 +54,12 @@
 		<Compile Include="KeyedCache.fs" />
 		<Compile Include="MutantCache.fs" />
 		<Compile Include="TExpr.fs" />
+		<Compile Include="TList.fs" />
+		<Compile Include="TSet.fs" />
+		<Compile Include="TMap.fs" />
+		<Compile Include="UList.fs" />
+		<Compile Include="USet.fs" />
+		<Compile Include="UMap.fs" />
 		<Compile Include="STList.fs" />
 		<Compile Include="STSet.fs" />
 		<Compile Include="STMap.fs" />
