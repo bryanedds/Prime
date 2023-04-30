@@ -9,9 +9,9 @@ open System.Collections.Generic
 // TODO: document this!
 
 [<RequireQualifiedAccess>]
-module SegmentedHashSet =
+module SHashSet =
 
-    type [<ReferenceEquality>] SegmentedHashSet<'a when 'a : equality> =
+    type [<ReferenceEquality>] SHashSet<'a when 'a : equality> =
         private
             { HashSets_ : 'a HashSet array
               Comparer_ : 'a IEqualityComparer }
@@ -78,11 +78,11 @@ module SegmentedHashSet =
         { HashSets_ = hashSets
           Comparer_ = comparer }
 
-    let makeFromSegmentedHashSet (sset : SegmentedHashSet<'a>) =
+    let makeFromSegmentedHashSet (sset : SHashSet<'a>) =
         { HashSets_ = Array.init 32 (fun i -> HashSet<'a> (sset.HashSets_.[i], sset.Comparer_))
           Comparer_ = sset.Comparer_ }
 
-    let count (sset : 'a SegmentedHashSet) =
+    let count (sset : 'a SHashSet) =
         sset.Count
 
     let isEmpty sset =
@@ -91,16 +91,16 @@ module SegmentedHashSet =
     let notEmpty sset =
         count sset > 0
 
-    let contains item (sset : 'a SegmentedHashSet) =
+    let contains item (sset : 'a SHashSet) =
         sset.Contains item
 
-    let add item (sset : 'a SegmentedHashSet) =
+    let add item (sset : 'a SHashSet) =
         sset.Add item
 
-    let remove item (sset : 'a SegmentedHashSet) =
+    let remove item (sset : 'a SHashSet) =
         sset.Remove item
 
-    let clear (sset : 'a SegmentedHashSet) =
+    let clear (sset : 'a SHashSet) =
         sset.Clear ()
 
     let toSeq sset =
@@ -116,7 +116,7 @@ module SegmentedHashSet =
         add item sset |> ignore<bool>
         sset
 
-    let map<'a, 'b when 'a : equality and 'b : equality> comparer (mapper : 'a -> 'b) (sset : 'a SegmentedHashSet) =
+    let map<'a, 'b when 'a : equality and 'b : equality> comparer (mapper : 'a -> 'b) (sset : 'a SHashSet) =
         ofSeq comparer (Seq.map mapper (toSeq sset))
 
     let filter pred sset =
@@ -125,4 +125,4 @@ module SegmentedHashSet =
     let fold folder sset =
         Seq.fold folder (toSeq sset)
 
-type SegmentedHashSet<'a when 'a : equality> = SegmentedHashSet.SegmentedHashSet<'a>
+type SHashSet<'a when 'a : equality> = SHashSet.SHashSet<'a>

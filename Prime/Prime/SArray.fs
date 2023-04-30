@@ -9,9 +9,9 @@ open System.Collections.Generic
 // TODO: document this!
 
 [<RequireQualifiedAccess>]
-module SegmentedArray =
+module SArray =
 
-    type 'a SegmentedArrayEnumerator (sarray : 'a SegmentedArray) =
+    type 'a SArrayEnumerator (sarray : 'a SArray) =
 
         let mutable i = -1
         let mutable j = -1
@@ -40,8 +40,8 @@ module SegmentedArray =
                 let segment = sarray.Segments.[i]
                 if j < segment.Length
                 then segment.[j]
-                else raise (InvalidOperationException "Current SegmentedArray item out of range.")
-            else raise (InvalidOperationException "Current SegmentedArray item out of range.")
+                else raise (InvalidOperationException "Current SArray item out of range.")
+            else raise (InvalidOperationException "Current SArray item out of range.")
 
         member this.Reset () =
             i <- -1
@@ -54,7 +54,7 @@ module SegmentedArray =
             member this.Reset () = this.Reset ()
             member this.Dispose () = ()
 
-    and [<ReferenceEquality>] 'a SegmentedArray =
+    and [<ReferenceEquality>] 'a SArray =
         private
             { TotalLength : int
               SegmentSize : int
@@ -74,11 +74,11 @@ module SegmentedArray =
                 &this.Segments.[-1].[-1] // fool compiler
 
         member this.GetEnumerator () =
-            new SegmentedArrayEnumerator<'a> (this)
+            new SArrayEnumerator<'a> (this)
 
         interface 'a IEnumerable with
-            member this.GetEnumerator () = new SegmentedArrayEnumerator<'a> (this) :> 'a IEnumerator
-            member this.GetEnumerator () = new SegmentedArrayEnumerator<'a> (this) :> IEnumerator
+            member this.GetEnumerator () = new SArrayEnumerator<'a> (this) :> 'a IEnumerator
+            member this.GetEnumerator () = new SArrayEnumerator<'a> (this) :> IEnumerator
 
     let empty =
         { TotalLength = 0; SegmentSize = 0; SegmentRemainder = 0; Segments = [||] }
@@ -106,7 +106,7 @@ module SegmentedArray =
     let notEmpty sarray =
         sarray.TotalLength > 0
 
-    let item index (sarray : 'a SegmentedArray) =
+    let item index (sarray : 'a SArray) =
         sarray.[index]
 
     let mutate mutator sarray =
@@ -150,7 +150,7 @@ module SegmentedArray =
         result
 
     let map2 mapper left right =
-        if left.TotalLength <> right.TotalLength then raise (ArgumentException ("SegmentedArray length does not match.", nameof right))
+        if left.TotalLength <> right.TotalLength then raise (ArgumentException ("SArray length does not match.", nameof right))
         let result = zeroCreate left.TotalLength
         for i in 0 .. dec left.TotalLength do
             result.[i] <- mapper left.[i] right.[i]
@@ -263,6 +263,6 @@ module SegmentedArray =
             i <- inc i
         result
 
-type 'a SegmentedArrayEnumerator = 'a SegmentedArray.SegmentedArrayEnumerator
+type 'a SArrayEnumerator = 'a SArray.SArrayEnumerator
 
-type 'a SegmentedArray = 'a SegmentedArray.SegmentedArray
+type 'a SArray = 'a SArray.SArray

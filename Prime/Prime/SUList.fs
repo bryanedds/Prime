@@ -6,15 +6,15 @@ open System.Collections
 open System.Collections.Generic
 
 [<RequireQualifiedAccess>]
-module UList =
+module SUList =
 
-    type [<ReferenceEquality>] 'a UList =
+    type [<ReferenceEquality>] 'a SUList =
         private
-            { mutable List : 'a TList }
+            { mutable List : 'a STList }
     
         interface 'a IEnumerable with
             member this.GetEnumerator () =
-                let struct (seq, tlist) = TList.toSeq this.List
+                let struct (seq, tlist) = STList.toSeq this.List
                 this.List <- tlist
                 seq.GetEnumerator ()
     
@@ -23,41 +23,41 @@ module UList =
                 (this :> 'a IEnumerable).GetEnumerator () :> IEnumerator
 
         member this.Item index =
-            let struct (result, tlist) = TList.get index this.List
+            let struct (result, tlist) = STList.get index this.List
             this.List <- tlist
             result
 
     let makeFromSeq config items =
-        { List = TList.makeFromSeq config items }
+        { List = STList.makeFromSeq config items }
 
     let makeFromArray config items =
-        { List = TList.makeFromArray config items }
+        { List = STList.makeFromArray config items }
 
     let makeEmpty<'a> config =
-        { List = TList.makeEmpty<'a> config }
+        { List = STList.makeEmpty<'a> config }
 
     let getConfig list =
-        let struct (result, tlist) = TList.getConfig list.List
+        let struct (result, tlist) = STList.getConfig list.List
         list.List <- tlist
         result
 
-    let get (index : int) (list : 'a UList) =
+    let get (index : int) (list : 'a SUList) =
         list.[index]
 
     let set index value list =
-        { List = TList.set index value list.List }
+        { List = STList.set index value list.List }
 
     let add value list =
-        { List = TList.add value list.List }
+        { List = STList.add value list.List }
 
     let remove value list =
-        { List = TList.remove value list.List }
+        { List = STList.remove value list.List }
 
     let clear list =
-        { List = TList.clear list.List }
+        { List = STList.clear list.List }
 
     let isEmpty list =
-        let struct (result, tlist) = TList.isEmpty list.List
+        let struct (result, tlist) = STList.isEmpty list.List
         list.List <- tlist
         result
 
@@ -65,25 +65,25 @@ module UList =
         not (isEmpty list)
 
     let length list =
-        let struct (result, tlist) = TList.length list.List
+        let struct (result, tlist) = STList.length list.List
         list.List <- tlist
         result
 
     let contains value list =
-        let struct (result, tlist) = TList.contains value list.List
+        let struct (result, tlist) = STList.contains value list.List
         list.List <- tlist
         result
 
-    let toSeq (list : _ UList) =
+    let toSeq (list : _ SUList) =
         list :> _ seq
 
-    let toArray (list : _ UList) =
-        let struct (arr, tlist) = TList.toArray list.List
+    let toArray (list : _ SUList) =
+        let struct (arr, tlist) = STList.toArray list.List
         list.List <- tlist
         arr
 
-    let toImpList (list : _ UList) =
-        let struct (arr, tlist) = TList.toImpList list.List
+    let toImpList (list : _ SUList) =
+        let struct (arr, tlist) = STList.toImpList list.List
         list.List <- tlist
         arr
 
@@ -97,60 +97,60 @@ module UList =
         ofSeq values config
 
     let map mapper list =
-        let struct (result, tlist) = TList.map mapper list.List
+        let struct (result, tlist) = STList.map mapper list.List
         list.List <- tlist
         { List = result }
 
     let filter pred list =
-        let struct (result, tlist) = TList.filter pred list.List
+        let struct (result, tlist) = STList.filter pred list.List
         list.List <- tlist
         { List = result }
 
     let rev list =
-        let struct (result, tlist) = TList.rev list.List
+        let struct (result, tlist) = STList.rev list.List
         list.List <- tlist
         { List = result }
 
     let sortWith comparison list =
-        let struct (result, tlist) = TList.sortWith comparison list.List
+        let struct (result, tlist) = STList.sortWith comparison list.List
         list.List <- tlist
         { List = result }
 
     let sortBy by list =
-        let struct (result, tlist) = TList.sortBy by list.List
+        let struct (result, tlist) = STList.sortBy by list.List
         list.List <- tlist
         { List = result }
 
     let sort list =
-        let struct (result, tlist) = TList.sort list.List
+        let struct (result, tlist) = STList.sort list.List
         list.List <- tlist
         { List = result }
 
     let fold folder state list =
-        let struct (result, tlist) = TList.fold folder state list.List
+        let struct (result, tlist) = STList.fold folder state list.List
         list.List <- tlist
         result
 
     let definitize list =
-        let struct (result, tlist) = TList.definitize list.List
+        let struct (result, tlist) = STList.definitize list.List
         list.List <- tlist
         { List = result }
 
     let makeFromLists config lists =
-        let tlists = (map (fun (list : 'a UList) -> list.List) lists).List
-        let tlist = TList.makeFromLists config tlists
+        let tlists = (map (fun (list : 'a SUList) -> list.List) lists).List
+        let tlist = STList.makeFromLists config tlists
         { List = tlist }
 
     /// Add all the given items to the list.
     let addMany items list =
-        { List = TList.addMany items list.List }
+        { List = STList.addMany items list.List }
 
     /// Remove all the given items from the list.
     let removeMany items list =
-        { List = TList.removeMany items list.List }
+        { List = STList.removeMany items list.List }
 
-    /// Make a UList with a single item.
+    /// Make a SUList with a single item.
     let singleton<'a> config item =
-        { List = TList.singleton<'a> config item }
+        { List = STList.singleton<'a> config item }
 
-type 'a UList = 'a UList.UList
+type 'a SUList = 'a SUList.SUList

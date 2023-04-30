@@ -124,47 +124,47 @@ module ListTests =
 
         eqListsAfterSteps initialList ary actions add get set ((+) 1) Array.map pred Array.filter eq true
 
-    let ulistEqLists (initialList : ResizeArray<int>) (actions : ListAction<int>[]) (lookBackwards : bool) =
-        let testList = UList.addMany initialList (UList.makeEmpty Functional)
-        let eq (ulist : UList<_>) (fslist : _ ResizeArray) = List.ofSeq ulist = List.ofSeq fslist
+    let sulistEqLists (initialList : ResizeArray<int>) (actions : ListAction<int>[]) (lookBackwards : bool) =
+        let testList = SUList.addMany initialList (SUList.makeEmpty Functional)
+        let eq (ulist : SUList<_>) (fslist : _ ResizeArray) = List.ofSeq ulist = List.ofSeq fslist
         let pred i = i % 2 = 0
-        eqListsAfterSteps initialList testList actions UList.add UList.get UList.set ((+) 1) UList.map pred UList.filter eq lookBackwards 
+        eqListsAfterSteps initialList testList actions SUList.add SUList.get SUList.set ((+) 1) SUList.map pred SUList.filter eq lookBackwards 
 
     [<Property>]
-    let ulistEqList (initialList : ResizeArray<int>) (actions : ListAction<int>[]) =
-        ulistEqLists initialList actions false 
+    let sulistEqList (initialList : ResizeArray<int>) (actions : ListAction<int>[]) =
+        sulistEqLists initialList actions false 
 
     [<Property>]
-    let ulistEqListsLookingBackwards (initialList : ResizeArray<int>) =
+    let sulistEqListsLookingBackwards (initialList : ResizeArray<int>) =
         let actionGen = getActionGen (fun _ -> true)
         Prop.forAll actionGen (fun actions ->
-            ulistEqLists initialList actions true)
+            sulistEqLists initialList actions true)
 
     [<Property>]
-    let ulistEqListsLookingBackwardsAddOnly (initialList : ResizeArray<int>) =
+    let sulistEqListsLookingBackwardsAddOnly (initialList : ResizeArray<int>) =
         let actionGen = getActionGen (function
             | ListAction.AddLast(_) -> true
             | _ -> false)
 
         Prop.forAll actionGen (fun actions ->
-            ulistEqLists initialList actions true)
+            sulistEqLists initialList actions true)
 
     [<Property>]
-    let ulistEqListsLookingBackwardsAddSet (initialList : ResizeArray<int>) =
+    let sulistEqListsLookingBackwardsAddSet (initialList : ResizeArray<int>) =
         let actionGen = getActionGen (function
             | ListAction.SetNthToNth(_,_)
             | ListAction.AddLast(_) -> true
             | _ -> false)
 
         Prop.forAll actionGen (fun actions ->
-            ulistEqLists initialList actions true)
+            sulistEqLists initialList actions true)
 
     [<Property>]
-    let ulistEqListsLookingBackwardsMapFilter (initialList : ResizeArray<int>) =
+    let sulistEqListsLookingBackwardsMapFilter (initialList : ResizeArray<int>) =
         let actionGen = getActionGen (function
             | ListAction.MapIncrementFn(_)
             | ListAction.FilterWithFn -> true
             | _ -> false)
 
         Prop.forAll actionGen (fun actions ->
-            ulistEqLists initialList actions true)
+            sulistEqLists initialList actions true)

@@ -6,7 +6,7 @@ open System
 open System.Collections.Generic
 
 [<RequireQualifiedAccess>]
-module TList =
+module STList =
 
     type private 'a Log =
         | Add of add : 'a
@@ -14,27 +14,27 @@ module TList =
         | Set of index : int * value : 'a
         | Clear
         
-    type [<ReferenceEquality>] 'a TList =
+    type [<ReferenceEquality>] 'a STList =
         private
-            { mutable TListOpt : 'a TList
+            { mutable STListOpt : 'a STList
               TConfig : TConfig
-              ImpList : 'a SegmentedList
-              ImpListOrigin : 'a SegmentedList
+              ImpList : 'a SList
+              ImpListOrigin : 'a SList
               Logs : 'a Log list
               LogsLength : int }
 
-        static member (>>.) (list : 'a2 TList, builder : TExpr<unit, 'a2 TList>) =
+        static member (>>.) (list : 'a2 STList, builder : TExpr<unit, 'a2 STList>) =
             snd' (builder list)
 
-        static member (.>>) (list : 'a2 TList, builder : TExpr<'a2, 'a2 TList>) =
+        static member (.>>) (list : 'a2 STList, builder : TExpr<'a2, 'a2 STList>) =
             fst' (builder list)
 
-        static member (.>>.) (list : 'a2 TList, builder : TExpr<'a2, 'a2 TList>) =
+        static member (.>>.) (list : 'a2 STList, builder : TExpr<'a2, 'a2 STList>) =
             builder list
 
     let private commit list =
         let oldList = list
-        let impListOrigin = SegmentedList.makeFromSegmentedList list.ImpListOrigin
+        let impListOrigin = SList.makeFromSegmentedList list.ImpListOrigin
         List.foldBack (fun log () ->
             match log with
             | Add value -> impListOrigin.Add value
@@ -42,23 +42,23 @@ module TList =
             | Set (index, value) -> impListOrigin.[index] <- value
             | Clear -> impListOrigin.Clear ())
             list.Logs ()
-        let impList = SegmentedList.makeFromSegmentedList impListOrigin
+        let impList = SList.makeFromSegmentedList impListOrigin
         let list = { list with ImpList = impList; ImpListOrigin = impListOrigin; Logs = []; LogsLength = 0 }
-        oldList.TListOpt <- Unchecked.defaultof<'a TList>
-        list.TListOpt <- list
+        oldList.STListOpt <- Unchecked.defaultof<'a STList>
+        list.STListOpt <- list
         list
 
     let private compress list =
         let oldList = list
-        let impListOrigin = SegmentedList.makeFromSegmentedList list.ImpList
+        let impListOrigin = SList.makeFromSegmentedList list.ImpList
         let list = { list with ImpListOrigin = impListOrigin; Logs = []; LogsLength = 0 }
-        oldList.TListOpt <- Unchecked.defaultof<'a TList>
-        list.TListOpt <- list
+        oldList.STListOpt <- Unchecked.defaultof<'a STList>
+        list.STListOpt <- list
         list
 
     let private validate2 list =
         lock list.Logs (fun () ->
-            match box list.TListOpt with
+            match box list.STListOpt with
             | null -> commit list
             | target ->
                 match obj.ReferenceEquals (target, list) with
@@ -72,8 +72,8 @@ module TList =
         let oldList = list
         let list = validate2 list
         let list = updater list
-        oldList.TListOpt <- Unchecked.defaultof<'a TList>
-        list.TListOpt <- list
+        oldList.STListOpt <- Unchecked.defaultof<'a STList>
+        list.STListOpt <- list
         list
 
     let private validate list =
@@ -83,22 +83,22 @@ module TList =
 
     let makeFromSeq config (items : 'a seq) =
         if TConfig.isFunctional config then 
-            let impList = SegmentedList.ofSeq items
-            let impListOrigin = SegmentedList.makeFromSegmentedList impList
+            let impList = SList.ofSeq items
+            let impListOrigin = SList.makeFromSegmentedList impList
             let list =
-                { TListOpt = Unchecked.defaultof<'a TList>
+                { STListOpt = Unchecked.defaultof<'a STList>
                   TConfig = config
                   ImpList = impList
                   ImpListOrigin = impListOrigin
                   Logs = []
                   LogsLength = 0 }
-            list.TListOpt <- list
+            list.STListOpt <- list
             list
         else
-            { TListOpt = Unchecked.defaultof<'a TList>
+            { STListOpt = Unchecked.defaultof<'a STList>
               TConfig = config
-              ImpList = SegmentedList.ofSeq items
-              ImpListOrigin = SegmentedList.make ()
+              ImpList = SList.ofSeq items
+              ImpListOrigin = SList.make ()
               Logs = []
               LogsLength = 0 }
 
@@ -169,25 +169,25 @@ module TList =
         let list = validate list
         struct (list.ImpList.Contains value, list)
 
-    /// Convert a TList to an array. Note that entire list is iterated eagerly since the underlying .NET List could
+    /// Convert a STList to an array. Note that entire list is iterated eagerly since the underlying .NET List could
     /// otherwise opaquely change during iteration.
     let toArray list =
         let list = validate list
         struct (Array.ofSeq list.ImpList, list)
 
-    /// Convert a TList to a seq. Note that entire list is iterated eagerly since the underlying .NET List could
+    /// Convert a STList to a seq. Note that entire list is iterated eagerly since the underlying .NET List could
     /// otherwise opaquely change during iteration.
     let toSeq list =
         let struct (arr, list) = toArray list
         struct (Seq.ofArray arr, list)
 
-    /// Convert a TList to an imperative System.Collections.Generic.List.
+    /// Convert a STList to an imperative System.Collections.Generic.List.
     let toImpList list =
         let list = validate list
         let result = List<'a> list.ImpList
         struct (result, list)
 
-    let map (mapper : 'a -> 'b) (list : 'a TList) =
+    let map (mapper : 'a -> 'b) (list : 'a STList) =
         let list = validate list
         let seqMapped = Seq.map mapper list.ImpList
         let listMapped = makeFromSeq list.TConfig seqMapped
@@ -249,13 +249,13 @@ module TList =
     let removeMany items list =
         Seq.fold (flip remove) list items
 
-    /// Make a TList with a single item.
+    /// Make a STList with a single item.
     let singleton<'a> config (item : 'a) =
         makeFromSeq config [item]
 
-type 'a TList = 'a TList.TList
+type 'a STList = 'a STList.STList
 
 [<AutoOpen>]
-module TListBuilder =
+module STListBuilder =
 
-    let tlist<'a> = TExprBuilder<'a TList> ()
+    let tlist<'a> = TExprBuilder<'a STList> ()

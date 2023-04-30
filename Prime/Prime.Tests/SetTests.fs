@@ -64,7 +64,7 @@ module SetTests =
         eqSetsAfterSteps initialSet testSet actions HSet.add HSet.remove HSet.fold (+) eq
 
     [<Property>]
-    let usetsEqSetsAfterSteps (initialSet : Set<int>) (actions : SetAction<int>[]) =
-        let testSet = USet.makeFromSeq HashIdentity.Structural Functional initialSet
-        let eq (uset : USet<_>) (fsset : Set<_>) = Set.ofSeq uset = fsset
-        eqSetsAfterSteps initialSet testSet actions USet.add USet.remove USet.fold (+) eq
+    let susetsEqSetsAfterSteps (initialSet : Set<int>) (actions : SetAction<int>[]) =
+        let testSet = SUSet.makeFromSeq HashIdentity.Structural Functional initialSet
+        let eq (uset : SUSet<_>) (fsset : Set<_>) = Set.ofSeq uset = fsset
+        eqSetsAfterSteps initialSet testSet actions SUSet.add SUSet.remove USet.fold (+) eq

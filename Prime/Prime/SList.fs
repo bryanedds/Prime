@@ -9,9 +9,9 @@ open System.Collections.Generic
 // TODO: document this!
 
 [<RequireQualifiedAccess>]
-module SegmentedList =
+module SList =
 
-    type [<ReferenceEquality>] 'a SegmentedList =
+    type [<ReferenceEquality>] 'a SList =
         private
             { mutable Length_ : int
               mutable Capacity_ : int
@@ -41,7 +41,7 @@ module SegmentedList =
 
         member this.Remove (item : 'a) =
             let mutable result = false
-            let list' = SegmentedList.Make ()
+            let list' = SList.Make ()
             for list in this.Lists_ do
                 for item' in list do
                     if EqualityComparer.Equals (item, item')
@@ -87,8 +87,8 @@ module SegmentedList =
             member this.GetEnumerator () = (Seq.concat this.Lists_).GetEnumerator ()
             member this.GetEnumerator () = (Seq.concat this.Lists_).GetEnumerator () :> IEnumerator
 
-    let make<'a> () : 'a SegmentedList =
-        SegmentedList.Make ()
+    let make<'a> () : 'a SList =
+        SList.Make ()
 
     let makeFromSegmentedList list =
         let lists = List ()
@@ -107,29 +107,29 @@ module SegmentedList =
     let count slist =
         slist.Length_
 
-    let item index (slist : 'a SegmentedList) =
+    let item index (slist : 'a SList) =
         slist.[index]
 
-    let add item (slist : 'a SegmentedList) =
+    let add item (slist : 'a SList) =
         slist.Add item
 
-    let addMany (seq : 'a seq) (slist : 'a SegmentedList) =
+    let addMany (seq : 'a seq) (slist : 'a SList) =
         slist.AddRange seq
 
-    let clear (slist : 'a SegmentedList) =
+    let clear (slist : 'a SList) =
         slist.Clear ()
 
-    let append left (right : 'a SegmentedList) =
+    let append left (right : 'a SList) =
         addMany right left
 
-    let skip count (slist : 'a SegmentedList) =
+    let skip count (slist : 'a SList) =
         if count > slist.Length_ then raise (ArgumentException ("Invalid argument.", nameof count))
         let result = make ()
         for i in count .. dec slist.Length_ do
             add slist.[i] result
         result
 
-    let take count (slist : 'a SegmentedList) =
+    let take count (slist : 'a SList) =
         if count > slist.Length_ then raise (ArgumentException ("Invalid argument.", nameof count))
         let result = make ()
         for i in 0 .. dec slist.Length_ - count do
@@ -143,7 +143,7 @@ module SegmentedList =
         result
 
     let map2 mapper left right =
-        if left.Length_ <> right.Length_ then raise (ArgumentException ("SegmentedList length does not match.", nameof right))
+        if left.Length_ <> right.Length_ then raise (ArgumentException ("SList length does not match.", nameof right))
         let result = make ()
         for i in 0 .. dec left.Length_ do
             add (mapper left.[i] right.[i]) result
@@ -189,4 +189,4 @@ module SegmentedList =
     let ofList (list : 'a list) =
         ofSeq list
 
-type 'a SegmentedList = 'a SegmentedList.SegmentedList
+type 'a SList = 'a SList.SList

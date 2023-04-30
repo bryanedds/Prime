@@ -6,57 +6,57 @@ open System
 open System.Collections.Generic
 
 [<RequireQualifiedAccess>]
-module TSet =
+module STSet =
 
     type private 'a Log =
         | Add of add : 'a
         | Remove of remove : 'a
         | Clear
 
-    type [<ReferenceEquality>] TSet<'a when 'a : equality> =
+    type [<ReferenceEquality>] STSet<'a when 'a : equality> =
         private
-            { mutable TSetOpt : 'a TSet
+            { mutable STSetOpt : 'a STSet
               TConfig : TConfig
-              HashSet : 'a SegmentedHashSet
-              HashSetOrigin : 'a SegmentedHashSet
+              HashSet : 'a SHashSet
+              HashSetOrigin : 'a SHashSet
               Logs : 'a Log list
               LogsLength : int }
 
-        static member (>>.) (set : 'a2 TSet, builder : TExpr<unit, 'a2 TSet>) =
+        static member (>>.) (set : 'a2 STSet, builder : TExpr<unit, 'a2 STSet>) =
             snd' (builder set)
 
-        static member (.>>) (set : 'a2 TSet, builder : TExpr<'a2, 'a2 TSet>) =
+        static member (.>>) (set : 'a2 STSet, builder : TExpr<'a2, 'a2 STSet>) =
             fst' (builder set)
 
-        static member (.>>.) (set : 'a2 TSet, builder : TExpr<'a2, 'a2 TSet>) =
+        static member (.>>.) (set : 'a2 STSet, builder : TExpr<'a2, 'a2 STSet>) =
             builder set
 
     let private commit set =
         let oldSet = set
-        let hashSetOrigin = SegmentedHashSet.makeFromSegmentedHashSet set.HashSetOrigin
+        let hashSetOrigin = SHashSet.makeFromSegmentedHashSet set.HashSetOrigin
         List.foldBack (fun log () ->
             match log with
             | Add value -> hashSetOrigin.Add value |> ignore
             | Remove value -> hashSetOrigin.Remove value |> ignore
             | Clear -> hashSetOrigin.Clear ())
             set.Logs ()
-        let hashSet = SegmentedHashSet.makeFromSegmentedHashSet hashSetOrigin
+        let hashSet = SHashSet.makeFromSegmentedHashSet hashSetOrigin
         let set = { set with HashSet = hashSet; HashSetOrigin = hashSetOrigin; Logs = []; LogsLength = 0 }
-        oldSet.TSetOpt <- Unchecked.defaultof<'a TSet>
-        set.TSetOpt <- set
+        oldSet.STSetOpt <- Unchecked.defaultof<'a STSet>
+        set.STSetOpt <- set
         set
 
     let private compress set =
         let oldSet = set
-        let hashSetOrigin = SegmentedHashSet.makeFromSegmentedHashSet set.HashSet
+        let hashSetOrigin = SHashSet.makeFromSegmentedHashSet set.HashSet
         let set = { set with HashSetOrigin = hashSetOrigin; Logs = []; LogsLength = 0 }
-        oldSet.TSetOpt <- Unchecked.defaultof<'a TSet>
-        set.TSetOpt <- set
+        oldSet.STSetOpt <- Unchecked.defaultof<'a STSet>
+        set.STSetOpt <- set
         set
 
     let private validate2 set =
         lock set.Logs (fun () ->
-            match box set.TSetOpt with
+            match box set.STSetOpt with
             | null -> commit set
             | target ->
                 match obj.ReferenceEquals (target, set) with
@@ -67,8 +67,8 @@ module TSet =
         let oldSet = set
         let set = validate2 set
         let set = updater set
-        oldSet.TSetOpt <- Unchecked.defaultof<'a TSet>
-        set.TSetOpt <- set
+        oldSet.STSetOpt <- Unchecked.defaultof<'a STSet>
+        set.STSetOpt <- set
         set
 
     let private validate set =
@@ -76,27 +76,27 @@ module TSet =
         then validate2 set
         else set
 
-    let makeFromSegmentedHashSet (comparer : 'a IEqualityComparer) config (hashSet : 'a SegmentedHashSet) =
+    let makeFromSegmentedHashSet (comparer : 'a IEqualityComparer) config (hashSet : 'a SHashSet) =
         if TConfig.isFunctional config then
             let set =
-                { TSetOpt = Unchecked.defaultof<'a TSet>
+                { STSetOpt = Unchecked.defaultof<'a STSet>
                   TConfig = config
                   HashSet = hashSet
-                  HashSetOrigin = SegmentedHashSet.makeFromSegmentedHashSet hashSet
+                  HashSetOrigin = SHashSet.makeFromSegmentedHashSet hashSet
                   Logs = []
                   LogsLength = 0 }
-            set.TSetOpt <- set
+            set.STSetOpt <- set
             set
         else
-            { TSetOpt = Unchecked.defaultof<'a TSet>
+            { STSetOpt = Unchecked.defaultof<'a STSet>
               TConfig = config
               HashSet = hashSet
-              HashSetOrigin = SegmentedHashSet.make comparer
+              HashSetOrigin = SHashSet.make comparer
               Logs = []
               LogsLength = 0 }
 
     let makeFromSeq<'a when 'a : equality> comparer config (items : 'a seq) =
-        let hashSet = SegmentedHashSet.ofSeq comparer items
+        let hashSet = SHashSet.ofSeq comparer items
         makeFromSegmentedHashSet comparer config hashSet
 
     let makeEmpty<'a when 'a : equality> comparer config =
@@ -159,17 +159,17 @@ module TSet =
     let removeMany values set =
         Seq.fold (flip remove) set values
 
-    /// Convert a TSet to a seq. Note that entire set is iterated eagerly since the underlying HashMap could
+    /// Convert a STSet to a seq. Note that entire set is iterated eagerly since the underlying HashMap could
     /// otherwise opaquely change during iteration.
     let toSeq set =
         let set = validate set
         let seq = set.HashSet |> Array.ofSeq :> 'a seq
         struct (seq, set)
 
-    /// Convert a TSet to a HashSet.
+    /// Convert a STSet to a HashSet.
     let toHashSet set =
         let set = validate set
-        let result = SegmentedHashSet.makeFromSegmentedHashSet set.HashSet
+        let result = SHashSet.makeFromSegmentedHashSet set.HashSet
         struct (result, set)
 
     let fold folder state set =
@@ -195,25 +195,25 @@ module TSet =
 
     let unionFast set set2 =
         let (set, set2) = (validate set, validate set2)
-        let result = SegmentedHashSet.makeFromSegmentedHashSet set.HashSet
+        let result = SHashSet.makeFromSegmentedHashSet set.HashSet
         result.UnionWith set2.HashSet
         struct (result, set, set2)
 
     let intersectFast set set2 =
         let (set, set2) = (validate set, validate set2)
-        let result = SegmentedHashSet.makeFromSegmentedHashSet set.HashSet
+        let result = SHashSet.makeFromSegmentedHashSet set.HashSet
         result.IntersectWith set2.HashSet
         struct (result, set, set2)
 
     let disjointFast set set2 =
         let (set, set2) = (validate set, validate set2)
-        let result = SegmentedHashSet.makeFromSegmentedHashSet set.HashSet
+        let result = SHashSet.makeFromSegmentedHashSet set.HashSet
         result.SymmetricExceptWith set2.HashSet
         struct (result, set, set2)
 
     let differenceFast set set2 =
         let (set, set2) = (validate set, validate set2)
-        let result = SegmentedHashSet.makeFromSegmentedHashSet set.HashSet
+        let result = SHashSet.makeFromSegmentedHashSet set.HashSet
         result.ExceptWith set2.HashSet
         struct (result, set, set2)
 
@@ -236,8 +236,8 @@ module TSet =
     let singleton<'a when 'a : equality> comparer config (item : 'a) =
         makeFromSeq comparer config [item]
 
-type TSet<'a when 'a : equality> = 'a TSet.TSet
+type STSet<'a when 'a : equality> = 'a STSet.STSet
 
 [<AutoOpen>]
-module TSetBuilder =
-    let tset<'a when 'a : equality> = TExprBuilder<'a TSet> ()
+module STSetBuilder =
+    let tset<'a when 'a : equality> = TExprBuilder<'a STSet> ()

@@ -9,9 +9,9 @@ open System.Collections.Generic
 // TODO: document this!
 
 [<RequireQualifiedAccess>]
-module SegmentedDictionary =
+module SDictionary =
 
-    type [<ReferenceEquality>] SegmentedDictionary<'k, 'v> =
+    type [<ReferenceEquality>] SDictionary<'k, 'v> =
         private
             { Dictionaries_ : Dictionary<'k, 'v> array
               Comparer_ : 'k IEqualityComparer }
@@ -78,11 +78,11 @@ module SegmentedDictionary =
         { Dictionaries_ = dicts
           Comparer_ = comparer }
 
-    let makeFromSegmentedDictionary (sdict : SegmentedDictionary<'k, 'v>) =
+    let makeFromSegmentedDictionary (sdict : SDictionary<'k, 'v>) =
         { Dictionaries_ = Array.init 32 (fun i -> Dictionary<'k, 'v> (sdict.Dictionaries_.[i], sdict.Comparer_))
           Comparer_ = sdict.Comparer_ }
 
-    let count (sdict : SegmentedDictionary<'k, 'v>) =
+    let count (sdict : SDictionary<'k, 'v>) =
         sdict.Count
 
     let isEmpty sdict =
@@ -91,22 +91,22 @@ module SegmentedDictionary =
     let notEmpty sdict =
         count sdict > 0
 
-    let containsKey key (sdict : SegmentedDictionary<'k, 'v>) =
+    let containsKey key (sdict : SDictionary<'k, 'v>) =
         sdict.ContainsKey key
 
-    let tryFind (key, sdict : SegmentedDictionary<'k, 'v>) =
+    let tryFind (key, sdict : SDictionary<'k, 'v>) =
         sdict.TryFind key
 
-    let tryGetValue (key, sdict : SegmentedDictionary<'k, 'v>, valueRef : _ outref) =
+    let tryGetValue (key, sdict : SDictionary<'k, 'v>, valueRef : _ outref) =
         sdict.TryGetValue (key, valueRef)
 
-    let add key value (sdict : SegmentedDictionary<'k, 'v>) =
+    let add key value (sdict : SDictionary<'k, 'v>) =
         sdict.Add (key, value)
 
-    let remove key (sdict : SegmentedDictionary<'k, 'v>) =
+    let remove key (sdict : SDictionary<'k, 'v>) =
         sdict.Remove key
 
-    let clear (sdict : SegmentedDictionary<'k, 'v>) =
+    let clear (sdict : SDictionary<'k, 'v>) =
         sdict.Clear ()
 
     let toSeq sdict =
@@ -124,7 +124,7 @@ module SegmentedDictionary =
         add key value sdict
         sdict
 
-    let map<'k, 'v, 'u when 'k : equality and 'u : equality> comparer (mapper : 'k -> 'v -> 'u) (sdict : SegmentedDictionary<'k, 'v>) =
+    let map<'k, 'v, 'u when 'k : equality and 'u : equality> comparer (mapper : 'k -> 'v -> 'u) (sdict : SDictionary<'k, 'v>) =
         toSeq sdict |>
         Seq.map (fun (k, v) -> (k, mapper k v)) |>
         ofSeq comparer
@@ -135,4 +135,4 @@ module SegmentedDictionary =
     let fold folder sdict =
         Seq.fold folder (toSeq sdict)
 
-type SegmentedDictionary<'k, 'v> = SegmentedDictionary.SegmentedDictionary<'k, 'v>
+type SDictionary<'k, 'v> = SDictionary.SDictionary<'k, 'v>

@@ -6,57 +6,57 @@ open System
 open System.Collections.Generic
 
 [<RequireQualifiedAccess>]
-module TMap =
+module STMap =
 
     type private Log<'k, 'v> =
         | Add of key : 'k * value : 'v
         | Remove of remove : 'k
         | Clear
 
-    type [<ReferenceEquality>] TMap<'k, 'v> =
+    type [<ReferenceEquality>] STMap<'k, 'v> =
         private
-            { mutable TMapOpt : TMap<'k, 'v>
+            { mutable STMapOpt : STMap<'k, 'v>
               TConfig : TConfig
-              Dict : SegmentedDictionary<'k, 'v>
-              DictOrigin : SegmentedDictionary<'k, 'v>
+              Dict : SDictionary<'k, 'v>
+              DictOrigin : SDictionary<'k, 'v>
               Logs : Log<'k, 'v> list
               LogsLength : int }
 
-        static member (>>.) (map : TMap<'k2, 'v2>, builder : TExpr<unit, TMap<'k2, 'v2>>) =
+        static member (>>.) (map : STMap<'k2, 'v2>, builder : TExpr<unit, STMap<'k2, 'v2>>) =
             snd' (builder map)
 
-        static member (.>>) (map : TMap<'k2, 'v2>, builder : TExpr<'v2, TMap<'k2, 'v2>>) =
+        static member (.>>) (map : STMap<'k2, 'v2>, builder : TExpr<'v2, STMap<'k2, 'v2>>) =
             fst' (builder map)
 
-        static member (.>>.) (map : TMap<'k2, 'v2>, builder : TExpr<'v2, TMap<'k2, 'v2>>) =
+        static member (.>>.) (map : STMap<'k2, 'v2>, builder : TExpr<'v2, STMap<'k2, 'v2>>) =
             builder map
 
     let private commit map =
         let oldMap = map
-        let dictOrigin = SegmentedDictionary.makeFromSegmentedDictionary map.DictOrigin
+        let dictOrigin = SDictionary.makeFromSegmentedDictionary map.DictOrigin
         List.foldBack (fun log () ->
             match log with
             | Add (key, value) -> dictOrigin.[key] <- value
             | Remove key -> dictOrigin.Remove key |> ignore
             | Clear -> dictOrigin.Clear ())
             map.Logs ()
-        let dict = SegmentedDictionary.makeFromSegmentedDictionary dictOrigin
+        let dict = SDictionary.makeFromSegmentedDictionary dictOrigin
         let map = { map with Dict = dict; DictOrigin = dictOrigin; Logs = []; LogsLength = 0 }
-        oldMap.TMapOpt <- Unchecked.defaultof<TMap<'k, 'v>>
-        map.TMapOpt <- map
+        oldMap.STMapOpt <- Unchecked.defaultof<STMap<'k, 'v>>
+        map.STMapOpt <- map
         map
 
     let private compress map =
         let oldMap = map
-        let dictOrigin = SegmentedDictionary.makeFromSegmentedDictionary map.Dict
+        let dictOrigin = SDictionary.makeFromSegmentedDictionary map.Dict
         let map = { map with DictOrigin = dictOrigin; Logs = []; LogsLength = 0 }
-        oldMap.TMapOpt <- Unchecked.defaultof<TMap<'k, 'v>>
-        map.TMapOpt <- map
+        oldMap.STMapOpt <- Unchecked.defaultof<STMap<'k, 'v>>
+        map.STMapOpt <- map
         map
 
     let private validate2 map =
         lock map.Logs (fun () ->
-            match box map.TMapOpt with
+            match box map.STMapOpt with
             | null -> commit map
             | target ->
                 match obj.ReferenceEquals (target, map) with
@@ -67,8 +67,8 @@ module TMap =
         let oldMap = map
         let map = validate2 map
         let map = updater map
-        oldMap.TMapOpt <- Unchecked.defaultof<TMap<'k, 'v>>
-        map.TMapOpt <- map
+        oldMap.STMapOpt <- Unchecked.defaultof<STMap<'k, 'v>>
+        map.STMapOpt <- map
         map
 
     let private validate map =
@@ -78,22 +78,22 @@ module TMap =
 
     let makeFromSeq<'k, 'v> (comparer : 'k IEqualityComparer) config (entries : ('k * 'v) seq) =
         if TConfig.isFunctional config then 
-            let dict = SegmentedDictionary.ofSeq comparer entries
-            let dictOrigin = SegmentedDictionary.makeFromSegmentedDictionary dict
+            let dict = SDictionary.ofSeq comparer entries
+            let dictOrigin = SDictionary.makeFromSegmentedDictionary dict
             let map =
-                { TMapOpt = Unchecked.defaultof<TMap<'k, 'v>>
+                { STMapOpt = Unchecked.defaultof<STMap<'k, 'v>>
                   TConfig = config
                   Dict = dict
                   DictOrigin = dictOrigin
                   Logs = []
                   LogsLength = 0 }
-            map.TMapOpt <- map
+            map.STMapOpt <- map
             map
         else
-            { TMapOpt = Unchecked.defaultof<TMap<'k, 'v>>
+            { STMapOpt = Unchecked.defaultof<STMap<'k, 'v>>
               TConfig = config
-              Dict = SegmentedDictionary.ofSeq comparer entries
-              DictOrigin = SegmentedDictionary.make comparer
+              Dict = SDictionary.ofSeq comparer entries
+              DictOrigin = SDictionary.make comparer
               Logs = []
               LogsLength = 0 }
 
@@ -173,8 +173,8 @@ module TMap =
     let removeMany keys map =
         Seq.fold (flip remove) map keys
 
-    /// Convert a TMap to a seq. Note that entire map is iterated eagerly since the underlying
-    /// SegmentedDictionary could otherwise opaquely change during iteration.
+    /// Convert a STMap to a seq. Note that entire map is iterated eagerly since the underlying
+    /// SDictionary could otherwise opaquely change during iteration.
     let toSeq map =
         let map = validate map
         let seq =
@@ -184,10 +184,10 @@ module TMap =
             seq<'k * 'v>
         struct (seq, map)
 
-    /// Convert a TMap to a SegmentedDictionary.
+    /// Convert a STMap to a SDictionary.
     let toDict map =
         let dict = validate map
-        let result = SegmentedDictionary.makeFromSegmentedDictionary map.Dict
+        let result = SDictionary.makeFromSegmentedDictionary map.Dict
         struct (result, dict)
 
     let fold folder state map =
@@ -210,9 +210,9 @@ module TMap =
     let singleton<'k, 'v> comparer config (key : 'k) (value : 'v) =
         makeFromSeq comparer config [(key, value)]
 
-type TMap<'k, 'v> = TMap.TMap<'k, 'v>
+type STMap<'k, 'v> = STMap.STMap<'k, 'v>
 
 [<AutoOpen>]
-module TMapBuilder = 
+module STMapBuilder = 
 
-    let tmap<'k, 'v> = TExprBuilder<TMap<'k, 'v>> ()
+    let tmap<'k, 'v> = TExprBuilder<STMap<'k, 'v>> ()
