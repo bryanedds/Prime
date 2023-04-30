@@ -9,7 +9,7 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module USet =
 
-    type [<ReferenceEquality>] 'a USet =
+    type [<ReferenceEquality>] USet<'a when 'a : equality> =
         private
             { mutable Set : 'a TSet }
     
@@ -23,10 +23,10 @@ module USet =
             member this.GetEnumerator () =
                 (this :> 'a seq).GetEnumerator () :> IEnumerator
 
-    let makeFromSeq<'a> comparer config items =
+    let makeFromSeq<'a when 'a : equality> comparer config items =
         { Set = TSet.makeFromSeq<'a> comparer config items }
 
-    let makeEmpty<'a> comparer config =
+    let makeEmpty<'a when 'a : equality> comparer config =
         { Set = TSet.makeEmpty<'a> comparer config }
 
     let getComparer set =
@@ -157,7 +157,7 @@ module USet =
         set2.Set <- tset2
         { Set = result }
 
-    let singleton<'a> comparer config item =
+    let singleton<'a when 'a : equality> comparer config item =
         { Set = TSet.singleton<'a> comparer config item }
 
-type 'a USet = 'a USet.USet
+type USet<'a when 'a : equality> = 'a USet.USet

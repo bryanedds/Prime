@@ -9,6 +9,11 @@ open Prime
 module Constants =
 
     [<RequireQualifiedAccess>]
+    module Runtime =
+
+        let [<Literal>] LohSize = 85000 // the approximate size of the .NET Large-Object Heap in bytes, although this seems misleading for some uses...
+
+    [<RequireQualifiedAccess>]
     module Address =
     
         let [<Literal>] Separator = '/'

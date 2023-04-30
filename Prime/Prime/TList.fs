@@ -18,8 +18,8 @@ module TList =
         private
             { mutable TListOpt : 'a TList
               TConfig : TConfig
-              ImpList : 'a List
-              ImpListOrigin : 'a List
+              ImpList : 'a SegmentedList
+              ImpListOrigin : 'a SegmentedList
               Logs : 'a Log list
               LogsLength : int }
 
@@ -34,7 +34,7 @@ module TList =
 
     let private commit list =
         let oldList = list
-        let impListOrigin = List<'a> list.ImpListOrigin
+        let impListOrigin = SegmentedList.makeFromSegmentedList list.ImpListOrigin
         List.foldBack (fun log () ->
             match log with
             | Add value -> impListOrigin.Add value
@@ -42,7 +42,7 @@ module TList =
             | Set (index, value) -> impListOrigin.[index] <- value
             | Clear -> impListOrigin.Clear ())
             list.Logs ()
-        let impList = List<'a> impListOrigin
+        let impList = SegmentedList.makeFromSegmentedList impListOrigin
         let list = { list with ImpList = impList; ImpListOrigin = impListOrigin; Logs = []; LogsLength = 0 }
         oldList.TListOpt <- Unchecked.defaultof<'a TList>
         list.TListOpt <- list
@@ -50,7 +50,7 @@ module TList =
 
     let private compress list =
         let oldList = list
-        let impListOrigin = List<'a> list.ImpList
+        let impListOrigin = SegmentedList.makeFromSegmentedList list.ImpList
         let list = { list with ImpListOrigin = impListOrigin; Logs = []; LogsLength = 0 }
         oldList.TListOpt <- Unchecked.defaultof<'a TList>
         list.TListOpt <- list
@@ -83,8 +83,8 @@ module TList =
 
     let makeFromSeq config (items : 'a seq) =
         if TConfig.isFunctional config then 
-            let impList = List<'a> items
-            let impListOrigin = List<'a> impList
+            let impList = SegmentedList.ofSeq items
+            let impListOrigin = SegmentedList.makeFromSegmentedList impList
             let list =
                 { TListOpt = Unchecked.defaultof<'a TList>
                   TConfig = config
@@ -97,8 +97,8 @@ module TList =
         else
             { TListOpt = Unchecked.defaultof<'a TList>
               TConfig = config
-              ImpList = List<'a> items
-              ImpListOrigin = List<'a> ()
+              ImpList = SegmentedList.ofSeq items
+              ImpListOrigin = SegmentedList.make ()
               Logs = []
               LogsLength = 0 }
 
