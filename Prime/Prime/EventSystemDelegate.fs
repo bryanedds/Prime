@@ -179,8 +179,8 @@ module EventSystemDelegate =
         else ()
 
     // NOTE: event addresses are ordered from general to specific. This is so a generalized subscriber can preempt
-    // any specific subscribers. Whether this is the best order is open for discussion.
-    // OPTIMIZATION: imperative for speed
+    // any specific subscribers.
+    // OPTIMIZATION: imperative for speed.
     let getEventAddresses1 (eventAddress : 'a Address) =
 
         // create target event address array
