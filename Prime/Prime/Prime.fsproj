@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<ProjectGuid>{fe09ae81-b66b-42e0-8192-eadecefc9893}</ProjectGuid>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<Version>9.6.0</Version>
+		<Version>9.7.0</Version>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -49,8 +49,6 @@
 		<Compile Include="Rand.fs" />
 		<Compile Include="Symbol.fs" />
 		<Compile Include="PrettyPrinter.fs" />
-		<Compile Include="Address.fs" />
-		<Compile Include="Relation.fs" />
 		<Compile Include="KeyedCache.fs" />
 		<Compile Include="MutantCache.fs" />
 		<Compile Include="TExpr.fs" />
@@ -83,14 +81,6 @@
 		<Compile Include="Molder.fs" />
 		<Compile Include="Whisp.fs" />
 		<Compile Include="Xtension.fs" />
-		<Compile Include="EventTrace.fs" />
-		<Compile Include="EventFilter.fs" />
-		<Compile Include="EventSimulant.fs" />
-		<Compile Include="EventSystemDelegate.fs" />
-		<Compile Include="EventSystem.fs" />
-		<Compile Include="Stream.fs" />
-		<Compile Include="Arrow.fs" />
-		<Compile Include="Chain.fs" />
 		<Compile Include="Timings.fs" />
 		<Compile Include="AssemblyInfo.fs" />
 		<None Include="Interactive.fsx" />

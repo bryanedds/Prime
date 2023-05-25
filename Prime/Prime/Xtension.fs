@@ -5,8 +5,6 @@ namespace Prime
 open System
 open Prime
 
-#nowarn "1173" // ignore seemingly incorrect warning on ?<- operator.
-
 [<RequireQualifiedAccess>]
 module Xtension =
 

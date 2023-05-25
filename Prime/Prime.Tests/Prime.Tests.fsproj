@@ -26,9 +26,7 @@
 		<Compile Include="SetTests.fs" />
 		<Compile Include="QueueTests.fs" />
 		<Compile Include="RandTests.fs" />
-		<Compile Include="AddressTests.fs" />
 		<Compile Include="SymbolTests.fs" />
-		<Compile Include="EventTests.fs" />
 		<Compile Include="ScriptingTests.fs" />
 		<Compile Include="TimingTests.fs" />
 		<Compile Include="Program.fs" />
