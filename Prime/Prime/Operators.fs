@@ -92,7 +92,7 @@ module Operators =
     let inline strCmp str str2 = String.CompareOrdinal (str, str2)
 
     /// Test for string equality.
-    let inline strEq str str2 = strCmp str str2 = 0
+    let inline strEq str str2 = String.Equals (str, str2)
 
     /// Test for string inequality.
     let inline strNeq str str2 = strCmp str str2 <> 0
