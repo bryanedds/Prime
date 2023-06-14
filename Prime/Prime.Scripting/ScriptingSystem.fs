@@ -691,11 +691,9 @@ module ScriptingSystem =
 
     /// Attempt to evaluate a script.
     let tryEvalScript (choose : 'w -> 'w) (scriptFilePath : string) (world : 'w) =
-        Trace.WriteLine ("Evaluating script '" + scriptFilePath + "'...")
         try match tryReadScript scriptFilePath with
             | Right (scriptStr, script) ->
                 let struct (evaleds, world) = evalMany script world
-                Trace.WriteLine ("Successfully evaluated script '" + scriptFilePath + "'.")
                 Right (scriptStr, evaleds, world)
             | Left error -> Left (error, choose world)
         with exn ->
