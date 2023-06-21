@@ -12,9 +12,7 @@ module Xtension =
     let [<Literal>] internal ImperativeMask =                   0b0000000001
     let [<Literal>] internal ContainsRuntimePropertiesMask =    0b0000000010
 
-    /// Xtensions are a dynamic, functional, and convenient way to implement both dynamic properties
-    /// and designer properties.
-    /// OPTIMIZATION: Booleans are packed into the Flags field.
+    /// Provides a convenient way to implement both dynamic properties and designer properties.
     type [<ReferenceEquality>] Xtension =
         private
             { Properties : UMap<string, Property> // TODO: see if a quadratic searching dictionary could improve perf here.
@@ -170,6 +168,5 @@ module Xtension =
     and ofSeq imperative seq =
         attachProperties seq (makeEmpty imperative)
 
-/// Xtensions (and their supporting types) are a dynamic, functional, and convenient way
-/// to implement dynamic properties.
+/// Provides a convenient way to implement both dynamic properties and designer properties.
 type Xtension = Xtension.Xtension

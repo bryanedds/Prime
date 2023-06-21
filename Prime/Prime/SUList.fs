@@ -2,6 +2,7 @@
 // Copyright (C) Bryan Edds, 2013-2023.
 
 namespace Prime
+open System
 open System.Collections
 open System.Collections.Generic
 
