@@ -4,6 +4,8 @@
 namespace Prime
 open System
 
+// TODO: document this!
+
 type [<StructuralEquality; StructuralComparison>] TConfig =
     | Functional
     | Imperative

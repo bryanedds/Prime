@@ -3,6 +3,8 @@ open System
 open System.Collections
 open System.Collections.Generic
 
+// TODO: document this!
+
 /// An enumerator for FStack.
 type 'a FStackEnumerator (front : 'a array, back : 'a array) =
     let mutable inFront = true

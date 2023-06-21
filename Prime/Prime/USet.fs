@@ -6,6 +6,8 @@ open System
 open System.Collections
 open System.Collections.Generic
 
+// TODO: document this!
+
 [<RequireQualifiedAccess>]
 module USet =
 

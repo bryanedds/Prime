@@ -20,6 +20,7 @@ type [<StructuralEquality; StructuralComparison>] SymbolicCompression<'a, 'b> =
     | SymbolicCompressionA of 'a
     | SymbolicCompressionB of 'b
 
+/// Converts values to and from symbols and symbolic strings.
 type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType : Type) =
     inherit TypeConverter ()
 

@@ -5,6 +5,8 @@ namespace Prime
 open System
 open System.Collections.Generic
 
+// TODO: document this!
+
 [<RequireQualifiedAccess>]
 module TSet =
 
