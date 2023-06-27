@@ -77,6 +77,19 @@ type [<StructuralEquality; StructuralComparison>] SymbolOrigin =
         | ValueSome origin -> SymbolOrigin.print origin
         | ValueNone -> "Error origin unknown or not applicable."
 
+type ParseException (message : string, symbolStr : string) =
+    inherit Exception (message)
+    member this.SymbolStr = symbolStr
+    override this.ToString () =
+        message + "\n" +
+        symbolStr + "\n" +
+        base.ToString ()
+
+[<AutoOpen>]
+module ParseExceptionOperators =
+    let failparse message symbolStr =
+        raise (ParseException (message + "\Parse source: " + symbolStr, symbolStr))
+
 /// A lisp-style symbolic type.
 type [<StructuralEquality; StructuralComparison>] Symbol =
     | Atom of string * SymbolOrigin ValueOption
@@ -363,7 +376,7 @@ module Symbol =
         let symbolState = { FilePathOpt = filePathOpt; Text = str }
         match runParserOnString (skipWhitespaces >>. readSymbol) symbolState String.Empty str with
         | Success (value, _, _) -> value
-        | Failure (error, _, _) -> failwith error
+        | Failure (error, _, _) -> failparse error str
 
     /// Read a symbol from a CSV (comma-separated value) string.
     let ofStringCsv stripHeader csvStr (filePathOpt : string option) =
