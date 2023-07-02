@@ -27,6 +27,35 @@ module Set =
     let removeMany values set =
         Seq.fold (flip Set.remove) set values
 
+    /// Make a set from a seq by a function.
+    let ofSeqBy by seq =
+        let values = Seq.map by seq
+        Set.ofSeq values
+
+    /// Convert a set to a seq by a function.
+    let toSeqBy by (set : _ Set) =
+        Seq.map (fun a -> by a) set
+
+    /// Make a set from a list by a function.
+    let ofListBy by seq =
+        let values = Seq.map by seq
+        Set.ofSeq values
+
+    /// Convert a set to a list by a function.
+    let toListBy by (set : _ Set) =
+        let values = Seq.map (fun a -> by a) set
+        List.ofSeq values
+
+    /// Make a set from an array by a function.
+    let ofArrayBy by seq =
+        let values = Seq.map by seq
+        Array.ofSeq values
+
+    /// Convert a set to a list by a function.
+    let toArrayBy by (set : _ Set) =
+        let values = Seq.map (fun a -> by a) set
+        Array.ofSeq values
+
     /// Map over a set with an index.
     let mapi mapper map =
         let mutable i = 0
