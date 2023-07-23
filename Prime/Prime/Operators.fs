@@ -120,10 +120,10 @@ module Operators =
     /// Test for reference inequality.
     let inline refNeq<'a> (a : 'a) (b : 'a) = not (obj.ReferenceEquals (a, b))
 
-    /// Test for equality generically, usually faster than (=).
+    /// Test for equality generically, often faster than (=).
     let inline genEq<'a when 'a : equality> (a : 'a) (b : 'a) = LanguagePrimitives.GenericEquality a b
 
-    /// Test for inequality generically, usually faster than (=).
+    /// Test for inequality generically, often faster than (=).
     let inline genNeq<'a when 'a : equality> (a : 'a) (b : 'a) = not (LanguagePrimitives.GenericEquality a b)
 
     /// Inspect two options for equality.
@@ -174,7 +174,7 @@ module Operators =
 
     /// Short-hand for linq enumerable cast.
     let inline enumerable<'a> enumeratable =
-        System.Linq.Enumerable.Cast<'a> enumeratable
+        Enumerable.Cast<'a> enumeratable
 
     /// Get the enumerator for a sequence.
     let inline enumerator (enumeratable : _ seq) =

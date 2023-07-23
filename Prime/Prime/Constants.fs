@@ -14,28 +14,6 @@ module Constants =
         let [<Literal>] LohSize = 85000 // the approximate size of the .NET Large-Object Heap in bytes, although this seems misleading for some uses...
 
     [<RequireQualifiedAccess>]
-    module Address =
-    
-        let [<Literal>] Separator = '/'
-        let [<Literal>] SeparatorStr = "/"
-
-    [<RequireQualifiedAccess>]
-    module Relation =
-    
-        let [<Literal>] Current = '~'
-        let [<Literal>] CurrentStr = "~"
-        let [<Literal>] Parent = '^'
-        let [<Literal>] ParentStr = "^"
-
-    [<RequireQualifiedAccess>]
-    module Lens =
-
-        let [<Literal>] ChangeName = "Change"
-        let [<Literal>] EventName = "Event"
-        let [<Uniform>] ChangeNameHash = hash ChangeName
-        let [<Uniform>] EventNameHash = hash EventName
-
-    [<RequireQualifiedAccess>]
     module Scripting =
     
         let [<Literal>] ViolationSeparator = '/'
