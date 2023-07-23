@@ -59,6 +59,9 @@ module Operators =
     /// Transforms a function by flipping the order of its arguments.
     let inline flip4 f a b c d = f d a b c
 
+    /// Transforms a function by flipping the order of its arguments.
+    let inline flip5 f a b c d e = f e a b c d
+
     /// Apply a function to an argument.
     let inline apply f a = f a
 
