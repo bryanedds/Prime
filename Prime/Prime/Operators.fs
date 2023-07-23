@@ -126,8 +126,8 @@ module Operators =
     /// Inspect two options for equality.
     let inline optEq aOpt bOpt =
         match aOpt with
-        | Some a -> (match bOpt with Some b -> a = b | None -> false)
-        | None -> (match bOpt with Some _ -> false | None -> true)
+        | Some a -> match bOpt with Some b -> a = b | None -> false
+        | None -> match bOpt with Some _ -> false | None -> true
 
     /// Inspect two options for inequality.
     let inline optNeq aOpt bOpt =
@@ -136,8 +136,8 @@ module Operators =
     /// Inspect two voptions for equality.
     let inline voptEq aOpt bOpt =
         match aOpt with
-        | ValueSome a -> (match bOpt with ValueSome b -> a = b | ValueNone -> false)
-        | ValueNone -> (match bOpt with ValueSome _ -> false | ValueNone -> true)
+        | ValueSome a -> match bOpt with ValueSome b -> a = b | ValueNone -> false
+        | ValueNone -> match bOpt with ValueSome _ -> false | ValueNone -> true
 
     /// Inspect two voptions for inequality.
     let inline voptNeq aOpt bOpt =
