@@ -61,9 +61,11 @@ module SArray =
               SegmentRemainder : int
               Segments : 'a array array }
 
+        /// The total length of the SArray.
         member this.Length =
             this.TotalLength
 
+        /// Index an item by order.
         member this.Item (i : int) : 'a byref =
             if i < this.TotalLength then
                 let (segmentIndex, segmentOffset) = Math.DivRem (i, this.SegmentSize)

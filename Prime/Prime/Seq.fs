@@ -23,18 +23,18 @@ module Seq =
         | Some head -> head
         | None -> aDefault
 
-    /// Convert option values to definite values.
+    /// Convert option elements to definite elements.
     let inline definitize opts =
         Seq.choose id opts
 
-    /// Convert option values to definite values, returning an additional flag to indicate that all values were some.
+    /// Convert option elements to definite elements, returning an additional flag to indicate that all elements were some.
     let definitizePlus opts =
         let struct (flag, list) =
             Seq.foldBack
-                (fun opt struct (allDefinite, values) ->
+                (fun opt struct (allDefinite, elements) ->
                     match opt with
-                    | Some value -> struct (allDefinite, value :: values)
-                    | None -> struct (false, values))
+                    | Some value -> struct (allDefinite, value :: elements)
+                    | None -> struct (false, elements))
                 opts struct (true, [])
         (flag, Seq.ofList list)
 
@@ -53,8 +53,8 @@ module Seq =
         result
 
     /// Fold-back for seqs.
-    let foldBack folder values state =
-        List.foldBack folder (List.ofSeq values) state
+    let foldBack folder seq state =
+        List.foldBack folder (List.ofSeq seq) state
 
     /// Check if no items satisfy a predicate in a seq.
     let fornone pred seq =

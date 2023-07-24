@@ -9,9 +9,11 @@ type [<CustomEquality; CustomComparison>] PartialComparable<'a, 'b when 'a : com
     { Comparable : 'a
       Noncomparable : 'b }
 
+    /// Check for equality.
     static member equals left right =
         left.Comparable = right.Comparable
 
+    /// Compare for order.
     static member compare left right =
         compare left.Comparable right.Comparable
 

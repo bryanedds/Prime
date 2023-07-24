@@ -80,11 +80,11 @@ module Array =
     let foldi folder state (array : _ array) =
         Seq.foldi folder state array
 
-    /// Convert option values to definite values.
+    /// Convert option elements to definite elements.
     let inline definitize opts =
         Array.choose id opts
 
-    /// Convert option values to definite values, returning an additional flag to indicate that all values were some.
+    /// Convert option elements to definite elements, returning an additional flag to indicate that all elements were some.
     let definitizePlus (opts : _ array) =
         let (flag, seq) = Seq.definitizePlus opts
         (flag, Array.ofSeq seq)

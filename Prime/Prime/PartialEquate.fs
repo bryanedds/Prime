@@ -9,6 +9,7 @@ type [<CustomEquality; NoComparison>] PartialEquatable<'a, 'b when 'a : equality
     { Equatable : 'a
       Nonequatable : 'b }
 
+    /// Check for equality.
     static member equals left right =
         left.Equatable = right.Equatable
 
