@@ -180,10 +180,6 @@ module Operators =
     let inline enumerator (enumeratable : _ seq) =
         enumeratable.GetEnumerator ()
 
-    /// Convert a value to an Enum.
-    let inline enum<'a, 'e when 'e : enum<'a>> (value : 'a) =
-        LanguagePrimitives.EnumOfValue<'a, 'e> value
-
     /// Add a custom TypeConverter to an existing type.
     let assignTypeConverter<'t, 'c> () =
         TypeDescriptor.AddAttributes (typeof<'t>, TypeConverterAttribute typeof<'c>) |> ignore
