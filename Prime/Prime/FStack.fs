@@ -3,8 +3,6 @@ open System
 open System.Collections
 open System.Collections.Generic
 
-// TODO: document this!
-
 /// An enumerator for FStack.
 type 'a FStackEnumerator (front : 'a array, back : 'a array) =
     let mutable inFront = true
@@ -34,7 +32,6 @@ type 'a FStackEnumerator (front : 'a array, back : 'a array) =
         member this.Reset () = this.Reset ()
         member this.Dispose () = this.Dispose ()
 
-// TODO: document!
 [<RequireQualifiedAccess>]
 module FStack =
 
@@ -93,68 +90,86 @@ module FStack =
             else stack
         else stack
 
+    /// The number of elements in an FStack.
     and length stack =
         stack.Front.Length +
         stack.Back.Length
         
+    /// Check that an FStack has no elements.
     let isEmpty stack =
         length stack = 0
 
+    /// Check that an FSatck has one or more elements.
     let notEmpty stack =
         length stack <> 0
 
+    /// Make an FStack from a sequence of values.
     let ofSeq seq =
         let stack = { Front = Seq.toArray seq; Back = [||] }
         balance stack
 
+    /// Make an FStack from a list of values.
     let ofList lst =
         let stack = { Front = List.toArray lst; Back = [||] }
         balance stack
 
+    /// Make an FStack from an array of values.
     let ofArray arr =
         let stack = { Front = [||]; Back = arr }
         balance stack
 
+    /// Convert an FStack to a seq.
     let toSeq (stack : 'a FStack) =
         stack :> 'a seq
 
+    /// Convert an FStack to a list.
     let toList (stack : 'a FStack) =
         stack :> 'a seq |> Seq.toList
 
+    /// Convert an FStack to an array.
     let toArray (stack : 'a FStack) =
         Array.append stack.Front stack.Back
 
+    /// Fold over the elements of an FStack.
     let fold (f : 'a -> 'b -> 'a) s (stack : 'b FStack) =
         stack |> toSeq |> Seq.fold f s
 
+    /// Map over the elements of an FStack.
     let map f (stack : 'a FStack) =
         stack |> toSeq |> Seq.map f |> ofSeq
 
+    /// Filter the elements of an FStack.
     let filter f (stack : 'a FStack) =
         stack |> toSeq |> Seq.filter f |> ofSeq
 
+    /// Get the first element of an FStack or raise an IndexOutOfRangeException.
     let head stack =
         stack.Front.[0]
 
+    /// Get the first element of an FStack or None.
     let tryHead stack =
         if stack.Front.Length <> 0
         then Some stack.Front.[0]
         else None
 
+    /// Remove all elements from an FStack that satisfy the given predicate.
     let remove pred stack =
         let stack = { Front = Array.remove pred stack.Front; Back = Array.remove pred stack.Back }
         balance stack
 
+    /// Remove an element at the given index or raise IndexOutOfRangeException.
     let removeAt index stack =
         let arr = toArray stack
         let arr = Array.removeAt index arr
         let stack = { Front = arr; Back = [||] }
         balance stack
         
+    /// Remove all elements from an FStack that satisfy the given predicate with the given value.
     let replace pred replacement stack =
         { Front = Array.replace pred replacement stack.Front
           Back = Array.replace pred replacement stack.Back; }
 
+    /// Remove an element at the given index with the given value or raise IndexOutOfRangeException.
     let replaceAt index replacement stack =
         if index < stack.Front.Length then
             let front = Array.copy stack.Front
@@ -168,14 +183,17 @@ module FStack =
                 { stack with Back = back }
             else raise (IndexOutOfRangeException "Cannot index outside of FStack's range.")
 
+    /// Attempt to find the element in an FStack that satisfies the given predicate.
     let tryFind pred stack =
         match Array.tryFind pred stack.Front with
         | None -> Array.tryFind pred stack.Back
         | Some item -> Some item
 
+    /// Find the element in an FStack that satisfies the given predicate or raise ArgumentException.
     let find pred stack =
         Option.get (tryFind pred stack)
 
+    /// Index the FStack at the given 'a offset or return None.
     let tryIndex index stack =
         if index >= 0 then
             if index >= stack.Front.Length then 
@@ -186,13 +204,16 @@ module FStack =
             else Some stack.Front.[index]
         else None
 
+    /// Index the FStack at the given 'a offset or raise IndexOutOfRangeException.
     let index i (stack : 'a FStack) =
         stack.[i]
 
+    /// Add an element to the end of an FStack.
     let conj a stack =
         let stack = { Front = stack.Front; Back = Array.add a stack.Back }
         balance stack
 
+    /// Attempt to pop an element off the given FStack.
     let tryUnconj stack =
         match stack.Back with
         | [||] ->
@@ -209,14 +230,17 @@ module FStack =
             let stack = { Front = stack.Front; Back = back }
             Some (balance stack)
 
+    /// Attempt to pop an element off the given FStack or raise InvalidOperationException.
     let unconj stack =
         match tryUnconj stack with
         | Some stack -> stack
         | None -> raise (InvalidOperationException "Cannot unconj an empty FStack.")
 
+    /// Make an FStack with a single element.
     let singleton a =
         { Front = [|a|]; Back = [||] }
 
+    /// The empty FStack.
     let empty =
         { Front = [||]; Back = [||] }
 
