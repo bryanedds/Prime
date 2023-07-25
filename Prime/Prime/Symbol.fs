@@ -9,36 +9,44 @@ open FParsec
 open Csv
 open Prime
 
+/// The source from which a symbol was read.
 type [<StructuralEquality; StructuralComparison; Struct>] SymbolSource =
     { FilePathOpt : string option
       Text : string }
 
+/// The position at which a symbol was read from a source.
 type [<StructuralEquality; StructuralComparison; Struct>] SymbolPosition =
     { Index : int
       Line : int
       Column : int }
 
+    /// Construct a SymbolPosition from an FParsec position.
     static member ofPosition (position : Position) =
         { Index = int position.Index
           Line = int position.Line
           Column = int position.Column }
 
+    /// The empty SymbolPosition.
     static member empty =
         { Index = 0
           Line = 0
           Column = 0 }
 
+/// The origin from which a symbol was read.
 type [<StructuralEquality; StructuralComparison>] SymbolOrigin =
     { Source : SymbolSource
       Start : SymbolPosition
       Stop : SymbolPosition }
 
+    /// Print info about the starting point of a symbol's origin.
     static member printStart origin =
         "[Ln: " + string origin.Start.Line + ", Col: " + string origin.Start.Column + "]"
 
+    /// Print info about the stopping point of a symbol's origin.
     static member printStop origin =
         "[Ln: " + string origin.Stop.Line + ", Col: " + string origin.Stop.Column + "]"
 
+    /// Print the symbol in the surrounding context of its source.
     static member printContext origin =
         try // there's more than one thing that can go wrong in here...
             let sourceLines = origin.Source.Text.Split '\n'
@@ -66,17 +74,20 @@ type [<StructuralEquality; StructuralComparison>] SymbolOrigin =
             // ...and I don't feel like dealing with all the specifics.
             "Error creating violation context."
 
+    /// Print a symbol in the context of its origin.
     static member print origin =
         "At location: " + SymbolOrigin.printStart origin + " thru " + SymbolOrigin.printStop origin + "\n" +
         "In context:\n" +
         "\n" +
         SymbolOrigin.printContext origin
 
+    /// Attmept to print a symbol in the context of its origin.
     static member tryPrint originOpt =
         match originOpt with
         | ValueSome origin -> SymbolOrigin.print origin
         | ValueNone -> "Error origin unknown or not applicable."
 
+/// An excpetion raised when a symbol is failed to be parsed.
 type ParseException (message : string, symbolStr : string) =
     inherit Exception (message)
     member this.SymbolStr = symbolStr
@@ -87,6 +98,8 @@ type ParseException (message : string, symbolStr : string) =
 
 [<AutoOpen>]
 module ParseExceptionOperators =
+
+    /// Raise a ParseException with the give data.
     let failparse message symbolStr =
         raise (ParseException (message + "\Parse source: " + symbolStr, symbolStr))
 
@@ -166,8 +179,9 @@ module Symbol =
         else str
 
     let skipLineComment = skipChar LineCommentChar >>. skipRestOfLine true
+
+    // TODO: see if we can efficiently make multiline comments nest.
     let skipMultilineComment =
-        // TODO: make multiline comments nest.
         between
             (skipString OpenMultilineCommentStr)
             (skipString CloseMultilineCommentStr)
@@ -197,6 +211,7 @@ module Symbol =
     let readStringChars = many (noneOf [CloseStringChar])
     let (readSymbol : Parser<Symbol, SymbolSource>, private readSymbolRef : Parser<Symbol, SymbolSource> ref) = createParserForwardedToRef ()
 
+    /// Read symbolic atom.
     let readAtom =
         parse {
             let! userState = getUserState
@@ -208,6 +223,7 @@ module Symbol =
             let originOpt = ValueSome { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
             return Atom (str, originOpt) }
 
+    /// Read symbolic number.
     let readNumber =
         parse {
             let! userState = getUserState
@@ -224,7 +240,8 @@ module Symbol =
                 (if number.SuffixChar4 <> (char)65535 then string number.SuffixChar4 else "")
             return Number (number.String + suffix, originOpt) }
 
-    let readString =
+    /// Read symbolic text.
+    let readText =
         parse {
             let! userState = getUserState
             let! start = getPosition
@@ -237,6 +254,7 @@ module Symbol =
             let originOpt = ValueSome { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
             return Text (str, originOpt) }
 
+    /// Read a symbolic quote.
     let readQuote =
         parse {
             let! userState = getUserState
@@ -248,6 +266,7 @@ module Symbol =
             let originOpt = ValueSome { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
             return Quote (quoted, originOpt) }
 
+    /// Read a symbolic color literal.
     let readSymbolsAsColor =
         parse {
             let! userState = getUserState
@@ -270,6 +289,7 @@ module Symbol =
                       Number (string (single a8 / 255.0f), ValueNone)], originOpt)
             return symbols }
 
+    /// Read a sequence of symbols.
     let readSymbols =
         parse {
             let! userState = getUserState
@@ -283,6 +303,7 @@ module Symbol =
             let originOpt = ValueSome { Source = userState; Start = SymbolPosition.ofPosition start; Stop = SymbolPosition.ofPosition stop }
             return Symbols (symbols, originOpt) }
 
+    /// Read a symbolic index.
     let readIndex =
         parse {
             let! userState = getUserState
@@ -297,10 +318,10 @@ module Symbol =
                 | Symbols ([Number _ as number], _) -> Symbols ([Atom (IndexExpansion, originOpt); number; target], originOpt)
                 | _ -> Symbols ([Atom (IndexExpansion, originOpt); indexer; target], originOpt) }
 
-    let readSymbolBirecursive =
+    let private readSymbolBirecursive =
         attempt readSymbolsAsColor <|>
         attempt readQuote <|>
-        attempt readString <|>
+        attempt readText <|>
         attempt readNumber <|>
         attempt readAtom <|>
         readSymbols
@@ -428,6 +449,7 @@ module Symbol =
     /// ...and so on.
     let rec toString symbol = writeSymbol symbol
 
+/// An exception raised when a symbol cannot be converted to a value.
 type ConversionException (message : string, symbolOpt : Symbol option) =
     inherit Exception (message)
     member this.SymbolOpt = symbolOpt
@@ -438,6 +460,8 @@ type ConversionException (message : string, symbolOpt : Symbol option) =
 
 [<AutoOpen>]
 module ConversionExceptionOperators =
+
+    /// Raise a ConversionException with the give data.
     let failconv message symbolOpt =
         match symbolOpt with
         | Some symbol -> raise (ConversionException (message + "\nConversion source: " + Symbol.toString symbol, symbolOpt))
