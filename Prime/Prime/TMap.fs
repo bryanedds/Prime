@@ -5,8 +5,6 @@ namespace Prime
 open System
 open System.Collections.Generic
 
-// TODO: document this!
-
 [<RequireQualifiedAccess>]
 module TMap =
 
@@ -15,6 +13,7 @@ module TMap =
         | Remove of remove : 'k
         | Clear
 
+    /// A hashing map that supports transaction-based rewinding.
     type [<ReferenceEquality>] TMap<'k, 'v> =
         private
             { mutable TMapOpt : TMap<'k, 'v>
@@ -78,6 +77,7 @@ module TMap =
         then validate2 map
         else map
 
+    /// Create a TMap containing the given sequence of entries.
     let makeFromSeq<'k, 'v> (comparer : 'k IEqualityComparer) config (entries : ('k * 'v) seq) =
         if TConfig.isFunctional config then 
             let dict = dictPlus comparer entries
@@ -99,15 +99,19 @@ module TMap =
               Logs = []
               LogsLength = 0 }
 
+    /// Create an empty TMap.
     let makeEmpty<'k, 'v> comparer config =
         makeFromSeq<'k, 'v> comparer config Seq.empty
         
+    /// Get the comparer function used to determine key uniqueness in a TMap.
     let getComparer map =
         struct (map.Dict.Comparer, map)
 
+    /// Get the semantic configuration of the TSet.
     let getConfig map =
         struct (map.TConfig, map)
 
+    /// Add an entry to a TMap.
     let add key value map =
         if TConfig.isFunctional map.TConfig then
             update (fun map ->
@@ -117,6 +121,7 @@ module TMap =
                 map
         else map.Dict.[key] <- value; map
 
+    /// Remove any entry with a matching key from a TMap.
     let remove key map =
         if TConfig.isFunctional map.TConfig then
             update (fun map ->
@@ -126,6 +131,7 @@ module TMap =
                 map
         else map.Dict.Remove key |> ignore; map
 
+    /// Remove all elements from a TMap.
     let clear map =
         if TConfig.isFunctional map.TConfig then
             update (fun map ->
@@ -135,43 +141,49 @@ module TMap =
                 map
         else map.Dict.Clear (); map
 
+    /// Check that a TMap has no entries.
     let isEmpty map =
         let map = validate map
         struct (map.Dict.Count = 0, map)
 
+    /// Check that a TMap has one or more entries.
     let notEmpty map =
         mapFst' not (isEmpty map)
 
-    /// Get the length of the map (constant-time).
+    /// Get the length of a TMap (constant-time).
     let length map =
         let map = validate map
         struct (map.Dict.Count, map)
 
+    /// Attempt to get the value with the given key.
     let tryFind key map =
         let map = validate map
         match map.Dict.TryGetValue key with
         | (true, value) -> struct (Some value, map)
         | (false, _) -> struct (None, map)
 
+    /// Attempt to get the value with the given key.
     let tryGetValue (key, map, valueRef : _ outref) =
         let map = validate map
         let found = map.Dict.TryGetValue (key, &valueRef)
         struct (found, map)
 
+    /// Find the given keyed value or raise a KeyNotFoundException.
     let find key map =
         let map = validate map
         struct (map.Dict.[key], map)
 
+    /// Determine that a TMap contains the given key.
     let containsKey key map =
         match tryFind key map with
         | struct (Some _, map) -> struct (true, map)
         | struct (None, map) -> struct (false, map)
 
-    /// Add all the given entries to the map.
+    /// Add all the given entries to a TMap.
     let addMany entries map =
         Seq.fold (flip (uncurry add)) map entries
 
-    /// Remove all values with the given keys from the map.
+    /// Remove all values with the given keys from a TMap.
     let removeMany keys map =
         Seq.fold (flip remove) map keys
 
@@ -192,23 +204,27 @@ module TMap =
         let result = Dictionary<'k, 'v> (dict.Dict, map.Dict.Comparer)
         struct (result, dict)
 
+    /// Fold over the entries of a TMap.
     let fold folder state map =
         let struct (seq, map) = toSeq map
         let result = Seq.fold (folder >> uncurry) state seq
         struct (result, map)
 
+    /// Map over the entries of a TMap.
     let map mapper map =
         fold
             (fun map key value -> add key (mapper value) map)
             (makeEmpty map.Dict.Comparer map.TConfig)
             map
 
+    /// Filter the entries of a TMap.
     let filter pred map =
         fold
             (fun state k v -> if pred k v then add k v state else state)
             (makeEmpty map.Dict.Comparer map.TConfig)
             map
 
+    /// Make a TMap with a single entry.
     let singleton<'k, 'v> comparer config (key : 'k) (value : 'v) =
         makeFromSeq comparer config [(key, value)]
 

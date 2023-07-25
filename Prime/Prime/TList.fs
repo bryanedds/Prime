@@ -82,7 +82,7 @@ module TList =
         then validate2 list
         else list
 
-    /// Create an TList containing the given sequence of values.
+    /// Create a TList containing the given sequence of values.
     let makeFromSeq config (items : 'a seq) =
         if TConfig.isFunctional config then 
             let impList = List<'a> items
@@ -104,7 +104,7 @@ module TList =
               Logs = []
               LogsLength = 0 }
 
-    /// Create an TList containing the given array of values.
+    /// Create a TList containing the given array of values.
     let makeFromArray config (items : 'a array) =
         makeFromSeq config items
 
@@ -112,7 +112,7 @@ module TList =
     let makeEmpty<'a> config =
         makeFromSeq config (List<'a> ())
 
-    /// Get the configuration semantics of the TList.
+    /// Get the semantics configuration of a TList.
     let getConfig list =
         struct (list.TConfig, list)
 
@@ -161,22 +161,22 @@ module TList =
                 list
         else list.ImpList.Clear (); list
 
-    /// Check that a TList has one or more elements.
+    /// Check that a TList has no elements.
     let isEmpty list =
         let list = validate list
         struct (list.ImpList.Count = 0, list)
 
-    /// Check that a TList has no elements.
+    /// Check that a TList has one or more elements.
     let notEmpty list =
         let list = validate list
         mapFst' not (isEmpty list)
 
-    /// Get the length of the list (constant-time).
+    /// Get the length of a TList (constant-time).
     let length list =
         let list = validate list
         struct (list.ImpList.Count, list)
 
-    /// Check that a value is contain in the list.
+    /// Check that a value is contain in a TList.
     let contains value list =
         let list = validate list
         struct (list.ImpList.Contains value, list)
@@ -260,17 +260,17 @@ module TList =
         for list in listsAsSeq do tempList.AddRange (toSeq list |> fst')
         makeFromSeq config tempList
 
-    /// Add all the given items to the list.
+    /// Add all the given items to a TList.
     let addMany (items : 'a seq) list =
         let list = validate list
         let lists = add list (makeFromArray list.TConfig [|makeFromSeq list.TConfig items|])
         makeFromLists list.TConfig lists
 
-    /// Remove all the given items from the list.
+    /// Remove all the given items from a TList.
     let removeMany items list =
         Seq.fold (flip remove) list items
 
-    /// Make a TList with a single item.
+    /// Make a TList with a single element.
     let singleton<'a> config (item : 'a) =
         makeFromSeq config [item]
 

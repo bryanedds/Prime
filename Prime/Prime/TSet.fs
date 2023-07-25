@@ -5,8 +5,6 @@ namespace Prime
 open System
 open System.Collections.Generic
 
-// TODO: document this!
-
 [<RequireQualifiedAccess>]
 module TSet =
 
@@ -15,6 +13,7 @@ module TSet =
         | Remove of remove : 'a
         | Clear
 
+    /// A hashing set that supports transaction-based rewinding.
     type [<ReferenceEquality>] 'a TSet =
         private
             { mutable TSetOpt : 'a TSet
@@ -78,6 +77,7 @@ module TSet =
         then validate2 set
         else set
 
+    /// Create an TSet containing the element of the given hash.
     let makeFromHashSet (comparer : 'a IEqualityComparer) config (hashSet : 'a HashSet) =
         if TConfig.isFunctional config then
             let set =
@@ -97,19 +97,24 @@ module TSet =
               Logs = []
               LogsLength = 0 }
 
+    /// Create a TSet containing the given sequence of values.
     let makeFromSeq<'a> comparer config (items : 'a seq) =
         let hashSet = hashSetPlus comparer items
         makeFromHashSet comparer config hashSet
 
+    /// Create an empty TSet.
     let makeEmpty<'a> comparer config =
         makeFromSeq<'a> comparer config Seq.empty
 
+    /// Get the comparer function used to determine uniqueness in a TSet.
     let getComparer set =
         struct (set.HashSet.Comparer, set)
 
+    /// Get the semantic configuration of the TSet.
     let getConfig set =
         struct (set.TConfig, set)
 
+    /// Add an element to a TSet.
     let add value set =
         if TConfig.isFunctional set.TConfig then
             update (fun set ->
@@ -119,6 +124,7 @@ module TSet =
                 set
         else set.HashSet.Add value |> ignore; set
 
+    /// Remove all matching elements from a TSet.
     let remove value set =
         if TConfig.isFunctional set.TConfig then
             update (fun set ->
@@ -128,6 +134,7 @@ module TSet =
                 set
         else set.HashSet.Remove value |> ignore; set
 
+    /// Remove all elements from a TSet.
     let clear set =
         if TConfig.isFunctional set.TConfig then
             update (fun set ->
@@ -137,27 +144,30 @@ module TSet =
                 set
         else set.HashSet.Clear (); set
 
+    /// Check that a TSet has no elements.
     let isEmpty set =
         let set = validate set
         struct (set.HashSet.Count = 0, set)
 
+    /// Check that a TSet has one or more elements.
     let notEmpty set =
         mapFst' not (isEmpty set)
 
-    /// Get the length of the set (constant-time).
+    /// Get the length of a TSet (constant-time).
     let length set =
         let set = validate set
         struct (set.HashSet.Count, set)
 
+    /// Determine that a TSet contains the given value.
     let contains value set =
         let set = validate set
         struct (set.HashSet.Contains value, set)
 
-    /// Add all the given values to the set.
+    /// Add all the given values to a TSet.
     let addMany values set =
         Seq.fold (flip add) set values
 
-    /// Remove all the given values from the set.
+    /// Remove all the given values from a TSet.
     let removeMany values set =
         Seq.fold (flip remove) set values
 
@@ -174,67 +184,80 @@ module TSet =
         let result = HashSet<'a> (set.HashSet, set.HashSet.Comparer)
         struct (result, set)
 
+    /// Fold over the elements of a TSet.
     let fold folder state set =
         let struct (seq, set) = toSeq set
         let result = Seq.fold folder state seq
         struct (result, set)
 
+    /// Map the elements of a TSet.
     let map mapper set =
         fold
             (fun set value -> add (mapper value) set)
             (makeEmpty set.HashSet.Comparer set.TConfig)
             set
 
+    /// Filter the elements of a TSet.
     let filter pred set =
         fold
             (fun set value -> if pred value then add value set else set)
             (makeEmpty set.HashSet.Comparer set.TConfig)
             set
 
+    /// Determine equality of two TSets.
     let equals set set2 =
         let (set, set2) = (validate set, validate set2)
         struct (set.HashSet.SetEquals set2.HashSet, set, set2)
 
+    /// Construct a union HashSet.
     let unionFast set set2 =
         let (set, set2) = (validate set, validate set2)
         let result = HashSet<'a> (set.HashSet, set.HashSet.Comparer)
         result.UnionWith set2.HashSet
         struct (result, set, set2)
 
+    /// Construct an intersection HashSet.
     let intersectFast set set2 =
         let (set, set2) = (validate set, validate set2)
         let result = HashSet<'a> (set.HashSet, set.HashSet.Comparer)
         result.IntersectWith set2.HashSet
         struct (result, set, set2)
 
+    /// Construct a disjoint HashSet.
     let disjointFast set set2 =
         let (set, set2) = (validate set, validate set2)
         let result = HashSet<'a> (set.HashSet, set.HashSet.Comparer)
         result.SymmetricExceptWith set2.HashSet
         struct (result, set, set2)
 
+    /// Construct a difference HashSet.
     let differenceFast set set2 =
         let (set, set2) = (validate set, validate set2)
         let result = HashSet<'a> (set.HashSet, set.HashSet.Comparer)
         result.ExceptWith set2.HashSet
         struct (result, set, set2)
 
+    /// Construct a union TSet.
     let union config set set2 =
         let struct (result, set, set2) = unionFast set set2
         struct (makeFromHashSet set.HashSet.Comparer config result, set, set2)
 
+    /// Construct an intersection TSet.
     let intersect config set set2 =
         let struct (result, set, set2) = intersectFast set set2
         struct (makeFromHashSet set.HashSet.Comparer config result, set, set2)
 
+    /// Construct a disjoint TSet.
     let disjoint config set set2 =
         let struct (result, set, set2) = disjointFast set set2
         struct (makeFromHashSet set.HashSet.Comparer config result, set, set2)
 
+    /// Construct a difference TSet.
     let difference config set set2 =
         let struct (result, set, set2) = differenceFast set set2
         struct (makeFromHashSet set.HashSet.Comparer config result, set, set2)
 
+    /// Make a TSet with a single element.
     let singleton<'a> comparer config (item : 'a) =
         makeFromSeq comparer config [item]
 
