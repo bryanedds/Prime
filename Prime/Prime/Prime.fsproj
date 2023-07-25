@@ -77,8 +77,6 @@
 		<Compile Include="Reflection.fs" />
 		<Compile Include="SymbolicConverter.fs" />
 		<Compile Include="SymbolicOperators.fs" />
-		<Compile Include="Mold.fs" />
-		<Compile Include="Molder.fs" />
 		<Compile Include="Whisp.fs" />
 		<Compile Include="Xtension.fs" />
 		<Compile Include="Timings.fs" />
