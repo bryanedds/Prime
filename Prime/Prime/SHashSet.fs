@@ -11,6 +11,7 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module SHashSet =
 
+    /// A hash set that is split into 32 smaller hash sets in order to avoid allocating from the LOH.
     type [<ReferenceEquality>] SHashSet<'a when 'a : equality> =
         private
             { HashSets_ : 'a HashSet array
@@ -125,4 +126,5 @@ module SHashSet =
     let fold folder sset =
         Seq.fold folder (toSeq sset)
 
+/// A hash set that is split into 32 smaller hash sets in order to avoid allocating from the LOH.
 type SHashSet<'a when 'a : equality> = SHashSet.SHashSet<'a>

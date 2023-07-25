@@ -11,6 +11,7 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module SArray =
 
+    /// An enumerator for SArray objects.
     type 'a SArrayEnumerator (sarray : 'a SArray) =
 
         let mutable i = -1
@@ -54,6 +55,7 @@ module SArray =
             member this.Reset () = this.Reset ()
             member this.Dispose () = ()
 
+    /// An array that is split into smaller arrays in order to avoid allocating from the LOH.
     and [<ReferenceEquality>] 'a SArray =
         private
             { TotalLength : int
@@ -265,6 +267,8 @@ module SArray =
             i <- inc i
         result
 
+/// An enumerator for SArray objects.
 type 'a SArrayEnumerator = 'a SArray.SArrayEnumerator
 
+/// An array that is split into smaller arrays in order to avoid allocating from the LOH.
 type 'a SArray = 'a SArray.SArray

@@ -5,8 +5,10 @@ open System.Collections.Generic
 
 /// An enumerator for FStack.
 type 'a FStackEnumerator (front : 'a array, back : 'a array) =
+
     let mutable inFront = true
     let mutable index = -1
+
     member this.MoveNext () =
         index <- inc index
         if inFront then
@@ -16,15 +18,18 @@ type 'a FStackEnumerator (front : 'a array, back : 'a array) =
                 index < Array.length back
             else true
         else index < Array.length back
+
     member this.Current =
         if inFront
         then front.[index]
         else back.[index]
+
     member this.Reset () =
         inFront <- true
         index <- -1
-    member this.Dispose () =
-        ()
+
+    member this.Dispose () = ()
+
     interface 'a IEnumerator with
         member this.MoveNext () = this.MoveNext ()
         member this.Current = this.Current

@@ -11,6 +11,7 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module SDictionary =
 
+    /// A dictionary that is split into 32 smaller dictionaries in order to avoid allocating from the LOH.
     type [<ReferenceEquality>] SDictionary<'k, 'v> =
         private
             { Dictionaries_ : Dictionary<'k, 'v> array
@@ -135,4 +136,5 @@ module SDictionary =
     let fold folder sdict =
         Seq.fold folder (toSeq sdict)
 
+/// A dictionary that is split into 32 smaller dictionaries in order to avoid allocating from the LOH.
 type SDictionary<'k, 'v> = SDictionary.SDictionary<'k, 'v>
