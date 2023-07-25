@@ -173,7 +173,7 @@ module TMap =
         let map = validate map
         struct (map.Dict.[key], map)
 
-    /// Determine that a TMap contains the given key.
+    /// Check that a TMap contains the given key.
     let containsKey key map =
         match tryFind key map with
         | struct (Some _, map) -> struct (true, map)
@@ -186,6 +186,13 @@ module TMap =
     /// Remove all values with the given keys from a TMap.
     let removeMany keys map =
         Seq.fold (flip remove) map keys
+
+    /// Convert a sequence of keys and values to a UMap.
+    let ofSeq comparer config pairs =
+        Seq.fold
+            (fun map (key, value) -> add key value map)
+            (makeEmpty comparer config)
+            pairs
 
     /// Convert a TMap to a seq. Note that entire map is iterated eagerly since the underlying
     /// Dictionary could otherwise opaquely change during iteration.

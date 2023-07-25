@@ -170,6 +170,13 @@ module TSet =
     /// Remove all the given values from a TSet.
     let removeMany values set =
         Seq.fold (flip remove) set values
+        
+    /// Make a TSet from a sequence of values.
+    let ofSeq comparer config values =
+        Seq.fold
+            (fun map value -> add value map)
+            (makeEmpty comparer config)
+            values
 
     /// Convert a TSet to a seq. Note that entire set is iterated eagerly since the underlying HashMap could
     /// otherwise opaquely change during iteration.

@@ -84,7 +84,7 @@ module UMap =
 
     /// Attempt to get the value with the given key.
     let tryFind key map =
-        let struct (valueOpt, tmap) = UMap.tryFind key map.Map
+        let struct (valueOpt, tmap) = TMap.tryFind key map.Map
         map.Map <- tmap
         valueOpt
 
