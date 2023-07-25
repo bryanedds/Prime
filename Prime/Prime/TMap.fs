@@ -228,9 +228,11 @@ module TMap =
     let singleton<'k, 'v> comparer config (key : 'k) (value : 'v) =
         makeFromSeq comparer config [(key, value)]
 
+/// A hashing map that supports transaction-based rewinding.
 type TMap<'k, 'v> = TMap.TMap<'k, 'v>
 
 [<AutoOpen>]
 module TMapBuilder = 
-
+    
+    /// Build a TMap.
     let tmap<'k, 'v> = TExprBuilder<TMap<'k, 'v>> ()
