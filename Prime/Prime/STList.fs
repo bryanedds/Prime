@@ -5,8 +5,6 @@ namespace Prime
 open System
 open System.Collections.Generic
 
-// TODO: document this!
-
 [<RequireQualifiedAccess>]
 module STList =
 
@@ -15,7 +13,8 @@ module STList =
         | Remove of remove : 'a
         | Set of index : int * value : 'a
         | Clear
-        
+
+    /// A segmented list that supports transaction-based rewinding.
     type [<ReferenceEquality>] 'a STList =
         private
             { mutable STListOpt : 'a STList
@@ -83,6 +82,7 @@ module STList =
         then validate2 list
         else list
 
+    /// Create a STList containing the given sequence of values.
     let makeFromSeq config (items : 'a seq) =
         if TConfig.isFunctional config then 
             let impList = SList.ofSeq items
@@ -104,19 +104,24 @@ module STList =
               Logs = []
               LogsLength = 0 }
 
+    /// Create a STList containing the given array of values.
     let makeFromArray config (items : 'a array) =
         makeFromSeq config items
 
+    /// Create an empty STList.
     let makeEmpty<'a> config =
         makeFromSeq config (List<'a> ())
 
+    /// Get the semantics configuration of a STList.
     let getConfig list =
         struct (list.TConfig, list)
 
+    /// Get the value of the given index.
     let get index list =
         let list = validate list
         struct (list.ImpList.[index], list)
 
+    /// Set the value of the given index.
     let set index value list =
         if TConfig.isFunctional list.TConfig then 
             update (fun list ->
@@ -126,6 +131,7 @@ module STList =
                 list
         else list.ImpList.[index] <- value; list
 
+    /// Add an element to a STList.
     let add value list =
         if TConfig.isFunctional list.TConfig then 
             update (fun list ->
@@ -135,6 +141,7 @@ module STList =
                 list
         else list.ImpList.Add value |> ignore; list
 
+    /// Remove all matching elements from a STList.
     let remove value list =
         if TConfig.isFunctional list.TConfig then
             update (fun list ->
@@ -144,6 +151,7 @@ module STList =
                 list
         else list.ImpList.Remove value |> ignore; list
 
+    /// Remove all elements from a STList.
     let clear list =
         if TConfig.isFunctional list.TConfig then
             update (fun list ->
@@ -153,20 +161,22 @@ module STList =
                 list
         else list.ImpList.Clear (); list
 
+    /// Check that a STList has no elements.
     let isEmpty list =
         let list = validate list
         struct (list.ImpList.Length = 0, list)
 
+    /// Check that a STList has one or more elements.
     let notEmpty list =
         let list = validate list
         mapFst' not (isEmpty list)
 
-    /// Get the length of the list (constant-time).
+    /// Get the length of a STList (constant-time).
     let length list =
         let list = validate list
         struct (list.ImpList.Length, list)
 
-    /// Check that a value is contain in the list.
+    /// Check that a value is contained in a STList.
     let contains value list =
         let list = validate list
         struct (list.ImpList.Contains value, list)
@@ -189,51 +199,71 @@ module STList =
         let result = List<'a> list.ImpList
         struct (result, list)
 
+    /// Make a STList from a sequence of values.
+    let ofSeq config values =
+        Seq.fold
+            (fun map value -> add value map)
+            (makeEmpty config)
+            values
+
+    /// Make a STList from an array of values.
+    let ofArray config (values : 'a array) =
+        ofSeq config values
+
+    /// Map the elements of a STList.
     let map (mapper : 'a -> 'b) (list : 'a STList) =
         let list = validate list
         let seqMapped = Seq.map mapper list.ImpList
         let listMapped = makeFromSeq list.TConfig seqMapped
         struct (listMapped, list)
 
+    /// Filter the elements of a STList.
     let filter pred list =
         let list = validate list
         let seqFiltered = Seq.filter pred list.ImpList
         let listFiltered = makeFromSeq list.TConfig seqFiltered
         struct (listFiltered, list)
 
+    /// Reverse the elements of a STList.
     let rev list =
         let list = validate list
         let seqReversed = Seq.rev list.ImpList
         let listReversed = makeFromSeq list.TConfig seqReversed
         struct (listReversed, list)
 
-    let sortWith comparison list =
+    /// Sort the elements of a STList with the given comparer function.
+    let sortWith comparer list =
         let list = validate list
-        let seqSorted = Seq.sortWith comparison list.ImpList
+        let seqSorted = Seq.sortWith comparer list.ImpList
         let listSorted = makeFromSeq list.TConfig seqSorted
         struct (listSorted, list)
 
+    /// Sort the elements of a STList with the given by function.
     let sortBy by list =
         let list = validate list
         let seqSorted = Seq.sortBy by list.ImpList
         let listSorted = makeFromSeq list.TConfig seqSorted
         struct (listSorted, list)
 
+    /// Sort the elements of a STList by their natural order.
     let sort list =
         let list = validate list
         let seqSorted = Seq.sort list.ImpList
         let listSorted = makeFromSeq list.TConfig seqSorted
         struct (listSorted, list)
 
+    /// Fold over the elements of a STList.
     let fold folder state list =
         let struct (seq, list) = toSeq list
         let folded = Seq.fold folder state seq
         struct (folded, list)
 
+    /// Convert option elements to definite elements.
     let definitize list =
         let listMapped = filter Option.isSome list |> fst'
         map Option.get listMapped
 
+    /// Create a STList from a STList of STList of values.
     let makeFromLists config lists =
         // OPTIMIZATION: elides building of avoidable transactions.
         let listsAsSeq = toSeq lists |> fst'
@@ -241,23 +271,25 @@ module STList =
         for list in listsAsSeq do tempList.AddRange (toSeq list |> fst')
         makeFromSeq config tempList
 
-    /// Add all the given items to the list.
+    /// Add all the given items to a STList.
     let addMany (items : 'a seq) list =
         let list = validate list
         let lists = add list (makeFromArray list.TConfig [|makeFromSeq list.TConfig items|])
         makeFromLists list.TConfig lists
 
-    /// Remove all the given items from the list.
+    /// Remove all the given items from a STList.
     let removeMany items list =
         Seq.fold (flip remove) list items
 
-    /// Make a STList with a single item.
+    /// Make a STList with a single element.
     let singleton<'a> config (item : 'a) =
         makeFromSeq config [item]
 
+/// A segmented list that supports transaction-based rewinding.
 type 'a STList = 'a STList.STList
 
 [<AutoOpen>]
 module STListBuilder =
 
+    /// Builds a STList.
     let tlist<'a> = TExprBuilder<'a STList> ()
