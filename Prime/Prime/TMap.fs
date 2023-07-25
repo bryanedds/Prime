@@ -187,7 +187,7 @@ module TMap =
     let removeMany keys map =
         Seq.fold (flip remove) map keys
 
-    /// Convert a sequence of keys and values to a UMap.
+    /// Convert a sequence of keys and values to a TMap.
     let ofSeq comparer config pairs =
         Seq.fold
             (fun map (key, value) -> add key value map)

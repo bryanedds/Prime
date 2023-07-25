@@ -178,14 +178,14 @@ module STSet =
             (makeEmpty comparer config)
             values
 
-    /// Convert a STSet to a seq. Note that entire set is iterated eagerly since the underlying HashMap could
+    /// Convert a STSet to a seq. Note that entire set is iterated eagerly since the underlying SHashMap could
     /// otherwise opaquely change during iteration.
     let toSeq set =
         let set = validate set
         let seq = set.HashSet |> Array.ofSeq :> 'a seq
         struct (seq, set)
 
-    /// Convert a STSet to a HashSet.
+    /// Convert a STSet to an SHashSet.
     let toHashSet set =
         let set = validate set
         let result = SHashSet.makeFromSegmentedHashSet set.HashSet

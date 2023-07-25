@@ -5,8 +5,6 @@ namespace Prime
 open System
 open System.Collections.Generic
 
-// TODO: document this!
-
 [<RequireQualifiedAccess>]
 module STMap =
 
@@ -15,6 +13,7 @@ module STMap =
         | Remove of remove : 'k
         | Clear
 
+    /// A hashing map that supports transaction-based rewinding.
     type [<ReferenceEquality>] STMap<'k, 'v> =
         private
             { mutable STMapOpt : STMap<'k, 'v>
@@ -78,6 +77,7 @@ module STMap =
         then validate2 map
         else map
 
+    /// Create an STMap containing the given sequence of entries.
     let makeFromSeq<'k, 'v> (comparer : 'k IEqualityComparer) config (entries : ('k * 'v) seq) =
         if TConfig.isFunctional config then 
             let dict = SDictionary.ofSeq comparer entries
@@ -99,15 +99,19 @@ module STMap =
               Logs = []
               LogsLength = 0 }
 
+    /// Create an empty STMap.
     let makeEmpty<'k, 'v> comparer config =
         makeFromSeq<'k, 'v> comparer config Seq.empty
         
+    /// Get the comparer function used to determine key uniqueness in an STMap.
     let getComparer map =
         struct (map.Dict.Comparer, map)
 
+    /// Get the semantic configuration of the TSet.
     let getConfig map =
         struct (map.TConfig, map)
 
+    /// Add an entry to an STMap.
     let add key value map =
         if TConfig.isFunctional map.TConfig then
             update (fun map ->
@@ -117,6 +121,7 @@ module STMap =
                 map
         else map.Dict.[key] <- value; map
 
+    /// Remove any entry with a matching key from an STMap.
     let remove key map =
         if TConfig.isFunctional map.TConfig then
             update (fun map ->
@@ -126,6 +131,7 @@ module STMap =
                 map
         else map.Dict.Remove key |> ignore; map
 
+    /// Remove all elements from an STMap.
     let clear map =
         if TConfig.isFunctional map.TConfig then
             update (fun map ->
@@ -135,47 +141,60 @@ module STMap =
                 map
         else map.Dict.Clear (); map
 
+    /// Check that an STMap has no entries.
     let isEmpty map =
         let map = validate map
         struct (map.Dict.Count = 0, map)
 
+    /// Check that an STMap has one or more entries.
     let notEmpty map =
         mapFst' not (isEmpty map)
 
-    /// Get the length of the map (constant-time).
+    /// Get the length of an STMap (constant-time).
     let length map =
         let map = validate map
         struct (map.Dict.Count, map)
 
+    /// Attempt to get the value with the given key.
     let tryFind key map =
         let map = validate map
         match map.Dict.TryGetValue key with
         | (true, value) -> struct (Some value, map)
         | (false, _) -> struct (None, map)
 
+    /// Attempt to get the value with the given key.
     let tryGetValue (key, map, valueRef : _ outref) =
         let map = validate map
         let found = map.Dict.TryGetValue (key, &valueRef)
         struct (found, map)
 
+    /// Find the given keyed value or raise a KeyNotFoundException.
     let find key map =
         let map = validate map
         struct (map.Dict.[key], map)
 
+    /// Check that an STMap contains the given key.
     let containsKey key map =
         match tryFind key map with
         | struct (Some _, map) -> struct (true, map)
         | struct (None, map) -> struct (false, map)
 
-    /// Add all the given entries to the map.
+    /// Add all the given entries to an STMap.
     let addMany entries map =
         Seq.fold (flip (uncurry add)) map entries
 
-    /// Remove all values with the given keys from the map.
+    /// Remove all values with the given keys from an STMap.
     let removeMany keys map =
         Seq.fold (flip remove) map keys
 
-    /// Convert a STMap to a seq. Note that entire map is iterated eagerly since the underlying
+    /// Convert a sequence of keys and values to an STMap.
+    let ofSeq comparer config pairs =
+        Seq.fold
+            (fun map (key, value) -> add key value map)
+            (makeEmpty comparer config)
+            pairs
+
+    /// Convert an STMap to a seq. Note that entire map is iterated eagerly since the underlying
     /// SDictionary could otherwise opaquely change during iteration.
     let toSeq map =
         let map = validate map
@@ -186,35 +205,41 @@ module STMap =
             seq<'k * 'v>
         struct (seq, map)
 
-    /// Convert a STMap to a SDictionary.
+    /// Convert an STMap to a SDictionary.
     let toDict map =
         let dict = validate map
         let result = SDictionary.makeFromSegmentedDictionary map.Dict
         struct (result, dict)
 
+    /// Fold over the entries of an STMap.
     let fold folder state map =
         let struct (seq, map) = toSeq map
         let result = Seq.fold (folder >> uncurry) state seq
         struct (result, map)
 
+    /// Map over the entries of an STMap.
     let map mapper map =
         fold
             (fun map key value -> add key (mapper value) map)
             (makeEmpty map.Dict.Comparer map.TConfig)
             map
 
+    /// Filter the entries of an STMap.
     let filter pred map =
         fold
             (fun state k v -> if pred k v then add k v state else state)
             (makeEmpty map.Dict.Comparer map.TConfig)
             map
 
+    /// Make an STMap with a single entry.
     let singleton<'k, 'v> comparer config (key : 'k) (value : 'v) =
         makeFromSeq comparer config [(key, value)]
 
+/// A hashing map that supports transaction-based rewinding.
 type STMap<'k, 'v> = STMap.STMap<'k, 'v>
 
 [<AutoOpen>]
 module STMapBuilder = 
 
+    /// Build an STMap.
     let tmap<'k, 'v> = TExprBuilder<STMap<'k, 'v>> ()
