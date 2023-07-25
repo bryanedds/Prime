@@ -9,8 +9,6 @@ open Prime
 #nowarn "21"
 #nowarn "40"
 
-// TODO: document this!
-
 /// WHISP - A WHItespace-Significant Parser.
 [<RequireQualifiedAccess>]
 module Whisp =
