@@ -93,12 +93,12 @@ module SUSet =
             (makeEmpty comparer config)
             values
 
-    /// Convert a SUSet to a seq. Note that entire set is iterated eagerly since the underlying HashMap could
+    /// Convert a SUSet to a seq. Note that entire set is iterated eagerly since the underlying SHashSet could
     /// otherwise opaquely change during iteration.
     let toSeq (set : _ SUSet) =
         set :> _ seq
 
-    /// Convert a SUSet to a HashSet.
+    /// Convert a SUSet to a SHashSet.
     let toHashSet (set : _ SUSet) =
         let struct (hashSet, tset) = STSet.toHashSet set.Set
         set.Set <- tset
@@ -129,28 +129,28 @@ module SUSet =
         set2.Set <- tset2
         result
 
-    /// Construct a union HashSet.
+    /// Construct a union SHashSet.
     let unionFast set set2 =
         let struct (result, tset, tset2) = STSet.unionFast set.Set set2.Set
         set.Set <- tset
         set2.Set <- tset2
         result
 
-    /// Construct an intersection HashSet.
+    /// Construct an intersection SHashSet.
     let intersectFast set set2 =
         let struct (result, tset, tset2) = STSet.intersectFast set.Set set2.Set
         set.Set <- tset
         set2.Set <- tset2
         result
 
-    /// Construct a disjoint HashSet.
+    /// Construct a disjoint SHashSet.
     let disjointFast set set2 =
         let struct (result, tset, tset2) = STSet.disjointFast set.Set set2.Set
         set.Set <- tset
         set2.Set <- tset2
         result
 
-    /// Construct a difference HashSet.
+    /// Construct a difference SHashSet.
     let differenceFast set set2 =
         let struct (result, tset, tset2) = STSet.differenceFast set.Set set2.Set
         set.Set <- tset

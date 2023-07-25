@@ -178,7 +178,7 @@ module TSet =
             (makeEmpty comparer config)
             values
 
-    /// Convert a TSet to a seq. Note that entire set is iterated eagerly since the underlying HashMap could
+    /// Convert a TSet to a seq. Note that entire set is iterated eagerly since the underlying HashSet could
     /// otherwise opaquely change during iteration.
     let toSeq set =
         let set = validate set
