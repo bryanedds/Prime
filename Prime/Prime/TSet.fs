@@ -261,9 +261,11 @@ module TSet =
     let singleton<'a> comparer config (item : 'a) =
         makeFromSeq comparer config [item]
 
+/// A hashing set that supports transaction-based rewinding.
 type 'a TSet = 'a TSet.TSet
 
 [<AutoOpen>]
 module TSetBuilder =
 
-        let tset<'a> = TExprBuilder<'a TSet> ()
+    /// Build a TSet.
+    let tset<'a> = TExprBuilder<'a TSet> ()

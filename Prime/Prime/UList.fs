@@ -8,6 +8,7 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module UList =
 
+    /// A list that supports transaction-based rewinding with a more convenient interface than TList.
     type [<ReferenceEquality>] 'a UList =
         private
             { mutable List : 'a TList }
@@ -182,4 +183,5 @@ module UList =
     let singleton<'a> config item =
         { List = TList.singleton<'a> config item }
 
+/// A list that supports transaction-based rewinding with a more convenient interface than TList.
 type 'a UList = 'a UList.UList
