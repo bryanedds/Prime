@@ -176,7 +176,7 @@ module TList =
         let list = validate list
         struct (list.ImpList.Count, list)
 
-    /// Check that a value is contain in a TList.
+    /// Check that a value is contained in a TList.
     let contains value list =
         let list = validate list
         struct (list.ImpList.Contains value, list)
@@ -198,6 +198,17 @@ module TList =
         let list = validate list
         let result = List<'a> list.ImpList
         struct (result, list)
+
+    /// Make a TList from a sequence of values.
+    let ofSeq config values =
+        Seq.fold
+            (fun map value -> add value map)
+            (makeEmpty config)
+            values
+
+    /// Make a TList from an array of values.
+    let ofArray config (values : 'a array) =
+        ofSeq config values
 
     /// Map the elements of a TList.
     let map (mapper : 'a -> 'b) (list : 'a TList) =
