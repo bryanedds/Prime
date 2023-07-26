@@ -235,4 +235,10 @@ open System
 module Path =
 
     /// Simplify a path.
-    let Simplify (path : string) = Uri(Uri("http://example.com/"), path).AbsolutePath.TrimStart('/') |> Uri.UnescapeDataString
+    let Simplify (path : string) =
+        let simplified = Uri(Uri("http://example.com/"), path).AbsolutePath |> Uri.UnescapeDataString
+        if  simplified.Length > 0 &&
+            simplified.[0] = '/' &&
+            (Environment.OSVersion.Platform = PlatformID.Win32NT || Environment.OSVersion.Platform = PlatformID.Win32Windows) then
+            "." + simplified
+        else simplified
