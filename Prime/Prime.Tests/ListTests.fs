@@ -3,9 +3,9 @@
 
 namespace Prime.Tests
 open System
-open FsCheck.Xunit
-open Prime
 open System.Diagnostics
+open FsCheck.NUnit
+open Prime
 module ListTests =
 
     type ListAction<'v> = 
@@ -102,7 +102,7 @@ module ListTests =
         |> Gen.arrayOf
         |> Arb.fromGen
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     /// Proof of concept, we can delete this after we know test is correct
     let aryEqListsLookingBackwards (initialList : ResizeArray<int>) (actions : ListAction<int> []) =
 
@@ -131,26 +131,26 @@ module ListTests =
         let pred i = i % 2 = 0
         eqListsAfterSteps initialList testList actions UList.add UList.get UList.set ((+) 1) UList.map pred UList.filter eq lookBackwards
         
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let ulistEqList (initialList : ResizeArray<int>) (actions : ListAction<int>[]) =
         ulistEqLists initialList actions false 
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let ulistEqListsLookingBackwards (initialList : ResizeArray<int>) =
         let actionGen = getActionGen (fun _ -> true)
         Prop.forAll actionGen (fun actions -> ulistEqLists initialList actions true)
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let ulistEqListsLookingBackwardsAddOnly (initialList : ResizeArray<int>) =
         let actionGen = getActionGen (function ListAction.AddLast _ -> true | _ -> false)
         Prop.forAll actionGen (fun actions -> ulistEqLists initialList actions true)
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let ulistEqListsLookingBackwardsAddSet (initialList : ResizeArray<int>) =
         let actionGen = getActionGen (function ListAction.SetNthToNth (_, _) | ListAction.AddLast _ -> true | _ -> false)
         Prop.forAll actionGen (fun actions -> ulistEqLists initialList actions true)
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let ulistEqListsLookingBackwardsMapFilter (initialList : ResizeArray<int>) =
         let actionGen = getActionGen (function ListAction.MapIncrementFn _ | ListAction.FilterWithFn -> true | _ -> false)
         Prop.forAll actionGen (fun actions -> ulistEqLists initialList actions true)
@@ -161,26 +161,26 @@ module ListTests =
         let pred i = i % 2 = 0
         eqListsAfterSteps initialList testList actions SUList.add SUList.get SUList.set ((+) 1) SUList.map pred SUList.filter eq lookBackwards 
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let sulistEqList (initialList : ResizeArray<int>) (actions : ListAction<int>[]) =
         sulistEqLists initialList actions false 
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let sulistEqListsLookingBackwards (initialList : ResizeArray<int>) =
         let actionGen = getActionGen (fun _ -> true)
         Prop.forAll actionGen (fun actions -> sulistEqLists initialList actions true)
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let sulistEqListsLookingBackwardsAddOnly (initialList : ResizeArray<int>) =
         let actionGen = getActionGen (function ListAction.AddLast _ -> true | _ -> false)
         Prop.forAll actionGen (fun actions -> sulistEqLists initialList actions true)
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let sulistEqListsLookingBackwardsAddSet (initialList : ResizeArray<int>) =
         let actionGen = getActionGen (function ListAction.SetNthToNth (_, _) | ListAction.AddLast _ -> true | _ -> false)
         Prop.forAll actionGen (fun actions -> sulistEqLists initialList actions true)
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let sulistEqListsLookingBackwardsMapFilter (initialList : ResizeArray<int>) =
         let actionGen = getActionGen (function ListAction.MapIncrementFn _ | ListAction.FilterWithFn -> true | _ -> false)
         Prop.forAll actionGen (fun actions -> sulistEqLists initialList actions true)

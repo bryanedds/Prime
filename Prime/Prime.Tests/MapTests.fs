@@ -4,7 +4,7 @@
 namespace Prime.Tests
 open System
 open FsCheck
-open FsCheck.Xunit
+open FsCheck.NUnit
 open Prime
 module MapTests =
 
@@ -55,19 +55,19 @@ module MapTests =
 
         List.forall2 eq testMaps fsmaps
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let hmapsEqualFsmapsAfterSteps (initialMap : Map<int, string>) (actions : MapAction<int, string>[]) =
         let testMap = HMap.ofSeq (Map.toSeq initialMap)
         let eq (hmap : HMap<_,_>) (fsmap : Map<_,_>) = Map.ofSeq hmap = fsmap
         eqMapsAfterSteps initialMap testMap actions HMap.add HMap.remove HMap.fold (+) eq
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let umapsEqualFsmapsAfterSteps (initialMap : Map<int, string>) (actions : MapAction<int, string>[]) =
         let testMap = UMap.makeFromSeq HashIdentity.Structural Functional (Map.toSeq initialMap)
         let eq (umap : UMap<_,_>) (fsmap : Map<_,_>) = Map.ofSeq umap = fsmap
         eqMapsAfterSteps initialMap testMap actions UMap.add UMap.remove UMap.fold (+) eq
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let sumapsEqualFsmapsAfterSteps (initialMap : Map<int, string>) (actions : MapAction<int, string>[]) =
         let testMap = SUMap.makeFromSeq HashIdentity.Structural Functional (Map.toSeq initialMap)
         let eq (umap : SUMap<_,_>) (fsmap : Map<_,_>) = Map.ofSeq umap = fsmap

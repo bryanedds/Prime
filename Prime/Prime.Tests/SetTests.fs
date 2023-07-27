@@ -2,9 +2,9 @@
 // Copyright (C) Bryan Edds, 2013-2023.
 
 namespace Prime.Tests
-open FsCheck.Xunit
-open Prime
 open System.Diagnostics
+open FsCheck.NUnit
+open Prime
 module SetTests =
 
     type SetAction<'a when 'a : comparison> = 
@@ -57,19 +57,19 @@ module SetTests =
                 (List.rev testMaps)
         success
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let hsetsEqSetsAfterSteps (initialSet : Set<int>) (actions : SetAction<int>[]) =
         let testSet = HSet.ofSeq initialSet
         let eq (hset : HSet<_>) (fsset : Set<_>) = Set.ofSeq hset = fsset
         eqSetsAfterSteps initialSet testSet actions HSet.add HSet.remove HSet.fold (+) eq
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let usetsEqSetsAfterSteps (initialSet : Set<int>) (actions : SetAction<int>[]) =
         let testSet = USet.makeFromSeq HashIdentity.Structural Functional initialSet
         let eq (uset : USet<_>) (fsset : Set<_>) = Set.ofSeq uset = fsset
         eqSetsAfterSteps initialSet testSet actions USet.add USet.remove USet.fold (+) eq
 
-    [<Property>]
+    [<Property (QuietOnSuccess = true)>]
     let susetsEqSetsAfterSteps (initialSet : Set<int>) (actions : SetAction<int>[]) =
         let testSet = SUSet.makeFromSeq HashIdentity.Structural Functional initialSet
         let eq (uset : SUSet<_>) (fsset : Set<_>) = Set.ofSeq uset = fsset

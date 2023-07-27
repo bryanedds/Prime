@@ -3,7 +3,7 @@
 
 namespace Prime.Tests
 open System
-open Xunit
+open NUnit.Framework
 open Prime
 module RandTests =
 
@@ -16,18 +16,21 @@ module RandTests =
             rand <- rand'
             yield n]
 
-    let [<Fact>] nextDoubleIsInRange () =
+    let [<Test>] nextDoubleIsInRange () =
         let samples = makeSamples Rand.nextDouble
         let avg = List.average samples
-        Assert.InRange (avg, 0.49, 0.51)
+        Assert.Greater (avg, 0.49)
+        Assert.Less (avg, 0.51)
 
-    let [<Fact>] nextSingleIsInRange () =
+    let [<Test>] nextSingleIsInRange () =
         let samples = makeSamples Rand.nextSingle
         let avg = List.average samples
-        Assert.InRange (avg, 0.49f, 0.51f)
+        Assert.Greater (avg, 0.49)
+        Assert.Less (avg, 0.51)
 
-    let [<Fact>] nextIntIsInRange () =
+    let [<Test>] nextIntIsInRange () =
         let samples = makeSamples Rand.nextInt
         let sampleDoubles = List.map double samples
         let avg = List.average sampleDoubles
-        Assert.InRange (avg, 1003741823.0, 1143741823.0)
+        Assert.Greater (avg, 1003741823.0)
+        Assert.Less (avg, 1143741823.0)

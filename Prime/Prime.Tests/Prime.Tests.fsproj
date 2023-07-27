@@ -21,6 +21,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Compile Include="NUnit.fs" />
 		<Compile Include="ListTests.fs" />
 		<Compile Include="MapTests.fs" />
 		<Compile Include="SetTests.fs" />
@@ -33,19 +34,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="FsCheck.Xunit" Version="2.16.5" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
-		<PackageReference Include="xunit" Version="2.4.2" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-		<PackageReference Include="coverlet.collector" Version="3.1.2">
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
 		<PackageReference Include="Csv" Version="1.0.58" />
 		<PackageReference Include="FParsec" Version="1.0.3" />
+		<PackageReference Include="FsCheck" Version="2.16.6" />
+		<PackageReference Include="FsCheck.NUnit" Version="2.16.6" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
+		<PackageReference Include="NUnit" Version="3.13.3" />
+		<PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
 	</ItemGroup>
 
 	<ItemGroup>

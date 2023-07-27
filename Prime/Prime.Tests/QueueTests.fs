@@ -3,12 +3,12 @@
 
 namespace Prime.Tests
 open System
-open Xunit
+open NUnit.Framework
 open Prime
 module QueueTests =
 
-    let [<Fact>] canSymbolizeQueue () =
+    let [<Test>] canSymbolizeQueue () =
         let value = Queue.ofSeq [0; 1; 2]
         let symbol = valueToSymbol value
         let value' = symbolToValue<int Queue> symbol
-        Assert.Equal<int Queue> (value, value')
+        Assert.Equal (value, value')

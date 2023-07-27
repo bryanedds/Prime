@@ -3,7 +3,7 @@
 
 namespace Prime.Tests
 open System
-open Xunit
+open NUnit.Framework
 open Prime
 
 type [<StructuralEquality; StructuralComparison>] IntIntRecord =
@@ -34,109 +34,109 @@ type [<StructuralEquality; StructuralComparison>] ComplexUnionAbstract =
 
 module SymbolTests =
     
-    let [<Fact>] canConvertStringToAtom () =
+    let [<Test>] canConvertStringToAtom () =
         let converter = SymbolicConverter (true, None, typeof<Symbol>)
         match converter.ConvertFromString "atom" :?> Symbol with
-        | Atom (str, _) -> Assert.Equal<string> ("atom", str)
+        | Atom (str, _) -> Assert.Equal ("atom", str)
         | _ -> Assert.True false
     
-    let [<Fact>] canConvertStringToNumber () =
+    let [<Test>] canConvertStringToNumber () =
         let converter = SymbolicConverter (true, None, typeof<Symbol>)
         match converter.ConvertFromString "0" :?> Symbol with
-        | Number (str, _) -> Assert.Equal<string> ("0", str)
+        | Number (str, _) -> Assert.Equal ("0", str)
         | _ -> Assert.True false
     
-    let [<Fact>] canConvertStringToNegativeNumber () =
+    let [<Test>] canConvertStringToNegativeNumber () =
         let converter = SymbolicConverter (true, None, typeof<Symbol>)
         match converter.ConvertFromString "-1" :?> Symbol with
-        | Number (str, _) -> Assert.Equal<string> ("-1", str)
+        | Number (str, _) -> Assert.Equal ("-1", str)
         | _ -> Assert.True false
     
-    let [<Fact>] canConvertStringToString () =
+    let [<Test>] canConvertStringToString () =
         let converter = SymbolicConverter (true, None, typeof<Symbol>)
         match converter.ConvertFromString "\"str\"" :?> Symbol with
-        | Text (str, _) -> Assert.Equal<string> ("str", str)
+        | Text (str, _) -> Assert.Equal ("str", str)
         | _ -> Assert.True false
 
-    let [<Fact>] canConvertStringToInt () =
+    let [<Test>] canConvertStringToInt () =
         let value = scvalue<int> "0"
         Assert.Equal (0, value)
 
-    let [<Fact>] canConvertStringToNone () =
+    let [<Test>] canConvertStringToNone () =
         let value = scvalue<string option> "None"
-        Assert.Equal<string option> (None, value)
+        Assert.Equal (None, value)
 
-    let [<Fact>] canConvertStringToSomeString () =
+    let [<Test>] canConvertStringToSomeString () =
         let value = scvalue<string option> "[Some string]"
-        Assert.Equal<string option> (Some "string", value)
+        Assert.Equal (Some "string", value)
 
-    let [<Fact>] canConvertStringToRightString () =
+    let [<Test>] canConvertStringToRightString () =
         let value = scvalue<Either<unit, string>> "[Right string]"
-        Assert.Equal<Either<unit, string>> (Right "string", value)
+        Assert.Equal (Right "string", value)
 
-    let [<Fact>] canConvertStringToIntList () =
+    let [<Test>] canConvertStringToIntList () =
         let value = scvalue<int list> "[0 1]"
-        Assert.Equal<int list> ([0; 1], value)
+        Assert.Equal ([0; 1], value)
 
-    let [<Fact>] canConvertStringToIntListList () =
+    let [<Test>] canConvertStringToIntListList () =
         let value = scvalue<int list list> "[[]]"
-        Assert.Equal<int list list> ([[]], value)
+        Assert.Equal ([[]], value)
 
-    let [<Fact>] canConvertStringToIntListListEmpty () =
+    let [<Test>] canConvertStringToIntListListEmpty () =
         let value = scvalue<int list list> "[]"
-        Assert.Equal<int list list> ([], value)
+        Assert.Equal ([], value)
 
-    let [<Fact>] canConvertStringToTuple () =
+    let [<Test>] canConvertStringToTuple () =
         let value = scvalue<int * int> "[0 1]"
         Assert.Equal ((0, 1), value)
 
-    let [<Fact>] canConvertStringToTupleTuple () =
+    let [<Test>] canConvertStringToTupleTuple () =
         let value = scvalue<(int * int) * (int * int)> "[[0 1] [2 3]]"
         Assert.Equal (((0, 1), (2, 3)), value)
 
-    let [<Fact>] canConvertStringToRecord () =
+    let [<Test>] canConvertStringToRecord () =
         let value = scvalue<IntIntRecord> "[0 1]"
         Assert.Equal ({ Int = 0; Int2 = 1 }, value)
 
-    let [<Fact>] canConvertStringToRecordAbstract () =
+    let [<Test>] canConvertStringToRecordAbstract () =
         let value = scvalue<IntIntRecordAbstract> "[0 1]"
         Assert.Equal (IntIntRecordAbstract.make 0 1, value)
 
-    let [<Fact>] canConvertStringToExpandedRecord () =
+    let [<Test>] canConvertStringToExpandedRecord () =
         let value = scvalue<IntIntRecordExpanded> "[[IntX 0] [IntX2 1]]"
         Assert.Equal ({ IntX = 0; IntX2 = 1 }, value)
 
-    let [<Fact>] canConvertStringToSimpleUnion () =
+    let [<Test>] canConvertStringToSimpleUnion () =
         let value = scvalue<SimpleUnion> "SimpleUnion"
         Assert.Equal (SimpleUnion, value)
 
-    let [<Fact>] canConvertStringToComplexUnion () =
+    let [<Test>] canConvertStringToComplexUnion () =
         let value = scvalue<ComplexUnion> "[ComplexUnion 0]"
         Assert.Equal (ComplexUnion 0, value)
 
-    let [<Fact>] canConvertStringToComplexUnionAbstract () =
+    let [<Test>] canConvertStringToComplexUnionAbstract () =
         let value = scvalue<ComplexUnionAbstract> "[ComplexUnionAbstract 0]"
         Assert.Equal (ComplexUnionAbstract 0, value)
 
-    let [<Fact>] canConvertStringToComplexUnionTuple () =
+    let [<Test>] canConvertStringToComplexUnionTuple () =
         let value = scvalue<ComplexUnion * ComplexUnion> "[[ComplexUnion 0] [ComplexUnion2 1 2]]"
-        // each tuple element must be tested individually as Assert.Equal doesn't seem to support tuple unions...
+        // each tuple element must be tested individually as Assert.AreEqual doesn't seem to support tuple unions...
         Assert.Equal (ComplexUnion 0, fst value)
         Assert.Equal (ComplexUnion2 (1, 2), snd value)
 
-    let [<Fact>] canConvertStringToMapIntInt () =
+    let [<Test>] canConvertStringToMapIntInt () =
         let value = scvalue<Map<int, int>> "[[0 1]]"
         Assert.Equal (1, Map.find 0 value)
 
-    let [<Fact>] canConvertFromRecordAbstractToString () =
+    let [<Test>] canConvertFromRecordAbstractToString () =
         let value = scvalue<IntIntRecordAbstract> "[1 2]"
         Assert.Equal (IntIntRecordAbstract.make 1 2, value)
 
-    let [<Fact>] canConvertFromUnionAbstractToString () =
+    let [<Test>] canConvertFromUnionAbstractToString () =
         let value = scvalue<ComplexUnionAbstract> "[ComplexUnionAbstract 1]"
         Assert.Equal (ComplexUnionAbstract.make 1, value)
 
-    let [<Fact>] canPrettyPrintGuid () =
+    let [<Test>] canPrettyPrintGuid () =
         let prettyPrinter = (SyntaxAttribute.defaultValue typeof<Guid>).PrettyPrinter
         let symbolStr = "[5ec8734f-6a3d-4472-b86a-78125d238dc2]"
         let prettyStr = PrettyPrinter.prettyPrint symbolStr prettyPrinter
