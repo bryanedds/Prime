@@ -20,3 +20,15 @@ module ValueOption =
         match opt with
         | ValueSome a -> Some a
         | ValueNone -> None
+
+[<AutoOpen>]
+module ValueOptionExtension =
+
+    /// ValueOption extension methods.
+    type 'a ValueOption with
+
+        /// The value of a voption or the given default value.
+        member this.Default defaultValue =
+            match this with
+            | ValueSome value -> value
+            | ValueNone -> defaultValue

@@ -32,3 +32,15 @@ module Option =
         match opt with
         | Some _ -> 1
         | None -> 0
+
+[<AutoOpen>]
+module OptionExtension =
+
+    /// Option extension methods.
+    type 'a Option with
+
+        /// The value of an option or the given default value.
+        member this.Default defaultValue =
+            match this with
+            | Some value -> value
+            | None -> defaultValue

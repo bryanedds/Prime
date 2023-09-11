@@ -12,14 +12,14 @@ module Rand =
         private
             { RandState : uint64 }
 
+    /// The default seed state for rand.
+    /// NOTE: number generated via http://www.random.org/bytes/
+    let [<Literal>] private DefaultSeedState = 0xa529cb6f5f0385edUL
+
     /// Get the sample value used to generate the current random value.
     let private sample rand =
         let result = rand.RandState * 2685821657736338717UL
         if result = UInt64.MaxValue then 0UL else result
-
-    /// The default seed state for rand.
-    /// NOTE: number generated via http://www.random.org/bytes/
-    let DefaultSeedState = 0xa529cb6f5f0385edUL
 
     /// Advance the state of rand, thus yielding a new outcome.
     let advance rand =

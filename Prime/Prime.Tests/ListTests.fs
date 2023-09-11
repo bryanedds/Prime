@@ -159,7 +159,7 @@ module ListTests =
         let testList = SUList.addMany initialList (SUList.makeEmpty Functional)
         let eq (ulist : SUList<_>) (fslist : _ ResizeArray) = List.ofSeq ulist = List.ofSeq fslist
         let pred i = i % 2 = 0
-        eqListsAfterSteps initialList testList actions SUList.add SUList.get SUList.set ((+) 1) SUList.map pred SUList.filter eq lookBackwards 
+        eqListsAfterSteps initialList testList actions SUList.add SUList.get SUList.set ((+) 1) SUList.map pred SUList.filter eq lookBackwards
 
     [<Property (QuietOnSuccess = true)>]
     let sulistEqList (initialList : ResizeArray<int>) (actions : ListAction<int>[]) =
