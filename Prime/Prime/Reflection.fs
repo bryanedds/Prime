@@ -125,7 +125,7 @@ module Reflection =
     let isRuntimeProperty property =
         property.PropertyValue :? DesignerProperty ||
         property.PropertyValue :? ComputedProperty
-    
+
     /// Check that a UMap contains any runtime properties.
     let containsRuntimeProperties (properties : (string * Property) seq) =
         properties |> Seq.exists (snd >> isRuntimeProperty)

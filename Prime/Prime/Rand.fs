@@ -7,14 +7,14 @@ open System
 [<RequireQualifiedAccess>]
 module Rand =
 
+    /// The default seed state for rand.
+    /// NOTE: number generated via http://www.random.org/bytes/
+    let [<Literal>] DefaultSeedState = 0xa529cb6f5f0385edUL
+
     /// An immutable random number generator using the xorshift* algorithm.
     type Rand =
         private
             { RandState : uint64 }
-
-    /// The default seed state for rand.
-    /// NOTE: number generated via http://www.random.org/bytes/
-    let [<Literal>] private DefaultSeedState = 0xa529cb6f5f0385edUL
 
     /// Get the sample value used to generate the current random value.
     let private sample rand =
