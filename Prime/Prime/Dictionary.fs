@@ -51,6 +51,7 @@ module DictionaryExtension =
     type Dictionary<'k, 'v> with
 
         /// Try to add a keyed value, returning false if the key is already present.
+        /// TODO: in .NET 8, this function will exist and involve only a single look-up, allowing us to remove this.
         member inline this.TryAdd (key, value) =
             if not (this.ContainsKey key)
             then this.Add (key, value); true
