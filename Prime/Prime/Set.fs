@@ -5,7 +5,7 @@ namespace Prime
 open System
 open Prime
 
-/// Alternative type of set when its name is reified.
+/// Alternative alias for set when its name is reified.
 type FSharpSet<'a when 'a : comparison> = Set<'a>
 
 [<RequireQualifiedAccess>]

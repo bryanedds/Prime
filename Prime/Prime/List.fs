@@ -6,7 +6,7 @@ open System
 open System.Collections.Generic
 open Prime
 
-/// Alternative type of list when its name is reified.
+/// Alternative alias for list when its name is reified.
 type 'a FSharpList = 'a list
 
 [<RequireQualifiedAccess>]

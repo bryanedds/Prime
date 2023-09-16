@@ -9,6 +9,10 @@ open System.Reflection
 open FSharp.Reflection
 open Prime
 
+// TODO: implement symbolic conversion for (S)UList, (S)USet, and (S)UMap.
+// TODO: also for Queue and Deque.
+// TODO: also for OSet and OMap.
+
 /// Expands a record so that its fields are named, preserving field names exactly when specified.
 type SymbolicExpansionAttribute (prettifyFieldNames : bool) =
     inherit Attribute ()

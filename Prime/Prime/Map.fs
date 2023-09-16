@@ -5,7 +5,7 @@ namespace Prime
 open System.Collections.Generic
 open Prime
 
-/// Alternative type of map when it is reified to code.
+/// Alternative alias for map when it is reified to code.
 type FSharpMap<'k, 'v when 'k : comparison> = Map<'k, 'v>
 
 [<RequireQualifiedAccess>]

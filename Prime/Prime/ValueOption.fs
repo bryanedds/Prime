@@ -3,7 +3,7 @@
 
 namespace Prime
 
-/// Alternative type of option when its name is reified.
+/// Alternative alias for option when its name is reified.
 type 'a FSharpValueOption = 'a voption
 
 [<RequireQualifiedAccess>]
