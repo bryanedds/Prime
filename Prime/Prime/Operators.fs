@@ -226,19 +226,3 @@ module Operators =
 
     /// Sequences two functions like Haskell ($).
     let inline ($) f g = f g
-
-namespace System.IO
-open System
-
-// TODO: Find a better place for this?
-[<RequireQualifiedAccess>]
-module Path =
-
-    /// Simplify a path.
-    let Simplify (path : string) =
-        let simplified = Uri(Uri("http://example.com/"), path).AbsolutePath |> Uri.UnescapeDataString
-        if  simplified.Length > 0 &&
-            simplified.[0] = '/' &&
-            (Environment.OSVersion.Platform = PlatformID.Win32NT || Environment.OSVersion.Platform = PlatformID.Win32Windows) then
-            "." + simplified
-        else simplified
