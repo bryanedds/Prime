@@ -5,7 +5,6 @@ namespace Prime
 open System
 open System.Collections.Generic
 open System.Diagnostics
-open Prime
 module Timings =
 
     /// The number of samples taken for each timing.

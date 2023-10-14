@@ -5,7 +5,6 @@ namespace Prime
 open System
 open System.Reflection
 open System.Text
-open Prime
 
 /// Pretty prints Symbols, as well as strings by converting them to Symbols.
 type [<StructuralEquality; StructuralComparison>] PrettyPrinter =

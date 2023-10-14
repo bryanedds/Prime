@@ -5,7 +5,6 @@ namespace Prime
 open System
 open System.Collections.Generic
 open FParsec
-open Prime
 #nowarn "21"
 #nowarn "40"
 

@@ -7,7 +7,6 @@ open System.Globalization
 open System.Text
 open FParsec
 open Csv
-open Prime
 
 /// The source from which a symbol was read.
 type [<StructuralEquality; StructuralComparison; Struct>] SymbolSource =

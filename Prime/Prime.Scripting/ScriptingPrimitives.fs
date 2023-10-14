@@ -3,8 +3,7 @@
 
 namespace Prime
 open System
-open Prime
-open Prime.Scripting
+open Scripting
 module ScriptingPrimitives =
 
     let evalSinglet fn fnName argsEvaled originOpt world =

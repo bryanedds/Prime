@@ -4,7 +4,6 @@
 namespace Prime
 open System
 open System.Collections.Generic
-open Prime
 
 /// Alternative alias for list when its name is reified.
 type 'a FSharpList = 'a list

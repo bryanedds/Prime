@@ -7,7 +7,6 @@ open System.Collections.Generic
 open System.ComponentModel
 open System.Reflection
 open FSharp.Reflection
-open Prime
 
 // TODO: implement symbolic conversion for (S)UList, (S)USet, and (S)UMap.
 // TODO: also for Queue and Deque.

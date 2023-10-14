@@ -6,12 +6,11 @@ open System
 open System.Collections.Generic
 open System.Diagnostics
 open System.IO
-open Prime
-open Prime.Scripting
-open Prime.ScriptingUnary
-open Prime.ScriptingBinary
-open Prime.ScriptingMarshalling
-open Prime.ScriptingPrimitives
+open Scripting
+open ScriptingUnary
+open ScriptingBinary
+open ScriptingMarshalling
+open ScriptingPrimitives
 
 /// The context in which scripting takes place. Effectively a mix-in for the 'w type, where 'w is a type that
 /// represents the client program.

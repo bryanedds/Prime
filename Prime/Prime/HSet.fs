@@ -5,7 +5,6 @@ namespace Prime
 open System
 open System.Collections
 open System.Collections.Generic
-open Prime
 
 [<RequireQualifiedAccess>]
 module HSet =

@@ -4,7 +4,6 @@
 namespace Prime
 open System
 open System.Collections.Generic
-open Prime
 
 [<AutoOpen>]
 module SymbolicOperators =

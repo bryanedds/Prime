@@ -8,7 +8,6 @@ open System.ComponentModel
 open System.Diagnostics
 open System.Linq
 open FSharp.Reflection
-open Prime
 
 [<AutoOpen>]
 module Operators =

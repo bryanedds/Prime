@@ -3,7 +3,6 @@
 
 namespace Prime
 open System
-open Prime
 
 /// Alternative alias for set when its name is reified.
 type FSharpSet<'a when 'a : comparison> = Set<'a>

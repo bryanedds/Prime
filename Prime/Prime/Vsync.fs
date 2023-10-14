@@ -6,7 +6,6 @@ open System
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
-open Prime
 
 [<RequireQualifiedAccess>]
 module Async =

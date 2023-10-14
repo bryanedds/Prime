@@ -3,7 +3,6 @@
 
 namespace Prime
 open System.Collections.Generic;
-open Prime
 
 [<RequireQualifiedAccess>]
 module KeyedCache =

@@ -3,7 +3,6 @@
 
 namespace Prime
 open System
-open Prime
 
 [<RequireQualifiedAccess>]
 module Array =

@@ -6,8 +6,7 @@ open System
 open System.Collections.Generic
 open System.ComponentModel
 open FSharp.Reflection
-open Prime
-open Prime.Scripting
+open Scripting
 #nowarn "21"
 #nowarn "40"
 module ScriptingMarshalling =

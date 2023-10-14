@@ -3,7 +3,6 @@
 
 namespace Prime
 open System
-open Prime
 
 /// Haskell-style Either type.
 type [<StructuralEquality; StructuralComparison>] Either<'l, 'r> =

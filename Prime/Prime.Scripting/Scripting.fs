@@ -6,7 +6,6 @@ open System
 open System.Collections.Generic
 open System.ComponentModel
 open FSharp.Reflection
-open Prime
 module Scripting =
 
     type Pluggable =
