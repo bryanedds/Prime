@@ -27,7 +27,7 @@ module PrettyPrinter =
     type [<StructuralEquality; StructuralComparison>] private PrettySymbol =
         | PrettyAtom of bool * bool * bool * string * Symbol
         | PrettyNumber of string * Symbol
-        | PrettyString of string * Symbol
+        | PrettyText of string * Symbol
         | PrettyIndex of int * PrettySymbol * PrettySymbol
         | PrettyQuote of int * PrettySymbol
         | PrettySymbols of bool * bool * int * PrettySymbol list
@@ -51,7 +51,7 @@ module PrettyPrinter =
         match prettySymbol with
         | PrettyAtom _ -> 0
         | PrettyNumber _ -> 0
-        | PrettyString _ -> 0
+        | PrettyText _ -> 0
         | PrettyIndex _ -> 0
         | PrettyQuote (maxDepth, _) -> maxDepth
         | PrettySymbols (_, _, maxDepth, _) -> maxDepth
@@ -66,7 +66,7 @@ module PrettyPrinter =
                  str,
                  symbol)
         | Number (str, _) -> PrettyNumber (str, symbol)
-        | Text (str, _) -> PrettyString (str, symbol)
+        | Text (str, _) -> PrettyText (str, symbol)
         | Quote (quoted, _) ->
             let prettyQuoted = symbolToPrettySymbol quoted prettyPrinter
             let maxDepth = getMaxDepth prettyQuoted
@@ -122,7 +122,7 @@ module PrettyPrinter =
         match prettySymbol with
         | PrettyAtom (_, _, _, _, symbol)
         | PrettyNumber (_, symbol)
-        | PrettyString (_, symbol) -> Symbol.buildSymbol symbol stringBuilder
+        | PrettyText (_, symbol) -> Symbol.buildSymbol symbol stringBuilder
         | PrettyIndex (depth, prettyIndexer, prettyTarget) ->
             match prettyIndexer with
             | PrettyNumber _ ->
