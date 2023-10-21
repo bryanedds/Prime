@@ -44,7 +44,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Prime\Prime.fsproj" />
 		<ProjectReference Include="..\Prime.Scripting\Prime.Scripting.fsproj" />
 	</ItemGroup>
 
