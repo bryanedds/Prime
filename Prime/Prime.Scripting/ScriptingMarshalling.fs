@@ -76,12 +76,6 @@ module ScriptingMarshalling =
         | (Some key, Some value) -> Some (Tuple [|key; value|])
         | (_, _) -> None
 
-    and tryImportAddress (ty : Type) (value : obj) =
-        Some (String ((AddressConverter ty).ConvertToString value))
-
-    and tryImportRelation (ty : Type) (value : obj) =
-        Some (String ((RelationConverter ty).ConvertToString value))
-
     and tryImportOption tryImportExt (ty : Type) (value : obj) =
         let valueType = (ty.GetGenericArguments ()).[0]
         match Reflection.objToOption value with
@@ -157,8 +151,6 @@ module ScriptingMarshalling =
          (typeof<string>.Name, (fun _ _ (value : obj) -> match value with :? string as str -> Some (String str) | _ -> None))
          (typedefof<Guid>.Name, (fun _ ty value -> tryImportGuid ty value))
          (typedefof<KeyValuePair<_, _>>.Name, (fun tryImportExt ty value -> tryImportKeyValuePair tryImportExt ty value))
-         (typedefof<_ Address>.Name, (fun _ ty value -> tryImportAddress ty value))
-         (typedefof<_ Relation>.Name, (fun _ ty value -> tryImportRelation ty value))
          (typedefof<_ option>.Name, (fun tryImportExt ty value -> tryImportOption tryImportExt ty value))
          (typedefof<Either<_, _>>.Name, (fun tryImportExt ty value -> tryImportEither tryImportExt ty value))
          (typedefof<_ list>.Name, (fun tryImportExt ty value -> tryImportList tryImportExt ty value))
@@ -229,8 +221,8 @@ module ScriptingMarshalling =
             // it's an extension value
             | Some value -> Some value
 
-    and tryExportGuid (_ : Type) (address : Expr) =
-        match address with
+    and tryExportGuid (_ : Type) (guid : Expr) =
+        match guid with
         | String str | Keyword str -> Some ((GuidConverter ()).ConvertFromString str)
         | _ -> None
 
@@ -246,16 +238,6 @@ module ScriptingMarshalling =
                 | (Some fst, Some snd) -> Some (Reflection.objsToKeyValuePair fst snd pairType)
                 | (_, _) -> None
             | _ -> None
-        | _ -> None
-
-    and tryExportAddress (ty : Type) (address : Expr) =
-        match address with
-        | String str | Keyword str -> Some ((AddressConverter ty).ConvertFromString str)
-        | _ -> None
-
-    and tryExportRelation (ty : Type) (relation : Expr) =
-        match relation with
-        | String str | Keyword str -> Some ((RelationConverter ty).ConvertFromString str)
         | _ -> None
 
     and tryExportOption tryExportExt (ty : Type) (opt : Expr) =
@@ -355,8 +337,6 @@ module ScriptingMarshalling =
          (typeof<string>.Name, fun _ _ evaled -> match evaled with String value -> value :> obj |> Some | Keyword value -> value :> obj |> Some | _ -> None)
          (typedefof<Guid>.Name, fun _ ty evaled -> tryExportGuid ty evaled)
          (typedefof<KeyValuePair<_, _>>.Name, tryExportKvp)
-         (typedefof<_ Address>.Name, fun _ ty evaled -> tryExportAddress ty evaled)
-         (typedefof<_ Relation>.Name, fun _ ty evaled -> tryExportRelation ty evaled)
          (typedefof<_ option>.Name, tryExportOption)
          (typedefof<Either<_, _>>.Name, tryExportEither)
          (typedefof<_ list>.Name, tryExportList)
