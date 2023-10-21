@@ -74,11 +74,11 @@
 		<Compile Include="SOSet.fs" />
 		<Compile Include="SOMap.fs" />
 		<Compile Include="Vsync.fs" />
+		<Compile Include="Whisp.fs" />
 		<Compile Include="Reflection.fs" />
+		<Compile Include="Xtension.fs" />
 		<Compile Include="SymbolicConverter.fs" />
 		<Compile Include="SymbolicOperators.fs" />
-		<Compile Include="Whisp.fs" />
-		<Compile Include="Xtension.fs" />
 		<Compile Include="Timings.fs" />
 		<Compile Include="AssemblyInfo.fs" />
 		<None Include="Interactive.fsx" />
