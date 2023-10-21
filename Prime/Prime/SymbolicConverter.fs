@@ -24,7 +24,7 @@ type [<StructuralEquality; StructuralComparison>] SymbolicCompression<'a, 'b> =
     | SymbolicCompressionB of 'b
 
 /// Converts values to and from symbols and symbolic strings.
-type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType : Type) =
+type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType : Type, ?toSymbolMemoOpt : Dictionary<obj, Symbol>, ?ofSymbolMemoOpt : Dictionary<Symbol, obj>) =
     inherit TypeConverter ()
 
     let padWithDefaultsInternal (fieldTypes : Type array) (values : obj array) =
@@ -40,7 +40,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
     let padWithDefaults (fieldInfos : PropertyInfo array) (values : obj array) =
         padWithDefaultsInternal (Array.map (fun (info : PropertyInfo) -> info.PropertyType) fieldInfos) values
 
-    let rec toSymbol (sourceType : Type) (source : obj) =
+    let rec toSymbolInternal (sourceType : Type) (source : obj) =
         match sourceType.TryGetCustomTypeConverter () with
         | Some typeConverter ->
 
@@ -196,11 +196,22 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     then typeConverter.ConvertTo (source, typeof<Symbol>) :?> Symbol
                     else (typeConverter.ConvertTo (source, typeof<string>) :?> string, ValueNone) |> Atom
 
+    and toSymbol sourceType source =
+        match toSymbolMemoOpt with
+        | Some toSymbolMemo when notNull source ->
+            match toSymbolMemo.TryGetValue source with
+            | (false, _) ->
+                let symbol = toSymbolInternal sourceType source
+                toSymbolMemo.[source] <- symbol
+                symbol
+            | (true, symbol) -> symbol
+        | _ -> toSymbolInternal sourceType source
+
     let toString (sourceType : Type) (source : obj) =
         let symbol = toSymbol sourceType source
         Symbol.toString symbol
 
-    let rec ofSymbol (destType : Type) (symbol : Symbol) =
+    let rec ofSymbolInternal (destType : Type) (symbol : Symbol) =
 
         // desymbolize .NET primitive
         if destType.IsPrimitive then
@@ -446,6 +457,17 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                         with _ -> failconv ("Cannot convert from string '" + str + "' to vanilla .NET object of type '" + destType.Name + "'.") (Some symbol)
                     | Quote (_, _) | Symbols (_, _) ->
                         failconv ("Expected Atom, Number, or String value for conversion to vanilla .NET object of type '" + destType.Name + "'.") (Some symbol)
+
+    and ofSymbol destType symbol =
+        match ofSymbolMemoOpt with
+        | Some ofSymbolMemo ->
+            match ofSymbolMemo.TryGetValue symbol with
+            | (false, _) ->
+                let result = ofSymbolInternal destType symbol
+                ofSymbolMemo.[symbol] <- result
+                result
+            | (true, symbol) -> symbol
+        | None -> ofSymbolInternal destType symbol
 
     let ofString (destType : Type) (source : string) =
         let symbol = Symbol.ofString source None
