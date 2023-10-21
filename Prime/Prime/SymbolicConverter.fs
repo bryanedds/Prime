@@ -24,7 +24,7 @@ type [<StructuralEquality; StructuralComparison>] SymbolicCompression<'a, 'b> =
     | SymbolicCompressionB of 'b
 
 /// Converts values to and from symbols and symbolic strings.
-type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType : Type, ?toSymbolMemoOpt : Dictionary<obj, Symbol>, ?ofSymbolMemoOpt : Dictionary<Symbol, obj>) =
+type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType : Type, ?toSymbolMemoOpt : IDictionary<obj, Symbol>, ?ofSymbolMemoOpt : IDictionary<Symbol, obj>) =
     inherit TypeConverter ()
 
     let padWithDefaultsInternal (fieldTypes : Type array) (values : obj array) =
