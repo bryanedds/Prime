@@ -102,16 +102,18 @@ module Operators =
     /// Test for object equality.
     /// OPTIMIZATION: always tests reference equality first.
     let inline objEq (a : obj) (b : obj) =
+        obj.ReferenceEquals (a, b) ||
         match a with
         | :? Array -> a = b // NOTE: arrays are given special deep equality semantics in F#.
-        | _ -> obj.ReferenceEquals (a, b) || obj.Equals (a, b)
+        | _ -> obj.Equals (a, b)
 
     /// Test for object inequality.
     /// OPTIMIZATION: always tests reference equality first.
     let inline objNeq (a : obj) (b : obj) =
+        not (obj.ReferenceEquals (a, b) ||
         match a with
         | :? Array -> a <> b // NOTE: arrays are given special deep equality semantics in F#.
-        | _ -> not (obj.ReferenceEquals (a, b) || obj.Equals (a, b))
+        | _ -> obj.Equals (a, b))
 
     /// Test for reference equality.
     let inline refEq<'a> (a : 'a) (b : 'a) = obj.ReferenceEquals (a, b)
