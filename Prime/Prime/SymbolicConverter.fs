@@ -377,7 +377,11 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let elementTypes = FSharpType.GetTupleElements destType
-                        let elements = symbols |> Array.ofList |> Array.mapi (fun i elementSymbol -> ofSymbol elementTypes.[i] elementSymbol)
+                        let elements =
+                            symbols |>
+                            Array.ofList |>
+                            Array.tryTake elementTypes.Length |>
+                            Array.mapi (fun i elementSymbol -> ofSymbol elementTypes.[i] elementSymbol)
                         let elements = padWithDefaultsInternal elementTypes elements
                         FSharpValue.MakeTuple (elements, destType)
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
@@ -413,7 +417,11 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                             else failconv "Expected Symbols in pairs for expanded Record" (Some symbol)
                         else
                             let fieldInfos = FSharpType.GetRecordFields (destType, true)
-                            let fields = symbols |> Array.ofList |> Array.mapi (fun i fieldSymbol -> ofSymbol fieldInfos.[i].PropertyType fieldSymbol)
+                            let fields =
+                                symbols |>
+                                Array.ofList |>
+                                Array.tryTake fieldInfos.Length |>
+                                Array.mapi (fun i fieldSymbol -> ofSymbol fieldInfos.[i].PropertyType fieldSymbol)
                             let fields = padWithDefaults fieldInfos fields
                             FSharpValue.MakeRecord (destType, fields, true)
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
