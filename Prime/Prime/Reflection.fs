@@ -269,6 +269,7 @@ module TypeExtension =
                 then Some (FSharpValue.MakeUnion (unionCases.[0], [||]))
                 else None
             elif notNull (this.GetConstructor [||]) then Some (Activator.CreateInstance ())
+            elif this.IsValueType then Some (Activator.CreateInstance ())
             else None
 
         /// Get the public instance properties of a type.

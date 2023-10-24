@@ -27,18 +27,21 @@ type [<StructuralEquality; StructuralComparison>] SymbolicCompression<'a, 'b> =
 type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType : Type, ?toSymbolMemoOpt : IDictionary<obj, Symbol>, ?ofSymbolMemoOpt : IDictionary<Symbol, obj>) =
     inherit TypeConverter ()
 
-    let padWithDefaultsInternal (fieldTypes : Type array) (values : obj array) =
-        if values.Length < fieldTypes.Length then
+    let padWithDefaults (types : Type array) (values : obj array) =
+        if values.Length < types.Length then
             let valuesPadded =
-                fieldTypes |>
+                types |>
                 Array.skip values.Length |>
-                Array.map (fun info -> info.GetDefaultValue ()) |>
+                Array.map (fun ty ->
+                    match ty.TryGetDefaultValue () with
+                    | Some value -> value
+                    | None -> failconv ("Cannot create default value for type '" + ty.Name + "'.") None) |>
                 Array.append values
             valuesPadded
         else values
 
-    let padWithDefaults (fieldInfos : PropertyInfo array) (values : obj array) =
-        padWithDefaultsInternal (Array.map (fun (info : PropertyInfo) -> info.PropertyType) fieldInfos) values
+    let padWithDefaultProperties (fieldInfos : PropertyInfo array) (values : obj array) =
+        padWithDefaults (Array.map (fun (info : PropertyInfo) -> info.PropertyType) fieldInfos) values
 
     let rec toSymbolInternal (sourceType : Type) (source : obj) =
         match sourceType.TryGetCustomTypeConverter () with
@@ -382,7 +385,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                             Array.ofList |>
                             Array.tryTake elementTypes.Length |>
                             Array.mapi (fun i elementSymbol -> ofSymbol elementTypes.[i] elementSymbol)
-                        let elements = padWithDefaultsInternal elementTypes elements
+                        let elements = padWithDefaults elementTypes elements
                         FSharpValue.MakeTuple (elements, destType)
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to Tuple." (Some symbol)
@@ -422,7 +425,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                                 Array.ofList |>
                                 Array.tryTake fieldInfos.Length |>
                                 Array.mapi (fun i fieldSymbol -> ofSymbol fieldInfos.[i].PropertyType fieldSymbol)
-                            let fields = padWithDefaults fieldInfos fields
+                            let fields = padWithDefaultProperties fieldInfos fields
                             FSharpValue.MakeRecord (destType, fields, true)
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to unexpanded Record." (Some symbol)
@@ -449,7 +452,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                                     Array.ofList |>
                                     Array.tryTake unionFieldInfos.Length |>
                                     Array.mapi (fun i unionSymbol -> ofSymbol unionFieldInfos.[i].PropertyType unionSymbol)
-                                let unionValues = padWithDefaults unionFieldInfos unionValues
+                                let unionValues = padWithDefaultProperties unionFieldInfos unionValues
                                 FSharpValue.MakeUnion (unionCase, unionValues, true)
                             | None ->
                                 let unionNames = unionCases |> Array.map (fun unionCase -> unionCase.Name) |> String.concat " | "
