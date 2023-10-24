@@ -444,7 +444,11 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                             match Array.tryFind (fun (unionCase : UnionCaseInfo) -> unionCase.Name = unionName) unionCases with
                             | Some unionCase ->
                                 let unionFieldInfos = unionCase.GetFields ()
-                                let unionValues = symbolTail |> Array.ofList |> Array.mapi (fun i unionSymbol -> ofSymbol unionFieldInfos.[i].PropertyType unionSymbol)
+                                let unionValues =
+                                    symbolTail |>
+                                    Array.ofList |>
+                                    Array.tryTake unionFieldInfos.Length |>
+                                    Array.mapi (fun i unionSymbol -> ofSymbol unionFieldInfos.[i].PropertyType unionSymbol)
                                 let unionValues = padWithDefaults unionFieldInfos unionValues
                                 FSharpValue.MakeUnion (unionCase, unionValues, true)
                             | None ->
