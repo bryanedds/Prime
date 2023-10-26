@@ -221,7 +221,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             match symbol with
             | Atom (str, _) | Text (str, _) ->
                 try (TypeDescriptor.GetConverter destType).ConvertFromString str
-                with :? FormatException as exn -> failconv ("Failed to convert Atom '" + str + "' to " + destType.Name + " due to: " + scstring exn)
+                with :? FormatException as exn -> failconv ("Failed to convert Atom '" + str + "' to " + destType.Name + " due to: " + string exn) (Some symbol)
             | Number (str, _) ->
                 // allow for numbers with single-character suffixes
                 let trimmed =
@@ -229,7 +229,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     then str.Substring (0, str.Length - 1)
                     else str
                 try (TypeDescriptor.GetConverter destType).ConvertFromString trimmed
-                with :? FormatException as exn -> failconv ("Failed to convert Number '" + str + "' to " + destType.Name + " due to: " + scstring exn)
+                with :? FormatException as exn -> failconv ("Failed to convert Number '" + str + "' to " + destType.Name + " due to: " + string exn) (Some symbol)
             | Quote (_, _) | Symbols (_, _) ->
                 failconv "Expected Symbol, Number, or String for conversion to .NET primitive." (Some symbol)
 
