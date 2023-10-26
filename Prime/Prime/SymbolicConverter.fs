@@ -438,7 +438,10 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Atom (unionName, _) ->
                         match Array.tryFind (fun (unionCase : UnionCaseInfo) -> unionCase.Name = unionName) unionCases with
-                        | Some unionCase -> FSharpValue.MakeUnion (unionCase, [||], true)
+                        | Some unionCase ->
+                            match unionCase.GetFields () with
+                            | [||] -> FSharpValue.MakeUnion (unionCase, [||], true)
+                            | _ -> failconv ("Expected Symbols for Union with fields.") (Some symbol)
                         | None ->
                             let unionNames = unionCases |> Array.map (fun unionCase -> unionCase.Name) |> String.concat " | "
                             failconv ("Expected one of the following Atom values for Union name: '" + unionNames + "'.") (Some symbol)
