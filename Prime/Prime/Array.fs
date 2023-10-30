@@ -117,6 +117,8 @@ module Array =
         arr |> Seq.sort |> Array.ofSeq
 
     /// Hash an array.
-    /// NOTE: May be a pessimization.
-    let hash list =
-        Array.fold (fun hashValue name -> hashValue ^^^ name.GetHashCode ()) 0 list
+    let hash (arr : _ array) =
+        let mutable hashCode = 0
+        for i in 0 .. dec arr.Length do
+            hashCode <- hashCode ^^^ hash arr.[i]
+        hashCode
