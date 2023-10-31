@@ -67,6 +67,11 @@ module Array =
     let foldUntilRight folder (state : Either<_, _>) (arr : 't array) =
         Seq.foldUntilRight folder state arr
 
+    /// Combines map and fold. Builds a new array whose elements are the results of applying the given function to each
+    /// of the elements of the input array. The function is also used to accumulate a final value.
+    let foldMap<'T, 'State, 'Result> folder state array =
+        Array.mapFold<'T, 'State, 'Result> (flip folder) state array
+
     /// Check that an array is not empty.
     let inline notEmpty arr =
         not (Array.isEmpty arr)

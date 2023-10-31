@@ -134,6 +134,11 @@ module Seq =
             state <- folder (Either.getLeft state) enr.Current
         state
 
+    /// Combines map and fold. Builds a new seq whose elements are the results of applying the given function to each
+    /// of the elements of the input seq. The function is also used to accumulate a final value.
+    let foldMap<'T, 'State, 'Result> folder state seq =
+        Seq.mapFold<'T, 'State, 'Result> (flip folder) state seq
+
     /// Check that a predicate passes for NO items in a sequence.
     let inline notExists pred seq =
         not (Seq.exists pred seq)

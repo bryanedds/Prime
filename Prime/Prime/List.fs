@@ -281,6 +281,11 @@ module List =
     let foldUntilRight folder (state : Either<_, _>) (list : 't list) =
         Seq.foldUntilRight folder state list
 
+    /// Combines map and fold. Builds a new list whose elements are the results of applying the given function to each
+    /// of the elements of the input list. The function is also used to accumulate a final value.
+    let foldMap<'T, 'State, 'Result> folder state list =
+        List.mapFold<'T, 'State, 'Result> (flip folder) state list
+
     /// Check that a predicate passes for NO items in a list.
     let notExists pred (list : 't list) =
         Seq.notExists pred list
