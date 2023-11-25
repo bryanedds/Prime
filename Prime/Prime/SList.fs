@@ -80,7 +80,7 @@ module SList =
                     this.Lists_.[j].[k] <- value
 
         member this.GetEnumerator () =
-            Seq.concat this.Lists_
+            (Seq.concat this.Lists_).GetEnumerator ()
 
         interface 'a IEnumerable with
             member this.GetEnumerator () = (Seq.concat this.Lists_).GetEnumerator ()
@@ -158,6 +158,17 @@ module SList =
             if predicate item then
                 add item result
         result
+
+    let exists predicate (slist : 'a SList) =
+        let mutable found = false
+        let mutable enr = slist.GetEnumerator ()
+        while not found && enr.MoveNext () do
+            if predicate enr.Current then
+                found <- true
+        found
+
+    let notExists predicate (slist : 'a SList) =
+        not (exists predicate slist)
 
     let partition discriminator slist =
         let pass = make ()
