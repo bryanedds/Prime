@@ -5,6 +5,7 @@ namespace Prime
 open System
 open System.ComponentModel
 open System.Collections
+open System.Collections.Concurrent
 open System.Collections.Generic
 open System.Text
 open System.Reflection
@@ -121,6 +122,9 @@ module Reflection =
             (fun (assembly : Assembly) -> assembly.FullName.StartsWith ("FSharp.Core,", StringComparison.Ordinal))
             (AppDomain.CurrentDomain.GetAssemblies ())
 
+    let private UnionCaseNames =
+        ConcurrentDictionary<Type, ConcurrentDictionary<string, UnionCaseInfo>> HashIdentity.Reference
+
     /// Check that a property is either a DesignerProperty or a ComputedProperty.
     let isRuntimeProperty property =
         property.PropertyValue :? DesignerProperty ||
@@ -203,6 +207,29 @@ module Reflection =
 
     let pairsToMap mapType objs =
         pairsToMapping "Microsoft.FSharp.Collections.MapModule" mapType objs
+
+    let tryGetUnionCase (ty : Type) caseName =
+        match UnionCaseNames.TryGetValue ty with
+        | (true, cases) ->
+            match cases.TryGetValue caseName with
+            | (true, case) -> Some case
+            | (false, _) -> None
+        | (false, _) ->
+            let cases = FSharpType.GetUnionCases ty
+            let cases' = ConcurrentDictionary ([|for case in cases do KeyValuePair (case.Name, case)|], StringComparer.Ordinal)
+            UnionCaseNames.[ty] <- cases'
+            match cases'.TryGetValue caseName with
+            | (true, case) -> Some case
+            | (false, _) -> None
+
+    let getUnionCases (ty : Type) =
+        match UnionCaseNames.TryGetValue ty with
+        | (true, cases) -> cases
+        | (false, _) ->
+            let cases = FSharpType.GetUnionCases ty
+            let cases' = ConcurrentDictionary ([|for case in cases do KeyValuePair (case.Name, case)|], StringComparer.Ordinal)
+            UnionCaseNames.[ty] <- cases'
+            cases'
 
 [<RequireQualifiedAccess>]
 module Type =

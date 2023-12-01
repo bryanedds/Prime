@@ -359,11 +359,10 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         match symbols with
-                        | (Atom (symbolHead, _)) :: _ ->
+                        | (Atom (unionName, _)) :: _ ->
                             let gargs = destType.GetGenericArguments ()
                             let aType = gargs.[0]
-                            let aCases = FSharpType.GetUnionCases aType
-                            match Array.tryFind (fun (unionCase : UnionCaseInfo) -> unionCase.Name = symbolHead) aCases with
+                            match Reflection.tryGetUnionCase aType unionName with
                             | Some aCase ->
                                 let a = ofSymbol aCase.DeclaringType symbol
                                 let compressionUnion = (FSharpType.GetUnionCases destType).[0]
@@ -434,22 +433,22 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
 
                 // desymbolize Union
                 elif FSharpType.IsUnion destType || FSharpType.isUnionAbstract destType && destType <> typeof<string list> then
-                    let unionCases = FSharpType.GetUnionCases (destType, true)
                     match symbol with
                     | Atom (unionName, _) ->
-                        match Array.tryFind (fun (unionCase : UnionCaseInfo) -> unionCase.Name = unionName) unionCases with
+                        match Reflection.tryGetUnionCase destType unionName with
                         | Some unionCase ->
                             match unionCase.GetFields () with
                             | [||] -> FSharpValue.MakeUnion (unionCase, [||], true)
                             | _ -> failconv ("Expected Symbols for Union with fields.") (Some symbol)
                         | None ->
-                            let unionNames = unionCases |> Array.map (fun unionCase -> unionCase.Name) |> String.concat " | "
+                            let unionCases = Reflection.getUnionCases destType
+                            let unionNames = unionCases.Keys |> String.concat " | "
                             failconv ("Expected one of the following Atom values for Union name: '" + unionNames + "'.") (Some symbol)
                     | Symbols (symbols, _) ->
                         match symbols with
                         | (Atom (symbolHead, _)) :: symbolTail ->
                             let unionName = symbolHead
-                            match Array.tryFind (fun (unionCase : UnionCaseInfo) -> unionCase.Name = unionName) unionCases with
+                            match Reflection.tryGetUnionCase destType unionName with
                             | Some unionCase ->
                                 let unionFieldInfos = unionCase.GetFields ()
                                 let unionValues =
@@ -460,7 +459,8 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                                 let unionValues = padWithDefaultProperties unionFieldInfos unionValues
                                 FSharpValue.MakeUnion (unionCase, unionValues, true)
                             | None ->
-                                let unionNames = unionCases |> Array.map (fun unionCase -> unionCase.Name) |> String.concat " | "
+                                let unionCases = Reflection.getUnionCases destType
+                                let unionNames = unionCases.Keys |> String.concat " | "
                                 failconv ("Expected one of the following Atom values for Union name: '" + unionNames + "'.") (Some symbol)
                         | (Number (_, _) | Text (_, _) | Quote (_, _) | Symbols (_, _)) :: _ ->
                             failconv "Expected Atom value for Union name." (Some symbol)
