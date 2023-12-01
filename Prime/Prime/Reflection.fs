@@ -215,7 +215,7 @@ module Reflection =
             | (true, case) -> Some case
             | (false, _) -> None
         | (false, _) ->
-            let cases = FSharpType.GetUnionCases ty
+            let cases = FSharpType.GetUnionCases (ty, true)
             let cases' = ConcurrentDictionary ([|for case in cases do KeyValuePair (case.Name, case)|], StringComparer.Ordinal)
             UnionCaseNames.[ty] <- cases'
             match cases'.TryGetValue caseName with
@@ -226,7 +226,7 @@ module Reflection =
         match UnionCaseNames.TryGetValue ty with
         | (true, cases) -> cases
         | (false, _) ->
-            let cases = FSharpType.GetUnionCases ty
+            let cases = FSharpType.GetUnionCases (ty, true)
             let cases' = ConcurrentDictionary ([|for case in cases do KeyValuePair (case.Name, case)|], StringComparer.Ordinal)
             UnionCaseNames.[ty] <- cases'
             cases'
