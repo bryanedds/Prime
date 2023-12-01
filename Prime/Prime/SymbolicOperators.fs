@@ -8,10 +8,10 @@ open System.Collections.Concurrent
 [<AutoOpen>]
 module SymbolicOperators =
 
-    let private SymbolToValueMemo = ConcurrentDictionary<Symbol, obj> HashIdentity.Structural
-    let private ValueToSymbolMemo = ConcurrentDictionary<obj, Symbol> HashIdentity.Structural
-    let private SCValueMemo = ConcurrentDictionary<string, obj> StringComparer.Ordinal
-    let private SCStringMemo = ConcurrentDictionary<obj, string> HashIdentity.Structural
+    let private SymbolToValueMemo = ConcurrentDictionary<struct (Type * Symbol), obj> HashIdentity.Structural
+    let private ValueToSymbolMemo = ConcurrentDictionary<struct (Type * obj), Symbol> HashIdentity.Structural
+    let private SCValueMemo = ConcurrentDictionary<struct (Type * string), obj> HashIdentity.Structural
+    let private SCStringMemo = ConcurrentDictionary<struct (Type * obj), string> HashIdentity.Structural
 
     /// Convert a value to a symbol.
     /// Thread-safe.
@@ -62,11 +62,11 @@ module SymbolicOperators =
     /// Convert a value to symbolic string, memoizing the result.
     /// Thread-safe.
     let scstringMemo<'a> (value : 'a) =
-        match SCStringMemo.TryGetValue (value :> obj) with
+        match SCStringMemo.TryGetValue struct (typeof<'a>, value :> obj) with
         | (true, str) -> str
         | (false, _) ->
             let str = scstringPlus<'a> false (Some ValueToSymbolMemo) value
-            SCStringMemo.[value] <- str
+            SCStringMemo.[struct (typeof<'a>, value)] <- str
             str
 
     /// Uses a symbolic converter to convert a value to a string.
@@ -85,11 +85,11 @@ module SymbolicOperators =
     /// NOTE: be cautious when dealing with mutable values since they are cached and therefore aliased!
     /// Thread-safe with immutable values.
     let scvalueMemo<'a> str : 'a =
-        match SCValueMemo.TryGetValue str with
+        match SCValueMemo.TryGetValue struct (typeof<'a>, str) with
         | (true, value) -> value :?> 'a
         | (false, _) ->
             let value = scvaluePlus<'a> false (Some SymbolToValueMemo) str
-            SCValueMemo.[str] <- value
+            SCValueMemo.[struct (typeof<'a>, str)] <- value
             value
 
     /// Uses a symbolic converter to convert a string to a value.

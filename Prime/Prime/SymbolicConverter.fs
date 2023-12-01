@@ -24,7 +24,7 @@ type [<StructuralEquality; StructuralComparison>] SymbolicCompression<'a, 'b> =
     | SymbolicCompressionB of 'b
 
 /// Converts values to and from symbols and symbolic strings.
-type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType : Type, ?toSymbolMemoOpt : IDictionary<obj, Symbol>, ?ofSymbolMemoOpt : IDictionary<Symbol, obj>) =
+type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType : Type, ?toSymbolMemoOpt : IDictionary<struct (Type * obj), Symbol>, ?ofSymbolMemoOpt : IDictionary<struct (Type * Symbol), obj>) =
     inherit TypeConverter ()
 
     let padWithDefaults (types : Type array) (values : obj array) =
@@ -202,10 +202,10 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
     and toSymbol sourceType source =
         match toSymbolMemoOpt with
         | Some toSymbolMemo when notNull source ->
-            match toSymbolMemo.TryGetValue source with
+            match toSymbolMemo.TryGetValue struct (sourceType, source) with
             | (false, _) ->
                 let symbol = toSymbolInternal sourceType source
-                toSymbolMemo.[source] <- symbol
+                toSymbolMemo.[struct (sourceType, source)] <- symbol
                 symbol
             | (true, symbol) -> symbol
         | _ -> toSymbolInternal sourceType source
@@ -481,10 +481,10 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
     and ofSymbol destType symbol =
         match ofSymbolMemoOpt with
         | Some ofSymbolMemo ->
-            match ofSymbolMemo.TryGetValue symbol with
+            match ofSymbolMemo.TryGetValue struct (destType, symbol) with
             | (false, _) ->
                 let result = ofSymbolInternal destType symbol
-                ofSymbolMemo.[symbol] <- result
+                ofSymbolMemo.[struct (destType, symbol)] <- result
                 result
             | (true, symbol) -> symbol
         | None -> ofSymbolInternal destType symbol
