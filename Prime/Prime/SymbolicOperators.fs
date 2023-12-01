@@ -3,46 +3,53 @@
 
 namespace Prime
 open System
-open System.Collections.Generic
+open System.Collections.Concurrent
 
 [<AutoOpen>]
 module SymbolicOperators =
 
-    let private SymbolToValueMemo = Dictionary<Symbol, obj> HashIdentity.Structural
-    let private ValueToSymbolMemo = Dictionary<obj, Symbol> HashIdentity.Structural
-    let private SCValueMemo = Dictionary<string, obj> StringComparer.Ordinal
-    let private SCStringMemo = Dictionary<obj, string> HashIdentity.Structural
+    let private SymbolToValueMemo = ConcurrentDictionary<Symbol, obj> HashIdentity.Structural
+    let private ValueToSymbolMemo = ConcurrentDictionary<obj, Symbol> HashIdentity.Structural
+    let private SCValueMemo = ConcurrentDictionary<string, obj> StringComparer.Ordinal
+    let private SCStringMemo = ConcurrentDictionary<obj, string> HashIdentity.Structural
 
     /// Convert a value to a symbol.
+    /// Thread-safe.
     let valueToSymbolPlus<'a> printing toSymbolMemoOpt (value : 'a) =
         let ty = if isNull (value :> obj) then typeof<'a> else getType value
         let converter = SymbolicConverter (printing, None, ty, ?toSymbolMemoOpt = toSymbolMemoOpt)
         converter.ConvertTo (value, typeof<Symbol>) :?> Symbol
 
     /// Convert a value to a symbol, memoizing the result.
+    /// Thread-safe.
     let valueToSymbolMemo<'a> value =
         valueToSymbolPlus<'a> false (Some ValueToSymbolMemo) value
 
     /// Convert a value to a symbol.
+    /// Thread-safe.
     let valueToSymbol<'a> value =
         valueToSymbolPlus<'a> false None value
 
     /// Convert a symbol to a value.
     /// NOTE: be cautious when dealing with mutable values if memoizing since they are cached and therefore aliased!
+    /// Thread-safe with immutable values.
     let symbolToValuePlus<'a> printing ofSymbolMemoOpt (symbol : Symbol) : 'a =
         let converter = SymbolicConverter (printing, None, typeof<'a>, ?ofSymbolMemoOpt = ofSymbolMemoOpt)
         converter.ConvertFrom symbol :?> 'a
 
     /// Convert a symbol to a value, memoizing the result.
     /// NOTE: be cautious when dealing with mutable values since they are cached and therefore aliased!
+    /// Thread-safe with immutable values.
     let symbolToValueMemo<'a> symbol =
         symbolToValuePlus<'a> false (Some SymbolToValueMemo) symbol
 
     /// Convert a symbol to a value.
+    /// Thread-safe.
     let symbolToValue<'a> symbol =
         symbolToValuePlus<'a> false None symbol
 
     /// Uses a symbolic converter to convert a value to a string.
+    /// Thread-safe.
     let scstringPlus<'a> printing toSymbolMemoOpt (value : 'a) =
         let ty = if isNull (value :> obj) then typeof<'a> else getType value
         if ty.IsPrimitive then
@@ -53,39 +60,45 @@ module SymbolicOperators =
             converter.ConvertToString value
 
     /// Convert a value to symbolic string, memoizing the result.
+    /// Thread-safe.
     let scstringMemo<'a> (value : 'a) =
         match SCStringMemo.TryGetValue (value :> obj) with
         | (true, str) -> str
         | (false, _) ->
             let str = scstringPlus<'a> false (Some ValueToSymbolMemo) value
-            SCStringMemo.Add (value, str)
+            SCStringMemo.[value] <- str
             str
 
     /// Uses a symbolic converter to convert a value to a string.
+    /// Thread-safe.
     let scstring<'a> value =
         scstringPlus<'a> false None value
 
     /// Uses a symbolic converter to convert a string to a value.
     /// NOTE: be cautious when dealing with mutable values if memoizing since they are cached and therefore aliased!
+    /// Thread-safe with immutable values.
     let scvaluePlus<'a> printing ofSymbolMemoOpt str =
         let converter = SymbolicConverter (printing, None, typeof<'a>, ?ofSymbolMemoOpt = ofSymbolMemoOpt)
         converter.ConvertFromString str :?> 'a
 
     /// Convert a symbolic string to a value, memoizing the result.
     /// NOTE: be cautious when dealing with mutable values since they are cached and therefore aliased!
+    /// Thread-safe with immutable values.
     let scvalueMemo<'a> str : 'a =
         match SCValueMemo.TryGetValue str with
         | (true, value) -> value :?> 'a
         | (false, _) ->
             let value = scvaluePlus<'a> false (Some SymbolToValueMemo) str
-            SCValueMemo.Add (str, value)
+            SCValueMemo.[str] <- value
             value
 
     /// Uses a symbolic converter to convert a string to a value.
+    /// Thread-safe.
     let scvalue<'a> str =
         scvaluePlus<'a> false None str
 
     /// Get the default value of type 'a taking into account DefaultValue decorations.
+    /// Thread-safe.
     let scdefaultof<'a> () : 'a =
         let defaultPropertyType = typeof<'a>
         let defaultValueAttributeOpt =
