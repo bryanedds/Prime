@@ -85,12 +85,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Csv" Version="2.0.93" />
-	  <PackageReference Include="FParsec" Version="1.1.1" />
+		<PackageReference Include="Csv" Version="2.0.93" />
+		<PackageReference Include="FParsec" Version="1.1.1" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Update="FSharp.Core" Version="8.0.100" />
+		<PackageReference Update="FSharp.Core" Version="8.0.100" />
 	</ItemGroup>
 
 </Project>
