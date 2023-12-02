@@ -12,8 +12,8 @@ open FSharp.Reflection
 [<AutoOpen>]
 module Operators =
 
-    /// Memoized union tags.
-    let private TagsMemo = Dictionary<obj, int> HashIdentity.Structural
+    let private CaseTagMemo = Dictionary<obj, int> HashIdentity.Structural
+    let private CaseNameMemo = Dictionary<obj, string> HashIdentity.Structural
 
     /// The constant function.
     /// No matter what you pass it, it evaluates to the first argument.
@@ -78,14 +78,25 @@ module Operators =
 
     /// Get the union tag for the give case value.
     /// OPTIMIZATION: memoizes zero-field unions for speed.
-    let getTag<'u> (unionCase : 'u) =
-        match TagsMemo.TryGetValue unionCase with
+    let getCaseTag<'u> (case : 'u) =
+        match CaseTagMemo.TryGetValue case with
+        | (true, tag) -> tag
+        | (false, _) ->
+            let (unionCaseInfo, _) = FSharpValue.GetUnionFields (case, typeof<'u>)
+            let tag = unionCaseInfo.Tag
+            if Array.isEmpty (unionCaseInfo.GetFields ()) then CaseTagMemo.Add (case, tag)
+            tag
+
+    /// Get the union tag for the give case value.
+    /// OPTIMIZATION: memoizes zero-field unions for speed.
+    let getCaseName<'u> (unionCase : 'u) =
+        match CaseNameMemo.TryGetValue unionCase with
         | (true, tag) -> tag
         | (false, _) ->
             let (unionCaseInfo, _) = FSharpValue.GetUnionFields (unionCase, typeof<'u>)
-            let tag = unionCaseInfo.Tag
-            if Array.isEmpty (unionCaseInfo.GetFields ()) then TagsMemo.Add (unionCase, tag)
-            tag
+            let name = unionCaseInfo.Name // NOTE: this is EXTREMELY slow!
+            if Array.isEmpty (unionCaseInfo.GetFields ()) then CaseNameMemo.Add (unionCase, name)
+            name
 
     /// (=) as a function.
     let inline eq<'a when 'a : equality> (left : 'a) (right : 'a) = left = right
