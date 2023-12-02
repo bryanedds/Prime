@@ -25,13 +25,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Csv" Version="1.0.58" />
-		<PackageReference Include="FParsec" Version="1.0.3" />
+		<PackageReference Include="Csv" Version="2.0.93" />
+		<PackageReference Include="FParsec" Version="1.1.1" />
+		<PackageReference Include="NUnit" Version="3.14.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Prime\Prime.fsproj" />
 		<ProjectReference Include="..\Prime.Scripting\Prime.Scripting.fsproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Update="FSharp.Core" Version="8.0.100" />
 	</ItemGroup>
 
 </Project>
