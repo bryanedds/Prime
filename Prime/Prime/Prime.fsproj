@@ -48,7 +48,6 @@
 		<Compile Include="SDictionary.fs" />
 		<Compile Include="Rand.fs" />
 		<Compile Include="Symbol.fs" />
-		<Compile Include="PrettyPrinter.fs" />
 		<Compile Include="KeyedCache.fs" />
 		<Compile Include="MutantCache.fs" />
 		<Compile Include="TExpr.fs" />
@@ -79,6 +78,7 @@
 		<Compile Include="Xtension.fs" />
 		<Compile Include="SymbolicConverter.fs" />
 		<Compile Include="SymbolicOperators.fs" />
+		<Compile Include="PrettyPrinter.fs" />
 		<Compile Include="Timings.fs" />
 		<Compile Include="AssemblyInfo.fs" />
 		<None Include="Interactive.fsx" />
