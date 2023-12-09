@@ -82,9 +82,25 @@ module SList =
         member this.GetEnumerator () =
             (Seq.concat this.Lists_).GetEnumerator ()
 
+        member this.CopyTo (arr : 'a array, index : int) =
+            let mutable i = 0
+            let mutable enr = this.GetEnumerator ()
+            while enr.MoveNext () do
+                arr.[i + index] <- enr.Current
+                i <- inc i
+
         interface 'a IEnumerable with
             member this.GetEnumerator () = (Seq.concat this.Lists_).GetEnumerator ()
             member this.GetEnumerator () = (Seq.concat this.Lists_).GetEnumerator () :> IEnumerator
+
+        interface 'a ICollection with
+            member this.IsReadOnly = false
+            member this.Count = this.TotalLength_
+            member this.Add item = this.Add item
+            member this.Remove item = this.Remove item
+            member this.Contains item = this.Contains item
+            member this.Clear () = this.Clear ()
+            member this.CopyTo (arr, index) = this.CopyTo (arr, index)
 
     let make<'a> () : 'a SList =
         SList.Make ()

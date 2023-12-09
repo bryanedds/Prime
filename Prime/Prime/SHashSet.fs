@@ -68,9 +68,25 @@ module SHashSet =
         member this.GetEnumerator () =
             (Seq.concat this.HashSets_).GetEnumerator ()
 
+        member this.CopyTo (arr : 'a array, index : int) =
+            let mutable i = 0
+            let mutable enr = this.GetEnumerator ()
+            while enr.MoveNext () do
+                arr.[i + index] <- enr.Current
+                i <- inc i
+
         interface 'a IEnumerable with
             member this.GetEnumerator () = (Seq.concat this.HashSets_).GetEnumerator ()
             member this.GetEnumerator () = (Seq.concat this.HashSets_).GetEnumerator () :> IEnumerator
+
+        interface 'a ICollection with
+            member this.IsReadOnly = false
+            member this.Count = this.Count
+            member this.Add item = this.Add item |> ignore<bool>
+            member this.Remove item = this.Remove item
+            member this.Contains item = this.Contains item
+            member this.Clear () = this.Clear ()
+            member this.CopyTo (arr, index) = this.CopyTo (arr, index)
 
     let make (comparer : 'a IEqualityComparer) =
         let hashSets = Array.init 32 (fun _ -> HashSet<'a> comparer)
