@@ -82,19 +82,17 @@ module Either =
         | Right r -> r
         | Left _ -> failwith "Could not get Right value from a Left value."
 
-    /// Get only the Lefts of a sequence of Eithers.
+    /// Get only the Left values of a sequence of Eithers.
     let getLefts eirs =
-        List.foldBack
-            (fun eir lefts -> match eir with Right _ -> lefts | Left left -> left :: lefts)
-            (List.ofSeq eirs)
-            []
+        seq {
+            for eir in eirs do
+                match eir with Right _ -> () | Left left -> left }
 
-    /// Get only the Rights of a sequence of Eithers.
+    /// Get only the Right values of a sequence of Eithers.
     let getRights eirs =
-        List.foldBack
-            (fun eir rights -> match eir with Right right -> right :: rights | Left _ -> rights)
-            (List.ofSeq eirs)
-            []
+        seq {
+            for eir in eirs do
+                match eir with Right right -> right | Left _ -> () }
 
     /// Map over the left side of an Either.
     let mapLeft mapper eir =
