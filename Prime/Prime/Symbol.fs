@@ -9,12 +9,12 @@ open FParsec
 open Csv
 
 /// The source from which a symbol was read.
-type [<StructuralEquality; StructuralComparison; Struct>] SymbolSource =
+type [<Struct>] SymbolSource =
     { FilePathOpt : string option
       Text : string }
 
 /// The position at which a symbol was read from a source.
-type [<StructuralEquality; StructuralComparison; Struct>] SymbolPosition =
+type [<Struct>] SymbolPosition =
     { Index : int
       Line : int
       Column : int }
@@ -32,7 +32,7 @@ type [<StructuralEquality; StructuralComparison; Struct>] SymbolPosition =
           Column = 0 }
 
 /// The origin from which a symbol was read.
-type [<StructuralEquality; StructuralComparison>] SymbolOrigin =
+type SymbolOrigin =
     { Source : SymbolSource
       Start : SymbolPosition
       Stop : SymbolPosition }
@@ -103,7 +103,7 @@ module ParseExceptionOperators =
         raise (ParseException (message + "\Parse source: " + symbolStr, symbolStr))
 
 /// A lisp-style symbolic type.
-type [<StructuralEquality; StructuralComparison>] Symbol =
+type Symbol =
     | Atom of string * SymbolOrigin ValueOption
     | Number of string * SymbolOrigin ValueOption
     | Text of string * SymbolOrigin ValueOption

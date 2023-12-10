@@ -5,7 +5,7 @@ namespace Prime
 open System
 
 /// Determines whether a data structure has functional (immutable) or imperative (mutable) semantics.
-type [<StructuralEquality; StructuralComparison>] TConfig =
+type TConfig =
     | Functional
     | Imperative
 

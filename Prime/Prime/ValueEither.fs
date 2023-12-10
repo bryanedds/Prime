@@ -5,7 +5,7 @@ namespace Prime
 open System
 
 /// Haskell-style Either type with value semantics.
-type [<StructuralEquality; StructuralComparison; Struct>] ValueEither<'l, 'r> =
+type [<Struct>] ValueEither<'l, 'r> =
     | ValueRight of Right : 'r
     | ValueLeft of Left : 'l
 

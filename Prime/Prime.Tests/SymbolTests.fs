@@ -6,27 +6,27 @@ open System
 open NUnit.Framework
 open Prime
 
-type [<StructuralEquality; StructuralComparison>] IntIntRecord =
+type IntIntRecord =
     { Int : int; Int2 : int }
 
-type [<StructuralEquality; StructuralComparison>] IntIntRecordAbstract =
+type IntIntRecordAbstract =
     private { IntX_ : int; IntX2_ : int }
     member this.IntX = this.IntX_
     member this.IntX2 = this.IntX2_
     static member make x x2 = { IntX_ = x; IntX2_ = x2 }
 
-type [<StructuralEquality; StructuralComparison; SymbolicExpansion>] IntIntRecordExpanded =
+type [<SymbolicExpansion>] IntIntRecordExpanded =
     { IntX : int; IntX2 : int }
 
-type [<StructuralEquality; StructuralComparison>] SimpleUnion =
+type SimpleUnion =
     | SimpleUnion
     | SimpleUnion2
 
-type [<StructuralEquality; StructuralComparison>] ComplexUnion =
+type ComplexUnion =
     | ComplexUnion of int
     | ComplexUnion2 of int * int
 
-type [<StructuralEquality; StructuralComparison>] ComplexUnionAbstract =
+type ComplexUnionAbstract =
     private
         | ComplexUnionAbstract of int
         | ComplexUnionAbstract2 of int * int

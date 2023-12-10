@@ -19,21 +19,21 @@ module Scripting =
         | DeclarationBinding of Expr
         | ProceduralBinding of int * int
 
-    and [<StructuralEquality; NoComparison; Struct>] BindingType =
+    and [<NoComparison; Struct>] BindingType =
         | UnknownBindingType
         | IntrinsicBinding
         | ExtrinsicBinding
         | EnvironmentalBinding
 
-    and [<StructuralEquality; StructuralComparison>] Binding =
+    and Binding =
         | VariableBinding of VarName : string * VarValue : Expr
         | FunctionBinding of FunName : string * FunArgs : string array * FunLambda : Expr
 
-    and [<StructuralEquality; StructuralComparison; Struct>] Breakpoint =
+    and [<Struct>] Breakpoint =
         { mutable BreakEnabled : bool
           mutable BreakCondition : Expr }
 
-    and [<StructuralEquality; StructuralComparison; CompilationRepresentation (CompilationRepresentationFlags.UseNullAsTrueValue)>] Codata =
+    and [<CompilationRepresentation (CompilationRepresentationFlags.UseNullAsTrueValue)>] Codata =
         | Empty
         | Add of Codata * Codata
         | Unfold of Expr * Expr
@@ -883,7 +883,7 @@ module Scripting =
     type ProceduralFrame = (struct (string * Expr)) array
 
     /// The manner in which bindings are added to a frame.
-    type [<StructuralEquality; StructuralComparison>] AddType =
+    type AddType =
         | AddToNewFrame of Size : int
         | AddToHeadFrame of Offset : int
 

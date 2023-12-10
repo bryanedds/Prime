@@ -19,7 +19,7 @@ type SymbolicExpansionAttribute (prettifyFieldNames : bool) =
     member this.PrettifyFieldNames = prettifyFieldNames
 
 /// Compresses two unions into a single union in a symbolic-expression.
-type [<StructuralEquality; StructuralComparison>] SymbolicCompression<'a, 'b> =
+type SymbolicCompression<'a, 'b> =
     | SymbolicCompressionA of 'a
     | SymbolicCompressionB of 'b
 

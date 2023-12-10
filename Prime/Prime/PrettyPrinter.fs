@@ -7,7 +7,7 @@ open System.Reflection
 open System.Text
 
 /// Pretty prints Symbols, as well as strings by converting them to Symbols.
-type [<StructuralEquality; StructuralComparison>] PrettyPrinter =
+type PrettyPrinter =
     { TitleWords : string Set
       HeaderWords : string Set
       DetailWords : string Set
@@ -24,7 +24,7 @@ type [<StructuralEquality; StructuralComparison>] PrettyPrinter =
 [<RequireQualifiedAccess>]
 module PrettyPrinter =
 
-    type [<StructuralEquality; StructuralComparison>] private PrettySymbol =
+    type private PrettySymbol =
         | PrettyAtom of bool * bool * bool * string * Symbol
         | PrettyNumber of string * Symbol
         | PrettyText of string * Symbol
