@@ -105,9 +105,24 @@ module Array =
     let rec tryFindPlus pred (arr : _ seq) =
         Seq.tryFindPlus pred arr
 
-    /// Get all but the last item from a list.
+    /// Get all but the last item from a array.
     let allButLast arr =
         tryTake (Array.length arr - 1) arr
+
+    /// Pad an array with count instances of its last item, removing items from back if count is negative.
+    let pad count elem arr =
+        if count = 0 then arr
+        elif count > 0 then Array.append arr (Array.init count (fun _ -> elem))
+        else Array.take (Array.length arr + count) arr
+
+    /// Pad an array with count instances of its last item.
+    let padWithLast count arr =
+        pad count (Array.last arr) arr
+
+    /// Pad an array with instances of its last item so that it is proportion to another array.
+    let padWithLastToProportion arr arr2 =
+        let deficit = Array.length arr2 - Array.length arr
+        padWithLast deficit arr
 
     /// Perform a sort on elements, preserving order of equal elements.
     let sortStableWith sorter (arr : _ array) =

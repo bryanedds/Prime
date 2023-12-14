@@ -19,7 +19,7 @@ module Scripting =
         | DeclarationBinding of Expr
         | ProceduralBinding of int * int
 
-    and [<NoComparison; Struct>] BindingType =
+    and [<Struct>] BindingType =
         | UnknownBindingType
         | IntrinsicBinding
         | ExtrinsicBinding
