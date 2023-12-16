@@ -173,7 +173,7 @@ module List =
         let delta = count - takenCount
         if delta < 1 then taken else List.append taken (List.init delta (fun _ -> elem))
 
-    /// Pad a list with count instances of its last item, removing items from back if count is negative.
+    /// Pad a list with count instances of the given element, removing items from back if count is negative.
     let pad count elem list =
         if count = 0 then list
         elif count > 0 then list @ List.init count (fun _ -> elem)

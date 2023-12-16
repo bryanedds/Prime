@@ -109,7 +109,7 @@ module Array =
     let allButLast arr =
         tryTake (Array.length arr - 1) arr
 
-    /// Pad an array with count instances of its last item, removing items from back if count is negative.
+    /// Pad an array with count instances of the given element, removing items from back if count is negative.
     let pad count elem arr =
         if count = 0 then arr
         elif count > 0 then Array.append arr (Array.init count (fun _ -> elem))
