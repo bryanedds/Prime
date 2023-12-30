@@ -9,7 +9,7 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module SList =
 
-    /// An list that is split into smaller list in order to avoid allocating from the LOH.
+    /// An list that is split into smaller lists in order to avoid allocating from the LOH.
     type [<ReferenceEquality>] 'a SList =
         private
             { mutable TotalLength_ : int
@@ -215,5 +215,5 @@ module SList =
     let ofList (list : 'a list) =
         ofSeq list
 
-/// An list that is split into smaller list in order to avoid allocating from the LOH.
+/// An list that is split into smaller lists in order to avoid allocating from the LOH.
 type 'a SList = 'a SList.SList
