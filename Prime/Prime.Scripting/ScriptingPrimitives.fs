@@ -137,7 +137,7 @@ module ScriptingPrimitives =
     let evalGetTypeName _ argEvaled _ world =
         match argEvaled with
         | Violation _ as error -> struct (error, world)
-        | Unit _ -> struct (String "Unit", world)
+        | Unit -> struct (String "Unit", world)
         | Bool _ -> struct (String "Bool", world)
         | Int _ -> struct (String "Int", world)
         | Int64 _ -> struct (String "Int64", world)

@@ -152,7 +152,7 @@ module ListTests =
 
     [<Property (QuietOnSuccess = true)>]
     let ulistEqListsLookingBackwardsMapFilter (initialList : ResizeArray<int>) =
-        let actionGen = getActionGen (function ListAction.MapIncrementFn _ | ListAction.FilterWithFn -> true | _ -> false)
+        let actionGen = getActionGen (function ListAction.MapIncrementFn | ListAction.FilterWithFn -> true | _ -> false)
         Prop.forAll actionGen (fun actions -> ulistEqLists initialList actions true)
 
     let sulistEqLists (initialList : ResizeArray<int>) (actions : ListAction<int>[]) (lookBackwards : bool) =
@@ -182,5 +182,5 @@ module ListTests =
 
     [<Property (QuietOnSuccess = true)>]
     let sulistEqListsLookingBackwardsMapFilter (initialList : ResizeArray<int>) =
-        let actionGen = getActionGen (function ListAction.MapIncrementFn _ | ListAction.FilterWithFn -> true | _ -> false)
+        let actionGen = getActionGen (function ListAction.MapIncrementFn | ListAction.FilterWithFn -> true | _ -> false)
         Prop.forAll actionGen (fun actions -> sulistEqLists initialList actions true)

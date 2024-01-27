@@ -15,22 +15,26 @@ module MutantCache =
             { CloneMutant : 'm -> 'm
               mutable ValidMutantOpt : 'm option }
 
-    let private rebuildCache (rebuildMutant : unit -> 'm) (mutantCache : 'm MutantCache) =
+    let private rebuildCache (discardMutant : 'm -> unit) (rebuildMutant : unit -> 'm) (mutantCache : 'm MutantCache) =
+        match mutantCache.ValidMutantOpt with
+        | Some mutant -> discardMutant mutant
+        | None -> ()
         let validMutant = rebuildMutant ()
         mutantCache.ValidMutantOpt <- None
         let mutantCache = { mutantCache with ValidMutantOpt = Some validMutant }
         (validMutant, mutantCache)
 
-    let private getMutantUncloned rebuildMutant (mutantCache : 'm MutantCache) =
+    let private getMutantUncloned discardMutant rebuildMutant (mutantCache : 'm MutantCache) =
         match mutantCache.ValidMutantOpt with
         | Some mutant -> (mutant, mutantCache)
-        | None -> rebuildCache rebuildMutant mutantCache
+        | None -> rebuildCache discardMutant rebuildMutant mutantCache
 
     /// <summary>Get the underlying mutant (mutable object / record / whatever).</summary>
-    /// <param name="rebuildMutant">A function that rebuilds the mutant from scratch in case the current underlying mutant is out of date.</param>
+    /// <param name="discardMutant">A function that discard any desired resources from the current mutant in case the current mutant is out of date.</param>
+    /// <param name="rebuildMutant">A function that rebuilds the mutant from scratch in case the current mutant is out of date.</param>
     /// <param name="mutantCache">The mutant cache.</param>
-    let getMutant rebuildMutant (mutantCache : 'm MutantCache) =
-        let (mutantUncloned, mutantCache) = getMutantUncloned rebuildMutant mutantCache
+    let getMutant discardMutant rebuildMutant (mutantCache : 'm MutantCache) =
+        let (mutantUncloned, mutantCache) = getMutantUncloned discardMutant rebuildMutant mutantCache
         let mutantCloned = mutantCache.CloneMutant mutantUncloned
         (mutantCloned, mutantCache)
 
@@ -38,8 +42,8 @@ module MutantCache =
     /// <param name="rebuildMutant">A function that rebuilds the mutant from scratch in case the current underlying mutant is out of date.</param>
     /// <param name="mutateMutant">A function that mutates the underlying mutant.</param>
     /// <param name="mutantCache">The mutant cache.</param>
-    let mutateMutant rebuildMutant mutateMutant (mutantCache : 'm MutantCache) =
-        let (mutant, mutantCache) = getMutantUncloned rebuildMutant mutantCache
+    let mutateMutant discardMutant rebuildMutant mutateMutant (mutantCache : 'm MutantCache) =
+        let (mutant, mutantCache) = getMutantUncloned discardMutant rebuildMutant mutantCache
         mutantCache.ValidMutantOpt <- None
         let mutant = mutateMutant mutant
         { mutantCache with ValidMutantOpt = Some mutant }

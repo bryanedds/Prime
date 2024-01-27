@@ -13,13 +13,13 @@ module USet =
     type [<ReferenceEquality>] 'a USet =
         private
             { mutable Set : 'a TSet }
-    
+
         interface 'a IEnumerable with
             member this.GetEnumerator () =
                 let struct (seq, tset) = TSet.toSeq this.Set
                 this.Set <- tset
                 seq.GetEnumerator ()
-    
+
         interface IEnumerable with
             member this.GetEnumerator () =
                 (this :> 'a seq).GetEnumerator () :> IEnumerator

@@ -610,7 +610,7 @@ module ScriptingSystem =
     and eval expr (world : 'w) =
         match expr with
         | Violation _
-        | Unit _
+        | Unit
         | Bool _
         | Int _
         | Int64 _
