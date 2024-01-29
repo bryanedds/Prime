@@ -32,6 +32,7 @@
 		<Compile Include="Triple.fs" />
 		<Compile Include="PartialEquate.fs" />
 		<Compile Include="PartialCompare.fs" />
+		<Compile Include="TopologicalSort.fs" />
 		<Compile Include="Either.fs" />
 		<Compile Include="ValueEither.fs" />
 		<Compile Include="Seq.fs" />

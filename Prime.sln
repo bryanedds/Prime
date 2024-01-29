@@ -13,6 +13,8 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Prime.Scripting", "Prime\Pr
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Prime.Scripting.Repl", "Prime\Prime.Scripting.Repl\Prime.Scripting.Repl.fsproj", "{40456B38-40EB-4A15-99EC-3B4D5AF939A5}"
 EndProject
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Prime.Ecs", "Prime\Prime.Ecs\Prime.Ecs.fsproj", "{B4E36BEB-A346-48A5-9F9A-DA806F67DE04}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,10 @@ Global
 		{40456B38-40EB-4A15-99EC-3B4D5AF939A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40456B38-40EB-4A15-99EC-3B4D5AF939A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40456B38-40EB-4A15-99EC-3B4D5AF939A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4E36BEB-A346-48A5-9F9A-DA806F67DE04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4E36BEB-A346-48A5-9F9A-DA806F67DE04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4E36BEB-A346-48A5-9F9A-DA806F67DE04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4E36BEB-A346-48A5-9F9A-DA806F67DE04}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
