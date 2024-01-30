@@ -36,7 +36,7 @@
 	<ItemGroup>
 		<PackageReference Include="Csv" Version="2.0.93" />
 		<PackageReference Include="FParsec" Version="1.1.1" />
-		<PackageReference Include="Prime" Version="9.16.0" />
+		<PackageReference Include="Prime" Version="9.17.0" />
 	</ItemGroup>
 
 	<ItemGroup>

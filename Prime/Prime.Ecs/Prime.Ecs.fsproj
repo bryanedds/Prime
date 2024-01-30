@@ -30,11 +30,8 @@
 	<ItemGroup>
 		<PackageReference Include="Csv" Version="2.0.93" />
 		<PackageReference Include="FParsec" Version="1.1.1" />
+		<PackageReference Include="Prime" Version="9.17.0" />
 		<PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Prime\Prime.fsproj" />
 	</ItemGroup>
 
 	<ItemGroup>
