@@ -4,8 +4,8 @@ open System.Collections.Generic
 open System.Collections.ObjectModel
 open System.Linq
 
-type GenericEqualityComparer<'TItem, 'TKey> (getKey) =
-    
+type EqualityComparerPlus<'TItem, 'TKey> (getKey) =
+
     inherit EqualityComparer<'TItem> ()
 
     let keyComparer = EqualityComparer<'TKey>.Default
@@ -38,7 +38,7 @@ module TopologicalSort =
             collection.Group<'T>(collection.RemapDependencies (getDependencies, getKey), null)
 
         member source.Group<'T, 'TKey> (getDependencies : 'T -> IEnumerable<'T>, getKey : 'T -> 'TKey) : (bool * IList<ICollection<'T>>) =
-            let comparer = GenericEqualityComparer<'T, 'TKey> getKey :> IEqualityComparer<'T>
+            let comparer = EqualityComparerPlus<'T, 'TKey> getKey :> IEqualityComparer<'T>
             source.Group<'T> (getDependencies, comparer)
 
         member source.Group<'T> (getDependencies : 'T -> IEnumerable<'T>, comparer : IEqualityComparer<'T>) : (bool * IList<ICollection<'T>>) =
@@ -55,7 +55,7 @@ module TopologicalSort =
             collection.Sort<'T> (collection.RemapDependencies<'T, 'TKey> (getDependencies, getKey), null)
 
         member source.Sort<'T, 'TKey> (getDependencies : 'T -> IEnumerable<'T>, getKey : 'T -> 'TKey) : 'T List =
-            source.Sort (getDependencies, GenericEqualityComparer<'T, 'TKey> getKey)
+            source.Sort (getDependencies, EqualityComparerPlus<'T, 'TKey> getKey)
 
         member source.Sort<'T> (getDependencies : 'T -> IEnumerable<'T>, comparer : IEqualityComparer<'T>) : 'T List =
             let sorted = List<'T> ()
