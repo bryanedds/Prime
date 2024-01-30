@@ -4,7 +4,7 @@
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net7.0</TargetFramework>
 		<ProjectGuid>{258a92a0-3223-4326-af16-62df653a3080}</ProjectGuid>
-		<GenerateProgramFile>false</GenerateProgramFile>
+		<GenerateProgramFile>False</GenerateProgramFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

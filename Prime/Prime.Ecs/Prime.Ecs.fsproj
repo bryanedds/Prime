@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<ProjectGuid>{B4E36BEB-A346-48A5-9F9A-DA806F67DE04}</ProjectGuid>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<Version>9.16.0</Version>
 	</PropertyGroup>
 
