@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>Prime.Ecs</id>
+        <version>9.17.0</version>
+        <title>Prime.Ecs - An Entity-Component-System library for F#.</title>
+        <authors>Bryan Edds</authors>
+        <owners>Bryan Edds</owners>
+        <licenseUrl>https://github.com/bryanedds/Prime/blob/master/License.md</licenseUrl>
+        <projectUrl>https://github.com/bryanedds/Prime</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>An Entity-Component-System library for F#.</description>
+        <summary />
+        <releaseNotes>Initial package release.</releaseNotes>
+        <copyright>Copyright (c) 2023 Bryan Edds</copyright>
+        <language>en-US</language>
+        <tags>F# Functional Programming Ecs</tags>
+        <dependencies>
+			<dependency id="Csv" version="2.0.93" />
+			<dependency id="FParsec" version="1.1.1" />
+			<dependency id="FSharp.Core" version="8.0.100" />
+            <dependency id="Prime" version="9.17.0" />
+            <dependency id="System.Numerics.Vectors" version="4.5.0" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\Prime.Ecs\bin\Release\netstandard2.0\Prime.Ecs.dll" target="lib\netstandard2.0\Prime.Ecs.dll" />
+        <file src="..\Prime.Ecs\bin\Release\netstandard2.0\Prime.Ecs.pdb" target="lib\netstandard2.0\Prime.Ecs.pdb" />
+        <file src="..\Prime.Ecs\bin\Release\netstandard2.0\Prime.Ecs.xml" target="lib\netstandard2.0\Prime.Ecs.xml" />
+    </files>
+</package>
