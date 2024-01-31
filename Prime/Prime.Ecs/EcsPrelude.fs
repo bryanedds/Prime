@@ -248,7 +248,6 @@ and Term =
     | Int of int
     | Single of single
     | String of string
-    | V3 of Vector3
     | Cmp of IComparable
     | Obj of obj
     | Pair of Term * Term
@@ -273,7 +272,6 @@ and Term =
 /// Exposes a Construct-Inspect-Compare mini-language for subqueries.
 /// NOTE: Is NoEquality and NoComparison because I didn't feel like building a hash function. Could be tho.
 and [<NoEquality; NoComparison>] Subquery =
-    | V3Ctor of Subquery * Subquery * Subquery
     | PairCtor of Subquery * Subquery
     | EntityIdCtor of uint64
     | Tagged of Subquery
@@ -283,9 +281,6 @@ and [<NoEquality; NoComparison>] Subquery =
     | Lt of Subquery * Subquery
     | Le of Subquery * Subquery
     | If of Subquery * Subquery * Subquery
-    | GetX of Subquery
-    | GetY of Subquery
-    | GetZ of Subquery
     | Or of Subquery * Subquery
     | And of Subquery * Subquery
     | Not of Subquery
@@ -308,7 +303,6 @@ and [<NoEquality; NoComparison>] Subquery =
         | (Int i, Int i2) -> Bool (i = i2)
         | (Single f, Single f2) -> Bool (f = f2)
         | (String str, String str2) -> Bool (strEq str str2)
-        | (V3 v, V3 v2) -> Bool (v.X = v2.X && v.Y = v2.Y && v.Z = v2.Z)
         | (Cmp c, Cmp c2) -> Bool (c = c2)
         | (Obj o, Obj o2) -> Bool (objEq o o2)
         | (EntityId entityId, EntityId entityId2) -> Bool (genEq entityId entityId2)
@@ -399,13 +393,6 @@ and [<NoEquality; NoComparison>] Subquery =
 
     static member eval (terms : Map<string, Term>) (subquery : Subquery) : Term =
         match subquery with
-        | V3Ctor (subquery, subquery2, subquery3) ->
-            match (Subquery.eval terms subquery, Subquery.eval terms subquery2, Subquery.eval terms subquery3) with
-            | (Single x, Single y, Single z) -> V3 (Vector3 (x, y, z))
-            | ((Error _ as err), _, _) -> err
-            | (_, (Error _ as err), _) -> err
-            | (_, _, (Error _ as err)) -> err
-            | (_, _, _) -> Error "Invalid v3 call; 3 Singles required."
         | PairCtor (subquery, subquery2) ->
             match (Subquery.eval terms subquery, Subquery.eval terms subquery2) with
             | ((Error _ as err), _) -> err
@@ -448,12 +435,6 @@ and [<NoEquality; NoComparison>] Subquery =
             | Bool b -> if b then Subquery.eval terms consequent else Subquery.eval terms alternate
             | Error _ as err -> err
             | _ -> Error "Invalid If predicate; Bool required."
-        | GetX subquery ->
-            match Subquery.eval terms subquery with V3 v -> Single v.X | Error _ as err -> err | _ -> Error "Invalid GetX argument; V3 required."
-        | GetY subquery ->
-            match Subquery.eval terms subquery with V3 v -> Single v.Y | Error _ as err -> err | _ -> Error "Invalid GetY argument; V3 required."
-        | GetZ subquery ->
-            match Subquery.eval terms subquery with V3 v -> Single v.Z | Error _ as err -> err | _ -> Error "Invalid GetZ argument; V3 required."
         | Or (subquery, subquery2) ->
             match (Subquery.eval terms subquery, Subquery.eval terms subquery2) with
             | (Bool b, Bool b2) -> Bool (b || b2)
@@ -561,21 +542,10 @@ and [<NoEquality; NoComparison>] Subquery =
             Let (var.Name, Subquery.unquote q, Subquery.unquote q2)
         | Patterns.IfThenElse (predicate, consequent, alternative) ->
             If (Subquery.unquote predicate, Subquery.unquote consequent, Subquery.unquote alternative)
-        | Patterns.PropertyGet (None, info, args) ->
-            match (info.Name, args) with
-            | ("v3Zero", []) -> Val (V3 Vector3.Zero)
-            | ("v3One", []) -> Val (V3 Vector3.One)
-            | _ -> failwith "Unsupported call."
         | Patterns.PropertyGet (Some target, info, args) ->
             match (info.Name, args) with
             | ("Item", [arg]) -> At (Subquery.unquote arg, Subquery.unquote target)
             | _ -> failwith "Unsupported call."
-        | Patterns.FieldGet (Some target, info) ->
-            match info.Name with
-            | "X" -> GetX (Subquery.unquote target)
-            | "Y" -> GetY (Subquery.unquote target)
-            | "Z" -> GetZ (Subquery.unquote target)
-            | _ -> failwith "Unsupported index."
         | Patterns.NewTuple args ->
             match args with
             | [arg; arg2] -> PairCtor (Subquery.unquote arg, Subquery.unquote arg2)
@@ -600,7 +570,6 @@ and [<NoEquality; NoComparison>] Subquery =
         | Patterns.Call (_, info, args) ->
             match (info.Name, args) with
             | ("tagged", [arg]) -> Tagged (Subquery.unquote arg)
-            | ("v3", [arg; arg2; arg3]) -> V3Ctor (Subquery.unquote arg, Subquery.unquote arg2, Subquery.unquote arg3)
             | ("entityId", [arg]) -> EntityIdCtor (match arg with Patterns.Value (:? uint64 as entityId, _) -> entityId | _ -> failwith "Invalid entityId; uint64 required.")
             | ("fst", [arg]) -> Fst (Subquery.unquote arg)
             | ("snd", [arg]) -> Snd (Subquery.unquote arg)
@@ -622,7 +591,7 @@ and [<NoEquality; NoComparison>] Subquery =
                 | (Patterns.Value (:? string as varName, _), [|ty|]) -> Typed (varName, ty)
                 | (_, _) -> failwith "Invalid IsType arguments."
             | _ -> failwith "Unsupported call."
-        | _ -> failwith "Unsupport Subquery expression."
+        | _ -> failwith "Unsupported Subquery expression."
 
 [<AutoOpen>]
 module Subquery =
