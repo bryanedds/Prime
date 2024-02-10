@@ -19,7 +19,9 @@ module SList =
         static member internal Make () =
             let size = sizeof<'a>
             let listCapacity = Constants.Runtime.LohSize / size / 2 // divide by two since we seem to need some major slop to avoid LOH allocation...
-            { TotalLength_ = 0; Capacity_ = listCapacity; Lists_ = List [List<'a> ()] }
+            let lists = List ()
+            lists.Add (List<'a> ())
+            { TotalLength_ = 0; Capacity_ = listCapacity; Lists_ = lists }
 
         member this.Length =
             this.TotalLength_
