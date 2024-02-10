@@ -16,11 +16,11 @@ module SList =
               mutable Capacity_ : int
               mutable Lists_ : 'a List List }
 
-        static member internal Make () =
+        static member internal Make (capacity : int) =
             let size = sizeof<'a>
             let listCapacity = Constants.Runtime.LohSize / size / 2 // divide by two since we seem to need some major slop to avoid LOH allocation...
             let lists = List ()
-            lists.Add (List<'a> ())
+            lists.Add (List<'a> (min capacity listCapacity))
             { TotalLength_ = 0; Capacity_ = listCapacity; Lists_ = lists }
 
         member this.Length =
@@ -42,7 +42,7 @@ module SList =
 
         member this.Remove (item : 'a) =
             let mutable result = false
-            let list' = SList.Make ()
+            let list' = SList.Make this.Lists_.Count
             for list in this.Lists_ do
                 for item' in list do
                     if EqualityComparer.Equals (item, item')
@@ -105,10 +105,13 @@ module SList =
             member this.CopyTo (arr, index) = this.CopyTo (arr, index)
 
     let make<'a> () : 'a SList =
-        SList.Make ()
+        SList.Make 0 // same as initial capacity for Generic.List.
 
-    let makeFromSegmentedList list =
-        let lists = List ()
+    let makeWithCapacity<'a> (capacity : int) : 'a SList =
+        SList.Make capacity
+
+    let makeFromSegmentedList (list : 'a SList) =
+        let lists = List list.Capacity_
         for list in list.Lists_ do
             lists.Add (List list)
         { TotalLength_ = list.TotalLength_
@@ -141,27 +144,27 @@ module SList =
 
     let skip count (slist : 'a SList) =
         if count > slist.TotalLength_ then raise (ArgumentException ("Invalid argument.", nameof count))
-        let result = make ()
+        let result = makeWithCapacity (slist.TotalLength_ - count)
         for i in count .. dec slist.TotalLength_ do
             add slist.[i] result
         result
 
     let take count (slist : 'a SList) =
         if count > slist.TotalLength_ then raise (ArgumentException ("Invalid argument.", nameof count))
-        let result = make ()
+        let result = makeWithCapacity count
         for i in 0 .. dec slist.TotalLength_ - count do
             add slist.[i] result
         result
 
-    let map mapper slist =
-        let result = make ()
+    let map mapper (slist : 'a SList) =
+        let result = makeWithCapacity slist.TotalLength_
         for item in slist do
             add (mapper item) result
         result
 
     let map2 mapper left right =
         if left.TotalLength_ <> right.TotalLength_ then raise (ArgumentException ("SList length does not match.", nameof right))
-        let result = make ()
+        let result = makeWithCapacity left.TotalLength_
         for i in 0 .. dec left.TotalLength_ do
             add (mapper left.[i] right.[i]) result
         result
@@ -204,12 +207,16 @@ module SList =
         state
 
     let singleton item =
-        let result = make ()
+        let result = makeWithCapacity 4 // matches the first allocation capacity of Generic.List.
         add item result
         result
 
     let ofSeq (seq : 'a seq) =
-        let result = make<'a> ()
+        let result =
+            match seq with // OPTIMIZATION: reserve some predicated capacity.
+            | :? ('a array) as arr -> makeWithCapacity<'a> arr.Length
+            | :? ('a List) as list -> makeWithCapacity<'a> list.Capacity
+            | _ -> make<'a> ()
         for item in seq do
             add item result
         result
