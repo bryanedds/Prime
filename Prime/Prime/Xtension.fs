@@ -7,7 +7,6 @@ open System
 [<RequireQualifiedAccess>]
 module Xtension =
 
-    // OPTIMIZATION: Xtension flag bit-masks; only for use by internal facilities.
     let [<Literal>] private ImperativeMask =                0b0001
     let [<Literal>] private ContainsRuntimePropertiesMask = 0b0010
 
@@ -16,6 +15,7 @@ module Xtension =
         private
             { Properties : UMap<string, Property> // TODO: see if a quadratic searching dictionary could improve perf here.
               Flags : int }
+
             member this.Imperative with get () = this.Flags &&& ImperativeMask <> 0
             member this.ContainsRuntimeProperties with get () = this.Flags &&& ContainsRuntimePropertiesMask <> 0
 
