@@ -8,16 +8,14 @@ open System
 module Xtension =
 
     // OPTIMIZATION: Xtension flag bit-masks; only for use by internal facilities.
-    let [<Literal>] internal ImperativeMask =                   0b0000000001
-    let [<Literal>] internal ContainsRuntimePropertiesMask =    0b0000000010
+    let [<Literal>] private ImperativeMask =                0b0001
+    let [<Literal>] private ContainsRuntimePropertiesMask = 0b0010
 
     /// Provides a convenient way to implement both dynamic properties and designer properties.
     type [<ReferenceEquality>] Xtension =
         private
             { Properties : UMap<string, Property> // TODO: see if a quadratic searching dictionary could improve perf here.
               Flags : int }
-
-            // Member properties; only for use by internal facilities.
             member this.Imperative with get () = this.Flags &&& ImperativeMask <> 0
             member this.ContainsRuntimeProperties with get () = this.Flags &&& ContainsRuntimePropertiesMask <> 0
 
