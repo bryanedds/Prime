@@ -51,8 +51,8 @@ module FStack =
             member this.GetEnumerator () = new FStackEnumerator<'a> (this.Front, this.Back) :> 'a IEnumerator
             member this.GetEnumerator () = new FStackEnumerator<'a> (this.Front, this.Back) :> IEnumerator
 
-        override this.Equals (thatObj : obj) =
-            match thatObj with
+        override this.Equals that =
+            match that with
             | :? ('a FStack) as that ->
                 refEq this that || // OPTIMIZATION: first check ref equality
                 Seq.forall2 Unchecked.equals this that

@@ -103,12 +103,33 @@ module ParseExceptionOperators =
         raise (ParseException (message + "\Parse source: " + symbolStr, symbolStr))
 
 /// A lisp-style symbolic type.
-type Symbol =
+/// NOTE: symbol equality is defined independently of SymbolOrigin values.
+type [<CustomEquality; NoComparison>] Symbol =
     | Atom of string * SymbolOrigin ValueOption
     | Number of string * SymbolOrigin ValueOption
     | Text of string * SymbolOrigin ValueOption
     | Quote of Symbol * SymbolOrigin ValueOption
     | Symbols of Symbol list * SymbolOrigin ValueOption
+
+    static member hash symbol =
+        match symbol with
+        | Atom (str, _) -> str.GetHashCode ()
+        | Number (str, _) -> str.GetHashCode ()
+        | Text (str, _) -> str.GetHashCode ()
+        | Quote (sym, _) -> Symbol.hash sym * 13
+        | Symbols (syms, _) -> List.fold (fun hashCode sym -> hashCode ^^^ Symbol.hash sym) 131 syms
+
+    static member equals left right =
+        match (left, right) with
+        | (Atom (str, _), Atom (str2, _)) -> strEq str str2
+        | (Number (str, _), Number (str2, _)) -> strEq str str2
+        | (Text (str, _), Text (str2, _)) -> strEq str str2
+        | (Quote (sym, _), Quote (sym2, _)) -> Symbol.equals sym sym2
+        | (Symbols (syms, _), Symbols (syms2, _)) ->
+            if List.length syms = List.length syms2
+            then syms |> flip Seq.zip syms2 |> Seq.forall (fun (sym, sym2) -> Symbol.equals sym sym2)
+            else false
+        | (_, _) -> false
 
     /// Try to get the origin of the symbol if it has one.
     static member getOriginOpt symbol =
@@ -127,6 +148,14 @@ type Symbol =
         | Text (str, _) -> Text (str, originOpt)
         | Quote (sym, _) -> Quote (sym, originOpt)
         | Symbols (syms, _) -> Symbols (syms, originOpt)
+
+    override this.GetHashCode () =
+        Symbol.hash this
+
+    override this.Equals that =
+        match that with
+        | :? Symbol as that -> Symbol.equals this that 
+        | _ -> false
 
 [<RequireQualifiedAccess>]
 module Symbol =
