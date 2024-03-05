@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<ProjectGuid>{fe09ae81-b66b-42e0-8192-eadecefc9893}</ProjectGuid>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<Version>9.18.0</Version>
+		<Version>9.19.0</Version>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -29,6 +29,7 @@
 		<Compile Include="ValueOption.fs" />
 		<Compile Include="Pair.fs" />
 		<Compile Include="ValuePair.fs" />
+		<Compile Include="StructPair.fs" />
 		<Compile Include="Triple.fs" />
 		<Compile Include="PartialEquate.fs" />
 		<Compile Include="PartialCompare.fs" />

@@ -29,7 +29,7 @@ module ValuePairOperators =
     /// Map over struct pair member snd.
     let inline mapSnd' mapper struct (fst, snd) =
         struct (fst, mapper snd)
-        
+
     /// Make a struct pair of values.
     let inline pair' a b =
         struct (a, b)
