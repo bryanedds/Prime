@@ -117,7 +117,7 @@ module Operators =
         match a with
         | :? Array ->
             // NOTE: arrays are given special deep equality semantics in F#.
-            // TODO: be absolute sure this is the case!
+            // TODO: be absolutely sure this is the case!
             a = b
         | _ -> obj.Equals (a, b)
 

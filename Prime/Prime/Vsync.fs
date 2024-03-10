@@ -22,16 +22,6 @@ module Async =
             { let! b = f (async.ReturnFrom a)
               return b }
 
-    /// Combine all asyncs in one, chaining them in sequence order.
-    /// TODO: P1: remove this when upgrading to later version of F#.
-    let Sequential (t : _ Async seq) : _ seq Async =
-        async {
-            use enum = t.GetEnumerator ()
-            let rec loop () =
-                if enum.MoveNext () then async.Bind (enum.Current, fun x -> async.Bind (loop (), fun y -> async.Return (seq { yield x; yield! y })))
-                else async.Return Seq.empty
-            return! loop () }
-
 [<RequireQualifiedAccess>]
 module Vsync =
 
@@ -212,7 +202,7 @@ module Vsync =
     /// thread.
     let [<DebuggerHidden; DebuggerStepThrough>] Sequential s =
         if IsSync ()
-        then Sync (fun () -> Seq.map (function Sync a -> a () | Async _ -> failwithumf ()) s |> Seq.toArray |> seq)
+        then Sync (fun () -> Seq.map (function Sync a -> a () | Async _ -> failwithumf ()) s |> Seq.toArray)
         else Async (Async.Sequential (Seq.map Extract s))
 
     /// Create a potentially asynchronous operation that runs 'f' over computation of 'a'.
