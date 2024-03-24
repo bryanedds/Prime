@@ -169,10 +169,10 @@ module HMap =
         let rec toSeq node =
             seq {
                 match node with
-                | Nil -> yield! Seq.empty
-                | Singleton hkv -> yield (hkv.K, hkv.V)
+                | Nil -> ()
+                | Singleton hkv -> KeyValuePair (hkv.K, hkv.V)
                 | Multiple arr -> for n in arr do yield! toSeq n
-                | Gutter gutter -> yield! Array.map (fun (hkv : Hkv<_, _>) -> (hkv.K, hkv.V)) gutter }
+                | Gutter gutter -> yield! Array.map (fun (hkv : Hkv<_, _>) -> KeyValuePair (hkv.K, hkv.V)) gutter }
 
     /// A fast persistent hash map.
     /// Works in effectively constant-time for look-ups and updates.
@@ -191,6 +191,9 @@ module HMap =
         override this.GetHashCode () =
             hash (box this.Node)
 
+        member this.GetEnumerator () =
+            (HNode.toSeq this.Node).GetEnumerator ()
+
         member this.TryGetValue (key, valueRef : 'v outref) =
             let h = key.GetHashCode ()
             match HNode.tryFind h key 0 this.Node with
@@ -202,11 +205,18 @@ module HMap =
                 let h = Unchecked.hash key
                 HNode.find h key 0 this.Node
 
-        interface IEnumerable<'k * 'v> with
-            member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator ()
+        member this.Pairs =
+            this.Node |>
+            HNode.toSeq |>
+            Seq.map (fun kvp -> (kvp.Key, kvp.Value))
+
+        interface IEnumerable<KeyValuePair<'k, 'v>> with
+            member this.GetEnumerator () =
+                this.GetEnumerator ()
 
         interface IEnumerable with
-            member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator () :> IEnumerator
+            member this.GetEnumerator () =
+                this.GetEnumerator ()
 
     /// Create an empty HMap.
     let makeEmpty () =
@@ -286,7 +296,7 @@ module HMap =
     /// NOTE: This function seems to profile as being very slow. I don't know if it's the seq / yields syntax or what.
     /// Don't use it unless you need its laziness or if performance won't be affected significantly.
     let toSeq (map : HMap<'k, 'v>) =
-        map :> seq<'k * 'v>
+        map :> seq<KeyValuePair<'k, 'v>>
 
     /// Convert a sequence of keys and values to an HMap.
     let ofSeq pairs =
@@ -306,7 +316,7 @@ module HMap =
 
     /// Convert the map to a sequence of its keys.
     let toKeySeq (map : HMap<'k, 'v>) =
-        map :> _ seq |> Seq.map fst
+        map :> _ seq |> Seq.map (fun kvp -> kvp.Key)
 
     /// Convert the map to a list of its keys.
     let toKeyList (map : HMap<'k, 'v>) =
@@ -314,7 +324,7 @@ module HMap =
 
     /// Convert the map to a sequence of its values.
     let toValueSeq (map : HMap<'k, 'v>) =
-        map :> _ seq |> Seq.map snd
+        map :> _ seq |> Seq.map (fun kvp -> kvp.Key)
 
     /// Convert the map to a list of its values.
     let toValueList (map : HMap<'k, 'v>) =

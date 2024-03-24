@@ -180,12 +180,17 @@ module HSet =
 
         override this.GetHashCode () =
             hash (box this.Node)
+
+        member this.GetEnumerator () =
+            (HNode.toSeq this.Node).GetEnumerator ()
     
         interface 'a IEnumerable with
-            member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator ()
+            member this.GetEnumerator () =
+                this.GetEnumerator ()
     
         interface IEnumerable with
-            member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator () :> IEnumerator
+            member this.GetEnumerator () =
+                this.GetEnumerator ()
 
     /// Create an empty HSet.
     let makeEmpty () =

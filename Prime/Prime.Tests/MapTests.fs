@@ -3,13 +3,14 @@
 
 namespace Prime.Tests
 open System
+open System.Collections.Generic
 open FsCheck
 open FsCheck.NUnit
 open Prime
 module MapTests =
 
     type MapAction<'k, 'v> =
-        | SetKey of 'k * 'v
+        | SetKey of KeyValuePair<'k, 'v>
         | RemoveRandom
         | FoldCombine of 'v
 
@@ -28,8 +29,8 @@ module MapTests =
 
         let applyAction fsmap testMap action =
             match action with
-            | MapAction.SetKey (k, v) ->
-                (Map.add k v fsmap, add k v testMap)
+            | MapAction.SetKey kvp ->
+                (Map.add kvp.Key kvp.Value fsmap, add kvp.Key kvp.Value testMap)
             | MapAction.RemoveRandom when Map.isEmpty fsmap ->
                 (fsmap, testMap)
             | MapAction.RemoveRandom ->
@@ -58,7 +59,7 @@ module MapTests =
     [<Property (QuietOnSuccess = true)>]
     let hmapsEqualFsmapsAfterSteps (initialMap : Map<int, string>) (actions : MapAction<int, string>[]) =
         let testMap = HMap.ofSeq (Map.toSeq initialMap)
-        let eq (hmap : HMap<_,_>) (fsmap : Map<_,_>) = Map.ofSeq hmap = fsmap
+        let eq (hmap : HMap<_,_>) (fsmap : Map<_,_>) = Map.ofSeq hmap.Pairs = fsmap
         eqMapsAfterSteps initialMap testMap actions HMap.add HMap.remove HMap.fold (+) eq
 
     [<Property (QuietOnSuccess = true)>]
