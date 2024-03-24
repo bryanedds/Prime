@@ -5,6 +5,7 @@ namespace Prime
 open System
 open System.Collections
 open System.Collections.Generic
+open System.ComponentModel
 
 [<RequireQualifiedAccess>]
 module HSet =
@@ -27,14 +28,14 @@ module HSet =
 
     [<RequireQualifiedAccess>]
     module private HNode =
-    
+
         /// OPTIMIZATION: Array.Clone () is not used since it's been profiled to be slower
         let inline private cloneArray (arr : 'a HNode array) =
             let arr' = Array.zeroCreate 16 : 'a HNode array // NOTE: there's an unecessary check against the size here, but that's the only inefficiency
                                                             // TODO: use Array.zeroCreateUnchecked if / when it becomes available
             Array.Copy (arr, 0, arr', 0, 16) // param checks are inefficient, but hopefully there's at least a memcpy underneath...
             arr'
-    
+
         let inline private hashToIndex h dep =
             (h >>> (dep * 4)) &&& 0xF
 
@@ -165,6 +166,7 @@ module HSet =
 
     /// A fast persistent hash set.
     /// Works in effectively constant-time for look-ups and updates.
+    /// Also unlike FSharp.Set, has fast reference equality short-circuit.
     type [<CustomEquality; NoComparison>] HSet<'a when 'a : equality> =
         private
             { Node : 'a HNode

@@ -180,7 +180,7 @@ module Reflection =
         | fscType ->
             let ofSeq = (fscType.GetMethod ("OfSeq", BindingFlags.Static ||| BindingFlags.Public)).MakeGenericMethod gargs
             ofSeq.Invoke (null, [|cast.Invoke (null, [|objs|])|])
-        
+
     let pairsToMapping collectionTypeName (mappingType : Type) (pairs : _ seq) =
         let gargs = mappingType.GetGenericArguments ()
         match gargs with

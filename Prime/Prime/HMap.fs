@@ -176,6 +176,7 @@ module HMap =
 
     /// A fast persistent hash map.
     /// Works in effectively constant-time for look-ups and updates.
+    /// Also unlike FSharp.Map, has fast reference equality short-circuit.
     type [<CustomEquality; NoComparison>] HMap<'k, 'v when 'k : equality> =
         private
             { Node : HNode<'k, 'v>
@@ -296,12 +297,19 @@ module HMap =
     /// NOTE: This function seems to profile as being very slow. I don't know if it's the seq / yields syntax or what.
     /// Don't use it unless you need its laziness or if performance won't be affected significantly.
     let toSeq (map : HMap<'k, 'v>) =
-        map :> seq<KeyValuePair<'k, 'v>>
+        map :> seq<KeyValuePair<'k, 'v>> |> Seq.map (fun kvp -> (kvp.Key, kvp.Value))
 
     /// Convert a sequence of keys and values to an HMap.
     let ofSeq pairs =
         Seq.fold
             (fun map (key, value) -> add key value map)
+            (makeEmpty ())
+            pairs
+
+    /// Convert a sequence of key value pairs to an HMap.
+    let ofSeqKvp pairs =
+        Seq.fold
+            (fun map (kvp : KeyValuePair<'k, 'v>) -> add kvp.Key kvp.Value map)
             (makeEmpty ())
             pairs
 

@@ -3,6 +3,7 @@
 
 namespace Prime.Tests
 open System
+open Prime
 open Prime.Tests
 module Program =
 
