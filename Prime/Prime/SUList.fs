@@ -12,6 +12,11 @@ module SUList =
     type [<ReferenceEquality>] 'a SUList =
         private
             { mutable List : 'a STList }
+
+        member this.Item index =
+            let struct (result, tlist) = STList.get index this.List
+            this.List <- tlist
+            result
     
         interface 'a IEnumerable with
             member this.GetEnumerator () =
@@ -22,11 +27,6 @@ module SUList =
         interface IEnumerable with
             member this.GetEnumerator () =
                 (this :> 'a IEnumerable).GetEnumerator () :> IEnumerator
-
-        member this.Item index =
-            let struct (result, tlist) = STList.get index this.List
-            this.List <- tlist
-            result
 
     /// Create a SUList containing the given sequence of values.
     let makeFromSeq config items =

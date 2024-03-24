@@ -32,14 +32,6 @@ module SOMap =
               Entries : struct (bool * 'k * 'v) FStack
               InactiveCount : int }
 
-        interface IEnumerable<'k * 'v> with
-            member this.GetEnumerator () =
-                new SOMapEnumerator<'k, 'v> (this.Entries.GetEnumerator ()) :> IEnumerator<'k * 'v>
-
-        interface IEnumerable with
-            member this.GetEnumerator () =
-                new SOMapEnumerator<'k, 'v> (this.Entries.GetEnumerator ()) :> IEnumerator
-
         /// Get the enumerator.
         member this.GetEnumerator () =
             new SOMapEnumerator<'k, 'v> (this.Entries.GetEnumerator ())
@@ -60,6 +52,14 @@ module SOMap =
             with get (key : 'k) =
                 let index = this.Indices.[key]
                 this.Entries.[index]
+
+        interface IEnumerable<'k * 'v> with
+            member this.GetEnumerator () =
+                this.GetEnumerator ()
+
+        interface IEnumerable with
+            member this.GetEnumerator () =
+                this.GetEnumerator ()
 
     let private compact map =
         let entries = FStack.filter (fun (struct (a, _, _)) -> a) map.Entries

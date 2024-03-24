@@ -32,17 +32,17 @@ module SOSet =
               Entries : struct (bool * 'a) FStack
               InactiveCount : int }
 
-        interface 'a IEnumerable with
-            member this.GetEnumerator () =
-                new SOSetEnumerator<'a> (this.Entries.GetEnumerator ()) :> 'a IEnumerator
-
-        interface IEnumerable with
-            member this.GetEnumerator () =
-                new SOSetEnumerator<'a> (this.Entries.GetEnumerator ()) :> IEnumerator
-
         /// Get the enumerator.
         member this.GetEnumerator () =
             new SOSetEnumerator<'a> (this.Entries.GetEnumerator ())
+
+        interface 'a IEnumerable with
+            member this.GetEnumerator () =
+                this.GetEnumerator ()
+
+        interface IEnumerable with
+            member this.GetEnumerator () =
+                this.GetEnumerator ()
 
     let private compact set =
         let entries = FStack.filter (fun (struct (active, _)) -> active) set.Entries

@@ -13,16 +13,6 @@ module UMap =
     type [<ReferenceEquality>] UMap<'k, 'v> =
         private
             { mutable Map : TMap<'k, 'v> }
-    
-        interface IEnumerable<'k * 'v> with
-            member this.GetEnumerator () =
-                let struct (seq, tmap) = TMap.toSeq this.Map
-                this.Map <- tmap
-                seq.GetEnumerator ()
-    
-        interface IEnumerable with
-            member this.GetEnumerator () =
-                (this :> seq<'k * 'v>).GetEnumerator () :> IEnumerator
 
         member this.TryGetValue (key, valueRef : 'v outref) =
             let struct (found, tmap) = TMap.tryGetValue (key, this.Map, &valueRef)
@@ -33,6 +23,16 @@ module UMap =
             let struct (item, tmap) = TMap.find key this.Map
             this.Map <- tmap
             item
+    
+        interface IEnumerable<'k * 'v> with
+            member this.GetEnumerator () =
+                let struct (seq, tmap) = TMap.toSeq this.Map
+                this.Map <- tmap
+                seq.GetEnumerator ()
+    
+        interface IEnumerable with
+            member this.GetEnumerator () =
+                (this :> seq<'k * 'v>).GetEnumerator () :> IEnumerator
 
     /// Create a UMap containing the given sequence of entries.
     let makeFromSeq<'k, 'v> comparer config entries =

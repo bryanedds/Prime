@@ -169,12 +169,6 @@ module HSet =
         private
             { Node : 'a HNode
               EmptyArray : 'a HNode array }
-    
-        interface 'a IEnumerable with
-            member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator ()
-    
-        interface IEnumerable with
-            member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator () :> IEnumerator
 
         override this.Equals that =
             match that with
@@ -186,6 +180,12 @@ module HSet =
 
         override this.GetHashCode () =
             hash (box this.Node)
+    
+        interface 'a IEnumerable with
+            member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator ()
+    
+        interface IEnumerable with
+            member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator () :> IEnumerator
 
     /// Create an empty HSet.
     let makeEmpty () =

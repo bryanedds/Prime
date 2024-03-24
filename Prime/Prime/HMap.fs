@@ -181,12 +181,6 @@ module HMap =
             { Node : HNode<'k, 'v>
               EmptyArray : HNode<'k, 'v> array }
 
-        interface IEnumerable<'k * 'v> with
-            member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator ()
-
-        interface IEnumerable with
-            member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator () :> IEnumerator
-
         override this.Equals that =
             match that with
             | :? HMap<'k, 'v> as that ->
@@ -197,10 +191,22 @@ module HMap =
         override this.GetHashCode () =
             hash (box this.Node)
 
+        member this.TryGetValue (key, valueRef : 'v outref) =
+            let h = key.GetHashCode ()
+            match HNode.tryFind h key 0 this.Node with
+            | Some v -> valueRef <- v; true
+            | None -> false
+
         member this.Item
             with get (key : 'k) =
                 let h = Unchecked.hash key
                 HNode.find h key 0 this.Node
+
+        interface IEnumerable<'k * 'v> with
+            member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator ()
+
+        interface IEnumerable with
+            member this.GetEnumerator () = (HNode.toSeq this.Node).GetEnumerator () :> IEnumerator
 
     /// Create an empty HMap.
     let makeEmpty () =

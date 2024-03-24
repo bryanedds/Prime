@@ -13,16 +13,6 @@ module SUMap =
     type [<ReferenceEquality>] SUMap<'k, 'v> =
         private
             { mutable Map : STMap<'k, 'v> }
-    
-        interface IEnumerable<'k * 'v> with
-            member this.GetEnumerator () =
-                let struct (seq, tmap) = STMap.toSeq this.Map
-                this.Map <- tmap
-                seq.GetEnumerator ()
-    
-        interface IEnumerable with
-            member this.GetEnumerator () =
-                (this :> seq<'k * 'v>).GetEnumerator () :> IEnumerator
 
         member this.TryGetValue (key, valueRef : 'v outref) =
             let struct (found, tmap) = STMap.tryGetValue (key, this.Map, &valueRef)
@@ -33,6 +23,16 @@ module SUMap =
             let struct (item, tmap) = STMap.find key this.Map
             this.Map <- tmap
             item
+    
+        interface IEnumerable<'k * 'v> with
+            member this.GetEnumerator () =
+                let struct (seq, tmap) = STMap.toSeq this.Map
+                this.Map <- tmap
+                seq.GetEnumerator ()
+    
+        interface IEnumerable with
+            member this.GetEnumerator () =
+                (this :> seq<'k * 'v>).GetEnumerator () :> IEnumerator
 
     /// Create a SUMap containing the given sequence of entries.
     let makeFromSeq<'k, 'v> comparer config entries =
