@@ -98,6 +98,17 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             elif sourceType.Name = typeof<unit>.Name then
                 Symbols ([], ValueNone)
 
+            // symbolize ValueOption (specialized to use Some and None rather than ValueSome and ValueNone).
+            elif sourceType.Name = typedefof<_ ValueOption>.Name then
+                let gargs = sourceType.GetGenericArguments ()
+                let isSome = sourceType.GetMethod "get_IsValueSome"
+                if isSome.Invoke (source, null) :?> bool then
+                    let getValue = sourceType.GetMethod "get_Value"
+                    let value = getValue.Invoke (source, null)
+                    let valueSymbol = toSymbol gargs.[0] value
+                    Symbols ([Atom ("Some", ValueNone); valueSymbol], ValueNone)
+                else Atom ("None", ValueNone)
+
             // symbolize list
             elif sourceType.Name = typedefof<_ list>.Name then
                 let gargs = sourceType.GetGenericArguments ()
@@ -310,6 +321,17 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols ([], _) -> () :> obj
                     | _ -> failconv "Expected empty Symbols for conversion to unit." (Some symbol)
+
+                // symbolize ValueOption (specialized to use Some and None rather than ValueSome and ValueNone).
+                elif destType.Name = typedefof<_ ValueOption>.Name then
+                    let gargs = destType.GetGenericArguments ()
+                    match symbol with
+                    | Atom ("None", _) -> destType.GetDefaultValue ()
+                    | Symbols ([Atom ("Some", _); valueSymbol], _) ->
+                        let value = ofSymbol gargs.[0] valueSymbol
+                        let some = destType.GetMethod "Some"
+                        some.Invoke (null, [|value|])
+                    | _ -> failconv "Expected (Atom 'None') or (Symbols ([Atom 'Some'; _))) for conversion to ValueOption."
 
                 // desymbolize list
                 elif destType.Name = typedefof<_ list>.Name then
