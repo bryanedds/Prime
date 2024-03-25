@@ -307,8 +307,7 @@ module HMap =
             pairs
 
     /// Convert a sequence of key value pairs to an HMap.
-    /// Available only for use by SymbolicConverter.
-    let internal ofSeqKvp pairs =
+    let ofSeqKvp pairs =
         Seq.fold
             (fun map (kvp : KeyValuePair<'k, 'v>) -> add kvp.Key kvp.Value map)
             (makeEmpty ())

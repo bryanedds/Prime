@@ -55,6 +55,9 @@ type Queue<'T>(front: list<'T>, rBack: list<'T>) =
     ///O(1). Returns true if the queue has no elements.
     member this.IsEmpty = front.IsEmpty
 
+    ///O(1). Returns true if the queue has elements.
+    member this.NotEmpty = not front.IsEmpty
+
     ///O(1). Returns the count of elememts.
     member this.Length = front.Length + rBack.Length
 
@@ -164,6 +167,9 @@ module Queue =
 
     ///O(1). Returns true if the queue has no elements.
     let inline isEmpty(q: Queue<'T>) = q.IsEmpty
+
+    ///O(1). Returns true if the queue has elements.
+    let inline notEmpty(q: Queue<'T>) = q.NotEmpty
 
     ///O(1). Returns the count of elememts.
     let inline length(q: Queue<'T>) = q.Length
