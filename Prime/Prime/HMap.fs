@@ -201,6 +201,11 @@ module HMap =
             | Some v -> valueRef <- v; true
             | None -> false
 
+        member this.ContainsKey key =
+            match this.TryGetValue key with
+            | (true, _) -> true
+            | (_, _) -> false
+
         member this.Item
             with get (key : 'k) =
                 let h = Unchecked.hash key

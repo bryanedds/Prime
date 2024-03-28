@@ -185,11 +185,15 @@ module HSet =
 
         member this.GetEnumerator () =
             (HNode.toSeq this.Node).GetEnumerator ()
-    
+
+        member this.Contains value =
+            let h = value.GetHashCode ()
+            HNode.contains h value 0 this.Node
+
         interface 'a IEnumerable with
             member this.GetEnumerator () =
                 this.GetEnumerator ()
-    
+
         interface IEnumerable with
             member this.GetEnumerator () =
                 this.GetEnumerator ()

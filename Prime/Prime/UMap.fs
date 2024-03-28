@@ -23,13 +23,13 @@ module UMap =
             let struct (item, tmap) = TMap.find key this.Map
             this.Map <- tmap
             item
-    
+
         interface IEnumerable<'k * 'v> with
             member this.GetEnumerator () =
                 let struct (seq, tmap) = TMap.toSeq this.Map
                 this.Map <- tmap
                 seq.GetEnumerator ()
-    
+
         interface IEnumerable with
             member this.GetEnumerator () =
                 (this :> seq<'k * 'v>).GetEnumerator () :> IEnumerator
