@@ -11,11 +11,6 @@ open System.Text
 open System.Reflection
 open FSharp.Reflection
 
-/// An attribute to specify the default value of a property.
-type [<AttributeUsage (AttributeTargets.Class); AllowNullLiteral>] DefaultValueAttribute (defaultValue : obj) =
-    inherit Attribute ()
-    member this.DefaultValue = defaultValue
-
 /// An evaluatable expression for defining a property.
 type [<ReferenceEquality>] PropertyExpr =
     | DefineExpr of DefineExpr : obj

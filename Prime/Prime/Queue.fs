@@ -12,6 +12,7 @@ open System
 /// Licensed under Apache-2.0 by its original authors.
 ///
 /// TODO: rewrite this to cut association with FSharpx.
+[<DefaultValue "[]">]
 type Queue<'T>(front: list<'T>, rBack: list<'T>) =
     let mutable hashCode = None
     member internal this.front = front

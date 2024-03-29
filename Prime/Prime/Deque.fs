@@ -12,6 +12,7 @@ open System.Collections.Generic
 /// Licensed under Apache-2.0 by its original authors.
 ///
 /// TODO: rewrite this to cut association with FSharpx.
+[<DefaultValue "[]">]
 type Deque<'T>(front, rBack) =
     let mutable hashCode = None
     member internal this.front = front
