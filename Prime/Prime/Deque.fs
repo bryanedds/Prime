@@ -274,8 +274,7 @@ module Deque =
     let inline rev(q: Deque<'T>) = q.Rev
 
     ///O(1). Returns a deque of one element.
-    let singleton(x: 'T) =
-        Deque<'T>([ x ], List.Empty)
+    let singleton(x: 'T) = Deque<'T>([ x ], List.Empty)
 
     ///O(1) amortized, O(n), worst case. Returns a new deque of the elements trailing the first element.
     let inline tail(q: Deque<'T>) = q.Tail
@@ -287,16 +286,13 @@ module Deque =
     let inline uncons(q: Deque<'T>) = q.Uncons
 
     ///O(1) amortized, O(n), worst case. Returns option init and the last element.
-    let inline tryUncons(q: Deque<'T>) =
-        q.TryUncons
+    let inline tryUncons(q: Deque<'T>) = q.TryUncons
 
     ///O(1) amortized, O(n), worst case. Returns the first element and tail.
     let inline unconj(q: Deque<'T>) = q.Unconj
 
     ///O(n). Views the given deque as a sequence.
-    let inline toSeq(q: Deque<'T>) =
-        q :> seq<'T>
+    let inline toSeq(q: Deque<'T>) = q :> seq<'T>
 
     ///O(1) amortized, O(n), worst case. Returns option first element and tail.
-    let inline tryUnconj(q: Deque<'T>) =
-        q.TryUnconj
+    let inline tryUnconj(q: Deque<'T>) = q.TryUnconj

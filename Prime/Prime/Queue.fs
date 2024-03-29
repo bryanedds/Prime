@@ -184,6 +184,9 @@ module Queue =
     ///O(n). Returns queue reversed.
     let inline rev(q: Queue<'T>) = q.Rev()
 
+    ///O(1). The singleton queue.
+    let inline singleton x = conj x empty
+
     ///O(1) amortized, O(n) worst-case. Returns a new queue of the elements trailing the first element. (dequeue)
     let inline tail(q: Queue<'T>) = q.Tail
 
@@ -191,12 +194,10 @@ module Queue =
     let inline tryTail(q: Queue<'T>) = q.TryTail
 
     ///O(n). Views the given queue as a sequence.
-    let inline toSeq(q: Queue<'T>) =
-        q :> seq<'T>
+    let inline toSeq(q: Queue<'T>) = q :> seq<'T>
 
     ///O(1) amortized, O(n) worst-case. Returns the first element and tail.
     let inline uncons(q: Queue<'T>) = q.Uncons
 
     ///O(1) amortized, O(n) worst-case. Returns option first element and tail.
-    let inline tryUncons(q: Queue<'T>) =
-        q.TryUncons
+    let inline tryUncons(q: Queue<'T>) = q.TryUncons
