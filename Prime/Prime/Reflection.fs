@@ -203,6 +203,12 @@ module Reflection =
     let pairsToMap mapType objs =
         pairsToMapping "Microsoft.FSharp.Collections.MapModule" mapType objs
 
+    let objsToFSet setType objs =
+        objsToCollection "Microsoft.FSharp.Collections.FSetModule" setType objs
+
+    let pairsToFMap mapType objs =
+        pairsToMapping "Microsoft.FSharp.Collections.FMapModule" mapType objs
+
     let tryGetUnionCase (ty : Type) caseName =
         match UnionCaseNames.TryGetValue ty with
         | (true, cases) ->
