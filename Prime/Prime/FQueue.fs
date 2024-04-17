@@ -150,8 +150,7 @@ module FQueue =
         | None -> Nil
 
     ///O(1). Returns a new queue with the element added to the end. (enqueue)
-    let inline conj (x: 'T) (q: FQueue<'T>) =
-        (q.Conj x)
+    let inline conj (x: 'T) (q: FQueue<'T>) = q.Conj x
 
     ///O(1). Returns queue of no elements.
     let empty<'T> : FQueue<'T> = FQueue<_>([], [])

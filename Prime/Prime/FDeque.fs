@@ -251,8 +251,7 @@ module FDeque =
     let inline initial(q: FDeque<'T>) = q.Initial
 
     ///O(1) amortized, O(n), worst case. Returns option deque of the elements before the last element.
-    let inline tryInitial(q: FDeque<'T>) =
-        q.TryInitial
+    let inline tryInitial(q: FDeque<'T>) = q.TryInitial
 
     ///O(1). Returns true if the deque has no elements.
     let inline isEmpty(q: FDeque<'T>) = q.IsEmpty
@@ -267,8 +266,7 @@ module FDeque =
     let inline length(q: FDeque<'T>) = q.Length
 
     ///O(n), worst case. Returns a deque of the two lists concatenated.
-    let ofCatLists (xs: 'T list) (ys: 'T list) =
-        FDeque<'T>(xs, (List.rev ys))
+    let ofCatLists (xs: 'T list) (ys: 'T list) = FDeque<'T>(xs, (List.rev ys))
 
     ///O(1). Returns a deque of the list
     let ofList xs = FDeque.OfList xs
