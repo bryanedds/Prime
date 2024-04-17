@@ -193,3 +193,12 @@ module FList =
 
     /// Views the given deque as a sequence.
     let inline toSeq(q: FList<'T>) = q :> seq<'T>
+
+[<AutoOpen>]
+module FListOperators =
+
+    /// Returns the first element and tail.
+    let (|Cons|Nil|)(q: FList<'T>) =
+        match q.TryUncons with
+        | Some(a, b) -> Cons(a, b)
+        | None -> Nil
