@@ -29,7 +29,6 @@ type ComplexUnion =
 type ComplexUnionAbstract =
     private
         | ComplexUnionAbstract of int
-        | ComplexUnionAbstract2 of int * int
         static member make x = ComplexUnionAbstract x
 
 module SymbolTests =
