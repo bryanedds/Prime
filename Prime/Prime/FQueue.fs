@@ -144,6 +144,7 @@ type FQueue<'T>(front: list<'T>, rBack: list<'T>) =
 [<RequireQualifiedAccess>]
 module FQueue =
 
+    ///O(1) amortized, O(n), worst case. Returns the first element and tail.
     let (|Cons|Nil|)(q: FQueue<'T>) =
         match q.TryUncons with
         | Some(a, b) -> Cons(a, b)

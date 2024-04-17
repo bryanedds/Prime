@@ -215,15 +215,14 @@ module FDeque =
         | Some(a, b) -> Cons(a, b)
         | None -> Nil
 
-    ///O(1) amortized, O(n), worst case. Returns option first element and tail.
+    ///O(1) amortized, O(n), worst case. Returns initial and last.
     let (|Conj|Nil|)(q: FDeque<'T>) =
         match q.TryUnconj with
         | Some(a, b) -> Conj(a, b)
         | None -> Nil
 
     ///O(1). Returns a new deque with the element added to the end.
-    let inline conj (x: 'T) (q: FDeque<'T>) =
-        (q.Conj x)
+    let inline conj (x: 'T) (q: FDeque<'T>) = q.Conj x
 
     ///O(1). Returns a new deque with the element added to the beginning.
     let inline cons (x: 'T) (q: FDeque<'T>) = q.Cons x
