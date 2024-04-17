@@ -6,10 +6,7 @@ open System
 open System.Collections
 open System.Collections.Generic
 
-/// Double-ended queue is an ordered linear structure implementing the signature of List
-/// (head, tail, cons) as well as the mirror-image Vector signature (last, initial, conj). "head" inspects
-/// the first or left-most element in the structure, while "last" inspects the last or
-/// right-most element. "rev" (reverse) has time complexity  Ordering is by insertion history.
+/// Functional list with fast equality.
 ///
 /// Source code taken from - https://github.com/fsprojects/FSharpx.Collections/blob/3f566db698c832ea34b8c1f715d6891b2591d9f9/src/FSharpx.Collections/Queue.fs
 /// Licensed under Apache-2.0 by its original authors.
@@ -108,7 +105,7 @@ type FList<'T>(front) =
     static member OfList xs =
         FList<'T>(xs)
 
-    ///O(n). Returns an an FList of the seq.
+    /// Returns an an FList of the seq.
     static member OfSeq xs =
         FList<'T>(List.ofSeq xs)
 
@@ -144,11 +141,11 @@ module FList =
     /// Returns deque of no elements.
     let empty<'T> = FList<'T>(List.Empty)
 
-    ///O(n). Applies a function to each element of the deque, threading an accumulator argument through the computation, left to right
+    /// Applies a function to each element of the deque, threading an accumulator argument through the computation, left to right
     let fold (f: ('State -> 'T -> 'State)) (state: 'State) (q: FList<'T>) =
         List.fold f state q.front
 
-    ///O(n). Applies a function to each element of the deque, threading an accumulator argument through the computation, right to left
+    /// Applies a function to each element of the deque, threading an accumulator argument through the computation, right to left
     let foldBack (f: ('T -> 'State -> 'State)) (q: FList<'T>) (state: 'State) =
         List.foldBack f q.front state
 
@@ -173,7 +170,7 @@ module FList =
     /// Returns an an FList of the list
     let ofList xs = FList.OfList xs
 
-    ///O(n). Returns an an FList of the seq.
+    /// Returns an an FList of the seq.
     let ofSeq xs = FList.OfSeq xs
 
     /// Returns deque reversed.
@@ -194,5 +191,5 @@ module FList =
     /// Returns option init and the last element.
     let inline tryUncons(q: FList<'T>) = q.TryUncons
 
-    ///O(n). Views the given deque as a sequence.
+    /// Views the given deque as a sequence.
     let inline toSeq(q: FList<'T>) = q :> seq<'T>
