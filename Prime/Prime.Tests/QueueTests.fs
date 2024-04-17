@@ -8,7 +8,7 @@ open Prime
 module QueueTests =
 
     let [<Test>] canSymbolizeQueue () =
-        let value = Queue.ofSeq [0; 1; 2]
+        let value = FQueue.ofSeq [0; 1; 2]
         let symbol = valueToSymbol value
-        let value' = symbolToValue<int Queue> symbol
+        let value' = symbolToValue<int FQueue> symbol
         Assert.Equal (value, value')

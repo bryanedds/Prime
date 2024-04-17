@@ -147,14 +147,14 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 Symbols (symbols, ValueNone)
 
             // symbolize Queue
-            elif sourceType.Name = typedefof<_ Prime.Queue>.Name then
+            elif sourceType.Name = typedefof<_ Prime.FQueue>.Name then
                 let gargs = sourceType.GetGenericArguments ()
                 let items = Reflection.objToObjSeq source |> List.ofSeq
                 let symbols = List.map (toSymbol gargs.[0]) items
                 Symbols (symbols, ValueNone)
 
             // symbolize Deque
-            elif sourceType.Name = typedefof<_ Prime.Deque>.Name then
+            elif sourceType.Name = typedefof<_ Prime.FDeque>.Name then
                 let gargs = sourceType.GetGenericArguments ()
                 let items = Reflection.objToObjSeq source |> List.ofSeq
                 let symbols = List.map (toSymbol gargs.[0]) items
@@ -401,24 +401,24 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                         failconv "Expected Symbols for conversion to HMap." (Some symbol)
 
                 // desymbolize Queue
-                elif destType.Name = typedefof<_ Prime.Queue>.Name then
+                elif destType.Name = typedefof<_ Prime.FQueue>.Name then
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
                         let elementType = gargs.[0]
                         let elements = List.map (ofSymbol elementType) symbols
-                        Reflection.objsToCollection typedefof<_ Prime.Queue>.Name destType elements
+                        Reflection.objsToCollection typedefof<_ Prime.FQueue>.Name destType elements
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to Set." (Some symbol)
 
                 // desymbolize Deque
-                elif destType.Name = typedefof<_ Prime.Deque>.Name then
+                elif destType.Name = typedefof<_ Prime.FDeque>.Name then
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
                         let elementType = gargs.[0]
                         let elements = List.map (ofSymbol elementType) symbols
-                        Reflection.objsToCollection typedefof<_ Prime.Deque>.Name destType elements
+                        Reflection.objsToCollection typedefof<_ Prime.FDeque>.Name destType elements
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to Set." (Some symbol)
 
