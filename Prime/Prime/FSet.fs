@@ -726,6 +726,7 @@ module FSetTree =
                     comparer.Equals (sNode.Key, tNode.Key) &&
                     equalsComparer comparer sNode tNode
 
+/// Like F# Set but with fast equality.
 [<Sealed>]
 [<CompiledName("FSharpFSet`1")>]
 [<DebuggerTypeProxy(typedefof<SetDebugView<_>>)>]

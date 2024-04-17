@@ -707,6 +707,7 @@ module FMapTree =
                     comparer.Equals (mNode.Value, nNode.Value) &&
                     equalsComparer comparer mNode nNode
 
+/// Like F# Map but with fast equality.
 [<System.Diagnostics.DebuggerTypeProxy(typedefof<FMapDebugView<_, _>>)>]
 [<System.Diagnostics.DebuggerDisplay("Count = {Count}")>]
 [<Sealed>]
