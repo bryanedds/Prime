@@ -268,15 +268,16 @@ module Type =
 [<AutoOpen>]
 module TypeExtension =
 
-    let private propertyArrays =
-        Dictionary<Type, PropertyInfo array> ()
+    let private PropertyArrays = ConcurrentDictionary<Type, PropertyInfo array> (HashIdentity.Reference)
+    let private PropertiesWritable = ConcurrentDictionary<string * Type, PropertyInfo> (HashIdentity.Structural)
+    let private PropertiesWritableArray = ConcurrentDictionary<Type, PropertyInfo array> (HashIdentity.Structural)
 
     let private getProperties (ty : Type) =
-        match propertyArrays.TryGetValue ty with
+        match PropertyArrays.TryGetValue ty with
         | (true, properties) -> properties
         | (false, _) ->
             let properties = ty.GetProperties ()
-            propertyArrays.Add (ty, properties)
+            PropertyArrays.TryAdd (ty, properties) |> ignore<bool>
             properties
 
     /// Type extension for Type.
@@ -284,6 +285,7 @@ module TypeExtension =
 
         /// Attempt to get the default value for a type.
         /// Never returns null.
+        /// Thread-safe if value ctor is.
         member this.TryGetDefaultValue () =
             if this.IsPrimitive then Some (Activator.CreateInstance this)
             elif this = typeof<string> then Some (String.Empty :> obj)
@@ -300,22 +302,28 @@ module TypeExtension =
             elif this.IsValueType then Some (Activator.CreateInstance ())
             else None
 
-        /// Get the public instance properties of a type.
-        member this.GetProperties () =
-            getProperties this
+        /// Special overload to get the public instance properties of a type.
+        /// Thread-safe.
+        member this.GetProperties cached =
+            if cached
+            then getProperties this
+            else this.GetProperties ()
 
         /// Get the default value for a type.
         /// Never returns null.
+        /// Thread-safe if value ctor is.
         member this.GetDefaultValue () =
             match this.TryGetDefaultValue () with
             | Some value -> value
             | None -> failwith ("Could not get default value for type '" + this.Name + "'.")
 
         /// Get the type descriptor for this type as returned by the global TypeDescriptor.
+        /// Thread-safe.
         member this.GetTypeDescriptor () =
             (TypeDescriptor.GetProvider this).GetTypeDescriptor this
 
         /// Try to get a custom type converter for the given type.
+        /// Thread-safe if type converter ctor is.
         member this.TryGetCustomTypeConverter () =
             let globalConverterAttributes =
                 [| for attribute in TypeDescriptor.GetAttributes this do
@@ -336,38 +344,55 @@ module TypeExtension =
             else None
 
         /// Get a property with the given name that can be written to, or null.
+        /// Thread-safe.
         member this.GetPropertyWritable propertyName =
-            let propertyOpt =
-                Array.tryFind
-                    (fun (property : PropertyInfo) -> property.Name = propertyName && property.CanWrite)
-                    (getProperties this)
-            match propertyOpt with
-            | Some property -> property
-            | None -> null
+            match PropertiesWritable.TryGetValue ((propertyName, this)) with
+            | (true, result) -> result
+            | (false, _) ->
+                let propertyOpt =
+                    Array.tryFind
+                        (fun (property : PropertyInfo) -> property.Name = propertyName && property.CanWrite)
+                        (this.GetProperties ())
+                let result =
+                    match propertyOpt with
+                    | Some property -> property
+                    | None -> null
+                PropertiesWritable.TryAdd ((propertyName, this), result) |> ignore<bool>
+                result
 
         /// Get all the properties that are signalled to be preferred by the 'preference' predicate.
+        /// Thread-safe.
         member this.GetPropertiesByPreference preference =
-            let propertiesLayered =
+            let propertiesGrouped =
                 Array.groupBy
                     (fun (property : PropertyInfo) -> property.Name)
-                    (this.GetProperties ())
-            let propertieOpts =
+                    (this.GetProperties true)
+            let propertyOpts =
                 Array.map
                     (fun (_, properties) -> Type.GetPropertyByPreference (preference, properties))
-                    propertiesLayered
-            Array.filter notNull propertieOpts
+                    propertiesGrouped
+            Array.filter notNull propertyOpts
 
         /// Get all the properties, preferring those that can be written to if there is a name clash.
+        /// Thread-safe.
         member this.GetPropertiesPreferWritable () =
             this.GetPropertiesByPreference (fun (property : PropertyInfo) -> property.CanWrite)
 
         /// Get all the properties that can be written to.
+        /// Thread-safe.
         member this.GetPropertiesWritable () =
-            Array.filter
-                (fun (property : PropertyInfo) -> property.CanWrite)
-                (this.GetProperties ())
+            match PropertiesWritableArray.TryGetValue this with
+            | (true, properties) -> properties
+            | (false, _) ->
+                let properties =
+                    Array.filter
+                        (fun (property : PropertyInfo) -> property.CanWrite)
+                        (this.GetProperties true)
+                PropertiesWritableArray.TryAdd (this, properties) |> ignore<bool>
+                properties
 
         /// Get the generic name of the type, EG - Option<String>
+        /// Thread-safe.
         member this.GetGenericName () : string =
             let sb = StringBuilder ()
             let name = this.Name
@@ -387,6 +412,7 @@ open System
 module FSharpType =
 
     /// Check that the given type has null as an actual value.
+    /// Thread-safe.
     let isNullTrueValue (ty : Type) =
         let isUnit = ty = typeof<unit>
         let isNullTrueValueByAttribute =
@@ -396,11 +422,15 @@ module FSharpType =
         let result = isUnit || isNullTrueValueByAttribute
         result
 
+    /// Check that a record is considered abstract.
+    /// Thread-safe.
     let isRecordAbstract (ty : Type) =
         ty.GetCustomAttributes(typeof<CompilationMappingAttribute>, true) |>
         Array.map (fun (attr : obj) -> attr :?> CompilationMappingAttribute) |>
         Array.exists (fun attr -> int attr.SourceConstructFlags = (int SourceConstructFlags.RecordType ||| int SourceConstructFlags.NonPublicRepresentation))
 
+    /// Check that a union is considered abstract.
+    /// Thread-safe.
     let isUnionAbstract (ty : Type) =
         ty.GetCustomAttributes(typeof<CompilationMappingAttribute>, true) |>
         Array.map (fun (attr : obj) -> attr :?> CompilationMappingAttribute) |>
