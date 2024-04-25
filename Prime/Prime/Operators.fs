@@ -3,7 +3,7 @@
 
 namespace Prime
 open System
-open System.Collections.Generic
+open System.Collections.Concurrent
 open System.ComponentModel
 open System.Diagnostics
 open System.Linq
@@ -12,8 +12,8 @@ open FSharp.Reflection
 [<AutoOpen>]
 module Operators =
 
-    let private CaseTagMemo = Dictionary<obj, int> HashIdentity.Structural
-    let private CaseNameMemo = Dictionary<obj, string> HashIdentity.Structural
+    let private CaseTagMemo = ConcurrentDictionary<obj, int> HashIdentity.Structural
+    let private CaseNameMemo = ConcurrentDictionary<obj, string> HashIdentity.Structural
 
     /// The constant function.
     /// No matter what you pass it, it evaluates to the first argument.
@@ -76,26 +76,26 @@ module Operators =
     /// Get the .NET type name of a target.
     let inline getTypeName<'a> target = (getType<'a> target).Name
 
-    /// Get the union tag for the give case value.
-    /// OPTIMIZATION: memoizes zero-field unions for speed.
+    /// Get the union tag for the give case value, memoizing zero-field unions for speed.
+    /// Thread-safe.
     let getCaseTag<'u> (case : 'u) =
         match CaseTagMemo.TryGetValue case with
         | (true, tag) -> tag
         | (false, _) ->
             let (unionCaseInfo, _) = FSharpValue.GetUnionFields (case, typeof<'u>)
             let tag = unionCaseInfo.Tag
-            if Array.isEmpty (unionCaseInfo.GetFields ()) then CaseTagMemo.Add (case, tag)
+            if Array.isEmpty (unionCaseInfo.GetFields ()) then CaseTagMemo.TryAdd (case, tag) |> ignore<bool>
             tag
 
-    /// Get the union tag for the give case value.
-    /// OPTIMIZATION: memoizes zero-field unions for speed.
+    /// Get the union tag for the give case value, memoizing zero-field unions for speed.
+    /// Thread-safe.
     let getCaseName<'u> (unionCase : 'u) =
         match CaseNameMemo.TryGetValue unionCase with
         | (true, tag) -> tag
         | (false, _) ->
             let (unionCaseInfo, _) = FSharpValue.GetUnionFields (unionCase, typeof<'u>)
             let name = unionCaseInfo.Name // NOTE: this is EXTREMELY slow!
-            if Array.isEmpty (unionCaseInfo.GetFields ()) then CaseNameMemo.Add (unionCase, name)
+            if Array.isEmpty (unionCaseInfo.GetFields ()) then CaseNameMemo.TryAdd (unionCase, name) |> ignore<bool>
             name
 
     /// (=) as a function.
@@ -110,8 +110,7 @@ module Operators =
     /// Test for string inequality.
     let inline strNeq str str2 = strCmp str str2 <> 0
 
-    /// Test for object equality.
-    /// OPTIMIZATION: always tests reference equality first.
+    /// Test for object equality, always testing reference equality first.
     let inline objEq (a : obj) (b : obj) =
         obj.ReferenceEquals (a, b) ||
         match a with
@@ -121,10 +120,8 @@ module Operators =
             a = b
         | _ -> obj.Equals (a, b)
 
-    /// Test for object inequality.
-    /// OPTIMIZATION: always tests reference equality first.
-    let inline objNeq (a : obj) (b : obj) =
-        not (objEq a b)
+    /// Test for object inequality, always testing reference inequality first.
+    let inline objNeq (a : obj) (b : obj) = not (objEq a b)
 
     /// Test for reference equality.
     let inline refEq<'a> (a : 'a) (b : 'a) = obj.ReferenceEquals (a, b)
@@ -145,8 +142,7 @@ module Operators =
         | None -> match bOpt with Some _ -> false | None -> true
 
     /// Inspect two options for inequality.
-    let inline optNeq aOpt bOpt =
-        not (optEq aOpt bOpt)
+    let inline optNeq aOpt bOpt = not (optEq aOpt bOpt)
 
     /// Inspect two voptions for equality.
     let inline voptEq aOpt bOpt =
@@ -155,8 +151,7 @@ module Operators =
         | ValueNone -> match bOpt with ValueSome _ -> false | ValueNone -> true
 
     /// Inspect two voptions for inequality.
-    let inline voptNeq aOpt bOpt =
-        not (voptEq aOpt bOpt)
+    let inline voptNeq aOpt bOpt = not (voptEq aOpt bOpt)
 
     /// Test for sequence equality.
     let inline seqEq<'a> (seq : 'a seq) (seq2 : 'a seq) = Enumerable.SequenceEqual (seq, seq2)
@@ -165,36 +160,28 @@ module Operators =
     let inline seqNeq<'a> (seq : 'a seq) (seq2 : 'a seq) = not (Enumerable.SequenceEqual (seq, seq2))
 
     /// Cast as a function.
-    let inline cast<'a> (target : obj) =
-        target :?> 'a
+    let inline cast<'a> (target : obj) = target :?> 'a
 
     /// Rotate bits left.
-    let rotl bits (i : uint32) =
-        (i <<< bits) ||| (i >>> (32 - bits))
+    let rotl bits (i : uint32) = (i <<< bits) ||| (i >>> (32 - bits))
 
     /// Rotate bits right.
-    let rotr bits (i : uint32) =
-        (i >>> bits) ||| (i <<< (32 - bits))
+    let rotr bits (i : uint32) = (i >>> bits) ||| (i <<< (32 - bits))
 
     /// Rotate bits left.
-    let rotl64 bits (i : uint64) =
-        (i <<< bits) ||| (i >>> (64 - bits))
+    let rotl64 bits (i : uint64) = (i <<< bits) ||| (i >>> (64 - bits))
 
     /// Rotate bits right.
-    let rotr64 bits (i : uint64) =
-        (i >>> bits) ||| (i <<< (64 - bits))
+    let rotr64 bits (i : uint64) = (i >>> bits) ||| (i <<< (64 - bits))
 
     /// Short-hand for linq enumerable cast.
-    let inline enumerable<'a> enumeratable =
-        Enumerable.Cast<'a> enumeratable
+    let inline enumerable<'a> enumeratable = Enumerable.Cast<'a> enumeratable
 
     /// Get the enumerator for a sequence.
-    let inline enumerator (enumeratable : _ seq) =
-        enumeratable.GetEnumerator ()
+    let inline enumerator (enumeratable : _ seq) = enumeratable.GetEnumerator ()
 
     /// Add a custom TypeConverter to an existing type.
-    let assignTypeConverter<'t, 'c> () =
-        TypeDescriptor.AddAttributes (typeof<'t>, TypeConverterAttribute typeof<'c>) |> ignore
+    let assignTypeConverter<'t, 'c> () = TypeDescriptor.AddAttributes (typeof<'t>, TypeConverterAttribute typeof<'c>) |> ignore
 
     /// The bracket function for automatic resource handling.
     let bracket make action destroy =
@@ -205,8 +192,7 @@ module Operators =
         result
 
     /// Make a Guid.
-    let inline makeGuid () =
-        Guid.NewGuid ()
+    let inline makeGuid () = Guid.NewGuid ()
 
     /// Fail with an unexpected match failure.
     let failwithumf () =
@@ -226,15 +212,11 @@ module Operators =
         let fileName = frame.GetFileName ()
         raise (NotImplementedException (sprintf "Not implemented exception in '%s' on line %i in file %s." meth.Name line fileName))
 
-    /// Test for object equality.
-    /// OPTIMIZATION: always tests reference equality first.
-    let inline (===) (a : obj) (b : obj) =
-        objEq a b
-
-    /// Test for object inequality.
-    /// OPTIMIZATION: always tests reference inequality first.
-    let inline (=/=) (a : obj) (b : obj) =
-        objNeq a b
-
     /// Sequences two functions like Haskell ($).
     let inline ($) f g = f g
+
+    /// Test for object equality, always testing reference equality first.
+    let inline (===) (a : obj) (b : obj) = objEq a b
+
+    /// Test for object equality, always testing reference inequality first.
+    let inline (=/=) (a : obj) (b : obj) = objNeq a b
