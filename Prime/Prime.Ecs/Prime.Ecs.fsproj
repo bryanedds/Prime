@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<ProjectGuid>{B4E36BEB-A346-48A5-9F9A-DA806F67DE04}</ProjectGuid>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<Version>9.18.0</Version>
+		<Version>9.23.0</Version>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -31,7 +31,7 @@
 	<ItemGroup>
 		<PackageReference Include="Csv" Version="2.0.93" />
 		<PackageReference Include="FParsec" Version="1.1.1" />
-		<PackageReference Include="Prime" Version="9.17.0" />
+		<PackageReference Include="Prime" Version="9.23.0" />
 	</ItemGroup>
 
 	<ItemGroup>
