@@ -4,12 +4,14 @@
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net8.0</TargetFramework>
 		<ProjectGuid>{258a92a0-3223-4326-af16-62df653a3080}</ProjectGuid>
+		<PlatformTarget>AnyCPU</PlatformTarget>
 		<GenerateProgramFile>False</GenerateProgramFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<WarnOn>FS1182</WarnOn>
 		<NoWarn>FS1178;FS3536;FS3560</NoWarn>
+		<Tailcalls>False</Tailcalls>
 		<WarningLevel>5</WarningLevel>
 	</PropertyGroup>
 

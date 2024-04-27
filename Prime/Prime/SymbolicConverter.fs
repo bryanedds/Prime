@@ -182,6 +182,35 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 let symbols = List.map (toSymbol itemType) items
                 Symbols (symbols, ValueNone)
 
+            // symbolize KeyValuePair
+            elif sourceType.Name = typedefof<KeyValuePair<_, _>>.Name then
+                let gargs = sourceType.GetGenericArguments ()
+                let kvpType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs.[0]; gargs.[1]|]
+                let keyProperty = kvpType.GetProperty "Key"
+                let valueProperty = kvpType.GetProperty "Value"
+                let keyObj = keyProperty.GetValue source
+                let valueObj = valueProperty.GetValue source
+                let keySymbol = toSymbol keyProperty.PropertyType keyObj
+                let valueSymbol = toSymbol valueProperty.PropertyType valueObj
+                let symbols = [keySymbol; valueSymbol]
+                Symbols (symbols, ValueNone)
+
+            // symbolize HashSet
+            elif sourceType.Name = typedefof<HashSet<_>>.Name then
+                let gargs = sourceType.GetGenericArguments ()
+                let itemType = gargs.[0]
+                let items = Reflection.objToObjList source
+                let symbols = List.map (toSymbol itemType) items
+                Symbols (symbols, ValueNone)
+
+            // symbolize Dictionary
+            elif sourceType.Name = typedefof<Dictionary<_, _>>.Name then
+                let gargs = sourceType.GetGenericArguments ()
+                let kvpType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs.[0]; gargs.[1]|]
+                let kvps = Reflection.objToObjList source
+                let symbols = List.map (toSymbol kvpType) kvps
+                Symbols (symbols, ValueNone)
+
             // symbolize SymbolicCompression
             elif sourceType.Name = typedefof<SymbolicCompression<_, _>>.Name then
                 let (unionCase, unionFields) = FSharpValue.GetUnionFields (source, sourceType)
@@ -360,9 +389,9 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let elementType = gargs.[0]
-                        let elements = List.map (ofSymbol elementType) symbols
-                        Reflection.objsToList destType elements
+                        let itemType = gargs.[0]
+                        let items = List.map (ofSymbol itemType) symbols
+                        Reflection.objsToList destType items
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to list." (Some symbol)
 
@@ -371,9 +400,9 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let elementType = gargs.[0]
-                        let elements = List.map (ofSymbol elementType) symbols
-                        Reflection.objsToSet destType elements
+                        let itemType = gargs.[0]
+                        let items = List.map (ofSymbol itemType) symbols
+                        Reflection.objsToSet destType items
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to Set." (Some symbol)
 
@@ -396,9 +425,9 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let elementType = gargs.[0]
-                        let elements = List.map (ofSymbol elementType) symbols
-                        Reflection.objsToCollection typedefof<_ FList>.Name destType elements
+                        let itemType = gargs.[0]
+                        let items = List.map (ofSymbol itemType) symbols
+                        Reflection.objsToCollection typedefof<_ FList>.Name destType items
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to FList." (Some symbol)
 
@@ -407,9 +436,9 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let elementType = gargs.[0]
-                        let elements = List.map (ofSymbol elementType) symbols
-                        Reflection.objsToCollection typedefof<_ FQueue>.Name destType elements
+                        let itemType = gargs.[0]
+                        let items = List.map (ofSymbol itemType) symbols
+                        Reflection.objsToCollection typedefof<_ FQueue>.Name destType items
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to FQueue." (Some symbol)
 
@@ -418,9 +447,9 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let elementType = gargs.[0]
-                        let elements = List.map (ofSymbol elementType) symbols
-                        Reflection.objsToCollection typedefof<_ FDeque>.Name destType elements
+                        let itemType = gargs.[0]
+                        let items = List.map (ofSymbol itemType) symbols
+                        Reflection.objsToCollection typedefof<_ FDeque>.Name destType items
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to FDeque." (Some symbol)
 
@@ -429,9 +458,9 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let elementType = gargs.[0]
-                        let elements = List.map (ofSymbol elementType) symbols
-                        Reflection.objsToFSet destType elements
+                        let itemType = gargs.[0]
+                        let items = List.map (ofSymbol itemType) symbols
+                        Reflection.objsToFSet destType items
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to FSet." (Some symbol)
 
@@ -454,11 +483,11 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let elementType = gargs.[0]
-                        let elements = List.map (ofSymbol elementType) symbols
-                        let set = Reflection.objsToSet (typedefof<_ Set>.MakeGenericType gargs) elements
+                        let itemType = gargs.[0]
+                        let items = List.map (ofSymbol itemType) symbols
+                        let set = Reflection.objsToSet (typedefof<_ Set>.MakeGenericType gargs) items
                         let hSetModule = destType.DeclaringType
-                        let ofSeq = hSetModule.GetMethod(nameof HSet.ofSeq).MakeGenericMethod([|elementType|])
+                        let ofSeq = hSetModule.GetMethod(nameof HSet.ofSeq).MakeGenericMethod([|itemType|])
                         ofSeq.Invoke (null, [|set|])
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to HSet." (Some symbol)
@@ -479,6 +508,55 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                         | _ -> failwithumf ()
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to HMap." (Some symbol)
+
+                // desymbolize KeyValuePair
+                elif destType.Name = typedefof<KeyValuePair<_, _>>.Name then
+                    match symbol with
+                    | Symbols (symbols, _) ->
+                        let gargs = destType.GetGenericArguments ()
+                        match gargs with
+                        | [|keyType; valueType|] ->
+                            let kvpType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|keyType; valueType|]
+                            match symbols with
+                            | [keySymbol; valueSymbol] ->
+                                let keyObj = ofSymbol keyType keySymbol
+                                let valueObj = ofSymbol valueType valueSymbol
+                                Reflection.objsToKeyValuePair kvpType keyObj valueObj
+                            | _ -> failconv "Expected two child symbols KeyValuePair."
+                        | _ -> failwithumf ()
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
+                        failconv "Expected Symbols for conversion to Map." (Some symbol)
+
+                // desymbolize HashSet
+                elif destType.Name = typedefof<_ HashSet>.Name then
+                    match symbol with
+                    | Symbols (symbols, _) ->
+                        let gargs = destType.GetGenericArguments ()
+                        let itemType = gargs.[0]
+                        let itemObjs = List.map (ofSymbol itemType) symbols
+                        let itemsListType = typedefof<_ list>.MakeGenericType [|itemType|]
+                        let items = Reflection.objsToList itemsListType itemObjs
+                        let hashSetType = typedefof<HashSet<_>>.MakeGenericType [|itemType|]
+                        Activator.CreateInstance (hashSetType, [|items|])
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
+                        failconv "Expected Symbols for conversion to HSet." (Some symbol)
+
+                // desymbolize Dictionary
+                elif destType.Name = typedefof<Dictionary<_, _>>.Name then
+                    match symbol with
+                    | Symbols (symbols, _) ->
+                        let gargs = destType.GetGenericArguments ()
+                        match gargs with
+                        | [|fstType; sndType|] ->
+                            let kvpType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|fstType; sndType|]
+                            let kvpObjs = List.map (ofSymbol kvpType) symbols
+                            let kvpsListType = typedefof<_ list>.MakeGenericType [|kvpType|]
+                            let kvps = Reflection.objsToList kvpsListType kvpObjs
+                            let dictType = typedefof<Dictionary<_, _>>.MakeGenericType [|fstType; sndType|]
+                            Activator.CreateInstance (dictType, [|kvps|])
+                        | _ -> failwithumf ()
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
+                        failconv "Expected Symbols for conversion to Map." (Some symbol)
 
                 // desymbolize SymbolicCompression
                 elif destType.Name = typedefof<SymbolicCompression<_, _>>.Name then

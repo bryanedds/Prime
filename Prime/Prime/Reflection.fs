@@ -162,7 +162,7 @@ module Reflection =
         let iEnumerable = source :?> IEnumerable
         Set.ofSeq (enumerable<IComparable> iEnumerable)
 
-    let objsToKeyValuePair fst snd (pairType : Type) =
+    let objsToKeyValuePair (pairType : Type) fst snd =
         Activator.CreateInstance (pairType, [|fst; snd|])
 
     let objsToCollection collectionTypeName (sequenceType : Type) (objs : _ seq) =

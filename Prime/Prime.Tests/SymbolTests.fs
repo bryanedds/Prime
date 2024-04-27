@@ -3,6 +3,7 @@
 
 namespace Prime.Tests
 open System
+open System.Collections.Generic
 open NUnit.Framework
 open Prime
 
@@ -126,6 +127,16 @@ module SymbolTests =
     let [<Test>] canConvertStringToMapIntInt () =
         let value = scvalue<Map<int, int>> "[[0 1]]"
         Assert.Equal (1, Map.find 0 value)
+
+    let [<Test>] canConvertStringToHashSetInt () =
+        let value = scvalue<HashSet<int>> "[0 1]"
+        Assert.True (value.Contains 0)
+        Assert.True (value.Contains 1)
+        Assert.True (value.Count = 2)
+
+    let [<Test>] canConvertStringToDictionaryIntInt () =
+        let value = scvalue<Dictionary<int, int>> "[[0 1]]"
+        Assert.Equal (1, value.[0])
 
     let [<Test>] canConvertFromRecordAbstractToString () =
         let value = scvalue<IntIntRecordAbstract> "[1 2]"
