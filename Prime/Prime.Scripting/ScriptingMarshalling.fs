@@ -235,7 +235,7 @@ module ScriptingMarshalling =
                 let fstOpt = tryExport tryExportExt fstType fst
                 let sndOpt = tryExport tryExportExt sndType snd
                 match (fstOpt, sndOpt) with
-                | (Some fst, Some snd) -> Some (Reflection.objsToKeyValuePair fst snd pairType)
+                | (Some fst, Some snd) -> Some (Reflection.objsToKeyValuePair pairType fst snd)
                 | (_, _) -> None
             | _ -> None
         | _ -> None
