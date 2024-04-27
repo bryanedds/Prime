@@ -196,7 +196,23 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 Symbols (symbols, ValueNone)
 
             // symbolize List
-            elif sourceType.Name = typedefof<List<_>>.Name then
+            elif sourceType.Name = typedefof<_ List>.Name then
+                let gargs = sourceType.GetGenericArguments ()
+                let itemType = gargs.[0]
+                let items = Reflection.objToObjList source
+                let symbols = List.map (toSymbol itemType) items
+                Symbols (symbols, ValueNone)
+
+            // symbolize Stack
+            elif sourceType.Name = typedefof<_ Stack>.Name then
+                let gargs = sourceType.GetGenericArguments ()
+                let itemType = gargs.[0]
+                let items = Reflection.objToObjList source
+                let symbols = List.map (toSymbol itemType) items
+                Symbols (symbols, ValueNone)
+
+            // symbolize Queue
+            elif sourceType.Name = typedefof<_ Queue>.Name then
                 let gargs = sourceType.GetGenericArguments ()
                 let itemType = gargs.[0]
                 let items = Reflection.objToObjList source
@@ -204,7 +220,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 Symbols (symbols, ValueNone)
 
             // symbolize HashSet
-            elif sourceType.Name = typedefof<HashSet<_>>.Name then
+            elif sourceType.Name = typedefof<_ HashSet>.Name then
                 let gargs = sourceType.GetGenericArguments ()
                 let itemType = gargs.[0]
                 let items = Reflection.objToObjList source
@@ -544,13 +560,13 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                         let itemObjs = List.map (ofSymbol itemType) symbols
                         let itemsListType = typedefof<_ list>.MakeGenericType [|itemType|]
                         let items = Reflection.objsToList itemsListType itemObjs
-                        let hashSetType = typedefof<List<_>>.MakeGenericType [|itemType|]
-                        Activator.CreateInstance (hashSetType, [|items|])
+                        let listType = typedefof<_ List>.MakeGenericType [|itemType|]
+                        Activator.CreateInstance (listType, [|items|])
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to List." (Some symbol)
 
-                // desymbolize HashSet
-                elif destType.Name = typedefof<_ HashSet>.Name then
+                // desymbolize Stack
+                elif destType.Name = typedefof<_ Stack>.Name then
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
@@ -558,10 +574,24 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                         let itemObjs = List.map (ofSymbol itemType) symbols
                         let itemsListType = typedefof<_ list>.MakeGenericType [|itemType|]
                         let items = Reflection.objsToList itemsListType itemObjs
-                        let hashSetType = typedefof<HashSet<_>>.MakeGenericType [|itemType|]
-                        Activator.CreateInstance (hashSetType, [|items|])
+                        let stackType = typedefof<_ Stack>.MakeGenericType [|itemType|]
+                        Activator.CreateInstance (stackType, [|items|])
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
-                        failconv "Expected Symbols for conversion to HashSet." (Some symbol)
+                        failconv "Expected Symbols for conversion to Stack." (Some symbol)
+
+                // desymbolize Queue
+                elif destType.Name = typedefof<_ Queue>.Name then
+                    match symbol with
+                    | Symbols (symbols, _) ->
+                        let gargs = destType.GetGenericArguments ()
+                        let itemType = gargs.[0]
+                        let itemObjs = List.map (ofSymbol itemType) symbols
+                        let itemsListType = typedefof<_ list>.MakeGenericType [|itemType|]
+                        let items = Reflection.objsToList itemsListType itemObjs
+                        let queueType = typedefof<_ Queue>.MakeGenericType [|itemType|]
+                        Activator.CreateInstance (queueType, [|items|])
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
+                        failconv "Expected Symbols for conversion to Queue." (Some symbol)
 
                 // desymbolize HashSet
                 elif destType.Name = typedefof<_ HashSet>.Name then
@@ -572,7 +602,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                         let itemObjs = List.map (ofSymbol itemType) symbols
                         let itemsListType = typedefof<_ list>.MakeGenericType [|itemType|]
                         let items = Reflection.objsToList itemsListType itemObjs
-                        let hashSetType = typedefof<HashSet<_>>.MakeGenericType [|itemType|]
+                        let hashSetType = typedefof<_ HashSet>.MakeGenericType [|itemType|]
                         Activator.CreateInstance (hashSetType, [|items|])
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to HashSet." (Some symbol)

@@ -129,18 +129,30 @@ module SymbolTests =
         Assert.Equal (1, Map.find 0 value)
 
     let [<Test>] canConvertStringToIntGenericList () =
-        let value = scvalue<List<int>> "[0 1]"
+        let value = scvalue<int List> "[0 1]"
         Assert.True (value.Contains 0)
         Assert.True (value.Contains 1)
         Assert.True (value.Count = 2)
 
-    let [<Test>] canConvertStringToIntHashSet () =
-        let value = scvalue<HashSet<int>> "[0 1]"
+    let [<Test>] canConvertStringToIntGenericStack () =
+        let value = scvalue<int Stack> "[0 1]"
         Assert.True (value.Contains 0)
         Assert.True (value.Contains 1)
         Assert.True (value.Count = 2)
 
-    let [<Test>] canConvertStringToDictionaryIntInt () =
+    let [<Test>] canConvertStringToIntGenericQueue () =
+        let value = scvalue<int Queue> "[0 1]"
+        Assert.True (value.Contains 0)
+        Assert.True (value.Contains 1)
+        Assert.True (value.Count = 2)
+
+    let [<Test>] canConvertStringToIntGenericHashSet () =
+        let value = scvalue<int HashSet> "[0 1]"
+        Assert.True (value.Contains 0)
+        Assert.True (value.Contains 1)
+        Assert.True (value.Count = 2)
+
+    let [<Test>] canConvertStringToGenericDictionaryIntInt () =
         let value = scvalue<Dictionary<int, int>> "[[0 1]]"
         Assert.Equal (1, value.[0])
 
