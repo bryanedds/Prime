@@ -128,7 +128,13 @@ module SymbolTests =
         let value = scvalue<Map<int, int>> "[[0 1]]"
         Assert.Equal (1, Map.find 0 value)
 
-    let [<Test>] canConvertStringToHashSetInt () =
+    let [<Test>] canConvertStringToIntGenericList () =
+        let value = scvalue<List<int>> "[0 1]"
+        Assert.True (value.Contains 0)
+        Assert.True (value.Contains 1)
+        Assert.True (value.Count = 2)
+
+    let [<Test>] canConvertStringToIntHashSet () =
         let value = scvalue<HashSet<int>> "[0 1]"
         Assert.True (value.Contains 0)
         Assert.True (value.Contains 1)

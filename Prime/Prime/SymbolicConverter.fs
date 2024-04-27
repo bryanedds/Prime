@@ -195,6 +195,14 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 let symbols = [keySymbol; valueSymbol]
                 Symbols (symbols, ValueNone)
 
+            // symbolize List
+            elif sourceType.Name = typedefof<List<_>>.Name then
+                let gargs = sourceType.GetGenericArguments ()
+                let itemType = gargs.[0]
+                let items = Reflection.objToObjList source
+                let symbols = List.map (toSymbol itemType) items
+                Symbols (symbols, ValueNone)
+
             // symbolize HashSet
             elif sourceType.Name = typedefof<HashSet<_>>.Name then
                 let gargs = sourceType.GetGenericArguments ()
@@ -525,7 +533,21 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                             | _ -> failconv "Expected two child symbols KeyValuePair."
                         | _ -> failwithumf ()
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
-                        failconv "Expected Symbols for conversion to Map." (Some symbol)
+                        failconv "Expected Symbols for conversion to KeyValuePair." (Some symbol)
+
+                // desymbolize List
+                elif destType.Name = typedefof<_ List>.Name then
+                    match symbol with
+                    | Symbols (symbols, _) ->
+                        let gargs = destType.GetGenericArguments ()
+                        let itemType = gargs.[0]
+                        let itemObjs = List.map (ofSymbol itemType) symbols
+                        let itemsListType = typedefof<_ list>.MakeGenericType [|itemType|]
+                        let items = Reflection.objsToList itemsListType itemObjs
+                        let hashSetType = typedefof<List<_>>.MakeGenericType [|itemType|]
+                        Activator.CreateInstance (hashSetType, [|items|])
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
+                        failconv "Expected Symbols for conversion to List." (Some symbol)
 
                 // desymbolize HashSet
                 elif destType.Name = typedefof<_ HashSet>.Name then
@@ -539,7 +561,21 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                         let hashSetType = typedefof<HashSet<_>>.MakeGenericType [|itemType|]
                         Activator.CreateInstance (hashSetType, [|items|])
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
-                        failconv "Expected Symbols for conversion to HSet." (Some symbol)
+                        failconv "Expected Symbols for conversion to HashSet." (Some symbol)
+
+                // desymbolize HashSet
+                elif destType.Name = typedefof<_ HashSet>.Name then
+                    match symbol with
+                    | Symbols (symbols, _) ->
+                        let gargs = destType.GetGenericArguments ()
+                        let itemType = gargs.[0]
+                        let itemObjs = List.map (ofSymbol itemType) symbols
+                        let itemsListType = typedefof<_ list>.MakeGenericType [|itemType|]
+                        let items = Reflection.objsToList itemsListType itemObjs
+                        let hashSetType = typedefof<HashSet<_>>.MakeGenericType [|itemType|]
+                        Activator.CreateInstance (hashSetType, [|items|])
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
+                        failconv "Expected Symbols for conversion to HashSet." (Some symbol)
 
                 // desymbolize Dictionary
                 elif destType.Name = typedefof<Dictionary<_, _>>.Name then
@@ -556,7 +592,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                             Activator.CreateInstance (dictType, [|kvps|])
                         | _ -> failwithumf ()
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
-                        failconv "Expected Symbols for conversion to Map." (Some symbol)
+                        failconv "Expected Symbols for conversion to Dictionary." (Some symbol)
 
                 // desymbolize SymbolicCompression
                 elif destType.Name = typedefof<SymbolicCompression<_, _>>.Name then
