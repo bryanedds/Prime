@@ -31,14 +31,14 @@ type ValueEitherBuilder () =
 
     member this.For (sequence : _ seq, body) =
         use enr = sequence.GetEnumerator ()
-        let mutable errorOpt = None
-        while enr.MoveNext () && Option.isNone errorOpt do
+        let mutable errorOpt = ValueNone
+        while enr.MoveNext () && ValueOption.isNone errorOpt do
             match body enr.Current with
             | ValueRight () -> ()
-            | left -> errorOpt <- Some left
+            | left -> errorOpt <- ValueSome left
         match errorOpt with
-        | Some error -> error
-        | None -> this.Zero ()
+        | ValueSome error -> error
+        | ValueNone -> this.Zero ()
 
 [<AutoOpen>]
 module ValueEitherBuilder =
