@@ -14,6 +14,12 @@ module USet =
         private
             { mutable Set : 'a TSet }
 
+        /// Determine that a USet contains the given value.
+        member this.Contains value =
+            let struct (result, tset) = TSet.contains value this.Set
+            this.Set <- tset
+            result
+
         interface 'a IEnumerable with
             member this.GetEnumerator () =
                 let struct (seq, tset) = TSet.toSeq this.Set
@@ -73,10 +79,8 @@ module USet =
         result
 
     /// Determine that a USet contains the given value.
-    let contains value set =
-        let struct (result, tset) = TSet.contains value set.Set
-        set.Set <- tset
-        result
+    let contains value (set : 'a USet) =
+        set.Contains value
 
     /// Add all the given values to a USet.
     let addMany values set =
@@ -92,6 +96,10 @@ module USet =
             (fun map value -> add value map)
             (makeEmpty comparer config)
             values
+
+    /// Convert a sequence of values to a USet assuming structural comparison and functional representation.
+    let ofSeq1 pairs =
+        ofSeq HashIdentity.Structural Functional pairs
 
     /// Convert a USet to a seq. Note that entire set is iterated eagerly since the underlying HashMap could
     /// otherwise opaquely change during iteration.

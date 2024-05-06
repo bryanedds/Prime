@@ -26,7 +26,6 @@ type OMapEnumerator<'k, 'v> (enr : FStackEnumerator<struct (bool * 'k * 'v)>) =
 module OMap =
 
     /// An ordered persistent map based on UMap and FStack.
-    /// NOTE: not supported by SymbolicConverter.
     /// TODO: see if it would make sense to build UOrderedMap based on the more efficently-traversible
     /// OrderedDictionary.
     type [<ReferenceEquality>] OMap<'k, 'v> =
@@ -113,7 +112,6 @@ module OMap =
     let remove (key : 'k) map =
         match UMap.tryFind key map.Indices with
         | Some index ->
-            let struct (_, _, _) = map.Entries.[index]
             let map =
                 { Indices = UMap.remove key map.Indices
                   Entries = FStack.replaceAt index struct (false, Unchecked.defaultof<_>, Unchecked.defaultof<_>) map.Entries
@@ -154,8 +152,8 @@ module OMap =
     /// Find a value with the given key in an OMap.
     /// Constant-time complexity with approx. 1/3 speed of Dictionary.GetValue.
     let find (key : 'k) map : 'v =
-        let struct (_, _, value) = map.Entries.[map.Indices.[key]]
-        value
+        let struct (_, _, v) = map.Entries.[map.Indices.[key]]
+        v
 
     /// Try to find a value with the predicate.
     let tryFindBy by map =
@@ -208,6 +206,21 @@ module OMap =
             (fun map (key, value) -> add key value map)
             (makeEmpty comparer config)
             pairs
+
+    /// Convert a sequence of keys and values to an OMap assuming structural comparison and functional semantics.
+    let ofSeq1 pairs =
+        ofSeq HashIdentity.Structural Functional pairs
+
+    /// Convert a sequence of key value pairs to an OMap.
+    let ofSeqKvp comparer config pairs =
+        Seq.fold
+            (fun map (kvp : KeyValuePair<'k, 'v>) -> add kvp.Key kvp.Value map)
+            (makeEmpty comparer config)
+            pairs
+
+    /// Convert a sequence of key value pairs to an OMap assuming structural comparison and functional semantics.
+    let ofSeqKvp1 pairs =
+        ofSeqKvp HashIdentity.Structural Functional pairs
 
     /// Make an OMap with a single entry.
     let singleton<'k, 'v> comparer config key value =

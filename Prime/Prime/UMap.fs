@@ -14,10 +14,17 @@ module UMap =
         private
             { mutable Map : TMap<'k, 'v> }
 
+        /// Attempt to get the value with the given key.
         member this.TryGetValue (key, valueRef : 'v outref) =
             let struct (found, tmap) = TMap.tryGetValue (key, this.Map, &valueRef)
             this.Map <- tmap
             found
+
+        /// Check that a UMap contains the given key.
+        member this.ContainsKey key =
+            match this.TryGetValue key with
+            | (true, _) -> true
+            | (_, _) -> false
 
         member this.Item with get key =
             let struct (item, tmap) = TMap.find key this.Map
@@ -99,10 +106,8 @@ module UMap =
         map.[key]
 
     /// Check that a UMap contains the given key.
-    let containsKey key map =
-        let struct (result, tmap) = TMap.containsKey key map.Map
-        map.Map <- tmap
-        result
+    let containsKey key (map : UMap<'k, 'v>) =
+        map.ContainsKey key
 
     /// Add all the given entries to a UMap.
     let addMany entries map =
@@ -118,6 +123,21 @@ module UMap =
             (fun map (key, value) -> add key value map)
             (makeEmpty comparer config)
             pairs
+
+    /// Convert a sequence of keys and values to a UMap assuming structural comparison and functional semantics.
+    let ofSeq1 pairs =
+        ofSeq HashIdentity.Structural Functional pairs
+
+    /// Convert a sequence of key value pairs to a UMap.
+    let ofSeqKvp comparer config pairs =
+        Seq.fold
+            (fun map (kvp : KeyValuePair<'k, 'v>) -> add kvp.Key kvp.Value map)
+            (makeEmpty comparer config)
+            pairs
+
+    /// Convert a sequence of key value pairs to a UMap assuming structural comparison and functional semantics.
+    let ofSeqKvp1 pairs =
+        ofSeqKvp HashIdentity.Structural Functional pairs
 
     /// Convert a UMap to a seq. Note that entire map is iterated eagerly since the underlying
     /// Dictionary could otherwise opaquely change during iteration.

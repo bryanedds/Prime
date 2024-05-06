@@ -26,7 +26,6 @@ type 'a OSetEnumerator (enr : FStackEnumerator<struct (bool * 'a)>) =
 module OSet =
 
     /// An ordered persistent set based on UMap and FStack.
-    /// NOTE: not supported by SymbolicConverter.
     /// TODO: see if it would make sense to build UOrderedSet based on the more efficently-traversible
     /// OrderedDictionary.
     type [<ReferenceEquality>] OSet<'a> =
@@ -142,16 +141,20 @@ module OSet =
             (makeEmpty (UMap.getComparer set.Indices) (UMap.getConfig set.Indices))
             set
 
-    /// Convert an OSet to a sequence of pairs of keys and values.
+    /// Convert an OSet to a sequence of svalues.
     let toSeq (set : 'a OSet) =
         set :> _ IEnumerable
 
-    /// Convert a sequence of keys and values to an OSet.
+    /// Convert a sequence of values to an OSet.
     let ofSeq comparer config pairs =
         Seq.fold
             (fun set item -> add item set)
             (makeEmpty comparer config)
             pairs
+
+    /// Convert a sequence of values to an OSet assuming structural comparison and functional representation.
+    let ofSeq1 pairs =
+        ofSeq HashIdentity.Structural Functional pairs
 
     /// Make an OSet with a single entry.
     let singleton<'a> comparer config item =

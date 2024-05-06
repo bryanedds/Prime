@@ -113,9 +113,9 @@ module UList =
             (makeEmpty config)
             values
 
-    /// Make a UList from an array of values.
-    let ofArray config (values : 'a array) =
-        ofSeq config values
+    /// Convert a sequence of values to a UList assuming functional representation.
+    let ofSeq1 pairs =
+        ofSeq Functional pairs
 
     /// Map the elements of a UList.
     let map mapper list =
