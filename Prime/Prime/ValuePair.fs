@@ -30,12 +30,34 @@ module ValuePairOperators =
     let inline mapSnd' mapper struct (fst, snd) =
         struct (fst, mapper snd)
 
-    /// Make a struct pair of values.
+    /// Make a struct pair.
     let inline pair' a b =
         struct (a, b)
 
 [<RequireQualifiedAccess>]
 module ValuePair =
+
+    /// The first item in a struct pair.
+    let fst = fst'
+    
+    /// The second item in a struct pair.
+    let snd = snd'
+
+    /// Replace struct pair member fst.
+    let inline withFst fst pair =
+        withFst' fst pair
+
+    /// Replace struct pair member snd.
+    let inline withSnd snd pair =
+        withSnd' snd pair
+
+    /// Map over struct pair member fst.
+    let inline mapFst mapper pair =
+        mapFst' mapper pair
+
+    /// Map over struct pair member snd.
+    let inline mapSnd mapper pair =
+        mapSnd' mapper pair
 
     /// Make a struct pair.
     let inline make a b =

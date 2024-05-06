@@ -2,7 +2,6 @@
 // Adapted by Prime as FMap to enable fast map comparisons conducive to an MVU context.
 
 namespace Prime
-
 open System
 open System.Collections.Generic
 open System.Collections

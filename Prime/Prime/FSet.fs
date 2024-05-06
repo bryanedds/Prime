@@ -2,7 +2,6 @@
 // Adapted by Prime as FSet to enable fast set comparisons conducive to an MVU context.
 
 namespace Prime
-
 open System
 open System.Collections
 open System.Collections.Generic
