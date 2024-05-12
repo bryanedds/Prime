@@ -78,6 +78,9 @@
 		<Compile Include="OMap.fs" />
 		<Compile Include="SOSet.fs" />
 		<Compile Include="SOMap.fs" />
+		<Compile Include="ListTree.fs" />
+		<Compile Include="KeyedArray.fs" />
+		<Compile Include="ForgetfulDictionary.fs" />
 		<Compile Include="Vsync.fs" />
 		<Compile Include="Whisp.fs" />
 		<Compile Include="Reflection.fs" />
