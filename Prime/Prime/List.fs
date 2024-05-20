@@ -15,6 +15,12 @@ module List =
     let inline notEmpty list =
         not (List.isEmpty list)
 
+    /// Get a list head or a default value if there is none.
+    let inline headOrDefault aDefault seq =
+        match List.tryHead seq with
+        | Some head -> head
+        | None -> aDefault
+
     /// Make a singleton list.
     let inline singleton value =
         [value]
