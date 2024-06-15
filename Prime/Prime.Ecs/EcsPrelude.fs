@@ -303,8 +303,8 @@ and [<NoEquality; NoComparison>] Subquery =
         | (Int i, Int i2) -> Bool (i = i2)
         | (Single f, Single f2) -> Bool (f = f2)
         | (String str, String str2) -> Bool (strEq str str2)
-        | (Cmp c, Cmp c2) -> Bool (c = c2)
-        | (Obj o, Obj o2) -> Bool (objEq o o2)
+        | (Cmp c, Cmp c2) -> Bool (c.Equals c2)
+        | (Obj o, Obj o2) -> Bool (o.Equals o2)
         | (EntityId entityId, EntityId entityId2) -> Bool (genEq entityId entityId2)
         | (Pair (termFst, termSnd), Pair (termFst2, termSnd2)) ->
             match Subquery.eq termFst termFst2 with
