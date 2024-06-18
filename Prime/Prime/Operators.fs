@@ -110,17 +110,10 @@ module Operators =
     /// Test for string inequality.
     let inline strNeq str str2 = strCmp str str2 <> 0
 
-    /// Test for object equality, always testing reference equality first.
-    let inline objEq (a : obj) (b : obj) =
-        obj.ReferenceEquals (a, b) ||
-        match a with
-        | :? Array ->
-            // NOTE: arrays are given special deep equality semantics in F#.
-            // TODO: be absolutely sure this is the case!
-            a = b
-        | _ -> obj.Equals (a, b)
+    /// Test for object equality.
+    let inline objEq (a : obj) (b : obj) = obj.Equals (a, b)
 
-    /// Test for object inequality, always testing reference inequality first.
+    /// Test for object inequality.
     let inline objNeq (a : obj) (b : obj) = not (objEq a b)
 
     /// Test for reference equality.
@@ -215,8 +208,8 @@ module Operators =
     /// Sequences two functions like Haskell ($).
     let inline ($) f g = f g
 
-    /// Test for object equality, always testing reference equality first.
+    /// Test for object equality.
     let inline (===) (a : obj) (b : obj) = objEq a b
 
-    /// Test for object equality, always testing reference inequality first.
+    /// Test for object equality.
     let inline (=/=) (a : obj) (b : obj) = objNeq a b
