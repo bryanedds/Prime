@@ -287,7 +287,7 @@ module TypeExtension =
         /// Never returns null.
         /// Thread-safe if value ctor is.
         member this.TryGetDefaultValue () =
-            if this.IsPrimitive then Some (Activator.CreateInstance this)
+            if this.IsPrimitive || this.IsValueType then Some (Activator.CreateInstance this)
             elif this = typeof<string> then Some (String.Empty :> obj)
             elif this.Name = typedefof<_ array>.Name then Some (Reflection.objsToArray this [||])
             elif this.Name = typedefof<_ list>.Name then Some (Reflection.objsToList this [])
@@ -299,7 +299,6 @@ module TypeExtension =
                 then Some (FSharpValue.MakeUnion (unionCases.[0], [||]))
                 else None
             elif notNull (this.GetConstructor [||]) then Some (Activator.CreateInstance ())
-            elif this.IsValueType then Some (Activator.CreateInstance ())
             else None
 
         /// Special overload to get the public instance properties of a type.
