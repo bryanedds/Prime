@@ -71,10 +71,17 @@ module Operators =
     let inline notNull a = match a with null -> false | _ -> true
 
     /// Get the .NET type of a target.
-    let inline getType<'a> (target : 'a) = target.GetType ()
+    /// Thread-safe.
+    let inline getType<'a> (target : 'a) =
+        if notNull (target :> obj)
+        then target.GetType ()
+        else typeof<'a>
 
     /// Get the .NET type name of a target.
-    let inline getTypeName<'a> target = (getType<'a> target).Name
+    /// Thread-safe.
+    let inline getTypeName<'a> target =
+        let ty = getType<'a> target
+        ty.Name
 
     /// Get the union tag for the give case value, memoizing zero-field unions for speed.
     /// Thread-safe.
