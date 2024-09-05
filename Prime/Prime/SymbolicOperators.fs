@@ -16,7 +16,7 @@ module SymbolicOperators =
     /// Convert a value to a symbol.
     /// Thread-safe.
     let valueToSymbolPlus<'a> printing toSymbolMemoOpt (value : 'a) =
-        let ty = getType value
+        let ty = getType<'a> value
         let converter = SymbolicConverter (printing, None, ty, ?toSymbolMemoOpt = toSymbolMemoOpt)
         converter.ConvertTo (value, typeof<Symbol>) :?> Symbol
 
@@ -51,7 +51,7 @@ module SymbolicOperators =
     /// Uses a symbolic converter to convert a value to a string.
     /// Thread-safe.
     let scstringPlus<'a> printing toSymbolMemoOpt (value : 'a) =
-        let ty = getType value
+        let ty = getType<'a> value
         if ty.IsPrimitive then
             // OPTIMIZATION: avoid symbolic conversion for primitives
             value.ToString ()
