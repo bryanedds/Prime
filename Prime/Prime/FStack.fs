@@ -45,7 +45,7 @@ module FStack =
 
     /// A functional stack with fast iteration and amortized sqrt n conj.
     /// NOTE: not supported by SymbolicConverter.
-    type [<CustomEquality; NoComparison>] 'a FStack =
+    type [<CustomEquality; NoComparison; DefaultValue "[]">] 'a FStack =
         private
             { Front : 'a array
               Back : 'a array }

@@ -10,7 +10,7 @@ open System.Collections.Generic
 module SUSet =
 
     /// A hashing set that supports transaction-based rewinding with a more convenient interface than STSet.
-    type [<ReferenceEquality>] SUSet<'a when 'a : equality> =
+    type [<ReferenceEquality; DefaultValue "[]">] SUSet<'a when 'a : equality> =
         private
             { mutable Set : 'a STSet }
     

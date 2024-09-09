@@ -54,7 +54,7 @@ module SArray =
             member this.Dispose () = ()
 
     /// An array that is split into smaller arrays in order to avoid allocating from the LOH.
-    and [<ReferenceEquality>] 'a SArray =
+    and [<ReferenceEquality; DefaultValue "[]">] 'a SArray =
         private
             { TotalLength : int
               SegmentSize : int

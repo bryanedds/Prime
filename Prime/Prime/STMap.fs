@@ -14,7 +14,7 @@ module STMap =
         | Clear
 
     /// A hashing map that supports transaction-based rewinding.
-    type [<ReferenceEquality>] STMap<'k, 'v> =
+    type [<ReferenceEquality; DefaultValue "[]">] STMap<'k, 'v> =
         private
             { mutable STMapOpt : STMap<'k, 'v>
               TConfig : TConfig

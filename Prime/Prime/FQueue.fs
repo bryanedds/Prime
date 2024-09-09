@@ -13,8 +13,7 @@ open System
 ///
 /// Source code taken from - https://github.com/fsprojects/FSharpx.Collections/blob/3f566db698c832ea34b8c1f715d6891b2591d9f9/src/FSharpx.Collections/Deque.fs
 /// Licensed under Apache-2.0 by its original authors.
-[<DefaultValue "[]">]
-type FQueue<'T>(front: list<'T>, rBack: list<'T>) =
+type [<DefaultValue "[]">] FQueue<'T>(front: list<'T>, rBack: list<'T>) =
     let mutable hashCode = None
     member internal this.front = front
     member internal this.rBack = rBack

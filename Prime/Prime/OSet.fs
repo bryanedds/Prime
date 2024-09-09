@@ -28,7 +28,7 @@ module OSet =
     /// An ordered persistent set based on UMap and FStack.
     /// TODO: see if it would make sense to build UOrderedSet based on the more efficently-traversible
     /// OrderedDictionary.
-    type [<ReferenceEquality>] OSet<'a> =
+    type [<ReferenceEquality; DefaultValue "[]">] OSet<'a> =
         private
             { Indices : UMap<'a, int>
               Entries : struct (bool * 'a) FStack

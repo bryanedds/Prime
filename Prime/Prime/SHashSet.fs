@@ -10,7 +10,7 @@ open System.Collections.Generic
 module SHashSet =
 
     /// A hash set that is split into 32 smaller hash sets in order to avoid allocating from the LOH.
-    type [<ReferenceEquality>] SHashSet<'a when 'a : equality> =
+    type [<ReferenceEquality; DefaultValue "[]">] SHashSet<'a when 'a : equality> =
         private
             { HashSets_ : 'a HashSet array
               Comparer_ : 'a IEqualityComparer }

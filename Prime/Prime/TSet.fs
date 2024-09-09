@@ -14,7 +14,7 @@ module TSet =
         | Clear
 
     /// A hashing set that supports transaction-based rewinding.
-    type [<ReferenceEquality>] 'a TSet =
+    type [<ReferenceEquality; DefaultValue "[]">] 'a TSet =
         private
             { mutable TSetOpt : 'a TSet
               TConfig : TConfig

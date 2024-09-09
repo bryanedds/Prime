@@ -10,8 +10,7 @@ open System.Collections.Generic
 ///
 /// Source code taken from - https://github.com/fsprojects/FSharpx.Collections/blob/3f566db698c832ea34b8c1f715d6891b2591d9f9/src/FSharpx.Collections/Queue.fs
 /// Licensed under Apache-2.0 by its original authors.
-[<DefaultValue "[]">]
-type FList<'T>(front) =
+type [<DefaultValue "[]">] FList<'T>(front) =
     let mutable hashCode = None
     member internal this.front = front
 

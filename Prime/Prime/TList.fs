@@ -15,7 +15,7 @@ module TList =
         | Clear
 
     /// A list that supports transaction-based rewinding.
-    type [<ReferenceEquality>] 'a TList =
+    type [<ReferenceEquality; DefaultValue "[]">] 'a TList =
         private
             { mutable TListOpt : 'a TList
               TConfig : TConfig

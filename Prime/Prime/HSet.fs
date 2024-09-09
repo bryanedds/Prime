@@ -166,7 +166,7 @@ module HSet =
     /// A fast persistent hash set.
     /// Works in effectively constant-time for look-ups and updates.
     /// Also unlike FSharp.Set, has fast reference equality short-circuit.
-    type [<CustomEquality; NoComparison>] HSet<'a when 'a : equality> =
+    type [<CustomEquality; NoComparison; DefaultValue "[]">] HSet<'a when 'a : equality> =
         private
             { Node : 'a HNode
               EmptyArray : 'a HNode array }

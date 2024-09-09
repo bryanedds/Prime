@@ -15,7 +15,7 @@ module STList =
         | Clear
 
     /// A segmented list that supports transaction-based rewinding.
-    type [<ReferenceEquality>] 'a STList =
+    type [<ReferenceEquality; DefaultValue "[]">] 'a STList =
         private
             { mutable STListOpt : 'a STList
               TConfig : TConfig

@@ -14,7 +14,7 @@ module STSet =
         | Clear
 
     /// A segmented hashing set that supports transaction-based rewinding.
-    type [<ReferenceEquality>] STSet<'a when 'a : equality> =
+    type [<ReferenceEquality; DefaultValue "[]">] STSet<'a when 'a : equality> =
         private
             { mutable STSetOpt : 'a STSet
               TConfig : TConfig

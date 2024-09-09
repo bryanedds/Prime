@@ -10,7 +10,7 @@ open System.Collections.Generic
 module USet =
 
     /// A hashing set that supports transaction-based rewinding with a more convenient interface than TSet.
-    type [<ReferenceEquality>] 'a USet =
+    type [<ReferenceEquality; DefaultValue "[]">] 'a USet =
         private
             { mutable Set : 'a TSet }
 

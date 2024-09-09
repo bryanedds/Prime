@@ -29,7 +29,7 @@ module SOSet =
     /// NOTE: not supported by SymbolicConverter.
     /// TODO: see if it would make sense to build UOrderedSet based on the more efficently-traversible
     /// OrderedDictionary.
-    type [<ReferenceEquality>] SOSet<'a> =
+    type [<ReferenceEquality; DefaultValue "[]">] SOSet<'a> =
         private
             { Indices : SUMap<'a, int>
               Entries : struct (bool * 'a) FStack

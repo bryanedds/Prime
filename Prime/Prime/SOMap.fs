@@ -29,7 +29,7 @@ module SOMap =
     /// NOTE: not supported by SymbolicConverter.
     /// TODO: see if it would make sense to build UOrderedMap based on the more efficently-traversible
     /// OrderedDictionary.
-    type [<ReferenceEquality>] SOMap<'k, 'v> =
+    type [<ReferenceEquality; DefaultValue "[]">] SOMap<'k, 'v> =
         private
             { Indices : SUMap<'k, int>
               Entries : struct (bool * 'k * 'v) FStack

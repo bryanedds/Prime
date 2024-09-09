@@ -9,7 +9,7 @@ open System.Collections.Generic
 module SUList =
 
     /// A list that supports transaction-based rewinding with a more convenient interface than STList.
-    type [<ReferenceEquality>] 'a SUList =
+    type [<ReferenceEquality; DefaultValue "[]">] 'a SUList =
         private
             { mutable List : 'a STList }
 

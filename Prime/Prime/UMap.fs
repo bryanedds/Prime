@@ -10,7 +10,7 @@ open System.Collections.Generic
 module UMap =
 
     /// A hashing map that supports transaction-based rewinding, but with a more convenient interface than TMap.
-    type [<ReferenceEquality>] UMap<'k, 'v> =
+    type [<ReferenceEquality; DefaultValue "[]">] UMap<'k, 'v> =
         private
             { mutable Map : TMap<'k, 'v> }
 

@@ -9,7 +9,7 @@ open System.Collections.Generic
 module UList =
 
     /// A list that supports transaction-based rewinding with a more convenient interface than TList.
-    type [<ReferenceEquality>] 'a UList =
+    type [<ReferenceEquality; DefaultValue "[]">] 'a UList =
         private
             { mutable List : 'a TList }
     

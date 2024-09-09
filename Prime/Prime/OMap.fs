@@ -28,7 +28,7 @@ module OMap =
     /// An ordered persistent map based on UMap and FStack.
     /// TODO: see if it would make sense to build UOrderedMap based on the more efficently-traversible
     /// OrderedDictionary.
-    type [<ReferenceEquality>] OMap<'k, 'v> =
+    type [<ReferenceEquality; DefaultValue "[]">] OMap<'k, 'v> =
         private
             { Indices : UMap<'k, int>
               Entries : struct (bool * 'k * 'v) FStack

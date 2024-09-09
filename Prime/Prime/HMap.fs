@@ -177,7 +177,7 @@ module HMap =
     /// A fast persistent hash map.
     /// Works in effectively constant-time for look-ups and updates.
     /// Also unlike FSharp.Map, has fast reference equality short-circuit.
-    type [<CustomEquality; NoComparison>] HMap<'k, 'v when 'k : equality> =
+    type [<CustomEquality; NoComparison; DefaultValue "[]">] HMap<'k, 'v when 'k : equality> =
         private
             { Node : HNode<'k, 'v>
               EmptyArray : HNode<'k, 'v> array }

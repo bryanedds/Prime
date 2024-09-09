@@ -10,7 +10,7 @@ open System.Collections.Generic
 module SList =
 
     /// An list that is split into smaller lists in order to avoid allocating from the LOH.
-    type [<ReferenceEquality>] 'a SList =
+    type [<ReferenceEquality; DefaultValue "[]">] 'a SList =
         private
             { mutable TotalLength_ : int
               mutable Capacity_ : int

@@ -10,7 +10,7 @@ open System.Collections.Generic
 module SUMap =
 
     /// A hashing map that supports transaction-based rewinding, but with a more convenient interface than STMap.
-    type [<ReferenceEquality>] SUMap<'k, 'v> =
+    type [<ReferenceEquality; DefaultValue "[]">] SUMap<'k, 'v> =
         private
             { mutable Map : STMap<'k, 'v> }
 
