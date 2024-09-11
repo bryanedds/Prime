@@ -201,6 +201,11 @@ module HMap =
             | Some v -> valueRef <- v; true
             | None -> false
 
+        member this.TryFind key =
+            match this.TryGetValue key with
+            | (true, value) -> Some value
+            | (false, _) -> None
+
         member this.ContainsKey key =
             match this.TryGetValue key with
             | (true, _) -> true
