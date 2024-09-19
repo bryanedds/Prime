@@ -65,7 +65,7 @@ module Xtension =
                         let property = { property with PropertyValue = value :> obj }
                         let properties = UMap.add propertyName property xtension.Properties
                         { xtension with Properties = properties }
-            | None -> failwith "Cannot add property to a sealed Xtension."
+            | None -> failwith "Cannot set property to an Xtension without first attaching it."
 
     /// Check whether the Xtension uses mutation.
     let getImperative (xtension : Xtension) = xtension.Imperative
@@ -100,7 +100,7 @@ module Xtension =
     let setProperty name property xtension =
         match trySetProperty name property xtension with
         | struct (true, xtension) -> xtension
-        | struct (false, _) -> failwith "Cannot add property to a sealed Xtension."
+        | struct (false, _) -> failwith "Cannot set property to an Xtension without first attaching it."
 
     /// Attach a property to an Xtension.
     let attachProperty name property xtension =
