@@ -4,6 +4,21 @@
 namespace Prime
 open System
 open System.Text
+open System.Text.RegularExpressions
+
+[<AutoOpen>]
+module StringExtensions =
+
+    let private regex = Regex "([A-Z][a-z]+)"
+
+    type String with
+
+        /// Separate a string into words according to capitalization (but not punctuation).
+        member this.Spaced =
+            let builder = StringBuilder ()
+            for match_ in regex.Matches this do
+                builder.Append match_.Value |> ignore<StringBuilder>
+            builder.ToString ()
 
 [<RequireQualifiedAccess>]
 module String =

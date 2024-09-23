@@ -244,6 +244,11 @@ module FStack =
         | Some stack -> stack
         | None -> raise (InvalidOperationException "Cannot unconj an empty FStack.")
 
+    /// Check that an FStack contains the given item.
+    let contains item stack =
+        Array.contains item stack.Front ||
+        Array.contains item stack.Back
+
     /// Make an FStack with a single element.
     let singleton a =
         { Front = [|a|]; Back = [||] }

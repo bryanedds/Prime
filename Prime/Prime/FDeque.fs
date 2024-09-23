@@ -40,22 +40,22 @@ type [<DefaultValue "[]">] FDeque<'T>(front, rBack) =
                 else (this :> IEquatable<FDeque<'T>>).Equals(y)
             | _ -> false
 
-    ///O(1). Returns a new deque with the element added to the end.
+    /// O(1). Returns a new deque with the element added to the end.
     member this.Conj x =
         FDeque(front, x :: rBack)
 
-    ///O(1). Returns a new deque with the element added to the beginning.
+    /// O(1). Returns a new deque with the element added to the beginning.
     member this.Cons x =
         FDeque(x :: front, rBack)
 
-    ///O(1) amortized, O(n), worst case. Returns first element.
+    /// O(1) amortized, O(n), worst case. Returns first element.
     member this.Head =
         match front, rBack with
         | [], [] -> raise(new System.Exception("Deque is empty"))
         | hd :: _, _ -> hd
         | [], xs -> List.rev xs |> List.head
 
-    ///O(1) amortized, O(n), worst case. Returns option first element.
+    /// O(1) amortized, O(n), worst case. Returns option first element.
     member this.TryHead: 'T option =
         match front, rBack with
         | [], [] -> None
@@ -64,7 +64,7 @@ type [<DefaultValue "[]">] FDeque<'T>(front, rBack) =
             let x = List.rev xs |> List.head
             Some(x)
 
-    ///O(1) amortized, O(n), worst case. Returns the first element.
+    /// O(1) amortized, O(n), worst case. Returns the first element.
     member this.Initial =
         match front, rBack with
         | [], [] -> raise(new System.Exception("Deque is empty"))
@@ -79,7 +79,7 @@ type [<DefaultValue "[]">] FDeque<'T>(front, rBack) =
             let rBackA' = Array.rev rBackA
             FDeque(List.ofArray frontA, List.ofArray rBackA')
 
-    ///O(1) amortized, O(n), worst case. Returns option first element.
+    /// O(1) amortized, O(n), worst case. Returns option first element.
     member this.TryInitial =
         match front, rBack with
         | [], [] -> None
@@ -94,33 +94,33 @@ type [<DefaultValue "[]">] FDeque<'T>(front, rBack) =
             let rBackA' = Array.rev rBackA
             Some(FDeque(List.ofArray frontA, List.ofArray rBackA'))
 
-    ///O(1). Returns true if the deque has no elements.
+    /// O(1). Returns true if the deque has no elements.
     member this.IsEmpty =
         match front, rBack with
         | [], [] -> true
         | _ -> false
 
-    ///O(1) amortized, O(n), worst case. Returns the last element.
+    /// O(1) amortized, O(n), worst case. Returns the last element.
     member this.Last =
         match front, rBack with
         | [], [] -> raise(new System.Exception("Deque is empty"))
         | xs, [] -> List.rev xs |> List.head
         | _, hd :: _ -> hd
 
-    ///O(1) amortized, O(n), worst case. Returns option last element.
+    /// O(1) amortized, O(n), worst case. Returns option last element.
     member this.TryLast =
         match front, rBack with
         | [], [] -> None
         | xs, [] -> Some(List.rev xs |> List.head)
         | _, hd :: _ -> Some(hd)
 
-    ///O(1). Returns the count of elememts.
+    /// O(1). Returns the count of elememts.
     member this.Length = front.Length + rBack.Length
 
-    ///O(1). Returns deque reversed.
+    /// O(1). Returns deque reversed.
     member this.Rev = (new FDeque<'T>(rBack, front))
 
-    ///O(1) amortized, O(n), worst case. Returns a new deque of the elements trailing the first element.
+    /// O(1) amortized, O(n), worst case. Returns a new deque of the elements trailing the first element.
     member this.Tail =
         match front, rBack with
         | [], [] -> raise(new System.Exception("Deque is empty"))
@@ -136,7 +136,7 @@ type [<DefaultValue "[]">] FDeque<'T>(front, rBack) =
             let frontA' = Array.rev frontA
             FDeque(List.ofArray frontA', List.ofArray rBackA)
 
-    ///O(1) amortized, O(n), worst case. Returns option deque of the elements trailing the first element.
+    /// O(1) amortized, O(n), worst case. Returns option deque of the elements trailing the first element.
     member this.TryTail =
         match front, rBack with
         | [], [] -> None
@@ -151,35 +151,35 @@ type [<DefaultValue "[]">] FDeque<'T>(front, rBack) =
             let frontA' = Array.rev frontA
             Some(FDeque(List.ofArray frontA', List.ofArray rBackA))
 
-    ///O(1) amortized, O(n), worst case. Returns the first element and tail.
+    /// O(1) amortized, O(n), worst case. Returns the first element and tail.
     member this.Uncons =
         match front, rBack with
         | [], [] -> raise(new System.Exception("Deque is empty"))
         | _, _ -> this.Head, this.Tail
 
-    ///O(1) amortized, O(n), worst case. Returns option first element and tail.
+    /// O(1) amortized, O(n), worst case. Returns option first element and tail.
     member this.TryUncons =
         match front, rBack with
         | [], [] -> None
         | _, _ -> Some(this.Head, this.Tail)
 
-    ///O(1) amortized, O(n), worst case. Returns init and the last element.
+    /// O(1) amortized, O(n), worst case. Returns init and the last element.
     member this.Unconj =
         match front, rBack with
         | [], [] -> raise(new System.Exception("Deque is empty"))
         | _, _ -> this.Initial, this.Last
 
-    ///O(1) amortized, O(n), worst case. Returns option init and the last element.
+    /// O(1) amortized, O(n), worst case. Returns option init and the last element.
     member this.TryUnconj =
         match front, rBack with
         | [], [] -> None
         | _, _ -> Some(this.Initial, this.Last)
 
-    ///O(1). Returns a deque of the list
+    /// O(1). Returns a deque of the list
     static member OfList xs =
         FDeque<'T>(xs, [])
 
-    ///O(n). Returns a deque of the seq.
+    /// O(n). Returns a deque of the seq.
     static member OfSeq xs =
         FDeque<'T>((List.ofSeq xs), [])
 
@@ -208,93 +208,96 @@ type [<DefaultValue "[]">] FDeque<'T>(front, rBack) =
 [<RequireQualifiedAccess>]
 module FDeque =
 
-    ///O(1) amortized, O(n), worst case. Returns the first element and tail.
+    /// O(1) amortized, O(n), worst case. Returns the first element and tail.
     let (|Cons|Nil|)(q: FDeque<'T>) =
         match q.TryUncons with
         | Some(a, b) -> Cons(a, b)
         | None -> Nil
 
-    ///O(1) amortized, O(n), worst case. Returns initial and last.
+    /// O(1) amortized, O(n), worst case. Returns initial and last.
     let (|Conj|Nil|)(q: FDeque<'T>) =
         match q.TryUnconj with
         | Some(a, b) -> Conj(a, b)
         | None -> Nil
 
-    ///O(1). Returns a new deque with the element added to the end.
+    /// O(1). Returns a new deque with the element added to the end.
     let inline conj (x: 'T) (q: FDeque<'T>) = q.Conj x
 
-    ///O(1). Returns a new deque with the element added to the beginning.
+    /// O(1). Returns a new deque with the element added to the beginning.
     let inline cons (x: 'T) (q: FDeque<'T>) = q.Cons x
 
-    ///O(1). Returns deque of no elements.
+    /// O(1). Returns deque of no elements.
     let empty<'T> = FDeque<'T>(List.Empty, List.Empty)
 
-    ///O(n). Applies a function to each element of the deque, threading an accumulator argument through the computation, left to right
+    /// O(n). Applies a function to each element of the deque, threading an accumulator argument through the computation, left to right
     let fold (f: ('State -> 'T -> 'State)) (state: 'State) (q: FDeque<'T>) =
         let s = List.fold f state q.front
         List.fold f s (List.rev q.rBack)
 
-    ///O(n). Applies a function to each element of the deque, threading an accumulator argument through the computation, right to left
+    /// O(n). Applies a function to each element of the deque, threading an accumulator argument through the computation, right to left
     let foldBack (f: ('T -> 'State -> 'State)) (q: FDeque<'T>) (state: 'State) =
         let s = List.foldBack f (List.rev q.rBack) state
         (List.foldBack f q.front s)
 
-    ///O(1) amortized, O(n), worst case. Returns the first element.
+    /// O(1) amortized, O(n), worst case. Returns the first element.
     let inline head(q: FDeque<'T>) = q.Head
 
-    ///O(1) amortized, O(n), worst case. Returns option first element.
+    /// O(1) amortized, O(n), worst case. Returns option first element.
     let inline tryHead(q: FDeque<'T>) = q.TryHead
 
-    ///O(1) amortized, O(n), worst case. Returns a new deque of the elements before the last element.
+    /// O(1) amortized, O(n), worst case. Returns a new deque of the elements before the last element.
     let inline initial(q: FDeque<'T>) = q.Initial
 
-    ///O(1) amortized, O(n), worst case. Returns option deque of the elements before the last element.
+    /// O(1) amortized, O(n), worst case. Returns option deque of the elements before the last element.
     let inline tryInitial(q: FDeque<'T>) = q.TryInitial
 
-    ///O(1). Returns true if the deque has no elements.
+    /// O(1). Returns true if the deque has no elements.
     let inline isEmpty(q: FDeque<'T>) = q.IsEmpty
 
-    ///O(1) amortized, O(n), worst case. Returns the last element.
+    /// O(1) amortized, O(n), worst case. Returns the last element.
     let inline last(q: FDeque<'T>) = q.Last
 
-    ///O(1) amortized, O(n), worst case. Returns option last element.
+    /// O(1) amortized, O(n), worst case. Returns option last element.
     let inline tryLast(q: FDeque<'T>) = q.TryLast
 
-    ///O(1). Returns the count of elememts.
+    /// O(1). Returns the count of elememts.
     let inline length(q: FDeque<'T>) = q.Length
 
-    ///O(n), worst case. Returns a deque of the two lists concatenated.
+    /// Check that an FStack contains the given item.
+    let contains item (q: FDeque<'T>) = Seq.contains item q
+
+    /// O(n), worst case. Returns a deque of the two lists concatenated.
     let ofCatLists (xs: 'T list) (ys: 'T list) = FDeque<'T>(xs, (List.rev ys))
 
-    ///O(1). Returns a deque of the list
+    /// O(1). Returns a deque of the list
     let ofList xs = FDeque.OfList xs
 
-    ///O(n). Returns a deque of the seq.
+    /// O(n). Returns a deque of the seq.
     let ofSeq xs = FDeque.OfSeq xs
 
-    ///O(1). Returns deque reversed.
+    /// O(1). Returns deque reversed.
     let inline rev(q: FDeque<'T>) = q.Rev
 
-    ///O(1). Returns a deque of one element.
+    /// O(1). Returns a deque of one element.
     let singleton(x: 'T) = FDeque<'T>([ x ], List.Empty)
 
-    ///O(1) amortized, O(n), worst case. Returns a new deque of the elements trailing the first element.
+    /// O(1) amortized, O(n), worst case. Returns a new deque of the elements trailing the first element.
     let inline tail(q: FDeque<'T>) = q.Tail
 
-    ///O(1) amortized, O(n), worst case. Returns option deque of the elements trailing the first element.
+    /// O(1) amortized, O(n), worst case. Returns option deque of the elements trailing the first element.
     let inline tryTail(q: FDeque<'T>) = q.TryTail
 
-    ///O(1) amortized, O(n), worst case. Returns init and the last element.
+    /// O(1) amortized, O(n), worst case. Returns init and the last element.
     let inline uncons(q: FDeque<'T>) = q.Uncons
 
-    ///O(1) amortized, O(n), worst case. Returns option init and the last element.
+    /// O(1) amortized, O(n), worst case. Returns option init and the last element.
     let inline tryUncons(q: FDeque<'T>) = q.TryUncons
 
-    ///O(1) amortized, O(n), worst case. Returns the first element and tail.
+    /// O(1) amortized, O(n), worst case. Returns the first element and tail.
     let inline unconj(q: FDeque<'T>) = q.Unconj
 
-    ///O(n). Views the given deque as a sequence.
+    /// O(n). Views the given deque as a sequence.
     let inline toSeq(q: FDeque<'T>) = q :> seq<'T>
 
-    ///O(1) amortized, O(n), worst case. Returns option first element and tail.
+    /// O(1) amortized, O(n), worst case. Returns option first element and tail.
     let inline tryUnconj(q: FDeque<'T>) = q.TryUnconj
