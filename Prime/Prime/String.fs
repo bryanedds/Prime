@@ -171,7 +171,7 @@ module String =
                 i <- inc i
             result
          else false
-    
+
     /// Compare an array of strings lexicographically.
     let compareMany (strs : string array) (strs2 : string array) =
         let mutable result = 0
@@ -179,8 +179,12 @@ module String =
         while result = 0 && i < strs.Length && i < strs2.Length do
             result <- strCmp strs.[i] strs2.[i]
             i <- inc i
+        if result <> 0 then
+            if strs.Length < strs2.Length then result <- -1
+            elif strs.Length > strs2.Length then result <- 1
+            else result <- 0
         result
-    
+
     /// Hash an array of names.
     let hashMany (strs : string array) =
         let mutable hashValue = 0 // OPTIMIZATION: mutation for speed
