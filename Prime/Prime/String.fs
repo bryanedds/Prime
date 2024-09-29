@@ -15,9 +15,12 @@ module StringExtensions =
 
         /// Separate a string into words according to capitalization (but not punctuation).
         member this.Spaced =
+            let mutable first = true
             let builder = StringBuilder ()
             for match_ in regex.Matches this do
+                if not first then builder.Append " " |> ignore<StringBuilder>
                 builder.Append match_.Value |> ignore<StringBuilder>
+                first <- false
             builder.ToString ()
 
 [<RequireQualifiedAccess>]
