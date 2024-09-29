@@ -179,7 +179,7 @@ module String =
         while result = 0 && i < strs.Length && i < strs2.Length do
             result <- strCmp strs.[i] strs2.[i]
             i <- inc i
-        if result <> 0 then
+        if result = 0 then
             if strs.Length < strs2.Length then result <- -1
             elif strs.Length > strs2.Length then result <- 1
             else result <- 0
