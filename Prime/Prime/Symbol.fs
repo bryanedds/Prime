@@ -69,7 +69,7 @@ type SymbolOrigin =
                 then String.replicate (int origin.Stop.Column - int origin.Start.Column) "^"
                 else "^^^^^^^" // just use lots of carets...
             problemLinesStart + problemUnderline + problemLinesStop
-        with exn ->
+        with _ ->
             // ...and I don't feel like dealing with all the specifics.
             "Error creating violation context."
 

@@ -204,11 +204,10 @@ module List =
     let joinBy by sep list =
         if List.isEmpty list then String.Empty
         else
-            List.fold 
-                (fun acc item ->
-                    let elemStr = by item
-                    if String.length acc = 0 then elemStr
-                    else acc + sep + elemStr)
+            List.fold (fun acc item ->
+                let elemStr = by item
+                if String.length acc = 0 then elemStr
+                else acc + sep + elemStr)
                 String.Empty
                 list
 

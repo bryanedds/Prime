@@ -172,12 +172,12 @@ module FStack =
         let stack = { Front = arr; Back = [||] }
         balance stack
         
-    /// Remove all elements from an FStack that satisfy the given predicate with the given value.
+    /// Replace all elements from an FStack that satisfy the given predicate with the given value.
     let replace pred replacement stack =
         { Front = Array.replace pred replacement stack.Front
-          Back = Array.replace pred replacement stack.Back; }
+          Back = Array.replace pred replacement stack.Back }
 
-    /// Remove an element at the given index with the given value or raise IndexOutOfRangeException.
+    /// Replace an element at the given index with the given value or raise IndexOutOfRangeException.
     let replaceAt index replacement stack =
         if index < stack.Front.Length then
             let front = Array.copy stack.Front
