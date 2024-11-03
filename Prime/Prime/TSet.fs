@@ -182,7 +182,7 @@ module TSet =
     /// otherwise opaquely change during iteration.
     let toSeq set =
         let set = validate set
-        let seq = set.HashSet |> Array.ofSeq :> 'a seq
+        let seq = set.HashSet |> SArray.ofSeq :> 'a seq
         struct (seq, set)
 
     /// Convert a TSet to a HashSet.

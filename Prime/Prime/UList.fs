@@ -88,8 +88,7 @@ module UList =
         list.List <- tlist
         result
         
-    /// Convert a UList to an array. Note that entire list is iterated eagerly since the underlying .NET List could
-    /// otherwise opaquely change during iteration.
+    /// Convert a UList to an array.
     let toArray (list : _ UList) =
         let struct (arr, tlist) = TList.toArray list.List
         list.List <- tlist

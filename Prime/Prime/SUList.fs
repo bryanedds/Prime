@@ -88,8 +88,7 @@ module SUList =
         list.List <- tlist
         result
         
-    /// Convert a SUList to an array. Note that entire list is iterated eagerly since the underlying .NET List could
-    /// otherwise opaquely change during iteration.
+    /// Convert a SUList to an array.
     let toArray (list : _ SUList) =
         let struct (arr, tlist) = STList.toArray list.List
         list.List <- tlist

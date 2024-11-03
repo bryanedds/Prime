@@ -201,7 +201,7 @@ module STMap =
         let seq =
             map.Dict |>
             Seq.map (fun kvp -> (kvp.Key, kvp.Value)) |>
-            Array.ofSeq :>
+            SArray.ofSeq :>
             seq<'k * 'v>
         struct (seq, map)
 

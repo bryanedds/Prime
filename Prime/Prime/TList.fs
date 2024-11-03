@@ -181,8 +181,7 @@ module TList =
         let list = validate list
         struct (list.ImpList.Contains value, list)
 
-    /// Convert a TList to an array. Note that entire list is iterated eagerly since the underlying .NET List could
-    /// otherwise opaquely change during iteration.
+    /// Convert a TList to an array.
     let toArray list =
         let list = validate list
         struct (Array.ofSeq list.ImpList, list)
@@ -190,8 +189,9 @@ module TList =
     /// Convert a TList to a seq. Note that entire list is iterated eagerly since the underlying .NET List could
     /// otherwise opaquely change during iteration.
     let toSeq list =
-        let struct (arr, list) = toArray list
-        struct (Seq.ofArray arr, list)
+        let list = validate list
+        let struct (sarr, list) = struct (SArray.ofSeq list.ImpList, list)
+        struct (sarr :> _ seq, list)
 
     /// Convert a TList to an imperative System.Collections.Generic.List.
     let toImpList list =
