@@ -139,8 +139,7 @@ module UMap =
     let ofSeqKvp1 pairs =
         ofSeqKvp HashIdentity.Structural Functional pairs
 
-    /// Convert a UMap to a seq. Note that entire map is iterated eagerly since the underlying
-    /// Dictionary could otherwise opaquely change during iteration.
+    /// Convert a UMap to a seq. Note that the entire map is iterated eagerly when functional.
     let toSeq (map : UMap<_, _>) =
         map :> _ seq
 

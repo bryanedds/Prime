@@ -101,8 +101,7 @@ module USet =
     let ofSeq1 pairs =
         ofSeq HashIdentity.Structural Functional pairs
 
-    /// Convert a USet to a seq. Note that entire set is iterated eagerly since the underlying HashMap could
-    /// otherwise opaquely change during iteration.
+    /// Convert a USet to a seq. Note that the entire set is iterated eagerly when functional.
     let toSeq (set : _ USet) =
         set :> _ seq
 

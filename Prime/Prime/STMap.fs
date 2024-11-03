@@ -194,16 +194,17 @@ module STMap =
             (makeEmpty comparer config)
             pairs
 
-    /// Convert an STMap to a seq. Note that entire map is iterated eagerly since the underlying
-    /// SDictionary could otherwise opaquely change during iteration.
+    /// Convert an STMap to a seq. Note that the entire map is iterated eagerly when functional.
     let toSeq map =
-        let map = validate map
-        let seq =
-            map.Dict |>
-            Seq.map (fun kvp -> (kvp.Key, kvp.Value)) |>
-            SArray.ofSeq :>
-            seq<'k * 'v>
-        struct (seq, map)
+        if TConfig.isFunctional map.TConfig then
+            let map = validate2 map
+            let seq =
+                map.Dict |>
+                Seq.map (fun kvp -> (kvp.Key, kvp.Value)) |>
+                SArray.ofSeq :>
+                seq<'k * 'v>
+            struct (seq, map)
+        else (map.Dict |> Seq.map (fun kvp -> (kvp.Key, kvp.Value)), map)
 
     /// Convert an STMap to a SDictionary.
     let toDict map =

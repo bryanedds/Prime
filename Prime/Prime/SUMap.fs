@@ -119,8 +119,7 @@ module SUMap =
             (makeEmpty comparer config)
             pairs
 
-    /// Convert a SUMap to a seq. Note that entire map is iterated eagerly since the underlying
-    /// SDictionary could otherwise opaquely change during iteration.
+    /// Convert a SUMap to a seq. Note that the entire map is iterated eagerly when functional.
     let toSeq (map : SUMap<_, _>) =
         map :> _ seq
 

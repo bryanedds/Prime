@@ -94,8 +94,7 @@ module UList =
         list.List <- tlist
         arr
         
-    /// Convert a UList to a seq. Note that entire list is iterated eagerly since the underlying .NET List could
-    /// otherwise opaquely change during iteration.
+    /// Convert a UList to a seq. Note that the entire list is iterated eagerly when functional.
     let toSeq (list : _ UList) =
         list :> _ seq
 

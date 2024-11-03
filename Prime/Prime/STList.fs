@@ -186,12 +186,13 @@ module STList =
         let list = validate list
         struct (Array.ofSeq list.ImpList, list)
 
-    /// Convert a STList to a seq. Note that entire list is iterated eagerly since the underlying .NET List could
-    /// otherwise opaquely change during iteration.
+    /// Convert a STList to a seq. Note that the entire list is iterated eagerly when functional.
     let toSeq list =
-        let list = validate list
-        let struct (sarr, list) = struct (SArray.ofSeq list.ImpList, list)
-        struct (sarr :> _ seq, list)
+        if TConfig.isFunctional list.TConfig then
+            let list = validate2 list
+            let struct (sarr, list) = struct (SArray.ofSeq list.ImpList, list)
+            struct (sarr :> _ seq, list)
+        else struct (list.ImpList, list)
 
     /// Convert a STList to an imperative System.Collections.Generic.List.
     let toImpList list =
