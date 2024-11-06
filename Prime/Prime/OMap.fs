@@ -93,6 +93,7 @@ module OMap =
         UMap.getConfig map.Indices
 
     /// Add a value with the key to an OMap.
+    /// Linear time complexity when updaing existing entry.
     let add (key : 'k) (value : 'v) map =
         match UMap.tryFind key map.Indices with
         | Some index ->
@@ -109,6 +110,7 @@ module OMap =
         Seq.fold (fun map (key : 'k, value : 'v) -> add key value map) map entries
 
     /// Remove a value with the given key from an OMap.
+    /// Linear time complexity.
     let remove (key : 'k) map =
         match UMap.tryFind key map.Indices with
         | Some index ->

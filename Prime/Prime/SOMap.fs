@@ -94,6 +94,7 @@ module SOMap =
         SUMap.getConfig map.Indices
 
     /// Add a value with the key to an SOMap.
+    /// Linear time complexity when updaing existing entry.
     let add (key : 'k) (value : 'v) map =
         match SUMap.tryFind key map.Indices with
         | Some index ->
@@ -110,6 +111,7 @@ module SOMap =
         Seq.fold (fun map (key : 'k, value : 'v) -> add key value map) map entries
 
     /// Remove a value with the given key from an SOMap.
+    /// Linear time complexity.
     let remove (key : 'k) map =
         match SUMap.tryFind key map.Indices with
         | Some index ->

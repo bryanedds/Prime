@@ -178,6 +178,7 @@ module FStack =
           Back = Array.replace pred replacement stack.Back }
 
     /// Replace an element at the given index with the given value or raise IndexOutOfRangeException.
+    /// Linear time complexity.
     let replaceAt index replacement stack =
         if index < stack.Front.Length then
             let front = Array.copy stack.Front

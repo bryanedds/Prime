@@ -76,6 +76,7 @@ module OSet =
         UMap.getConfig set.Indices
 
     /// Add a value with the key to an OSet.
+    /// Linear time complexity when updaing existing entry.
     let add (item : 'a) set =
         match UMap.tryFind item set.Indices with
         | Some index ->
@@ -92,6 +93,7 @@ module OSet =
         Seq.fold (fun set item -> add item set) set items
 
     /// Remove a value with the given key from an OSet.
+    /// Linear time complexity.
     let remove item set =
         match UMap.tryFind item set.Indices with
         | Some index ->

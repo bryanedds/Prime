@@ -77,6 +77,7 @@ module SOSet =
         SUMap.getConfig set.Indices
 
     /// Add a value with the key to an SOSet.
+    /// Linear time complexity when updating existing entry.
     let add (item : 'a) set =
         match SUMap.tryFind item set.Indices with
         | Some index ->
@@ -93,6 +94,7 @@ module SOSet =
         Seq.fold (fun set item -> add item set) set items
 
     /// Remove a value with the given key from an SOSet.
+    /// Linear time complexity.
     let remove item set =
         match SUMap.tryFind item set.Indices with
         | Some index ->
