@@ -1,5 +1,5 @@
 ﻿// Prime - A PRIMitivEs code library.
-// Copyright (C) Bryan Edds, 2013-2023.
+// Copyright (C) Bryan Edds.
 
 namespace Prime
 open System
@@ -19,7 +19,7 @@ module String =
     /// Convert a single to a string that works well in code.
     let singleToCodeString (num : single) =
         if not (Single.IsNaN num) then
-            let decimaled = num.ToString ("N7")
+            let decimaled = num.ToString "N7"
             let cleaned = decimaled.TrimEnd('0').Replace(",","")
             let zeroed = if cleaned.EndsWith "." then cleaned + "0" else cleaned
             zeroed + "f"
@@ -28,7 +28,7 @@ module String =
     /// Convert a double to a string that works well in code.
     let doubleToCodeString (num : double) =
         if not (Double.IsNaN num) then
-            let decimaled = num.ToString ("N15")
+            let decimaled = num.ToString "N15"
             let cleaned = decimaled.TrimEnd('0').Replace(",","")
             if cleaned.EndsWith "." then cleaned + "0" else cleaned
         else string num

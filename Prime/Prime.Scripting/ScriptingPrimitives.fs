@@ -1,5 +1,5 @@
 // Prime - A PRIMitivEs code library.
-// Copyright (C) Bryan Edds, 2013-2023.
+// Copyright (C) Bryan Edds.
 
 namespace Prime
 open System
