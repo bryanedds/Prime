@@ -193,6 +193,21 @@ module FList =
     /// Views the given deque as a sequence.
     let inline toSeq(q: FList<'T>) = q :> seq<'T>
 
+    /// O(n). Filter implemented in terms of seq (to save some development time).
+    let filter pred (q: FList<'T>) = Seq.filter pred q |> ofSeq
+
+    /// O(n). Map implemented in terms of seq (to save some development time).
+    let map mapper (q: FList<'T>) : FList<'T2> = Seq.map mapper q |> ofSeq
+
+    /// O(n). Choose implemented in terms of seq (to save some development time).
+    let choose chooser (q: FList<'T option>) : FList<'T2> = Seq.choose chooser q |> ofSeq
+
+    /// O(n). Append implemented in terms of seq (to save some development time).
+    let append (q: FList<'T>) (q2: FList<'T>) = Seq.append q q2 |> ofSeq
+
+    /// O(n). Concat implemented in terms of seq (to save some development time).
+    let concat (q: FList<'T seq>) = Seq.concat q |> ofSeq
+
 [<AutoOpen>]
 module FListOperators =
 

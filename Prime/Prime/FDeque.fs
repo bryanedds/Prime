@@ -301,3 +301,18 @@ module FDeque =
 
     /// O(1) amortized, O(n), worst case. Returns option first element and tail.
     let inline tryUnconj(q: FDeque<'T>) = q.TryUnconj
+
+    /// O(n). Filter implemented in terms of seq (to save some development time).
+    let filter pred (q: FDeque<'T>) = Seq.filter pred q |> ofSeq
+
+    /// O(n). Map implemented in terms of seq (to save some development time).
+    let map mapper (q: FDeque<'T>) : FDeque<'T2> = Seq.map mapper q |> ofSeq
+
+    /// O(n). Choose implemented in terms of seq (to save some development time).
+    let choose chooser (q: FDeque<'T option>) : FDeque<'T2> = Seq.choose chooser q |> ofSeq
+
+    /// O(n). Append implemented in terms of seq (to save some development time).
+    let append (q: FDeque<'T>) (q2: FDeque<'T>) = Seq.append q q2 |> ofSeq
+
+    /// O(n). Concat implemented in terms of seq (to save some development time).
+    let concat (q: FDeque<'T seq>) = Seq.concat q |> ofSeq

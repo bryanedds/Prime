@@ -209,3 +209,18 @@ module FQueue =
 
     /// O(1) amortized, O(n) worst-case. Returns option first element and tail.
     let inline tryUncons(q: FQueue<'T>) = q.TryUncons
+
+    /// O(n). Filter implemented in terms of seq (to save some development time).
+    let filter pred (q: FQueue<'T>) = Seq.filter pred q |> ofSeq
+
+    /// O(n). Map implemented in terms of seq (to save some development time).
+    let map mapper (q: FQueue<'T>) : FQueue<'T2> = Seq.map mapper q |> ofSeq
+
+    /// O(n). Choose implemented in terms of seq (to save some development time).
+    let choose chooser (q: FQueue<'T option>) : FQueue<'T2> = Seq.choose chooser q |> ofSeq
+
+    /// O(n). Append implemented in terms of seq (to save some development time).
+    let append (q: FQueue<'T>) (q2: FQueue<'T>) = Seq.append q q2 |> ofSeq
+
+    /// O(n). Concat implemented in terms of seq (to save some development time).
+    let concat (q: FQueue<'T seq>) = Seq.concat q |> ofSeq
