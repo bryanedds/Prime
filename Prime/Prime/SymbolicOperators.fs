@@ -116,3 +116,16 @@ module SymbolicOperators =
                 then converter.ConvertFrom defaultValue :?> 'a
                 else failwith ("Cannot convert '" + scstring defaultValue + "' to type '" + defaultPropertyType.Name + "'.")
         | None -> Unchecked.defaultof<'a>
+
+    /// Dynamically convert a value to the given type using symbolic conversion.
+    let valueToValue (ty : Type) (value : obj) =
+        match value with
+        | null -> null
+        | _ ->
+            let ty2 = value.GetType ()
+            if not (ty.IsAssignableFrom ty2) then
+                let converter = SymbolicConverter ty
+                let converter2 = SymbolicConverter ty2
+                let symbol = converter2.ConvertTo (value, typeof<Symbol>)
+                converter.ConvertFrom symbol
+            else value
