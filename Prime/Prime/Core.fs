@@ -9,6 +9,7 @@ type [<AttributeUsage (AttributeTargets.Field)>] UniformAttribute () =
     inherit Attribute ()
 
 /// An attribute to specify the default value of a property.
-type [<AttributeUsage (AttributeTargets.Class); AllowNullLiteral>] DefaultValueAttribute (defaultValue : obj) =
+type [<AttributeUsage (AttributeTargets.Enum ||| AttributeTargets.Struct ||| AttributeTargets.Class); AllowNullLiteral>]
+    DefaultValueAttribute (defaultValue : obj) =
     inherit Attribute ()
     member this.DefaultValue = defaultValue

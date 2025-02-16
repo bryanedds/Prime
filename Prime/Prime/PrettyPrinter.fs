@@ -160,7 +160,7 @@ module PrettyPrinter =
         prettyPrintSymbol symbol prettyPrinter
 
 /// Configures the pretty printing behavior of a type.
-type [<AttributeUsage (AttributeTargets.Class); AllowNullLiteral>]
+type [<AttributeUsage (AttributeTargets.Enum ||| AttributeTargets.Struct ||| AttributeTargets.Class); AllowNullLiteral>]
     SyntaxAttribute
         (keywords0 : string,
          keywords1 : string,
