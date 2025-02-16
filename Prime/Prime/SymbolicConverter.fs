@@ -283,8 +283,8 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                             recordFields
                     Symbols (List.ofArray recordFieldSymbols, ValueNone)
                 else
-                    let recordFields = FSharpValue.GetRecordFields (source, true);
-                    let recordFieldTypes = FSharpType.GetRecordFields (sourceType, true);
+                    let recordFields = FSharpValue.GetRecordFields (source, true)
+                    let recordFieldTypes = FSharpType.GetRecordFields (sourceType, true)
                     let recordFieldSymbols = Array.mapi (fun i recordField -> toSymbol recordFieldTypes.[i].PropertyType recordField) recordFields
                     Symbols (List.ofArray recordFieldSymbols, ValueNone)
 

@@ -13,20 +13,6 @@ module SymbolicOperators =
     let private SCValueMemo = ConcurrentDictionary<struct (Type * string), obj> HashIdentity.Structural
     let private SCStringMemo = ConcurrentDictionary<struct (Type * obj), string> HashIdentity.Structural
 
-    /// Convert an value to an value of the given type using symbolic conversion.
-    /// Thread-safe.
-    let objToObj (ty : Type) (value : obj) =
-        match value with
-        | null -> null
-        | _ ->
-            let ty2 = value.GetType ()
-            if not (ty.IsAssignableFrom ty2) then
-                let converter = SymbolicConverter ty
-                let converter2 = SymbolicConverter ty2
-                let symbol = converter2.ConvertTo (value, typeof<Symbol>)
-                converter.ConvertFrom symbol
-            else value
-
     /// Convert a value to a value of the given type using symbolic conversion.
     /// Thread-safe.
     let valueToValue<'a, 'b> (value : 'a) : 'b =
