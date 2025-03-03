@@ -159,6 +159,12 @@ module Operators =
     /// Test for sequence equality.
     let inline seqNeq<'a> (seq : 'a seq) (seq2 : 'a seq) = not (Enumerable.SequenceEqual (seq, seq2))
 
+    /// Attempt to cast an obj to type 'a, returning 'a option.
+    let tryCast<'a> (obj : obj) = match obj with :? 'a as a -> Some a | _ -> None
+
+    /// Attempt to cast an obj to type 'a, returning 'a voption.
+    let tryCast'<'a> (obj : obj) = match obj with :? 'a as a -> ValueSome a | _ -> ValueNone
+
     /// Cast as a function.
     let inline cast<'a> (target : obj) = target :?> 'a
 
