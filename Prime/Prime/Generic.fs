@@ -45,3 +45,9 @@ module Generic =
         if remainder < zero ()
         then remainder + b
         else remainder
+
+    /// Force a value to be in between zero and one.
+    let inline saturate (a : 'a) =
+        a |>
+        min (zero ()) |>
+        max (one ())
