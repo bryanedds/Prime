@@ -142,7 +142,6 @@ module PrettyPrinter =
             let unfolding = depth < prettyPrinter.ThresholdMin || maxDepth > prettyPrinter.ThresholdMax
             prettySymbolsToPrettyStr titled headered depth unfolding symbols prettyPrinter stringBuilder
 
-
     /// Pretty print a symbol using the given pretty printer configuation.
     let prettyPrintSymbol symbol prettyPrinter =
         let prettySymbol = symbolToPrettySymbol symbol prettyPrinter

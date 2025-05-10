@@ -371,7 +371,7 @@ module Scripting =
 
         override this.GetHashCode () =
             match this with
-            | Violation (names, error, _) -> hash names ^^^ hash error
+            | Violation (names, error, _) -> hash names ^^^ hash error * 131
             | Unit -> 0
             | Bool value -> hash value
             | Int value -> hash value

@@ -39,9 +39,9 @@ module Dictionary =
         
     /// Hash a dictionary.
     let hash (dictionary : Dictionary<_, _>) =
-        let mutable h = 0
+        let mutable h = 17
         for entry in dictionary do
-            h <- h ^^^ entry.Key.GetHashCode () ^^^ (entry.Value.GetHashCode () * 13)
+            h <- h * 31 ||| entry.Key.GetHashCode () ^^^ (entry.Value.GetHashCode () * 131)
         h
 
 [<AutoOpen>]

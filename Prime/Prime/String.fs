@@ -175,6 +175,18 @@ module String =
             result
          else false
 
+    /// Check for equality an array of strings lexicographically, but in backward order of elements.
+    let equateManyBack (strs : string array) (strs2 : string array) =
+        let length = strs.Length
+        if length = strs2.Length then
+            let mutable result = true
+            let mutable i = dec length
+            while result && i >= 0 do
+                result <- strEq strs.[i] strs2.[i]
+                i <- dec i
+            result
+         else false
+
     /// Compare an array of strings lexicographically.
     let compareMany (strs : string array) (strs2 : string array) =
         let mutable result = 0
@@ -190,6 +202,6 @@ module String =
 
     /// Hash an array of names.
     let hashMany (strs : string array) =
-        let mutable hashValue = 0 // OPTIMIZATION: mutation for speed
-        for name in strs do hashValue <- hashValue ^^^ hash name
+        let mutable hashValue = 17 // OPTIMIZATION: mutation for speed
+        for name in strs do hashValue <- hashValue * 31 ||| hash name
         hashValue
