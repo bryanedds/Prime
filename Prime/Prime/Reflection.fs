@@ -86,7 +86,7 @@ and DesignerProperty =
 and [<ReferenceEquality>] ComputedProperty =
     { ComputedType : Type
       ComputedGet : obj -> obj -> obj
-      ComputedSetOpt : (obj -> obj -> obj -> obj) option }
+      ComputedSetOpt : (obj -> obj -> obj -> unit) option }
 
     /// Make a computed property.
     static member make ty get setOpt =
