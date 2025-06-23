@@ -52,17 +52,17 @@ type SymbolOrigin =
             let problemLineIndex = int origin.Start.Line - 1
             let problemLinesStartCount = problemLineIndex - Math.Max (0, problemLineIndex - 3)
             let problemLinesStart =
-                sourceLines |>
-                Array.trySkip (problemLineIndex - problemLinesStartCount) |>
-                Array.take (inc problemLinesStartCount) |>
-                String.concat "\n" |>
-                fun str -> if String.isEmpty str then "" else str + "\n"
+                sourceLines
+                |> Array.trySkip (problemLineIndex - problemLinesStartCount)
+                |> Array.take (inc problemLinesStartCount)
+                |> String.concat "\n"
+                |> fun str -> if String.isEmpty str then "" else str + "\n"
             let problemLinesStop =
-                sourceLines |>
-                Array.skip (inc problemLineIndex) |>
-                Array.tryTake 4 |>
-                String.concat "\n" |>
-                fun str -> if String.isEmpty str then "" else "\n" + str
+                sourceLines
+                |> Array.skip (inc problemLineIndex)
+                |> Array.tryTake 4
+                |> String.concat "\n"
+                |> fun str -> if String.isEmpty str then "" else "\n" + str
             let problemUnderline =
                 String.replicate (int origin.Start.Column - 1) " " +
                 if origin.Start.Line = origin.Stop.Line
@@ -432,9 +432,9 @@ module Symbol =
         let csvOptions = CsvOptions ()
         csvOptions.HeaderMode <- if stripHeader then HeaderMode.HeaderPresent else HeaderMode.HeaderAbsent
         let valueLists =
-            CsvReader.ReadFromText (csvStr, csvOptions) |>
-            Seq.map (fun line -> Seq.toList line.Values) |>
-            Seq.toList
+            CsvReader.ReadFromText (csvStr, csvOptions)
+            |> Seq.map (fun line -> Seq.toList line.Values)
+            |> Seq.toList
         let symbols =
             List.map (fun values ->
                 let symbols =

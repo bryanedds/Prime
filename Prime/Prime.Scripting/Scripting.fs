@@ -268,30 +268,30 @@ module Scripting =
             | Union (keyword, _) ->
                 let typeOpt =
                     // TODO: try caching the union types to speed this up.
-                    AppDomain.CurrentDomain.GetAssemblies () |>
-                    Array.map (fun asm -> Array.filter FSharpType.IsUnion (asm.GetTypes ())) |>
-                    Array.concat |>
-                    Array.filter (fun ty -> ty.Name = keyword) |>
-                    Array.filter (fun ty -> ty.GenericTypeArguments |> Array.notExists (fun arg -> arg.IsGenericParameter)) |> // constrained generics not currently supported...
-                    Array.map (fun ty ->
+                    AppDomain.CurrentDomain.GetAssemblies ()
+                    |> Array.map (fun asm -> Array.filter FSharpType.IsUnion (asm.GetTypes ()))
+                    |> Array.concat
+                    |> Array.filter (fun ty -> ty.Name = keyword)
+                    |> Array.filter (fun ty -> ty.GenericTypeArguments |> Array.notExists (fun arg -> arg.IsGenericParameter)) // constrained generics not currently supported...
+                    |> Array.map (fun ty ->
                         if ty.IsGenericType
                         then ty.MakeGenericType (Array.create ty.GenericTypeArguments.Length typeof<obj>)
-                        else ty) |>
-                    Array.tryHead // just take the first found type for now...
+                        else ty)
+                    |> Array.tryHead // just take the first found type for now...
                 typeOpt
             | Record (keyword, _, _) ->
                 let typeOpt =
                     // TODO: try caching the record types to speed this up.
-                    AppDomain.CurrentDomain.GetAssemblies () |>
-                    Array.map (fun asm -> Array.filter FSharpType.IsRecord (asm.GetTypes ())) |>
-                    Array.concat |>
-                    Array.filter (fun ty -> ty.Name = keyword) |>
-                    Array.filter (fun ty -> ty.GenericTypeArguments |> Array.notExists (fun arg -> arg.IsGenericParameter)) |> // constrained generics not currently supported...
-                    Array.map (fun ty ->
+                    AppDomain.CurrentDomain.GetAssemblies ()
+                    |> Array.map (fun asm -> Array.filter FSharpType.IsRecord (asm.GetTypes ()))
+                    |> Array.concat
+                    |> Array.filter (fun ty -> ty.Name = keyword)
+                    |> Array.filter (fun ty -> ty.GenericTypeArguments |> Array.notExists (fun arg -> arg.IsGenericParameter)) // constrained generics not currently supported...
+                    |> Array.map (fun ty ->
                         if ty.IsGenericType
                         then ty.MakeGenericType (Array.create ty.GenericTypeArguments.Length typeof<obj>)
-                        else ty) |>
-                    Array.tryHead // just take the first found type for now...
+                        else ty)
+                    |> Array.tryHead // just take the first found type for now...
                 typeOpt
             | Pluggable value ->
                 Some value.FSharpType

@@ -17,8 +17,8 @@ module ListTests =
     let cloneAdd v (vs : ResizeArray<_>) =
         seq {
             for x in vs do yield x
-            yield v } |>
-        ResizeArray
+            yield v }
+        |> ResizeArray
 
     let cloneMap f (vs : ResizeArray<_>) = Seq.map f vs |> ResizeArray
 

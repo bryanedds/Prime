@@ -108,9 +108,9 @@ module Either =
 
     /// Map both sides of an Either.
     let map fnl fnr eir =
-        eir |>
-        mapLeft fnl |>
-        mapRight fnr
+        eir
+        |> mapLeft fnl
+        |> mapRight fnr
 
     /// Split a sequence of Eithers into a pair of left and right lists.
     let split eirs =

@@ -140,24 +140,24 @@ module ScriptingMarshalling =
         | _ -> None
 
     and Importers : Dictionary<string, (Type -> obj -> Expr option) -> Type -> obj -> Expr option> =
-        [(typeof<Void>.Name, (fun _ _ _ -> Unit |> Some))
-         (typeof<unit>.Name, (fun _ _ _ -> Unit |> Some))
-         (typeof<bool>.Name, (fun _ _ (value : obj) -> match value with :? bool as bool -> Some (Bool bool) | _ -> None))
-         (typeof<int>.Name, (fun _ _ (value : obj) -> match value with :? int as int -> Some (Int int) | _ -> None))
-         (typeof<int64>.Name, (fun _ _ (value : obj) -> match value with :? int64 as int64 -> Some (Int64 int64) | _ -> None))
-         (typeof<single>.Name, (fun _ _ (value : obj) -> match value with :? single as single -> Some (Single single) | _ -> None))
-         (typeof<double>.Name, (fun _ _ (value : obj) -> match value with :? double as double -> Some (Double double) | _ -> None))
-         (typeof<char>.Name, (fun _ _ (value : obj) -> match value with :? char as char -> Some (String (string char)) | _ -> None))
-         (typeof<string>.Name, (fun _ _ (value : obj) -> match value with :? string as str -> Some (String str) | _ -> None))
-         (typedefof<Guid>.Name, (fun _ ty value -> tryImportGuid ty value))
-         (typedefof<KeyValuePair<_, _>>.Name, (fun tryImportExt ty value -> tryImportKeyValuePair tryImportExt ty value))
-         (typedefof<_ option>.Name, (fun tryImportExt ty value -> tryImportOption tryImportExt ty value))
-         (typedefof<Either<_, _>>.Name, (fun tryImportExt ty value -> tryImportEither tryImportExt ty value))
-         (typedefof<_ list>.Name, (fun tryImportExt ty value -> tryImportList tryImportExt ty value))
-         (typedefof<_ Set>.Name, (fun tryImportExt ty value -> tryImportSet tryImportExt ty value))
-         (typedefof<Map<_, _>>.Name, (fun tryImportExt ty value -> tryImportMap tryImportExt ty value))
-         (typedefof<Symbol>.Name, (fun tryImportExt ty value -> tryImportSymbol tryImportExt ty value))] |>
         dictPlus StringComparer.Ordinal
+            [(typeof<Void>.Name, (fun _ _ _ -> Unit |> Some))
+             (typeof<unit>.Name, (fun _ _ _ -> Unit |> Some))
+             (typeof<bool>.Name, (fun _ _ (value : obj) -> match value with :? bool as bool -> Some (Bool bool) | _ -> None))
+             (typeof<int>.Name, (fun _ _ (value : obj) -> match value with :? int as int -> Some (Int int) | _ -> None))
+             (typeof<int64>.Name, (fun _ _ (value : obj) -> match value with :? int64 as int64 -> Some (Int64 int64) | _ -> None))
+             (typeof<single>.Name, (fun _ _ (value : obj) -> match value with :? single as single -> Some (Single single) | _ -> None))
+             (typeof<double>.Name, (fun _ _ (value : obj) -> match value with :? double as double -> Some (Double double) | _ -> None))
+             (typeof<char>.Name, (fun _ _ (value : obj) -> match value with :? char as char -> Some (String (string char)) | _ -> None))
+             (typeof<string>.Name, (fun _ _ (value : obj) -> match value with :? string as str -> Some (String str) | _ -> None))
+             (typedefof<Guid>.Name, (fun _ ty value -> tryImportGuid ty value))
+             (typedefof<KeyValuePair<_, _>>.Name, (fun tryImportExt ty value -> tryImportKeyValuePair tryImportExt ty value))
+             (typedefof<_ option>.Name, (fun tryImportExt ty value -> tryImportOption tryImportExt ty value))
+             (typedefof<Either<_, _>>.Name, (fun tryImportExt ty value -> tryImportEither tryImportExt ty value))
+             (typedefof<_ list>.Name, (fun tryImportExt ty value -> tryImportList tryImportExt ty value))
+             (typedefof<_ Set>.Name, (fun tryImportExt ty value -> tryImportSet tryImportExt ty value))
+             (typedefof<Map<_, _>>.Name, (fun tryImportExt ty value -> tryImportMap tryImportExt ty value))
+             (typedefof<Symbol>.Name, (fun tryImportExt ty value -> tryImportSymbol tryImportExt ty value))]
 
     let rec tryExport tryExportExt (ty : Type) (value : Expr) =
 
@@ -317,8 +317,9 @@ module ScriptingMarshalling =
                 | None -> None
             | ("Symbols", exprs) ->
                 let symbolsOpts =
-                    Array.map (tryExportSymbol tryExportExt ty) exprs |>
-                    Array.map (Option.map cast<Symbol>)
+                    exprs
+                    |> Array.map (tryExportSymbol tryExportExt ty)
+                    |> Array.map (Option.map cast<Symbol>)
                 match Array.definitizePlus symbolsOpts with
                 | (true, symbols) -> Some (Symbols (Array.toList symbols, ValueNone) :> obj)
                 | (false, _) -> None
@@ -326,21 +327,21 @@ module ScriptingMarshalling =
         | _ -> None
 
     and Exporters : Dictionary<string, (Type -> Expr -> obj option) -> Type -> Expr -> obj option> =
-        [(typeof<Void>.Name, fun _ _ _ -> () :> obj |> Some)
-         (typeof<unit>.Name, fun _ _ _ -> () :> obj |> Some)
-         (typeof<bool>.Name, fun _ _ evaled -> match evaled with Bool value -> value :> obj |> Some | _ -> None)
-         (typeof<int>.Name, fun _ _ evaled -> match evaled with Int value -> value :> obj |> Some | _ -> None)
-         (typeof<int64>.Name, fun _ _ evaled -> match evaled with Int64 value -> value :> obj |> Some | _ -> None)
-         (typeof<single>.Name, fun _ _ evaled -> match evaled with Single value -> value :> obj |> Some | _ -> None)
-         (typeof<double>.Name, fun _ _ evaled -> match evaled with Double value -> value :> obj |> Some | _ -> None)
-         (typeof<char>.Name, fun _ _ evaled -> match evaled with String value when value.Length = 1 -> value.[0] :> obj |> Some | _ -> None)
-         (typeof<string>.Name, fun _ _ evaled -> match evaled with String value -> value :> obj |> Some | Keyword value -> value :> obj |> Some | _ -> None)
-         (typedefof<Guid>.Name, fun _ ty evaled -> tryExportGuid ty evaled)
-         (typedefof<KeyValuePair<_, _>>.Name, tryExportKvp)
-         (typedefof<_ option>.Name, tryExportOption)
-         (typedefof<Either<_, _>>.Name, tryExportEither)
-         (typedefof<_ list>.Name, tryExportList)
-         (typedefof<_ Set>.Name, tryExportSet)
-         (typedefof<Map<_, _>>.Name, tryExportMap)
-         (typedefof<Symbol>.Name, tryExportSymbol)] |>
         dictPlus StringComparer.Ordinal
+            [(typeof<Void>.Name, fun _ _ _ -> () :> obj |> Some)
+             (typeof<unit>.Name, fun _ _ _ -> () :> obj |> Some)
+             (typeof<bool>.Name, fun _ _ evaled -> match evaled with Bool value -> value :> obj |> Some | _ -> None)
+             (typeof<int>.Name, fun _ _ evaled -> match evaled with Int value -> value :> obj |> Some | _ -> None)
+             (typeof<int64>.Name, fun _ _ evaled -> match evaled with Int64 value -> value :> obj |> Some | _ -> None)
+             (typeof<single>.Name, fun _ _ evaled -> match evaled with Single value -> value :> obj |> Some | _ -> None)
+             (typeof<double>.Name, fun _ _ evaled -> match evaled with Double value -> value :> obj |> Some | _ -> None)
+             (typeof<char>.Name, fun _ _ evaled -> match evaled with String value when value.Length = 1 -> value.[0] :> obj |> Some | _ -> None)
+             (typeof<string>.Name, fun _ _ evaled -> match evaled with String value -> value :> obj |> Some | Keyword value -> value :> obj |> Some | _ -> None)
+             (typedefof<Guid>.Name, fun _ ty evaled -> tryExportGuid ty evaled)
+             (typedefof<KeyValuePair<_, _>>.Name, tryExportKvp)
+             (typedefof<_ option>.Name, tryExportOption)
+             (typedefof<Either<_, _>>.Name, tryExportEither)
+             (typedefof<_ list>.Name, tryExportList)
+             (typedefof<_ Set>.Name, tryExportSet)
+             (typedefof<Map<_, _>>.Name, tryExportMap)
+             (typedefof<Symbol>.Name, tryExportSymbol)]

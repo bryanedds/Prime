@@ -86,9 +86,9 @@ module Map =
 
     /// Index a sequence and convert it to a map.
     let indexed seq =
-        seq |>
-        Seq.indexed |>
-        Map.ofSeq
+        seq
+        |> Seq.indexed
+        |> Map.ofSeq
 
     /// Map over a map with an index.
     let mapi mapper map =

@@ -217,9 +217,9 @@ module HMap =
                 HNode.find h key 0 this.Node
 
         member this.Pairs =
-            this.Node |>
-            HNode.toSeq |>
-            Seq.map (fun kvp -> (kvp.Key, kvp.Value))
+            this.Node
+            |> HNode.toSeq
+            |> Seq.map (fun kvp -> (kvp.Key, kvp.Value))
 
         interface IEnumerable<KeyValuePair<'k, 'v>> with
             member this.GetEnumerator () =

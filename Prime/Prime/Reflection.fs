@@ -330,9 +330,9 @@ module TypeExtension =
                     | :? TypeConverterAttribute as tca -> yield tca
                     | _ -> () |]
             let typeConverterAttributes =
-                this.GetCustomAttributes (typeof<TypeConverterAttribute>, true) |>
-                Array.map (fun attr -> attr :?> TypeConverterAttribute) |>
-                Array.append globalConverterAttributes
+                this.GetCustomAttributes (typeof<TypeConverterAttribute>, true)
+                |> Array.map (fun attr -> attr :?> TypeConverterAttribute)
+                |> Array.append globalConverterAttributes
             if not (Array.isEmpty typeConverterAttributes) then
                 let typeConverterAttribute = Array.head typeConverterAttributes
                 let typeConverterTypeName = typeConverterAttribute.ConverterTypeName
@@ -415,22 +415,22 @@ module FSharpType =
     let isNullTrueValue (ty : Type) =
         let isUnit = ty = typeof<unit>
         let isNullTrueValueByAttribute =
-            ty.GetCustomAttributes(typeof<CompilationRepresentationAttribute>, true) |>
-            Array.map (fun (attr : obj) -> attr :?> CompilationRepresentationAttribute) |>
-            Array.exists (fun attr -> int attr.Flags &&& int CompilationRepresentationFlags.UseNullAsTrueValue <> 0)
+            ty.GetCustomAttributes(typeof<CompilationRepresentationAttribute>, true)
+            |> Array.map (fun (attr : obj) -> attr :?> CompilationRepresentationAttribute)
+            |> Array.exists (fun attr -> int attr.Flags &&& int CompilationRepresentationFlags.UseNullAsTrueValue <> 0)
         let result = isUnit || isNullTrueValueByAttribute
         result
 
     /// Check that a record is considered abstract.
     /// Thread-safe.
     let isRecordAbstract (ty : Type) =
-        ty.GetCustomAttributes(typeof<CompilationMappingAttribute>, true) |>
-        Array.map (fun (attr : obj) -> attr :?> CompilationMappingAttribute) |>
-        Array.exists (fun attr -> int attr.SourceConstructFlags = (int SourceConstructFlags.RecordType ||| int SourceConstructFlags.NonPublicRepresentation))
+        ty.GetCustomAttributes(typeof<CompilationMappingAttribute>, true)
+        |> Array.map (fun (attr : obj) -> attr :?> CompilationMappingAttribute)
+        |> Array.exists (fun attr -> int attr.SourceConstructFlags = (int SourceConstructFlags.RecordType ||| int SourceConstructFlags.NonPublicRepresentation))
 
     /// Check that a union is considered abstract.
     /// Thread-safe.
     let isUnionAbstract (ty : Type) =
-        ty.GetCustomAttributes(typeof<CompilationMappingAttribute>, true) |>
-        Array.map (fun (attr : obj) -> attr :?> CompilationMappingAttribute) |>
-        Array.exists (fun attr -> int attr.SourceConstructFlags = (int SourceConstructFlags.SumType ||| int SourceConstructFlags.NonPublicRepresentation))
+        ty.GetCustomAttributes(typeof<CompilationMappingAttribute>, true)
+        |> Array.map (fun (attr : obj) -> attr :?> CompilationMappingAttribute)
+        |> Array.exists (fun attr -> int attr.SourceConstructFlags = (int SourceConstructFlags.SumType ||| int SourceConstructFlags.NonPublicRepresentation))

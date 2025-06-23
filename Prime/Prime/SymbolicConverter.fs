@@ -26,13 +26,13 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
     let padWithDefaults (types : Type array) (values : obj array) =
         if values.Length < types.Length then
             let valuesPadded =
-                types |>
-                Array.skip values.Length |>
-                Array.map (fun ty ->
+                types
+                |> Array.skip values.Length
+                |> Array.map (fun ty ->
                     match ty.TryGetDefaultValue () with
                     | Some value -> value
-                    | None -> failconv ("Cannot create default value for type '" + ty.Name + "'.") None) |>
-                Array.append values
+                    | None -> failconv ("Cannot create default value for type '" + ty.Name + "'.") None)
+                |> Array.append values
             valuesPadded
         else values
 
@@ -694,10 +694,10 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     | Symbols (symbols, _) ->
                         let elementTypes = FSharpType.GetTupleElements destType
                         let elements =
-                            symbols |>
-                            Array.ofList |>
-                            Array.tryTake elementTypes.Length |>
-                            Array.mapi (fun i elementSymbol -> ofSymbol elementTypes.[i] elementSymbol)
+                            symbols
+                            |> Array.ofList
+                            |> Array.tryTake elementTypes.Length
+                            |> Array.mapi (fun i elementSymbol -> ofSymbol elementTypes.[i] elementSymbol)
                         let elements = padWithDefaults elementTypes elements
                         FSharpValue.MakeTuple (elements, destType)
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
@@ -712,9 +712,9 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                             let fieldInfos = FSharpType.GetRecordFields (destType, true)
                             if List.forall (function Symbols ([Atom _; _], _) -> true | _ -> false) symbols then
                                 let fieldMap =
-                                    symbols |>
-                                    List.map (function Symbols ([Atom (fieldName, _); fieldSymbol], _) -> (fieldName, fieldSymbol) | _ -> failwithumf ()) |>
-                                    Map.ofList
+                                    symbols
+                                    |> List.map (function Symbols ([Atom (fieldName, _); fieldSymbol], _) -> (fieldName, fieldSymbol) | _ -> failwithumf ())
+                                    |> Map.ofList
                                 let fields =
                                     Array.map (fun (info : PropertyInfo) ->
                                         match Map.tryFind info.Name fieldMap with
@@ -734,10 +734,10 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                         else
                             let fieldInfos = FSharpType.GetRecordFields (destType, true)
                             let fields =
-                                symbols |>
-                                Array.ofList |>
-                                Array.tryTake fieldInfos.Length |>
-                                Array.mapi (fun i fieldSymbol -> ofSymbol fieldInfos.[i].PropertyType fieldSymbol)
+                                symbols
+                                |> Array.ofList
+                                |> Array.tryTake fieldInfos.Length
+                                |> Array.mapi (fun i fieldSymbol -> ofSymbol fieldInfos.[i].PropertyType fieldSymbol)
                             let fields = padWithDefaultProperties fieldInfos fields
                             FSharpValue.MakeRecord (destType, fields, true)
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
@@ -764,10 +764,10 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                             | Some unionCase ->
                                 let unionFieldInfos = unionCase.GetFields ()
                                 let unionValues =
-                                    symbolTail |>
-                                    Array.ofList |>
-                                    Array.tryTake unionFieldInfos.Length |>
-                                    Array.mapi (fun i unionSymbol -> ofSymbol unionFieldInfos.[i].PropertyType unionSymbol)
+                                    symbolTail
+                                    |> Array.ofList
+                                    |> Array.tryTake unionFieldInfos.Length
+                                    |> Array.mapi (fun i unionSymbol -> ofSymbol unionFieldInfos.[i].PropertyType unionSymbol)
                                 let unionValues = padWithDefaultProperties unionFieldInfos unionValues
                                 FSharpValue.MakeUnion (unionCase, unionValues, true)
                             | None ->

@@ -343,10 +343,10 @@ module List =
 
     /// Check that a list contains triplicate entries.
     let containsTriplicates list =
-        list |>
-        Array.ofList |>
-        Array.groupBy id |>
-        Array.exists (fun (_, group) -> group.Length >= 3)
+        list
+        |> Array.ofList
+        |> Array.groupBy id
+        |> Array.exists (fun (_, group) -> group.Length >= 3)
 
     /// Map over a generic list. A new list is produced.
     let mapGeneric (mapper : 'a -> 'a) (set : 'a System.Collections.Generic.List) =

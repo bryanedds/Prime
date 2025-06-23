@@ -112,9 +112,9 @@ module SymbolicOperators =
     let scdefaultof<'a> () : 'a =
         let defaultPropertyType = typeof<'a>
         let defaultValueAttributeOpt =
-            defaultPropertyType.GetCustomAttributes (typeof<DefaultValueAttribute>, true) |>
-            Array.map (fun attr -> attr :?> DefaultValueAttribute) |>
-            Array.tryHead
+            defaultPropertyType.GetCustomAttributes (typeof<DefaultValueAttribute>, true)
+            |> Array.map (fun attr -> attr :?> DefaultValueAttribute)
+            |> Array.tryHead
         match defaultValueAttributeOpt with
         | Some defaultValueAttribute ->
             match defaultValueAttribute.DefaultValue with

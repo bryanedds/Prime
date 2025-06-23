@@ -94,10 +94,10 @@ module Rand =
 
     /// Randomize a sequence.
     let nextPermutation items rand =
-        items |>
-        Seq.toList |>
-        List.fold (fun (items, rand) item -> let (i, rand) = nextInt rand in (Map.add i item items, rand)) (Map.empty, rand) |>
-        mapFst Map.toValueList
+        items
+        |> Seq.toList
+        |> List.fold (fun (items, rand) item -> let (i, rand) = nextInt rand in (Map.add i item items, rand)) (Map.empty, rand)
+        |> mapFst Map.toValueList
 
     /// Make a rand value generator from the given seed state.
     /// May not be zero.

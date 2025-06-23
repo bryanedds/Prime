@@ -851,12 +851,11 @@ module ScriptingPrimitives =
             | Left _ -> struct (either, world)
         | (mapper, String str) ->
             let (list, world) =
-                str |>
                 Seq.foldi (fun i (elems, world) elem ->
                     let elem = String (string elem)
                     let struct (elem, world) = evalApply [|mapper; Int i; elem|] originOpt world
                     (elem :: elems, world))
-                    ([], world)
+                    ([], world) str
             if List.forall (function String str when String.length str = 1 -> true | _ -> false) list
             then struct (String (list |> List.rev |> List.map (function String str -> str.[0] | _ -> failwithumf ()) |> String.implode), world)
             else struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s mapper must return a String of length 1.", originOpt), world)
@@ -906,12 +905,11 @@ module ScriptingPrimitives =
             | Left _ -> struct (either, world)
         | (mapper, String str) ->
             let struct (list, world) =
-                str |>
                 Seq.fold (fun struct (elems, world) elem ->
                     let elem = String (string elem)
                     let struct (elem, world) = evalApply [|mapper; elem|] originOpt world
                     struct (elem :: elems, world))
-                    struct ([], world)
+                    struct ([], world) str
             if List.forall (function String str when String.length str = 1 -> true | _ -> false) list
             then struct (String (list |> List.rev |> List.map (function String str -> str.[0] | _ -> failwithumf ()) |> String.implode), world)
             else struct (Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s mapper must return a String of length 1.", originOpt), world)

@@ -109,9 +109,9 @@ module SDictionary =
         sdict.Clear ()
 
     let toSeq sdict =
-        sdict.Dictionaries_ |>
-        Seq.concat |>
-        Seq.map (fun kvp -> (kvp.Key, kvp.Value))
+        sdict.Dictionaries_
+        |> Seq.concat
+        |> Seq.map (fun kvp -> (kvp.Key, kvp.Value))
 
     let ofSeq comparer seq =
         let sdict = make comparer
@@ -124,9 +124,9 @@ module SDictionary =
         sdict
 
     let map<'k, 'v, 'u when 'k : equality and 'u : equality> comparer (mapper : 'k -> 'v -> 'u) (sdict : SDictionary<'k, 'v>) =
-        toSeq sdict |>
-        Seq.map (fun (k, v) -> (k, mapper k v)) |>
-        ofSeq comparer
+        toSeq sdict
+        |> Seq.map (fun (k, v) -> (k, mapper k v))
+        |> ofSeq comparer
 
     let filter pred sdict =
         ofSeq sdict.Comparer_ (Seq.filter pred (toSeq sdict))

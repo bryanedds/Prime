@@ -110,9 +110,9 @@ module ValueEither =
 
     /// Map both sides of a ValueEither.
     let map fnl fnr eir =
-        eir |>
-        mapLeft fnl |>
-        mapRight fnr
+        eir
+        |> mapLeft fnl
+        |> mapRight fnr
 
     /// Split a sequence of ValueEithers into a pair of left and right lists.
     let split eirs =
