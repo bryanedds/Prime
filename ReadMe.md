@@ -9,7 +9,7 @@ The Prime F# Code Library [![License](https://img.shields.io/badge/license-MIT-b
 - The **Vsync** monad allowing the same program to be run in parallel or debugged sequentially.
 - Fastest persistent **UList**, **UMap**, and **USet** collections rivaling the speed of .NET List, Dictionary and HashSet.
 - Innovative pure-functional wrappers for arbitrary impure objects, **KeyedCache** and **MutantCache**.
-- Segmented dynamic collections types that keep large temporary collections from thrashing the LOH, **SArray**, **SList**, **SHashSet**, and **SDictionary**
+- Segmented dynamic collections types that keep large temporary collections from thrashing the large object heap, **SArray**, **SList**, **SHashSet**, and **SDictionary**
 - An algebraic **Ecs** (Entity-Component-System) library extracted from the F# Nu Game Engine.
 - A powerful and reusable scripting language, AMSL, with the types in the **Scripting** module.
 - So many extension primitives I couldn't hope to mention them all!
