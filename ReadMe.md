@@ -5,7 +5,6 @@ The Prime F# Code Library [![License](https://img.shields.io/badge/license-MIT-b
 
 - A metaprogramming system based on symbolic expressions with the **Symbol** and **SymbolicConverter** types.
 - A generalized serialization system based on the above **Symbol** types.
-- A dynamic property system called **Xtension**.
 - A purely functional random number generator called **Rand**.
 - The **Vsync** monad allowing the same program to be run in parallel or debugged sequentially.
 - Fastest persistent **UList**, **UMap**, and **USet** collections rivaling the speed of .NET List, Dictionary and HashSet.
