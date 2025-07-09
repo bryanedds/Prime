@@ -46,7 +46,7 @@ module Generic =
         then remainder + b
         else remainder
 
-    /// Force a value to be in between zero and one.
+    /// Force a value to be in from zero to one.
     let inline saturate (a : 'a) =
         a
         |> max (zero ())
