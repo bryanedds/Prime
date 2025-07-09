@@ -49,5 +49,5 @@ module Generic =
     /// Force a value to be in between zero and one.
     let inline saturate (a : 'a) =
         a
-        |> min (zero ())
-        |> max (one ())
+        |> max (zero ())
+        |> min (one ())
