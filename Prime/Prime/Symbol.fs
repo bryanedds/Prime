@@ -116,8 +116,8 @@ type [<CustomEquality; NoComparison>] Symbol =
         | Atom (str, _) -> str.GetHashCode ()
         | Number (str, _) -> str.GetHashCode ()
         | Text (str, _) -> str.GetHashCode ()
-        | Quote (sym, _) -> Symbol.hash sym * 17
-        | Symbols (syms, _) -> List.fold (fun hashCode sym -> hashCode * 31 ||| Symbol.hash sym) 17 syms
+        | Quote (sym, _) -> Symbol.hash sym
+        | Symbols (syms, _) -> List.fold (fun hashCode sym -> hashCode ^^^ Symbol.hash sym) 0 syms
 
     static member equals left right =
         match (left, right) with

@@ -28,9 +28,9 @@ module HashSet =
         
     /// Hash a hash set.
     let hash (hashSet : _ HashSet) =
-        let mutable h = 17
+        let mutable h = 0
         for item in hashSet do
-            h <- h * 31 ||| item.GetHashCode ()
+            h <- h ^^^ item.GetHashCode ()
         h
 
 [<AutoOpen>]

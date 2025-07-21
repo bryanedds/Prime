@@ -138,7 +138,7 @@ module Array =
 
     /// Hash an array.
     let hash (arr : _ array) =
-        let mutable hashCode = 17
+        let mutable hashCode = 0
         for i in 0 .. dec arr.Length do
-            hashCode <- hashCode * 31 ||| hash arr.[i]
+            hashCode <- hashCode ^^^ hash arr.[i]
         hashCode

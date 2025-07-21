@@ -202,6 +202,6 @@ module String =
 
     /// Hash an array of names.
     let hashMany (strs : string array) =
-        let mutable hashValue = 17 // OPTIMIZATION: mutation for speed
-        for name in strs do hashValue <- hashValue * 31 ||| hash name
+        let mutable hashValue = 0 // OPTIMIZATION: mutation for speed
+        for name in strs do hashValue <- hashValue ^^^ hash name
         hashValue
