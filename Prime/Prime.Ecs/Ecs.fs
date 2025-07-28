@@ -12,13 +12,13 @@ open Prime
 
 /// An unscheduled Ecs event callback.
 type private EcsCallbackUnscheduled<'d> =
-    EcsEvent<'d> -> Ecs -> unit
+    'd EcsEvent -> Ecs -> unit
 
 /// A scheduled Ecs event callback.
 and [<ReferenceEquality>] EcsCallbackScheduled<'d> =
     { EcsQuery : Query
       EcsDependencies : Query list
-      EcsCallback : EcsEvent<'d> -> Ecs -> unit }
+      EcsCallback : 'd EcsEvent -> Ecs -> unit }
 
 /// A scheduled Ecs event callback.
 and [<ReferenceEquality>] private EcsCallbackScheduledObj =
@@ -38,7 +38,7 @@ and [<Struct>] EcsEvent =
       EcsEventType : EcsEventType }
 
 /// An Ecs event.
-and EcsEvent<'d> =
+and 'd EcsEvent =
     { EcsEventData : 'd }
 
 /// Data for an Ecs registration event.
@@ -450,7 +450,7 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
                 | _ -> failwith "PostEventOperation does not match type of publish call."
         | (false, _) -> ()
 
-    member this.SubscribePlus<'d> subscriptionId event (callback : EcsEvent<'d> -> Ecs -> unit) =
+    member this.SubscribePlus<'d> subscriptionId event (callback : 'd EcsEvent -> Ecs -> unit) =
         let event = { event with EcsEventName = event.EcsEventName + Constants.Ecs.UnscheduledEventSuffix }
         let subscriptionId =
             match subscriptions.TryGetValue event with
