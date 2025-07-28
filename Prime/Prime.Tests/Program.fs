@@ -8,5 +8,5 @@ open Prime.Tests
 module Program =
 
     let [<EntryPoint; STAThread>] main _ =
-        EcsTests.runEcs ()
+        TimingTests.run ()
         0
