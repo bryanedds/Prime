@@ -533,36 +533,36 @@ module ScriptingUnary =
           Table = fun _ originOpt -> Violation (["InvalidArgumentType"; "String"], "Cannot convert a Table to a String.", originOpt)
           Record = fun _ _ _ originOpt -> Violation (["InvalidArgumentType"; "String"], "Cannot convert a Record to a String.", originOpt) }
 
-    let evalBoolUnary fn fnName argsEvaled originOpt (world : 'w) =
+    let evalBoolUnary fn fnName argsEvaled originOpt (_ : 'w) =
         match argsEvaled with
         | [|argEvaled|] ->
             match argEvaled with
-            | Violation _ as violation -> struct (violation, world)
-            | Bool bool -> struct (Bool (fn bool), world)
-            | _ -> struct (Violation (["InvalidArgumentType"; (String.capitalize fnName)], "Cannot apply a Bool function to a non-Bool value.", originOpt), world)
-        | _ -> struct (Violation (["InvalidArgumentCount"; (String.capitalize fnName)], "Incorrect number of arguments for '" + fnName + "'; 1 argument required.", originOpt), world)
+            | Violation _ as violation -> violation
+            | Bool bool -> Bool (fn bool)
+            | _ -> Violation (["InvalidArgumentType"; (String.capitalize fnName)], "Cannot apply a Bool function to a non-Bool value.", originOpt)
+        | _ -> Violation (["InvalidArgumentCount"; (String.capitalize fnName)], "Incorrect number of arguments for '" + fnName + "'; 1 argument required.", originOpt)
 
-    let evalUnaryInner (fns : UnaryFns) fnName argEvaled originOpt (world : 'w) =
+    let evalUnaryInner (fns : UnaryFns) fnName argEvaled originOpt (_ : 'w) : Expr =
         match argEvaled with
-        | Violation _ as violation -> struct (violation, world)
-        | Bool bool -> struct (fns.Bool bool originOpt, world)
-        | Int int -> struct (fns.Int int originOpt, world)
-        | Int64 int64 -> struct (fns.Int64 int64 originOpt, world)
-        | Single single -> struct (fns.Single single originOpt, world)
-        | Double double -> struct (fns.Double double originOpt, world)
-        | String string -> struct (fns.String string originOpt, world)
-        | Keyword keyword -> struct (fns.Keyword keyword originOpt, world)
-        | Tuple tuple -> struct (fns.Tuple tuple originOpt, world)
-        | Union (name, union) -> struct (fns.Union name union originOpt, world)
-        | Option opt -> struct (fns.Option opt originOpt, world)
-        | Codata codata -> struct (fns.Codata codata originOpt, world)
-        | List list -> struct (fns.List list originOpt, world)
-        | Ring ring -> struct (fns.Ring ring originOpt, world)
-        | Table table -> struct (fns.Table table originOpt, world)
-        | Record (name, map, fields) -> struct (fns.Record name map fields originOpt, world)
-        | _ -> struct (Violation (["InvalidArgumentType"; (String.capitalize fnName)], "Cannot apply an unary function on an incompatible value.", originOpt), world)
+        | Violation _ as violation -> violation
+        | Bool bool -> fns.Bool bool originOpt
+        | Int int -> fns.Int int originOpt
+        | Int64 int64 -> fns.Int64 int64 originOpt
+        | Single single -> fns.Single single originOpt
+        | Double double -> fns.Double double originOpt
+        | String string -> fns.String string originOpt
+        | Keyword keyword -> fns.Keyword keyword originOpt
+        | Tuple tuple -> fns.Tuple tuple originOpt
+        | Union (name, union) -> fns.Union name union originOpt
+        | Option opt -> fns.Option opt originOpt
+        | Codata codata -> fns.Codata codata originOpt
+        | List list -> fns.List list originOpt
+        | Ring ring -> fns.Ring ring originOpt
+        | Table table -> fns.Table table originOpt
+        | Record (name, map, fields) -> fns.Record name map fields originOpt
+        | _ -> Violation (["InvalidArgumentType"; (String.capitalize fnName)], "Cannot apply an unary function on an incompatible value.", originOpt)
 
-    let evalUnary fns fnName argsEvaled originOpt (world : 'w) =
+    let evalUnary fns fnName argsEvaled originOpt world : Expr =
         match argsEvaled with
         | [|argEvaled|] -> evalUnaryInner fns fnName argEvaled originOpt world
-        | _ -> struct (Violation (["InvalidArgumentCount"; (String.capitalize fnName)], "Incorrect number of arguments for '" + fnName + "'; 1 argument required.", originOpt), world)
+        | _ -> Violation (["InvalidArgumentCount"; (String.capitalize fnName)], "Incorrect number of arguments for '" + fnName + "'; 1 argument required.", originOpt)

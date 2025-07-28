@@ -27,7 +27,7 @@ module Program =
             runRepl world
         | input ->
             let expr = scvalue<Scripting.Expr> input
-            try let struct (result, world) = ScriptingSystem.eval expr world
+            try let result = ScriptingSystem.eval expr world
                 Console.Write ": "
                 Console.WriteLine (scstring result)
                 runRepl world
@@ -39,12 +39,12 @@ module Program =
         let world = ScriptingWorld.make ()
         Console.Write "Attempting to evaluate Amsl prelude... "
         let world =
-            match ScriptingSystem.tryEvalScript id Constants.Scripting.PreludeFilePath world with
-            | Left (err, _) ->
+            match ScriptingSystem.tryEvalScript Constants.Scripting.PreludeFilePath world with
+            | Left err ->
                 Console.WriteLine "Error!"
                 Console.WriteLine err
                 world
-            | Right (_, _, world) ->
+            | Right (_, _) ->
                 Console.WriteLine "Success!"
                 world
         Console.WriteLine "Welcome to the Amsl Repl!"

@@ -283,27 +283,27 @@ module ScriptingBinary =
           Table = fun _ _ originOpt -> Violation (["InvalidArgumentType"; "Dot"], "Cannot dot multiply Tables.", originOpt)
           Record = fun _ _ _ _ _ _ originOpt -> Violation (["InvalidArgumentType"; "Dot"], "Cannot dot multiply Records.", originOpt) }
 
-    let evalBinaryInner (fns : BinaryFns) fnName evaledLeft evaledRight originOpt (world : 'w) =
+    let evalBinaryInner (fns : BinaryFns) fnName evaledLeft evaledRight originOpt (_ : 'w) =
         match (evaledLeft, evaledRight) with
-        | (Bool boolLeft, Bool boolRight) -> struct (fns.Bool boolLeft boolRight originOpt, world)
-        | (Int intLeft, Int intRight) -> struct (fns.Int intLeft intRight originOpt, world)
-        | (Int64 int64Left, Int64 int64Right) -> struct (fns.Int64 int64Left int64Right originOpt, world)
-        | (Single singleLeft, Single singleRight) -> struct (fns.Single singleLeft singleRight originOpt, world)
-        | (Double doubleLeft, Double doubleRight) -> struct (fns.Double doubleLeft doubleRight originOpt, world)
-        | (String stringLeft, String stringRight) -> struct (fns.String stringLeft stringRight originOpt, world)
-        | (Keyword keywordLeft, Keyword keywordRight) -> struct (fns.String keywordLeft keywordRight originOpt, world)
-        | (Tuple tupleLeft, Tuple tupleRight) -> struct (fns.Tuple tupleLeft tupleRight originOpt, world)
-        | (Union (nameLeft, fieldsLeft), Union (nameRight, fieldsRight)) -> struct (fns.Union nameLeft fieldsLeft nameRight fieldsRight originOpt, world)
-        | (Codata codataLeft, Codata codataRight) -> struct (fns.Codata codataLeft codataRight originOpt, world)
-        | (Option optionLeft, Option optionRight) -> struct (fns.Option optionLeft optionRight originOpt, world)
-        | (List listLeft, List listRight) -> struct (fns.List listLeft listRight originOpt, world)
-        | (Ring ringLeft, Ring ringRight) -> struct (fns.Ring ringLeft ringRight originOpt, world)
-        | (Table tableLeft, Table tableRight) -> struct (fns.Table tableLeft tableRight originOpt, world)
-        | (Violation _ as violation, _) -> struct (violation, world)
-        | (_, (Violation _ as violation)) -> struct (violation, world)
-        | _ -> struct (Violation (["InvalidArgumentType"; (String.capitalize fnName)], "Cannot apply a binary function on unlike or incompatible values.", originOpt), world)
+        | (Bool boolLeft, Bool boolRight) -> fns.Bool boolLeft boolRight originOpt
+        | (Int intLeft, Int intRight) -> fns.Int intLeft intRight originOpt
+        | (Int64 int64Left, Int64 int64Right) -> fns.Int64 int64Left int64Right originOpt
+        | (Single singleLeft, Single singleRight) -> fns.Single singleLeft singleRight originOpt
+        | (Double doubleLeft, Double doubleRight) -> fns.Double doubleLeft doubleRight originOpt
+        | (String stringLeft, String stringRight) -> fns.String stringLeft stringRight originOpt
+        | (Keyword keywordLeft, Keyword keywordRight) -> fns.String keywordLeft keywordRight originOpt
+        | (Tuple tupleLeft, Tuple tupleRight) -> fns.Tuple tupleLeft tupleRight originOpt
+        | (Union (nameLeft, fieldsLeft), Union (nameRight, fieldsRight)) -> fns.Union nameLeft fieldsLeft nameRight fieldsRight originOpt
+        | (Codata codataLeft, Codata codataRight) -> fns.Codata codataLeft codataRight originOpt
+        | (Option optionLeft, Option optionRight) -> fns.Option optionLeft optionRight originOpt
+        | (List listLeft, List listRight) -> fns.List listLeft listRight originOpt
+        | (Ring ringLeft, Ring ringRight) -> fns.Ring ringLeft ringRight originOpt
+        | (Table tableLeft, Table tableRight) -> fns.Table tableLeft tableRight originOpt
+        | (Violation _ as violation, _) -> violation
+        | (_, (Violation _ as violation)) -> violation
+        | _ -> Violation (["InvalidArgumentType"; (String.capitalize fnName)], "Cannot apply a binary function on unlike or incompatible values.", originOpt)
 
     let evalBinary fns fnName argsEvaled originOpt (world : 'w) =
         match argsEvaled with
         | [|evaledLeft; evaledRight|] -> evalBinaryInner fns fnName evaledLeft evaledRight originOpt world
-        | _ -> struct (Violation (["InvalidArgumentCount"; (String.capitalize fnName)], "Incorrect number of arguments for '" + fnName + "'; 2 arguments required.", originOpt), world)
+        | _ -> Violation (["InvalidArgumentCount"; (String.capitalize fnName)], "Incorrect number of arguments for '" + fnName + "'; 2 arguments required.", originOpt)

@@ -18,10 +18,10 @@ module ScriptingTests =
 
     let evalPartial exprStr =
         let world = TestWorld.make ()
-        match ScriptingSystem.tryEvalScript id Constants.Scripting.PreludeFilePath world with
-        | Right (_, _, world) ->
+        match ScriptingSystem.tryEvalScript Constants.Scripting.PreludeFilePath world with
+        | Right (_, _) ->
             let expr = scvalue<Scripting.Expr> exprStr
-            ScriptingSystem.eval expr world |> fst'
+            ScriptingSystem.eval expr world
         | Left _ ->
             Assert.True false
             Scripting.Unit
