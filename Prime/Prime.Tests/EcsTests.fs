@@ -46,7 +46,7 @@ module EcsTests =
             mover.Register { Active = true; Position = Vector2.Zero }
             mover.Register { Active = true; Velocity = Vector2.One }
 
-        // create 20 more movers the fasy way
+        // create 20 more movers the fast way
         let moverComponents = [{ Active = true; Position = Vector2.Zero } :> obj; { Active = true; Velocity = Vector2.One } :> obj]
         let moverArchetypeId = ArchetypeId.make (moverComponents, Map.empty)
         ecs.RegisterEntities true 20 moverComponents moverArchetypeId |> ignore
