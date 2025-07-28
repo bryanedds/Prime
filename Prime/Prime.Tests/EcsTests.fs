@@ -40,17 +40,18 @@ module EcsTests =
         // create shakers query
         let shakers = Query.make<Position, Shake> ecs
 
-        // create 1M movers the slow way
+        // create 10 movers the slow way
         for _ in 0 .. dec 10 do
             let mover = ecs.MakeEntity ()
             mover.Register { Active = true; Position = Vector2.Zero }
             mover.Register { Active = true; Velocity = Vector2.One }
 
+        // create 20 more movers the fasy way
         let moverComponents = [{ Active = true; Position = Vector2.Zero } :> obj; { Active = true; Velocity = Vector2.One } :> obj]
         let moverArchetypeId = ArchetypeId.make (moverComponents, Map.empty)
         ecs.RegisterEntities true 20 moverComponents moverArchetypeId |> ignore
 
-        // create 40 shakers
+        // create 30 shakers
         let shakerArchetypeId = ArchetypeId.make<Position, Shake> (subterms = Map.empty)
         let shakerComponents = [{ Active = true; Position = Vector2.Zero } :> obj; { Active = true; Origin = Vector2.Zero; Offset = Vector2.One } :> obj]
         ecs.RegisterEntities true 30 shakerComponents shakerArchetypeId |> ignore
