@@ -11,14 +11,14 @@ open System.Threading.Tasks
 open Prime
 
 /// An unscheduled Ecs event callback.
-type private EcsCallbackUnscheduled<'d, 'w when 'w : not struct> =
-    EcsEvent<'d, 'w> -> Ecs -> 'w -> 'w
+type private EcsCallbackUnscheduled<'d> =
+    EcsEvent<'d> -> Ecs -> unit
 
 /// A scheduled Ecs event callback.
-and [<ReferenceEquality>] EcsCallbackScheduled<'d, 'w when 'w : not struct> =
+and [<ReferenceEquality>] EcsCallbackScheduled<'d> =
     { EcsQuery : Query
       EcsDependencies : Query list
-      EcsCallback : EcsEvent<'d, 'w> -> Ecs -> 'w -> unit }
+      EcsCallback : EcsEvent<'d> -> Ecs -> unit }
 
 /// A scheduled Ecs event callback.
 and [<ReferenceEquality>] private EcsCallbackScheduledObj =
@@ -38,7 +38,7 @@ and [<Struct>] EcsEvent =
       EcsEventType : EcsEventType }
 
 /// An Ecs event.
-and EcsEvent<'d, 'w when 'w : not struct> =
+and EcsEvent<'d> =
     { EcsEventData : 'd }
 
 /// Data for an Ecs registration event.
@@ -394,8 +394,8 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
             if subscriptionIdCurrent = UInt32.MaxValue then failwith "Unbounded use of Ecs subscription ids not supported."
             subscriptionIdCurrent
 
-    member private this.BoxCallback<'d, 'w when 'w : not struct> (callback : EcsCallbackUnscheduled<'d, 'w>) =
-        let boxableCallback = fun (evt : EcsEvent<obj, 'w>) store ->
+    member private this.BoxCallback<'d> (callback : EcsCallbackUnscheduled<'d>) =
+        let boxableCallback = fun (evt : EcsEvent<obj>) store ->
             let evt = { EcsEventData = evt.EcsEventData :?> 'd }
             callback evt store
         boxableCallback :> obj
@@ -430,46 +430,35 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
             { EntityId = entityIdCurrent; Ecs = this }
 
     /// Thread-safe.
-    member this.RegisterPostEventOperation (operation : 'w -> 'w) =
+    member this.RegisterPostEventOperation (operation : unit -> unit) =
         postEventOperations.Enqueue (operation :> obj)
 
-    member this.Publish<'d, 'w when 'w : not struct> event (eventData : 'd) (world : 'w) : 'w =
-        // NOTE: we allow some special munging with world here. The callback may choose to ignore the world and return
-        // the default of 'w. This works fine so long as 'w is a reference type where null is not a proper value
-        // because we restore the original world when a null result is detected. However, this does not work
-        // when 'w is a reference type that has null as a proper value because we have no way to efficiently
-        // detect that case. Option would be an example of a reference type with null as a proper value.
+    member this.Publish<'d> event (eventData : 'd) =
         let event = { event with EcsEventName = event.EcsEventName + Constants.Ecs.UnscheduledEventSuffix }
-        let worldOld = world
-        let mutable world = world
         match subscriptions.TryGetValue event with
         | (true, callbacks) ->
             for entry in callbacks do
                 match entry.Value with
-                | :? EcsCallbackUnscheduled<obj, 'w> as objCallback ->
+                | :? EcsCallbackUnscheduled<obj> as objCallback ->
                     let evt = { EcsEventData = eventData :> obj }
-                    world <- match objCallback evt this world :> obj with null -> worldOld | world -> world :?> 'w
-                | :? EcsCallbackUnscheduled<obj, obj> as objCallback ->
-                    let evt = { EcsEventData = eventData } : EcsEvent<obj, obj>
-                    world <- match objCallback evt this world with null -> worldOld | world -> world :?> 'w
+                    objCallback evt this
                 | _ -> ()
             let mutable operation = Unchecked.defaultof<_>
             while postEventOperations.TryDequeue &operation do
                 match operation with
-                | :? ('w -> 'w) as operation -> world <- operation world
-                | _ -> failwith "PostEventOperation does not match 'w type of publish call."
+                | :? (unit -> unit) as operation -> operation ()
+                | _ -> failwith "PostEventOperation does not match type of publish call."
         | (false, _) -> ()
-        world
 
-    member this.SubscribePlus<'d, 'w when 'w : not struct> subscriptionId event (callback : EcsEvent<'d, 'w> -> Ecs -> 'w -> 'w) =
+    member this.SubscribePlus<'d> subscriptionId event (callback : EcsEvent<'d> -> Ecs -> unit) =
         let event = { event with EcsEventName = event.EcsEventName + Constants.Ecs.UnscheduledEventSuffix }
         let subscriptionId =
             match subscriptions.TryGetValue event with
             | (true, callbacks) ->
-                callbacks.Add (subscriptionId, this.BoxCallback<'d, 'w> callback)
+                callbacks.Add (subscriptionId, this.BoxCallback<'d> callback)
                 subscriptionId
             | (false, _) ->
-                let callbacks = dictPlus HashIdentity.Structural [(subscriptionId, this.BoxCallback<'d, 'w> callback)]
+                let callbacks = dictPlus HashIdentity.Structural [(subscriptionId, this.BoxCallback<'d> callback)]
                 subscriptions.Add (event, callbacks)
                 subscriptionId
         match event.EcsEventType with
@@ -480,8 +469,8 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
         | _ -> ()
         subscriptionId
 
-    member this.Subscribe<'d, 'w when 'w : not struct> event callback =
-        this.SubscribePlus<'d, 'w> (this.AllocSubscriptionId ()) event callback |> ignore
+    member this.Subscribe<'d> event callback =
+        this.SubscribePlus<'d> (this.AllocSubscriptionId ()) event callback |> ignore
 
     member this.Unsubscribe event subscriptionId =
         let event = { event with EcsEventName = event.EcsEventName + Constants.Ecs.UnscheduledEventSuffix }
@@ -501,17 +490,14 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
             | _ -> failwith "Subscribed entities count mismatch."
         result
 
-    member this.Notify<'d, 'w when 'w : not struct> event (eventData : 'd) (world : 'w) =
+    member this.Notify<'d> event (eventData : 'd) =
         let event = { event with EcsEventName = event.EcsEventName + Constants.Ecs.ScheduledEventSuffix }
-        let mutable world = world
         match subscriptions.TryGetValue event with
         | (true, callbacks) ->
             let dependentCallbacks = List ()
             for entry in callbacks do
                 match entry.Value with
-                | :? EcsCallbackScheduled<obj, 'w> as objCallback ->
-                    dependentCallbacks.Add { EcsQuery = objCallback.EcsQuery; EcsDependencies = objCallback.EcsDependencies; EcsCallbackObj = objCallback.EcsCallback }
-                | :? EcsCallbackScheduled<obj, obj> as objCallback ->
+                | :? EcsCallbackScheduled<obj> as objCallback ->
                     dependentCallbacks.Add { EcsQuery = objCallback.EcsQuery; EcsDependencies = objCallback.EcsDependencies; EcsCallbackObj = objCallback.EcsCallback }
                 | _ -> ()
             let getDependencies = fun (callback : EcsCallbackScheduledObj) -> seq callback.EcsDependencies
@@ -522,35 +508,28 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
                 for group in groups do
                     for callback in group do
                         match callback.EcsCallbackObj with
-                        | :? EcsCallbackUnscheduled<obj, 'w> as objCallback ->
+                        | :? EcsCallbackUnscheduled<obj> as objCallback ->
                             let evt = { EcsEventData = eventData :> obj }
-                            objCallback evt this world |> ignore<'w>
-                        | :? EcsCallbackUnscheduled<obj, obj> as objCallback ->
-                            let evt = { EcsEventData = eventData } : EcsEvent<obj, obj>
-                            objCallback evt this world |> ignore<obj>
+                            objCallback evt this
                         | _ -> ()
             | (false, groups) ->
                 for group in groups do
                     let result =
                         Parallel.ForEach (group, fun callback ->
                             match callback.EcsCallbackObj with
-                            | :? EcsCallbackUnscheduled<obj, 'w> as objCallback ->
+                            | :? EcsCallbackUnscheduled<obj> as objCallback ->
                                 let evt = { EcsEventData = eventData :> obj }
-                                objCallback evt this world |> ignore<'w>
-                            | :? EcsCallbackUnscheduled<obj, obj> as objCallback ->
-                                let evt = { EcsEventData = eventData } : EcsEvent<obj, obj>
-                                objCallback evt this world |> ignore<obj>
+                                objCallback evt this
                             | _ -> ())
                     ignore result
             let mutable operation = Unchecked.defaultof<_>
             while postEventOperations.TryDequeue &operation do
                 match operation with
-                | :? ('w -> 'w) as operation -> world <- operation world
-                | _ -> failwith "PostEventOperation does not match 'w type of publish call."
+                | :? (unit -> unit) as operation -> operation ()
+                | _ -> failwith "PostEventOperation does not match type of publish call."
         | (false, _) -> ()
-        world
 
-    member this.SchedulePlus<'d, 'w when 'w : not struct> subscriptionId event (callback : EcsCallbackScheduled<'d, 'w>) =
+    member this.SchedulePlus<'d> subscriptionId event (callback : EcsCallbackScheduled<'d>) =
         let event = { event with EcsEventName = event.EcsEventName + Constants.Ecs.ScheduledEventSuffix }
         let subscriptionId =
             match subscriptions.TryGetValue event with
@@ -569,8 +548,8 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
         | _ -> ()
         subscriptionId
 
-    member this.Schedule<'d, 'w when 'w : not struct> event callback =
-        this.SchedulePlus<'d, 'w> (this.AllocSubscriptionId ()) event callback |> ignore<uint>
+    member this.Schedule<'d> event callback =
+        this.SchedulePlus<'d> (this.AllocSubscriptionId ()) event callback |> ignore<uint>
 
     member this.Unschedule event subscriptionId =
         this.Unsubscribe
@@ -607,8 +586,8 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
             if archetypeId.Terms.Count > 0 then this.RegisterEntityInternal comps archetypeId entity
         | (false, _) -> ()
 
-    member this.RegisterComponentPlus<'c, 'w when 'c : struct and 'c :> 'c Component and 'w : not struct>
-        compName (comp : 'c) (entity : EcsEntity) (world : 'w) =
+    member this.RegisterComponentPlus<'c when 'c : struct and 'c :> 'c Component>
+        compName (comp : 'c) (entity : EcsEntity) =
         match entitySlots.TryGetValue entity.EntityId with
         | (true, entitySlot) ->
             let comps = this.UnregisterEntityInternal entitySlot entity
@@ -616,38 +595,36 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
             let archetypeId = entitySlot.Archetype.Id.AddTerm (Constants.Ecs.IntraComponentPrefix + compName) (Intra (compName, typeof<'c>))
             this.RegisterEntityInternal comps archetypeId entity
             let eventData = { EcsEntity = entity; ComponentName = compName }
-            this.Publish<EcsRegistrationData, obj> (EcsEvents.Register entity compName) eventData (world :> obj) :?> 'w
+            this.Publish<EcsRegistrationData> (EcsEvents.Register entity compName) eventData
         | (false, _) ->
             let archetypeId = ArchetypeId (Map.singleton (Constants.Ecs.IntraComponentPrefix + compName) (Intra (compName, typeof<'c>)))
             let comps = Dictionary.singleton StringComparer.Ordinal compName (comp :> obj)
             this.RegisterEntityInternal comps archetypeId entity
             let eventData = { EcsEntity = entity; ComponentName = compName }
-            this.Publish<EcsRegistrationData, obj> (EcsEvents.Register entity compName) eventData (world :> obj) :?> 'w
+            this.Publish<EcsRegistrationData> (EcsEvents.Register entity compName) eventData
 
-    member this.RegisterComponent<'c, 'w when 'c : struct and 'c :> 'c Component and 'w : not struct>
-        (comp : 'c) (entity : EcsEntity) (world : 'w) =
-        this.RegisterComponentPlus<'c, 'w> (typeof<'c>.Name) comp (entity : EcsEntity) world
+    member this.RegisterComponent<'c when 'c : struct and 'c :> 'c Component>
+        (comp : 'c) (entity : EcsEntity) =
+        this.RegisterComponentPlus<'c> (typeof<'c>.Name) comp (entity : EcsEntity)
 
-    member this.UnregisterComponentPlus<'c, 'w when 'c : struct and 'c :> 'c Component and 'w : not struct>
-        compName (entity : EcsEntity) (world : 'w) =
+    member this.UnregisterComponentPlus<'c when 'c : struct and 'c :> 'c Component>
+        compName (entity : EcsEntity) =
         match entitySlots.TryGetValue entity.EntityId with
         | (true, entitySlot) ->
             let eventData = { EcsEntity = entity; ComponentName = compName }
-            let world = this.Publish<EcsRegistrationData, obj> (EcsEvents.Unregistering entity compName) eventData (world :> obj) :?> 'w
+            this.Publish<EcsRegistrationData> (EcsEvents.Unregistering entity compName) eventData
             let comps = this.UnregisterEntityInternal entitySlot entity
             let archetypeId = entitySlot.Archetype.Id.RemoveTerm (Constants.Ecs.IntraComponentPrefix + compName)
             if archetypeId.Terms.Count > 0 then
                 comps.Remove compName |> ignore<bool>
                 this.RegisterEntityInternal comps archetypeId entity
-                world
-            else world
-        | (false, _) -> world
+        | (false, _) -> ()
 
-    member this.UnregisterComponent<'c, 'w when
-        'c : struct and 'c :> 'c Component and 'w : not struct> (entity : EcsEntity) (world : 'w) =
-        this.UnregisterComponentPlus<'c, 'w> typeof<'c>.Name entity world
+    member this.UnregisterComponent<'c when
+        'c : struct and 'c :> 'c Component> (entity : EcsEntity) =
+        this.UnregisterComponentPlus<'c> typeof<'c>.Name entity
 
-    member this.RegisterEntity elideEvents comps archetypeId world =
+    member this.RegisterEntity elideEvents comps archetypeId =
         let archetype =
             match archetypes.TryGetValue archetypeId with
             | (true, archetype) -> archetype
@@ -657,33 +634,30 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
             lock archetype $ fun () ->
                 archetype.Register comps entity.EntityId
         entitySlots.TryAdd (entity.EntityId, { ArchetypeIndex = archetypeIndex; Archetype = archetype }) |> ignore<bool>
-        let mutable world = world
         if not elideEvents then
             for compName in archetype.Stores.Keys do
                 let eventData = { EcsEntity = entity; ComponentName = compName }
-                world <- this.Publish<EcsRegistrationData, obj> (EcsEvents.Unregistering entity compName) eventData (world :> obj) :?> 'w
-        (entity, world)
+                this.Publish<EcsRegistrationData> (EcsEvents.Unregistering entity compName) eventData
+        entity
 
-    member this.UnregisterEntity (entity : EcsEntity) (world : 'w) =
+    member this.UnregisterEntity (entity : EcsEntity) =
         match entitySlots.TryGetValue entity.EntityId with
         | (true, entitySlot) ->
             let archetype = entitySlot.Archetype
-            let mutable world = world
             if subscribedEntities.ContainsKey entity then
                 for compName in archetype.Stores.Keys do
                     let eventData = { EcsEntity = entity; ComponentName = compName }
-                    world <- this.Publish<EcsRegistrationData, obj> (EcsEvents.Unregistering entity compName) eventData (world :> obj) :?> 'w
+                    this.Publish<EcsRegistrationData> (EcsEvents.Unregistering entity compName) eventData
             lock archetype $ fun () ->
                 archetype.Unregister entitySlot.ArchetypeIndex
-            world
-        | (false, _) -> world
+        | (false, _) -> ()
 
     member internal this.RegisterQuery (query : Query) =
         for archetypeEntry in archetypes do
             query.TryRegisterArchetype archetypeEntry.Value
         queries.Add query
 
-    member this.RegisterEntitiesPlus elideEvents count comps archetypeId (world : 'w) =
+    member this.RegisterEntitiesPlus elideEvents count comps archetypeId =
 
         // get archetype
         let archetype =
@@ -692,7 +666,6 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
             | (false, _) -> createArchetype archetypeId
 
         // register entities to archetype
-        let mutable world = world
         let entities = SArray.zeroCreate count
         for i in 0 .. dec count do
             let entity = this.MakeEntity ()
@@ -704,14 +677,14 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
             if not elideEvents then
                 for compName in archetype.Stores.Keys do
                     let eventData = { EcsEntity = entity; ComponentName = compName }
-                    world <- this.Publish<EcsRegistrationData, obj> (EcsEvents.Unregistering entity compName) eventData (world :> obj) :?> 'w
+                    this.Publish<EcsRegistrationData> (EcsEvents.Unregistering entity compName) eventData
 
         // fin
-        (entities, world)
+        entities
 
-    member this.RegisterEntities elideEvents count comps archetypeId world =
+    member this.RegisterEntities elideEvents count comps archetypeId =
         let comps = dictPlus StringComparer.Ordinal (Seq.map (fun comp -> (getTypeName comp, comp)) comps)
-        this.RegisterEntitiesPlus elideEvents count comps archetypeId world
+        this.RegisterEntitiesPlus elideEvents count comps archetypeId
 
     member this.ReadEntities count archetypeId stream =
         let archetype =
@@ -772,18 +745,18 @@ and [<Struct>] EcsEntitySlot =
     member this.Mutate<'c when 'c : struct and 'c :> 'c Component> (comp : 'c) =
         this.MutatePlus<'c> typeof<'c>.Name comp
 
-    member this.Frame (statement : Statement<'c, 's>, ?compName, ?state : 's) =
+    member this.Frame (statement : Statement<'c>, ?compName) =
         let archetype = this.Archetype
         let archetypeId = archetype.Id
         let stores = archetype.Stores
         let store = this.IndexStore<'c> (Option.defaultValue typeof<'c>.Name compName) archetypeId stores
         let i = this.ArchetypeIndex
         if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
-        statement.Invoke (&store.[i], Option.defaultValue Unchecked.defaultof<'s> state)
+        statement.Invoke (&store.[i])
 
     member this.Frame
-        (statement : Statement<'c, 'c2, 's>,
-         ?compName, ?comp2Name, ?state : 's) =
+        (statement : Statement<'c, 'c2>,
+         ?compName, ?comp2Name) =
         let archetype = this.Archetype
         let archetypeId = archetype.Id
         let stores = archetype.Stores
@@ -792,12 +765,11 @@ and [<Struct>] EcsEntitySlot =
         let i = this.ArchetypeIndex
         if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i],
-             Option.defaultValue Unchecked.defaultof<'s> state)
+            (&store.[i], &store2.[i])
 
     member this.Frame
-        (statement : Statement<'c, 'c2, 'c3, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?state : 's) =
+        (statement : Statement<'c, 'c2, 'c3>,
+         ?compName, ?comp2Name, ?comp3Name) =
         let archetype = this.Archetype
         let archetypeId = archetype.Id
         let stores = archetype.Stores
@@ -807,12 +779,11 @@ and [<Struct>] EcsEntitySlot =
         let i = this.ArchetypeIndex
         if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i], &store3.[i],
-             Option.defaultValue Unchecked.defaultof<'s> state)
+            (&store.[i], &store2.[i], &store3.[i])
 
     member this.Frame
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?state : 's) =
+        (statement : Statement<'c, 'c2, 'c3, 'c4>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name) =
         let archetype = this.Archetype
         let archetypeId = archetype.Id
         let stores = archetype.Stores
@@ -823,12 +794,11 @@ and [<Struct>] EcsEntitySlot =
         let i = this.ArchetypeIndex
         if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i], &store3.[i], &store4.[i],
-             Option.defaultValue Unchecked.defaultof<'s> state)
+            (&store.[i], &store2.[i], &store3.[i], &store4.[i])
 
     member this.Frame
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?state : 's) =
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name) =
         let archetype = this.Archetype
         let archetypeId = archetype.Id
         let stores = archetype.Stores
@@ -840,12 +810,11 @@ and [<Struct>] EcsEntitySlot =
         let i = this.ArchetypeIndex
         if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i],
-             Option.defaultValue Unchecked.defaultof<'s> state)
+            (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i])
 
     member this.Frame
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?state : 's) =
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name) =
         let archetype = this.Archetype
         let archetypeId = archetype.Id
         let stores = archetype.Stores
@@ -858,12 +827,11 @@ and [<Struct>] EcsEntitySlot =
         let i = this.ArchetypeIndex
         if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i],
-             Option.defaultValue Unchecked.defaultof<'s> state)
+            (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i])
 
     member this.Frame
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?state : 's) =
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name) =
         let archetype = this.Archetype
         let archetypeId = archetype.Id
         let stores = archetype.Stores
@@ -877,12 +845,11 @@ and [<Struct>] EcsEntitySlot =
         let i = this.ArchetypeIndex
         if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i],
-             Option.defaultValue Unchecked.defaultof<'s> state)
+            (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i])
 
     member this.Frame
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name, ?state : 's) =
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name) =
         let archetype = this.Archetype
         let archetypeId = archetype.Id
         let stores = archetype.Stores
@@ -897,12 +864,11 @@ and [<Struct>] EcsEntitySlot =
         let i = this.ArchetypeIndex
         if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i],
-             Option.defaultValue Unchecked.defaultof<'s> state)
+            (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i])
 
     member this.Frame
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 'c9, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name, ?comp9Name, ?state : 's) =
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 'c9>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name, ?comp9Name) =
         let archetype = this.Archetype
         let archetypeId = archetype.Id
         let stores = archetype.Stores
@@ -918,8 +884,7 @@ and [<Struct>] EcsEntitySlot =
         let i = this.ArchetypeIndex
         if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i], &store9.[i],
-             Option.defaultValue Unchecked.defaultof<'s> state)
+            (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i], &store9.[i])
 
 and [<Struct>] EcsEntity =
     { EntityId : uint64
@@ -933,17 +898,17 @@ and [<Struct>] EcsEntity =
     member this.ToEntitySlot () =
         this.Ecs.IndexEntitySlot this
 
-    member this.RegisterPlus<'c, 'w when 'c : struct and 'c :> 'c Component and 'w : not struct> compName (comp : 'c) (world : 'w) =
-        this.Ecs.RegisterComponentPlus<'c, 'w> compName comp this world
+    member this.RegisterPlus<'c when 'c : struct and 'c :> 'c Component> compName (comp : 'c) =
+        this.Ecs.RegisterComponentPlus<'c> compName comp this
 
-    member this.Register<'c, 'w when 'c : struct and 'c :> 'c Component and 'w : not struct> (comp : 'c) (world : 'w) =
-        this.Ecs.RegisterComponent<'c, 'w> comp this world
+    member this.Register<'c when 'c : struct and 'c :> 'c Component> (comp : 'c) =
+        this.Ecs.RegisterComponent<'c> comp this
 
-    member this.UnregisterPlus<'c, 'w when 'c : struct and 'c :> 'c Component and 'w : not struct> compName (world : 'w) =
-        this.Ecs.UnregisterComponentPlus<'c, 'w> compName this world
+    member this.UnregisterPlus<'c when 'c : struct and 'c :> 'c Component> compName =
+        this.Ecs.UnregisterComponentPlus<'c> compName this
 
-    member this.Unregister<'c, 'w when 'c : struct and 'c :> 'c Component and 'w : not struct> (world : 'w) =
-        this.Ecs.UnregisterComponent<'c, 'w> this world
+    member this.Unregister<'c when 'c : struct and 'c :> 'c Component> () =
+        this.Ecs.UnregisterComponent<'c> this
 
     member this.RegisterTerm termName term =
         this.Ecs.RegisterTerm termName term this
@@ -990,62 +955,58 @@ and [<Struct>] EcsEntity =
         let entitySlot = this.Ecs.IndexEntitySlot this
         entitySlot.Mutate<'c> comp
 
-    member this.ChangePlus<'c, 'w when 'c : struct and 'c :> 'c Component and 'w : not struct> compName (comp : 'c) (world : 'w) =
+    member this.ChangePlus<'c when 'c : struct and 'c :> 'c Component> compName (comp : 'c) =
         let entitySlot = this.Ecs.IndexEntitySlot this
         let stores = entitySlot.Archetype.Stores
         let store = stores.[compName] :?> 'c Store
         let i = entitySlot.ArchetypeIndex
         store.[i] <- comp
-        this.Ecs.Publish (EcsEvents.Change this) { EcsEntity = this; ComponentName = compName } world
+        this.Ecs.Publish (EcsEvents.Change this) { EcsEntity = this; ComponentName = compName }
 
-    member this.Change<'c, 'w when 'c : struct and 'c :> 'c Component and 'w : not struct> (comp : 'c) (world : 'w) =
-        this.ChangePlus<'c, 'w> typeof<'c>.Name comp world
+    member this.Change<'c when 'c : struct and 'c :> 'c Component> (comp : 'c) =
+        this.ChangePlus<'c> typeof<'c>.Name comp
 
     member this.Frame
-        (statement : Statement<'c, 's>,
-         ?compName, ?state : 's) =
+        (statement : Statement<'c>,
+         ?compName) =
+        let entitySlot = this.Ecs.IndexEntitySlot this
+        entitySlot.Frame
+            (statement,
+             Option.defaultValue null compName)
+
+    member this.Frame
+        (statement : Statement<'c, 'c2>,
+         ?compName, ?comp2Name) =
         let entitySlot = this.Ecs.IndexEntitySlot this
         entitySlot.Frame
             (statement,
              Option.defaultValue null compName,
-             Option.defaultValue null state)
+             Option.defaultValue null comp2Name)
 
     member this.Frame
-        (statement : Statement<'c, 'c2, 's>,
-         ?compName, ?comp2Name, ?state : 's) =
+        (statement : Statement<'c, 'c2, 'c3>,
+         ?compName, ?comp2Name, ?comp3Name) =
         let entitySlot = this.Ecs.IndexEntitySlot this
         entitySlot.Frame
             (statement,
              Option.defaultValue null compName,
              Option.defaultValue null comp2Name,
-             Option.defaultValue null state)
+             Option.defaultValue null comp3Name)
 
     member this.Frame
-        (statement : Statement<'c, 'c2, 'c3, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?state : 's) =
-        let entitySlot = this.Ecs.IndexEntitySlot this
-        entitySlot.Frame
-            (statement,
-             Option.defaultValue null compName,
-             Option.defaultValue null comp2Name,
-             Option.defaultValue null comp3Name,
-             Option.defaultValue null state)
-
-    member this.Frame
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?state : 's) =
+        (statement : Statement<'c, 'c2, 'c3, 'c4>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name) =
         let entitySlot = this.Ecs.IndexEntitySlot this
         entitySlot.Frame
             (statement,
              Option.defaultValue null compName,
              Option.defaultValue null comp2Name,
              Option.defaultValue null comp3Name,
-             Option.defaultValue null comp4Name,
-             Option.defaultValue null state)
+             Option.defaultValue null comp4Name)
 
     member this.Frame
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?state : 's) =
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name) =
         let entitySlot = this.Ecs.IndexEntitySlot this
         entitySlot.Frame
             (statement,
@@ -1053,12 +1014,11 @@ and [<Struct>] EcsEntity =
              Option.defaultValue null comp2Name,
              Option.defaultValue null comp3Name,
              Option.defaultValue null comp4Name,
-             Option.defaultValue null comp5Name,
-             Option.defaultValue null state)
+             Option.defaultValue null comp5Name)
 
     member this.Frame
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?state : 's) =
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name) =
         let entitySlot = this.Ecs.IndexEntitySlot this
         entitySlot.Frame
             (statement,
@@ -1067,12 +1027,11 @@ and [<Struct>] EcsEntity =
              Option.defaultValue null comp3Name,
              Option.defaultValue null comp4Name,
              Option.defaultValue null comp5Name,
-             Option.defaultValue null comp6Name,
-             Option.defaultValue null state)
+             Option.defaultValue null comp6Name)
 
     member this.Frame
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?state : 's) =
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name) =
         let entitySlot = this.Ecs.IndexEntitySlot this
         entitySlot.Frame
             (statement,
@@ -1082,12 +1041,11 @@ and [<Struct>] EcsEntity =
              Option.defaultValue null comp4Name,
              Option.defaultValue null comp5Name,
              Option.defaultValue null comp6Name,
-             Option.defaultValue null comp7Name,
-             Option.defaultValue null state)
+             Option.defaultValue null comp7Name)
 
     member this.Frame
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name, ?state : 's) =
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name) =
         let entitySlot = this.Ecs.IndexEntitySlot this
         entitySlot.Frame
             (statement,
@@ -1098,12 +1056,11 @@ and [<Struct>] EcsEntity =
              Option.defaultValue null comp5Name,
              Option.defaultValue null comp6Name,
              Option.defaultValue null comp7Name,
-             Option.defaultValue null comp8Name,
-             Option.defaultValue null state)
+             Option.defaultValue null comp8Name)
 
     member this.Frame
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 'c9, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name, ?comp9Name, ?state : 's) =
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 'c9>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name, ?comp9Name) =
         let entitySlot = this.Ecs.IndexEntitySlot this
         entitySlot.Frame
             (statement,
@@ -1115,8 +1072,7 @@ and [<Struct>] EcsEntity =
              Option.defaultValue null comp6Name,
              Option.defaultValue null comp7Name,
              Option.defaultValue null comp8Name,
-             Option.defaultValue null comp9Name,
-             Option.defaultValue null state)
+             Option.defaultValue null comp9Name)
 
 and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as this =
 
@@ -1171,8 +1127,7 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                     entities.Add { EntityId = entityId.EntityId; Ecs = ecs }
         entities
 
-    member this.Iterate (statement : Statement<'c, 's>, ?compName, ?state : 's) : 's =
-        let mutable state = Option.defaultValue Unchecked.defaultof<'s> state
+    member this.Iterate (statement : Statement<'c>, ?compName) =
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
             let archetypeId = archetype.Id
@@ -1183,14 +1138,12 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let mutable i = 0
             while i < store.Length && i < length do
                 if entityIdStore.[i].Active then
-                    state <- statement.Invoke (&store.[i], state)
+                    statement.Invoke (&store.[i])
                     i <- inc i
-        state
 
     member this.Iterate
-        (statement : Statement<'c, 'c2, 's>,
-         ?compName, ?comp2Name, ?state : 's) : 's =
-        let mutable state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2>,
+         ?compName, ?comp2Name) : unit =
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
             let archetypeId = archetype.Id
@@ -1202,14 +1155,12 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let mutable i = 0
             while i < store.Length && i < length do
                 if entityIdStore.[i].Active then
-                    state <- statement.Invoke (&store.[i], &store2.[i], state)
+                    statement.Invoke (&store.[i], &store2.[i])
                     i <- inc i
-        state
 
     member this.Iterate
-        (statement : Statement<'c, 'c2, 'c3, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?state : 's) : 's =
-        let mutable state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2, 'c3>,
+         ?compName, ?comp2Name, ?comp3Name) : unit =
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
             let archetypeId = archetype.Id
@@ -1222,14 +1173,12 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let mutable i = 0
             while i < store.Length && i < length do
                 if entityIdStore.[i].Active then
-                    state <- statement.Invoke (&store.[i], &store2.[i], &store3.[i], state)
+                    statement.Invoke (&store.[i], &store2.[i], &store3.[i])
                     i <- inc i
-        state
 
     member this.Iterate
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?state : 's) : 's =
-        let mutable state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2, 'c3, 'c4>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name) : unit =
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
             let archetypeId = archetype.Id
@@ -1243,14 +1192,12 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let mutable i = 0
             while i < store.Length && i < length do
                 if entityIdStore.[i].Active then
-                    state <- statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], state)
+                    statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i])
                     i <- inc i
-        state
 
     member this.Iterate
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?state : 's) : 's =
-        let mutable state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name) : unit =
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
             let archetypeId = archetype.Id
@@ -1265,14 +1212,12 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let mutable i = 0
             while i < store.Length && i < length do
                 if entityIdStore.[i].Active then
-                    state <- statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], state)
+                    statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i])
                     i <- inc i
-        state
 
     member this.Iterate
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?state : 's) : 's =
-        let mutable state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name) : unit =
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
             let archetypeId = archetype.Id
@@ -1288,14 +1233,12 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let mutable i = 0
             while i < store.Length && i < length do
                 if entityIdStore.[i].Active then
-                    state <- statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], state)
+                    statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i])
                     i <- inc i
-        state
 
     member this.Iterate
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?state : 's) : 's =
-        let mutable state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name) : unit =
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
             let archetypeId = archetype.Id
@@ -1312,14 +1255,12 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let mutable i = 0
             while i < store.Length && i < length do
                 if entityIdStore.[i].Active then
-                    state <- statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], state)
+                    statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i])
                     i <- inc i
-        state
 
     member this.Iterate
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name, ?state : 's) : 's =
-        let mutable state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name) : unit =
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
             let archetypeId = archetype.Id
@@ -1337,14 +1278,12 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let mutable i = 0
             while i < store.Length && i < length do
                 if entityIdStore.[i].Active then
-                    state <- statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i], state)
+                    statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i])
                     i <- inc i
-        state
 
     member this.Iterate
-        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 'c9, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name, ?comp9Name, ?state : 's) : 's =
-        let mutable state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 'c9>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name, ?comp9Name) =
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
             let archetypeId = archetype.Id
@@ -1363,14 +1302,12 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let mutable i = 0
             while i < store.Length && i < length do
                 if entityIdStore.[i].Active then
-                    state <- statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i], &store9.[i], state)
+                    statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i], &store9.[i])
                     i <- inc i
-        state
 
     member this.IterateParallel
-        (statement : StatementPlus<'c, 's>,
-         ?compName, ?state : 's) =
-        let state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c>,
+         ?compName) =
         let tasks = List ()
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
@@ -1384,14 +1321,13 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                     let mutable i = 0
                     while i < store.Length && i < length do
                         if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], state)
+                            statement.Invoke (&store.[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
     member this.IterateParallel
-        (statement : StatementPlus<'c, 'c2, 's>,
-         ?compName, ?comp2Name, ?state : 's) =
-        let state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2>,
+         ?compName, ?comp2Name) =
         let tasks = List ()
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
@@ -1406,14 +1342,13 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                     let mutable i = 0
                     while i < store.Length && i < length do
                         if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i], state)
+                            statement.Invoke (&store.[i], &store2.[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
     member this.IterateParallel
-        (statement : StatementPlus<'c, 'c2, 'c3, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?state : 's) =
-        let state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2, 'c3>,
+         ?compName, ?comp2Name, ?comp3Name) =
         let tasks = List ()
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
@@ -1429,14 +1364,13 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                     let mutable i = 0
                     while i < store.Length && i < length do
                         if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], state)
+                            statement.Invoke (&store.[i], &store2.[i], &store3.[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
     member this.IterateParallel
-        (statement : StatementPlus<'c, 'c2, 'c3, 'c4, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?state : 's) =
-        let state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2, 'c3, 'c4>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name) =
         let tasks = List ()
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
@@ -1453,14 +1387,13 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                     let mutable i = 0
                     while i < store.Length && i < length do
                         if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], state)
+                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
     member this.IterateParallel
-        (statement : StatementPlus<'c, 'c2, 'c3, 'c4, 'c5, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?state : 's) =
-        let state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name) =
         let tasks = List ()
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
@@ -1478,14 +1411,13 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                     let mutable i = 0
                     while i < store.Length && i < length do
                         if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], state)
+                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
     member this.IterateParallel
-        (statement : StatementPlus<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?state : 's) =
-        let state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name) =
         let tasks = List ()
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
@@ -1504,14 +1436,13 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                     let mutable i = 0
                     while i < store.Length && i < length do
                         if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], state)
+                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
     member this.IterateParallel
-        (statement : StatementPlus<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?state : 's) =
-        let state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name) =
         let tasks = List ()
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
@@ -1531,14 +1462,13 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                     let mutable i = 0
                     while i < store.Length && i < length do
                         if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], state)
+                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
     member this.IterateParallel
-        (statement : StatementPlus<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name, ?state : 's) =
-        let state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name) =
         let tasks = List ()
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
@@ -1559,14 +1489,13 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                     let mutable i = 0
                     while i < store.Length && i < length do
                         if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i], state)
+                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
     member this.IterateParallel
-        (statement : StatementPlus<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 'c9, 's>,
-         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name, ?comp9Name, ?state : 's) =
-        let state = Option.defaultValue Unchecked.defaultof<'s> state
+        (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 'c9>,
+         ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name, ?comp9Name) =
         let tasks = List ()
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
@@ -1588,86 +1517,81 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                     let mutable i = 0
                     while i < store.Length && i < length do
                         if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i], &store9.[i], state)
+                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i], &store9.[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
     member this.SubscribeIteration
         (event : EcsEvent,
-         statement : Statement<'c, 'w>,
+         statement : Statement<'c>,
          ?compName) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.Iterate
                     (statement,
-                     Option.defaultValue typeof<'c>.Name compName,
-                     world)
+                     Option.defaultValue typeof<'c>.Name compName)
         ecs.Subscribe event callback
 
     member this.SubscribeIteration
         (event : EcsEvent,
-         statement : Statement<'c, 'c2, 'w>,
+         statement : Statement<'c, 'c2>,
          ?compName, ?comp2Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.Iterate
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
-                     Option.defaultValue typeof<'c2>.Name comp2Name,
-                     world)
+                     Option.defaultValue typeof<'c2>.Name comp2Name)
         ecs.Subscribe event callback
 
     member this.SubscribeIteration
         (event : EcsEvent,
-         statement : Statement<'c, 'c2, 'c3, 'w>,
+         statement : Statement<'c, 'c2, 'c3>,
          ?compName, ?comp2Name, ?comp3Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.Iterate
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
                      Option.defaultValue typeof<'c2>.Name comp2Name,
-                     Option.defaultValue typeof<'c3>.Name comp3Name,
-                     world)
+                     Option.defaultValue typeof<'c3>.Name comp3Name)
         ecs.Subscribe event callback
 
     member this.SubscribeIteration
         (event : EcsEvent,
-         statement : Statement<'c, 'c2, 'c3, 'c4, 'w>,
+         statement : Statement<'c, 'c2, 'c3, 'c4>,
          ?compName, ?comp2Name, ?comp3Name, ?comp4Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.Iterate
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
                      Option.defaultValue typeof<'c2>.Name comp2Name,
                      Option.defaultValue typeof<'c3>.Name comp3Name,
-                     Option.defaultValue typeof<'c4>.Name comp4Name,
-                     world)
+                     Option.defaultValue typeof<'c4>.Name comp4Name)
         ecs.Subscribe event callback
 
     member this.SubscribeIteration
         (event : EcsEvent,
-         statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'w>,
+         statement : Statement<'c, 'c2, 'c3, 'c4, 'c5>,
          ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.Iterate
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
                      Option.defaultValue typeof<'c2>.Name comp2Name,
                      Option.defaultValue typeof<'c3>.Name comp3Name,
                      Option.defaultValue typeof<'c4>.Name comp4Name,
-                     Option.defaultValue typeof<'c5>.Name comp5Name,
-                     world)
+                     Option.defaultValue typeof<'c5>.Name comp5Name)
         ecs.Subscribe event callback
 
     member this.SubscribeIteration
         (event : EcsEvent,
-         statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'w>,
+         statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6>,
          ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.Iterate
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
@@ -1675,16 +1599,15 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                      Option.defaultValue typeof<'c3>.Name comp3Name,
                      Option.defaultValue typeof<'c4>.Name comp4Name,
                      Option.defaultValue typeof<'c5>.Name comp5Name,
-                     Option.defaultValue typeof<'c6>.Name comp6Name,
-                     world)
+                     Option.defaultValue typeof<'c6>.Name comp6Name)
         ecs.Subscribe event callback
 
     member this.SubscribeIteration
         (event : EcsEvent,
-         statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'w>,
+         statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7>,
          ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.Iterate
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
@@ -1693,16 +1616,15 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                      Option.defaultValue typeof<'c4>.Name comp4Name,
                      Option.defaultValue typeof<'c5>.Name comp5Name,
                      Option.defaultValue typeof<'c6>.Name comp6Name,
-                     Option.defaultValue typeof<'c7>.Name comp7Name,
-                     world)
+                     Option.defaultValue typeof<'c7>.Name comp7Name)
         ecs.Subscribe event callback
 
     member this.SubscribeIteration
         (event : EcsEvent,
-         statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 'w>,
+         statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8>,
          ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.Iterate
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
@@ -1712,16 +1634,15 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                      Option.defaultValue typeof<'c5>.Name comp5Name,
                      Option.defaultValue typeof<'c6>.Name comp6Name,
                      Option.defaultValue typeof<'c7>.Name comp7Name,
-                     Option.defaultValue typeof<'c8>.Name comp8Name,
-                     world)
+                     Option.defaultValue typeof<'c8>.Name comp8Name)
         ecs.Subscribe event callback
 
     member this.SubscribeIteration
         (event : EcsEvent,
-         statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 'c9, 'w>,
+         statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 'c9>,
          ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name, ?comp9Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.Iterate
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
@@ -1732,92 +1653,86 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                      Option.defaultValue typeof<'c6>.Name comp6Name,
                      Option.defaultValue typeof<'c7>.Name comp7Name,
                      Option.defaultValue typeof<'c8>.Name comp8Name,
-                     Option.defaultValue typeof<'c9>.Name comp9Name,
-                     world)
+                     Option.defaultValue typeof<'c9>.Name comp9Name)
         ecs.Subscribe event callback
 
     member this.ScheduleIteration
         (event : EcsEvent,
          dependencies : Query list,
-         statement : StatementPlus<'c, 'w>,
+         statement : Statement<'c>,
          ?compName) =
         let callback =
-            fun _ _ (world : 'w) ->
+            fun _ _ ->
                 this.IterateParallel
                     (statement,
-                     Option.defaultValue typeof<'c>.Name compName,
-                     world)
+                     Option.defaultValue typeof<'c>.Name compName)
         ecs.Schedule event { EcsQuery = this; EcsDependencies = dependencies; EcsCallback = callback }
 
     member this.ScheduleIteration
         (event : EcsEvent,
          dependencies : Query list,
-         statement : StatementPlus<'c, 'c2, 'w>,
+         statement : Statement<'c, 'c2>,
          ?compName, ?comp2Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.IterateParallel
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
-                     Option.defaultValue typeof<'c2>.Name comp2Name,
-                     world)
+                     Option.defaultValue typeof<'c2>.Name comp2Name)
         ecs.Schedule event { EcsQuery = this; EcsDependencies = dependencies; EcsCallback = callback }
 
     member this.ScheduleIteration
         (event : EcsEvent,
          dependencies : Query list,
-         statement : StatementPlus<'c, 'c2, 'c3, 'w>,
+         statement : Statement<'c, 'c2, 'c3>,
          ?compName, ?comp2Name, ?comp3Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.IterateParallel
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
                      Option.defaultValue typeof<'c2>.Name comp2Name,
-                     Option.defaultValue typeof<'c3>.Name comp3Name,
-                     world)
+                     Option.defaultValue typeof<'c3>.Name comp3Name)
         ecs.Schedule event { EcsQuery = this; EcsDependencies = dependencies; EcsCallback = callback }
 
     member this.ScheduleIteration
         (event : EcsEvent,
          dependencies : Query list,
-         statement : StatementPlus<'c, 'c2, 'c3, 'c4, 'w>,
+         statement : Statement<'c, 'c2, 'c3, 'c4>,
          ?compName, ?comp2Name, ?comp3Name, ?comp4Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.IterateParallel
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
                      Option.defaultValue typeof<'c2>.Name comp2Name,
                      Option.defaultValue typeof<'c3>.Name comp3Name,
-                     Option.defaultValue typeof<'c4>.Name comp4Name,
-                     world)
+                     Option.defaultValue typeof<'c4>.Name comp4Name)
         ecs.Schedule event { EcsQuery = this; EcsDependencies = dependencies; EcsCallback = callback }
 
     member this.ScheduleIteration
         (event : EcsEvent,
          dependencies : Query list,
-         statement : StatementPlus<'c, 'c2, 'c3, 'c4, 'c5, 'w>,
+         statement : Statement<'c, 'c2, 'c3, 'c4, 'c5>,
          ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.IterateParallel
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
                      Option.defaultValue typeof<'c2>.Name comp2Name,
                      Option.defaultValue typeof<'c3>.Name comp3Name,
                      Option.defaultValue typeof<'c4>.Name comp4Name,
-                     Option.defaultValue typeof<'c5>.Name comp5Name,
-                     world)
+                     Option.defaultValue typeof<'c5>.Name comp5Name)
         ecs.Schedule event { EcsQuery = this; EcsDependencies = dependencies; EcsCallback = callback }
 
     member this.ScheduleIteration
         (event : EcsEvent,
          dependencies : Query list,
-         statement : StatementPlus<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'w>,
+         statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6>,
          ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.IterateParallel
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
@@ -1825,17 +1740,16 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                      Option.defaultValue typeof<'c3>.Name comp3Name,
                      Option.defaultValue typeof<'c4>.Name comp4Name,
                      Option.defaultValue typeof<'c5>.Name comp5Name,
-                     Option.defaultValue typeof<'c6>.Name comp6Name,
-                     world)
+                     Option.defaultValue typeof<'c6>.Name comp6Name)
         ecs.Schedule event { EcsQuery = this; EcsDependencies = dependencies; EcsCallback = callback }
 
     member this.ScheduleIteration
         (event : EcsEvent,
          dependencies : Query list,
-         statement : StatementPlus<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'w>,
+         statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7>,
          ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.IterateParallel
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
@@ -1844,17 +1758,16 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                      Option.defaultValue typeof<'c4>.Name comp4Name,
                      Option.defaultValue typeof<'c5>.Name comp5Name,
                      Option.defaultValue typeof<'c6>.Name comp6Name,
-                     Option.defaultValue typeof<'c7>.Name comp7Name,
-                     world)
+                     Option.defaultValue typeof<'c7>.Name comp7Name)
         ecs.Schedule event { EcsQuery = this; EcsDependencies = dependencies; EcsCallback = callback }
 
     member this.ScheduleIteration
         (event : EcsEvent,
          dependencies : Query list,
-         statement : StatementPlus<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 'w>,
+         statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8>,
          ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.IterateParallel
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
@@ -1864,17 +1777,16 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                      Option.defaultValue typeof<'c5>.Name comp5Name,
                      Option.defaultValue typeof<'c6>.Name comp6Name,
                      Option.defaultValue typeof<'c7>.Name comp7Name,
-                     Option.defaultValue typeof<'c8>.Name comp8Name,
-                     world)
+                     Option.defaultValue typeof<'c8>.Name comp8Name)
         ecs.Schedule event { EcsQuery = this; EcsDependencies = dependencies; EcsCallback = callback }
 
     member this.ScheduleIteration
         (event : EcsEvent,
          dependencies : Query list,
-         statement : StatementPlus<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 'c9, 'w>,
+         statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 'c9>,
          ?compName, ?comp2Name, ?comp3Name, ?comp4Name, ?comp5Name, ?comp6Name, ?comp7Name, ?comp8Name, ?comp9Name) =
         let callback =
-            fun _ _ world ->
+            fun _ _ ->
                 this.IterateParallel
                     (statement,
                      Option.defaultValue typeof<'c>.Name compName,
@@ -1885,8 +1797,7 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                      Option.defaultValue typeof<'c6>.Name comp6Name,
                      Option.defaultValue typeof<'c7>.Name comp7Name,
                      Option.defaultValue typeof<'c8>.Name comp8Name,
-                     Option.defaultValue typeof<'c9>.Name comp9Name,
-                     world)
+                     Option.defaultValue typeof<'c9>.Name comp9Name)
         ecs.Schedule event { EcsQuery = this; EcsDependencies = dependencies; EcsCallback = callback }
 
     static member make

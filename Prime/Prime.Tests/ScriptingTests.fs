@@ -1,4 +1,4 @@
-﻿// Nu Game Engine.
+﻿// Prime - A PRIMitivEs code library.
 // Copyright (C) Bryan Edds.
 
 namespace Prime.Tests
