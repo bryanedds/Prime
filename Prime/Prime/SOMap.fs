@@ -66,7 +66,7 @@ module SOMap =
 
     let private compact map =
         let entries = FStack.filter (fun (struct (a, _, _)) -> a) map.Entries
-        let indices = Seq.foldi (fun i u (struct (_, k, _)) -> SUMap.add k i u) (SUMap.makeEmpty (SUMap.getComparer map.Indices) (SUMap.getConfig map.Indices)) entries
+        let indices = Seq.foldi (fun i u (struct (_, k, _)) -> SUMap.add k i u) (SUMap.makeEmpty (SUMap.comparer map.Indices) (SUMap.config map.Indices)) entries
         { Indices = indices
           Entries = entries
           InactiveCount = 0 }
@@ -86,12 +86,12 @@ module SOMap =
         SUMap.notEmpty map.Indices
 
     /// Get the map key comparer.
-    let getComparer map =
-        SUMap.getComparer map.Indices
+    let comparer map =
+        SUMap.comparer map.Indices
 
     /// Get the map configuration.
-    let getConfig map =
-        SUMap.getConfig map.Indices
+    let config map =
+        SUMap.config map.Indices
 
     /// Add a value with the key to an SOMap.
     /// Linear time complexity when updaing existing entry.
@@ -190,14 +190,14 @@ module SOMap =
     let map mapper map =
         fold
             (fun state key value -> add key (mapper key value) state)
-            (makeEmpty (SUMap.getComparer map.Indices) (SUMap.getConfig map.Indices))
+            (makeEmpty (SUMap.comparer map.Indices) (SUMap.config map.Indices))
             map
 
     /// Filter an SOMap.
     let filter pred map =
         fold
             (fun state key value -> if pred key value then add key value state else state)
-            (makeEmpty (SUMap.getComparer map.Indices) (SUMap.getConfig map.Indices))
+            (makeEmpty (SUMap.comparer map.Indices) (SUMap.config map.Indices))
             map
 
     /// Convert an SOMap to a sequence of pairs of keys and values.

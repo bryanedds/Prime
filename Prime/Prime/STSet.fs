@@ -107,11 +107,11 @@ module STSet =
         makeFromSeq<'a> comparer config Seq.empty
 
     /// Get the comparer function used to determine uniqueness in a STSet.
-    let getComparer set =
+    let comparer set =
         struct (set.HashSet.Comparer, set)
 
     /// Get the semantic configuration of the STSet.
-    let getConfig set =
+    let config set =
         struct (set.TConfig, set)
 
     /// Add an element to a STSet.

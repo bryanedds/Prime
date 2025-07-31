@@ -43,14 +43,14 @@ module SUMap =
         { Map = STMap.makeEmpty<'k, 'v> comparer config }
 
     /// Get the comparer function used to determine key uniqueness in a SUMap.
-    let getComparer map =
-        let struct (result, tmap) = STMap.getComparer map.Map
+    let comparer map =
+        let struct (result, tmap) = STMap.comparer map.Map
         map.Map <- tmap
         result
 
     /// Get the semantic configuration of the TSet.
-    let getConfig map =
-        let struct (result, tmap) = STMap.getConfig map.Map
+    let config map =
+        let struct (result, tmap) = STMap.config map.Map
         map.Map <- tmap
         result
 

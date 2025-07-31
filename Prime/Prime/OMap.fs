@@ -65,7 +65,7 @@ module OMap =
 
     let private compact map =
         let entries = FStack.filter (fun (struct (a, _, _)) -> a) map.Entries
-        let indices = Seq.foldi (fun i u (struct (_, k, _)) -> UMap.add k i u) (UMap.makeEmpty (UMap.getComparer map.Indices) (UMap.getConfig map.Indices)) entries
+        let indices = Seq.foldi (fun i u (struct (_, k, _)) -> UMap.add k i u) (UMap.makeEmpty (UMap.comparer map.Indices) (UMap.config map.Indices)) entries
         { Indices = indices
           Entries = entries
           InactiveCount = 0 }
@@ -85,12 +85,12 @@ module OMap =
         UMap.notEmpty map.Indices
 
     /// Get the map key comparer.
-    let getComparer map =
-        UMap.getComparer map.Indices
+    let comparer map =
+        UMap.comparer map.Indices
 
     /// Get the map configuration.
-    let getConfig map =
-        UMap.getConfig map.Indices
+    let config map =
+        UMap.config map.Indices
 
     /// Add a value with the key to an OMap.
     /// Linear time complexity when updaing existing entry.
@@ -188,14 +188,14 @@ module OMap =
     let map mapper map =
         fold
             (fun state key value -> add key (mapper key value) state)
-            (makeEmpty (UMap.getComparer map.Indices) (UMap.getConfig map.Indices))
+            (makeEmpty (UMap.comparer map.Indices) (UMap.config map.Indices))
             map
 
     /// Filter an OMap.
     let filter pred map =
         fold
             (fun state key value -> if pred key value then add key value state else state)
-            (makeEmpty (UMap.getComparer map.Indices) (UMap.getConfig map.Indices))
+            (makeEmpty (UMap.comparer map.Indices) (UMap.config map.Indices))
             map
 
     /// Convert an OMap to a sequence of pairs of keys and values.

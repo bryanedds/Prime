@@ -49,7 +49,7 @@ module SOSet =
 
     let private compact set =
         let entries = FStack.filter (fun (struct (active, _)) -> active) set.Entries
-        let indices = Seq.foldi (fun i u (struct (_, item)) -> SUMap.add item i u) (SUMap.makeEmpty (SUMap.getComparer set.Indices) (SUMap.getConfig set.Indices)) entries
+        let indices = Seq.foldi (fun i u (struct (_, item)) -> SUMap.add item i u) (SUMap.makeEmpty (SUMap.comparer set.Indices) (SUMap.config set.Indices)) entries
         { Indices = indices
           Entries = entries
           InactiveCount = 0 }
@@ -69,12 +69,12 @@ module SOSet =
         SUMap.notEmpty set.Indices
 
     /// Get the set key comparer.
-    let getComparer set =
-        SUMap.getComparer set.Indices
+    let comparer set =
+        SUMap.comparer set.Indices
 
     /// Get the set configuration.
-    let getConfig set =
-        SUMap.getConfig set.Indices
+    let config set =
+        SUMap.config set.Indices
 
     /// Add a value with the key to an SOSet.
     /// Linear time complexity when updating existing entry.
@@ -134,14 +134,14 @@ module SOSet =
     let map mapper set =
         fold
             (fun state item -> add (mapper item) state)
-            (makeEmpty (SUMap.getComparer set.Indices) (SUMap.getConfig set.Indices))
+            (makeEmpty (SUMap.comparer set.Indices) (SUMap.config set.Indices))
             set
 
     /// Filter an SOSet.
     let filter pred set =
         fold
             (fun state item -> if pred item then add item state else state)
-            (makeEmpty (SUMap.getComparer set.Indices) (SUMap.getConfig set.Indices))
+            (makeEmpty (SUMap.comparer set.Indices) (SUMap.config set.Indices))
             set
 
     /// Convert an SOSet to a sequence of pairs of keys and values.

@@ -33,14 +33,14 @@ module SUSet =
         { Set = STSet.makeEmpty<'a> comparer config }
 
     /// Get the comparer function used to determine uniqueness in a SUSet.
-    let getComparer set =
-        let struct (result, tset) = STSet.getComparer set.Set
+    let comparer set =
+        let struct (result, tset) = STSet.comparer set.Set
         set.Set <- tset
         result
 
     /// Get the semantic configuration of the SUSet.
-    let getConfig set =
-        let struct (result, tset) = STSet.getConfig set.Set
+    let config set =
+        let struct (result, tset) = STSet.config set.Set
         set.Set <- tset
         result
 

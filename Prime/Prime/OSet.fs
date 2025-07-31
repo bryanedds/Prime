@@ -48,7 +48,7 @@ module OSet =
 
     let private compact set =
         let entries = FStack.filter (fun (struct (active, _)) -> active) set.Entries
-        let indices = Seq.foldi (fun i u (struct (_, item)) -> UMap.add item i u) (UMap.makeEmpty (UMap.getComparer set.Indices) (UMap.getConfig set.Indices)) entries
+        let indices = Seq.foldi (fun i u (struct (_, item)) -> UMap.add item i u) (UMap.makeEmpty (UMap.comparer set.Indices) (UMap.config set.Indices)) entries
         { Indices = indices
           Entries = entries
           InactiveCount = 0 }
@@ -68,12 +68,12 @@ module OSet =
         UMap.notEmpty set.Indices
 
     /// Get the set key comparer.
-    let getComparer set =
-        UMap.getComparer set.Indices
+    let comparer set =
+        UMap.comparer set.Indices
 
     /// Get the set configuration.
-    let getConfig set =
-        UMap.getConfig set.Indices
+    let config set =
+        UMap.config set.Indices
 
     /// Add a value with the key to an OSet.
     /// Linear time complexity when updaing existing entry.
@@ -133,14 +133,14 @@ module OSet =
     let map mapper set =
         fold
             (fun state item -> add (mapper item) state)
-            (makeEmpty (UMap.getComparer set.Indices) (UMap.getConfig set.Indices))
+            (makeEmpty (UMap.comparer set.Indices) (UMap.config set.Indices))
             set
 
     /// Filter an OSet.
     let filter pred set =
         fold
             (fun state item -> if pred item then add item state else state)
-            (makeEmpty (UMap.getComparer set.Indices) (UMap.getConfig set.Indices))
+            (makeEmpty (UMap.comparer set.Indices) (UMap.config set.Indices))
             set
 
     /// Convert an OSet to a sequence of svalues.

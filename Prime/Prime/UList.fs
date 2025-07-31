@@ -41,8 +41,8 @@ module UList =
         { List = TList.makeEmpty<'a> config }
 
     /// Get the semantics configuration of a UList.
-    let getConfig list =
-        let struct (result, tlist) = TList.getConfig list.List
+    let config list =
+        let struct (result, tlist) = TList.config list.List
         list.List <- tlist
         result
 

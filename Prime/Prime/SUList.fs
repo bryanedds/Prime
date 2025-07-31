@@ -41,8 +41,8 @@ module SUList =
         { List = STList.makeEmpty<'a> config }
 
     /// Get the semantics configuration of a SUList.
-    let getConfig list =
-        let struct (result, tlist) = STList.getConfig list.List
+    let config list =
+        let struct (result, tlist) = STList.config list.List
         list.List <- tlist
         result
 

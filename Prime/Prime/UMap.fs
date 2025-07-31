@@ -50,14 +50,14 @@ module UMap =
         { Map = TMap.makeEmpty<'k, 'v> comparer config }
 
     /// Get the comparer function used to determine key uniqueness in a UMap.
-    let getComparer map =
-        let struct (result, tmap) = TMap.getComparer map.Map
+    let comparer map =
+        let struct (result, tmap) = TMap.comparer map.Map
         map.Map <- tmap
         result
 
     /// Get the semantic configuration of the TSet.
-    let getConfig map =
-        let struct (result, tmap) = TMap.getConfig map.Map
+    let config map =
+        let struct (result, tmap) = TMap.config map.Map
         map.Map <- tmap
         result
 

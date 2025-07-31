@@ -113,7 +113,7 @@ module STList =
         makeFromSeq config (List<'a> ())
 
     /// Get the semantics configuration of a STList.
-    let getConfig list =
+    let config list =
         struct (list.TConfig, list)
 
     /// Get the value of the given index.

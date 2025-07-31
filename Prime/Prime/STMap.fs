@@ -104,11 +104,11 @@ module STMap =
         makeFromSeq<'k, 'v> comparer config Seq.empty
         
     /// Get the comparer function used to determine key uniqueness in an STMap.
-    let getComparer map =
+    let comparer map =
         struct (map.Dict.Comparer, map)
 
     /// Get the semantic configuration of the TSet.
-    let getConfig map =
+    let config map =
         struct (map.TConfig, map)
 
     /// Add an entry to an STMap.
