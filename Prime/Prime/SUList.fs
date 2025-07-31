@@ -115,6 +115,12 @@ module SUList =
     let ofArray config (values : 'a array) =
         ofSeq config values
 
+    /// Fold over the elements of a SUList.
+    let fold folder state list =
+        let struct (result, tlist) = STList.fold folder state list.List
+        list.List <- tlist
+        result
+
     /// Map the elements of a SUList.
     let map mapper list =
         let struct (result, tlist) = STList.map mapper list.List
@@ -126,6 +132,11 @@ module SUList =
         let struct (result, tlist) = STList.filter pred list.List
         list.List <- tlist
         { List = result }
+
+    /// Iterate over the elements of a SUList with an action.
+    let iter action list =
+        let tlist = STList.iter action list.List
+        list.List <- tlist
 
     /// Reverse the elements of a SUList.
     let rev list =
@@ -150,12 +161,6 @@ module SUList =
         let struct (result, tlist) = STList.sort list.List
         list.List <- tlist
         { List = result }
-
-    /// Fold over the elements of a SUList.
-    let fold folder state list =
-        let struct (result, tlist) = STList.fold folder state list.List
-        list.List <- tlist
-        result
 
     /// Convert option elements to definite elements.
     let definitize list =

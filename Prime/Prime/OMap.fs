@@ -198,6 +198,12 @@ module OMap =
             (makeEmpty (UMap.comparer map.Indices) (UMap.config map.Indices))
             map
 
+    /// Filter the values of an OMap with an action.
+    let iter action map =
+        FStack.iter
+            (fun struct (active, key, value) -> if active then action key value)
+            map.Entries
+
     /// Convert an OMap to a sequence of pairs of keys and values.
     let toSeq (map : OMap<'k, 'v>) =
         map :> _ IEnumerable

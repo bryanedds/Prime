@@ -145,6 +145,18 @@ module SArray =
             result.[i] <- right.[i - floor]
         result
 
+    let fold folder state sarray =
+        let mutable state = state
+        for i in 0 .. dec sarray.Segments.Length do
+            let segment = sarray.Segments.[i]
+            if i = dec sarray.Segments.Length then
+                for j in 0 .. dec sarray.SegmentRemainder do
+                    state <- folder state segment.[j]
+            else
+                for j in 0 .. dec segment.Length do
+                    state <- folder state segment.[j]
+        state
+
     let map mapper sarray =
         let result = zeroCreate sarray.TotalLength
         for i in 0 .. dec sarray.TotalLength do
@@ -186,16 +198,6 @@ module SArray =
                     resultSegment.[j] <- transformer leftSegment.[j] rightSegment.[j]
         result
 
-    let foreach op sarray =
-        for i in 0 .. dec sarray.Segments.Length do
-            let segment = sarray.Segments.[i]
-            if i = dec sarray.Segments.Length then
-                for j in 0 .. dec sarray.SegmentRemainder do
-                    op segment.[j]
-            else
-                for j in 0 .. dec segment.Length do
-                    op segment.[j]
-
     let filter predicate sarray =
         let mutable count = 0
         for i in 0 .. dec sarray.TotalLength do
@@ -227,17 +229,15 @@ module SArray =
                 f <- inc f
         (pass, fail)
 
-    let fold folder state sarray =
-        let mutable state = state
+    let iter op sarray =
         for i in 0 .. dec sarray.Segments.Length do
             let segment = sarray.Segments.[i]
             if i = dec sarray.Segments.Length then
                 for j in 0 .. dec sarray.SegmentRemainder do
-                    state <- folder state segment.[j]
+                    op segment.[j]
             else
                 for j in 0 .. dec segment.Length do
-                    state <- folder state segment.[j]
-        state
+                    op segment.[j]
 
     let singleton item =
         let result = zeroCreate 1

@@ -144,6 +144,12 @@ module SOSet =
             (makeEmpty (SUMap.comparer set.Indices) (SUMap.config set.Indices))
             set
 
+    /// Iterate over the entries of an SOSet with an action.
+    let iter action (set : 'a SOSet) =
+        FStack.iter
+            (fun struct (active, item) -> if active then action item)
+            set.Entries
+
     /// Convert an SOSet to a sequence of pairs of keys and values.
     let toSeq (set : 'a SOSet) =
         set :> _ IEnumerable

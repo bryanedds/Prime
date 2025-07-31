@@ -118,10 +118,8 @@ module SDictionary =
         for (k, v) in seq do add k v sdict
         sdict
 
-    let singleton comparer key value =
-        let sdict = make comparer
-        add key value sdict
-        sdict
+    let fold folder sdict =
+        Seq.fold folder (toSeq sdict)
 
     let map<'k, 'v, 'u when 'k : equality and 'u : equality> comparer (mapper : 'k -> 'v -> 'u) (sdict : SDictionary<'k, 'v>) =
         toSeq sdict
@@ -131,8 +129,13 @@ module SDictionary =
     let filter pred sdict =
         ofSeq sdict.Comparer_ (Seq.filter pred (toSeq sdict))
 
-    let fold folder sdict =
-        Seq.fold folder (toSeq sdict)
+    let iter action sdict =
+        Seq.iter action (toSeq sdict)
+
+    let singleton comparer key value =
+        let sdict = make comparer
+        add key value sdict
+        sdict
 
 /// A dictionary that is split into 32 smaller dictionaries in order to avoid allocating from the LOH.
 type SDictionary<'k, 'v> = SDictionary.SDictionary<'k, 'v>

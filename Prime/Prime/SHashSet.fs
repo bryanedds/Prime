@@ -126,10 +126,8 @@ module SHashSet =
         for item in seq do add item sset |> ignore<bool>
         sset
 
-    let singleton comparer item =
-        let sset = make comparer
-        add item sset |> ignore<bool>
-        sset
+    let fold folder sset =
+        Seq.fold folder (toSeq sset)
 
     let map<'a, 'b when 'a : equality and 'b : equality> comparer (mapper : 'a -> 'b) (sset : 'a SHashSet) =
         ofSeq comparer (Seq.map mapper (toSeq sset))
@@ -137,8 +135,13 @@ module SHashSet =
     let filter pred sset =
         ofSeq sset.Comparer_ (Seq.filter pred (toSeq sset))
 
-    let fold folder sset =
-        Seq.fold folder (toSeq sset)
+    let iter action sset =
+        Seq.iter action (toSeq sset)
+
+    let singleton comparer item =
+        let sset = make comparer
+        add item sset |> ignore<bool>
+        sset
 
 /// A hash set that is split into 32 smaller hash sets in order to avoid allocating from the LOH.
 type SHashSet<'a when 'a : equality> = SHashSet.SHashSet<'a>

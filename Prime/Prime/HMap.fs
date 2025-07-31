@@ -165,6 +165,13 @@ module HMap =
             | Multiple arr -> Array.fold (fold folder) state arr
             | Gutter gutter -> Array.fold (fun state (hkv : Hkv<_, _>) -> folder state hkv.K hkv.V) state gutter
 
+        let rec iter action node =
+            match node with
+            | Nil -> ()
+            | Singleton hkv -> action hkv.K hkv.V
+            | Multiple arr -> Array.iter (iter action) arr
+            | Gutter gutter -> Array.iter (fun (hkv : Hkv<_, _>) -> action hkv.K hkv.V) gutter
+
         /// NOTE: This function seems to profile as being very slow. I don't know if it's the seq / yields syntax or what.
         let rec toSeq node =
             seq {
@@ -302,6 +309,10 @@ module HMap =
             (fun state key value -> if pred key value then add key value state else state)
             (makeEmpty ())
             map
+
+    /// Iterate over the entries of an HMap with an action.
+    let iter action (map : HMap<'k, 'v>) =
+        HNode.iter action map.Node
 
     /// Convert an HMap to a sequence of pairs of keys and values.
     /// NOTE: This function seems to profile as being very slow. I don't know if it's the seq / yields syntax or what.

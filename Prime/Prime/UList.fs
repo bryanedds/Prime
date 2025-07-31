@@ -115,6 +115,12 @@ module UList =
     let ofSeq1 pairs =
         ofSeq Functional pairs
 
+    /// Fold over the elements of a UList.
+    let fold folder state list =
+        let struct (result, tlist) = TList.fold folder state list.List
+        list.List <- tlist
+        result
+
     /// Map the elements of a UList.
     let map mapper list =
         let struct (result, tlist) = TList.map mapper list.List
@@ -126,6 +132,11 @@ module UList =
         let struct (result, tlist) = TList.filter pred list.List
         list.List <- tlist
         { List = result }
+
+    /// Iterate over the elements of a UList with an action.
+    let iter action list =
+        let tlist = TList.iter action list.List
+        list.List <- tlist
 
     /// Reverse the elements of a UList.
     let rev list =
@@ -150,12 +161,6 @@ module UList =
         let struct (result, tlist) = TList.sort list.List
         list.List <- tlist
         { List = result }
-
-    /// Fold over the elements of a UList.
-    let fold folder state list =
-        let struct (result, tlist) = TList.fold folder state list.List
-        list.List <- tlist
-        result
 
     /// Convert option elements to definite elements.
     let definitize list =

@@ -156,6 +156,12 @@ module SList =
             add slist.[i] result
         result
 
+    let fold folder state slist =
+        let mutable state = state
+        for item in slist do
+            state <- folder state item
+        state
+
     let map mapper (slist : 'a SList) =
         let result = makeWithCapacity slist.TotalLength_
         for item in slist do
@@ -169,16 +175,16 @@ module SList =
             add (mapper left.[i] right.[i]) result
         result
 
-    let foreach op slist =
-        for item in slist do
-            op item
-
     let filter predicate slist =
         let result = make ()
         for item in slist do
             if predicate item then
                 add item result
         result
+
+    let iter op slist =
+        for item in slist do
+            op item
 
     let exists predicate (slist : 'a SList) =
         let mutable found = false
@@ -199,12 +205,6 @@ module SList =
             then add item pass
             else add item fail
         (pass, fail)
-
-    let fold folder state slist =
-        let mutable state = state
-        for item in slist do
-            state <- folder state item
-        state
 
     let singleton item =
         let result = makeWithCapacity 4 // matches the first allocation capacity of Generic.List.

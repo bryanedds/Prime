@@ -153,6 +153,13 @@ module HSet =
             | Singleton hv -> folder state hv.V
             | Multiple arr -> Array.fold (fold folder) state arr
             | Gutter gutter -> Array.fold (fun state (hv : Hv<_>) -> folder state hv.V) state gutter
+
+        let rec iter action node =
+            match node with
+            | Nil -> ()
+            | Singleton hv -> action hv.V
+            | Multiple arr -> Array.iter (iter action) arr
+            | Gutter gutter -> Array.iter (fun (hv : Hv<_>) -> action hv.V) gutter
     
         /// NOTE: This function seems to profile as being very slow. I don't know if it's the seq / yields syntax or what.
         let rec toSeq node =
@@ -259,6 +266,10 @@ module HSet =
             (fun state value -> if pred value then add value state else state)
             (makeEmpty ())
             set
+
+    /// Iterate over the values of an HSet with an action.
+    let iter action (set : 'a HSet) =
+        HNode.iter action set.Node
 
     /// Convert an HSet to a sequence of pairs of keys and values.
     /// NOTE: This function seems to profile as being very slow. I don't know if it's the seq / yields syntax or what.

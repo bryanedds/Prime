@@ -131,6 +131,34 @@ module ListTree =
         | ListBranch (item, children) ->
             ListBranch (mapper item, children |> Seq.map (map mapper) |> List)
 
+    /// Filter a list tree with a predicate.
+    /// TODO: test this implementation!
+    let rec filter pred tree =
+        match tree with
+        | ListRoot children ->
+            let filteredChildren = children |> Seq.map (filter pred) |> List
+            if filteredChildren.Count = 0
+            then ListRoot (List ())
+            else ListRoot filteredChildren
+        | ListBranch (item, children) ->
+            if pred item then
+                let filteredChildren = children |> Seq.map (filter pred) |> List
+                ListBranch (item, filteredChildren)
+            else
+                let filteredChildren = children |> Seq.map (filter pred) |> List
+                if filteredChildren.Count = 0
+                then ListRoot (List ())
+                else ListRoot filteredChildren
+
+    /// Iterate over a list tree with an action.
+    let rec iter action tree =
+        match tree with
+        | ListRoot children ->
+            for child in children do iter action child
+        | ListBranch (item, children) ->
+            action item
+            for child in children do iter action child
+
     /// Make a singleton list tree.
     let singleton item =
         let branch = ListBranch (item, List<ListTree<'a>> ())

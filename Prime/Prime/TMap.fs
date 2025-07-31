@@ -232,6 +232,13 @@ module TMap =
             (makeEmpty map.Dict.Comparer map.TConfig)
             map
 
+    /// Iterate over the entries of a TMap.
+    let iter action map =
+        let map = validate map
+        for kvp in map.Dict do
+            action kvp.Key kvp.Value
+        map
+
     /// Make a TMap with a single entry.
     let singleton<'k, 'v> comparer config (key : 'k) (value : 'v) =
         makeFromSeq comparer config [(key, value)]

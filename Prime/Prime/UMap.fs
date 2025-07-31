@@ -167,6 +167,10 @@ module UMap =
         map.Map <- tmap
         { Map = result }
 
+    let iter action map =
+        let tmap = TMap.iter action map.Map
+        map.Map <- tmap
+
     /// Make a UMap with a single entry.
     let singleton<'k, 'v> comparer config key value =
         { Map = TMap.singleton<'k, 'v> comparer config key value }

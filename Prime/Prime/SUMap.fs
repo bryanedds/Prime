@@ -147,6 +147,11 @@ module SUMap =
         map.Map <- tmap
         { Map = result }
 
+    /// Iterate over the entries of a SUMap with an action.
+    let iter action map =
+        let tmap = STMap.iter action map.Map
+        map.Map <- tmap
+
     /// Make a SUMap with a single entry.
     let singleton<'k, 'v> comparer config key value =
         { Map = STMap.singleton<'k, 'v> comparer config key value }

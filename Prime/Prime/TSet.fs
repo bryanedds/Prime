@@ -212,6 +212,12 @@ module TSet =
             (makeEmpty set.HashSet.Comparer set.TConfig)
             set
 
+    /// Iterate over the elements of a TSet.
+    let iter action set =
+        let struct (seq, set) = toSeq set
+        Seq.iter action seq
+        set
+
     /// Determine equality of two TSets.
     let equals set set2 =
         let (set, set2) = (validate set, validate set2)

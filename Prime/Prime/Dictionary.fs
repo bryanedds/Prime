@@ -7,15 +7,22 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module Dictionary =
 
-    /// Make a dictionary with a single entry.
-    let inline singleton comparer key value =
-        List.toDict comparer [(key, value)]
+    /// Hash a dictionary.
+    let hash (dictionary : Dictionary<_, _>) =
+        let mutable h = 0
+        for entry in dictionary do
+            h <- h ^^^ entry.Key.GetHashCode () ^^^ (entry.Value.GetHashCode () * 17)
+        h
 
-    /// Map over a dictionary. A new dictionary is produced.
-    let map (mapper : KeyValuePair<'k, 'v> -> 'v) (dictionary : Dictionary<'k, 'v>) =
-        let result = Dictionary<'k, 'v> dictionary.Comparer
-        for kvp in dictionary do result.Add (kvp.Key, mapper kvp)
-        result
+    /// Try to find a value in a dictonary.
+    let inline tryFind key (dictionary : Dictionary<'k, 'v>) =
+        match dictionary.TryGetValue key with
+        | (true, value) -> Some value
+        | (false, _) -> None
+
+    /// Try to get a value in a dictonary without allocating.
+    let inline tryGetValue (key, dictionary : Dictionary<'k, 'v>, value : 'v outref) =
+        dictionary.TryGetValue (key, &value)
 
     /// Fold over a dictionary.
     let fold<'s, 'k, 'v> folder (state : 's) (dictionary : Dictionary<'k, 'v>) =
@@ -27,22 +34,22 @@ module Dictionary =
             state <- folder.Invoke (state, kvp.Key, kvp.Value)
         state
 
-    /// Try to find a value in a dictonary.
-    let inline tryFind key (dictionary : Dictionary<'k, 'v>) =
-        match dictionary.TryGetValue key with
-        | (true, value) -> Some value
-        | (false, _) -> None
+    /// Map over a dictionary. A new dictionary is produced.
+    let map (mapper : KeyValuePair<'k, 'v> -> 'v) (dictionary : Dictionary<'k, 'v>) =
+        let result = Dictionary<'k, 'v> dictionary.Comparer
+        for kvp in dictionary do result.Add (kvp.Key, mapper kvp)
+        result
 
-    /// Try to get a value in a dictonary without allocating.
-    let inline tryGetValue (key, dictionary : Dictionary<'k, 'v>, value : 'v outref) =
-        dictionary.TryGetValue (key, &value)
-        
-    /// Hash a dictionary.
-    let hash (dictionary : Dictionary<_, _>) =
-        let mutable h = 0
-        for entry in dictionary do
-            h <- h ^^^ entry.Key.GetHashCode () ^^^ (entry.Value.GetHashCode () * 17)
-        h
+    /// Iterate over a dictionary with an action.
+    let iter action (dictionary : Dictionary<'k, 'v>) =
+        let mutable enr = dictionary.GetEnumerator ()
+        while enr.MoveNext () do
+            let kvp = enr.Current
+            action kvp.Key kvp.Value
+
+    /// Make a dictionary with a single entry.
+    let inline singleton comparer key value =
+        List.toDict comparer [(key, value)]
 
 [<AutoOpen>]
 module DictionaryExtension =

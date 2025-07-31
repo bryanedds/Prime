@@ -129,6 +129,11 @@ module USet =
         set.Set <- tset
         { Set = result }
 
+    /// Iterate over the elements of a USet.
+    let iter action set =
+        let tset = TSet.iter action set.Set
+        set.Set <- tset
+
     /// Determine equality of two USets.
     let equals set set2 =
         let struct (result, tset, tset2) = TSet.equals set.Set set2.Set

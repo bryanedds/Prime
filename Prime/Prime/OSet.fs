@@ -143,6 +143,12 @@ module OSet =
             (makeEmpty (UMap.comparer set.Indices) (UMap.config set.Indices))
             set
 
+    /// Iterate over an OSet with an action.
+    let iter action set =
+        FStack.iter
+            (fun struct (active, item) -> if active then action item)
+            set.Entries
+
     /// Convert an OSet to a sequence of svalues.
     let toSeq (set : 'a OSet) =
         set :> _ IEnumerable

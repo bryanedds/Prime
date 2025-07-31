@@ -362,3 +362,9 @@ module List =
         while enr.MoveNext () do
             state <- folder.Invoke (state, enr.Current)
         state
+
+    /// Iterate over a generic list with an action.
+    let iterGeneric (action : 'a -> unit) (set : 'a System.Collections.Generic.List) =
+        let mutable enr = set.GetEnumerator ()
+        while enr.MoveNext () do
+            action enr.Current

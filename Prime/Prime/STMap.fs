@@ -232,6 +232,12 @@ module STMap =
             (makeEmpty map.Dict.Comparer map.TConfig)
             map
 
+    /// Iterate over the entries of an STMap.
+    let iter action map =
+        let struct (seq, map) = toSeq map
+        Seq.iter (fun (k, v) -> action k v) seq
+        map
+
     /// Make an STMap with a single entry.
     let singleton<'k, 'v> comparer config (key : 'k) (value : 'v) =
         makeFromSeq comparer config [(key, value)]

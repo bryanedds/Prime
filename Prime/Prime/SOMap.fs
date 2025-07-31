@@ -200,6 +200,10 @@ module SOMap =
             (makeEmpty (SUMap.comparer map.Indices) (SUMap.config map.Indices))
             map
 
+    /// Iterate over the entries of an SOMap with an action.
+    let iter action map =
+        Seq.iter (fun struct (a, k, v) -> if a then action k v) map.Entries
+
     /// Convert an SOMap to a sequence of pairs of keys and values.
     let toSeq (map : SOMap<'k, 'v>) =
         map :> _ IEnumerable

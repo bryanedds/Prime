@@ -211,6 +211,12 @@ module TList =
     let ofArray config (values : 'a array) =
         ofSeq config values
 
+    /// Fold over the elements of a TList.
+    let fold folder state list =
+        let struct (seq, list) = toSeq list
+        let folded = Seq.fold folder state seq
+        struct (folded, list)
+
     /// Map the elements of a TList.
     let map (mapper : 'a -> 'b) (list : 'a TList) =
         let list = validate list
@@ -224,6 +230,12 @@ module TList =
         let seqFiltered = Seq.filter pred list.ImpList
         let listFiltered = makeFromSeq list.TConfig seqFiltered
         struct (listFiltered, list)
+
+    /// Iterate over the elements of a TList with an action.
+    let iter action list =
+        let struct (seq, list) = toSeq list
+        Seq.iter action seq
+        list
 
     /// Reverse the elements of a TList.
     let rev list =
@@ -252,12 +264,6 @@ module TList =
         let seqSorted = Seq.sort list.ImpList
         let listSorted = makeFromSeq list.TConfig seqSorted
         struct (listSorted, list)
-
-    /// Fold over the elements of a TList.
-    let fold folder state list =
-        let struct (seq, list) = toSeq list
-        let folded = Seq.fold folder state seq
-        struct (folded, list)
 
     /// Convert option elements to definite elements.
     let definitize list =

@@ -150,6 +150,10 @@ module FStack =
     let filter f (stack : 'a FStack) =
         stack |> toSeq |> Seq.filter f |> ofSeq
 
+    /// Iterate over the elements of an FStack with an action.
+    let iter action (stack : 'a FStack) =
+        stack |> toSeq |> Seq.iter action
+
     /// Get the first element of an FStack or raise an IndexOutOfRangeException.
     let head stack =
         stack.Front.[0]
