@@ -675,8 +675,9 @@ module FMapTree =
                 rightmost nd.Right
 
     let rec equals (m: FMapTree<'Key, 'Value>) (n: FMapTree<'Key, 'Value>) =
-        if obj.ReferenceEquals (m, n)
-        then true
+        if obj.ReferenceEquals (m, n) then true
+        elif isEmpty m && isEmpty n then true
+        elif isEmpty m || isEmpty n then false
         else
             if m.Height <> n.Height then false
             else
@@ -691,8 +692,9 @@ module FMapTree =
                     equals mNode nNode
 
     let rec equalsComparer (comparer : IEqualityComparer) (m: FMapTree<'Key, 'Value>) (n: FMapTree<'Key, 'Value>) =
-        if obj.ReferenceEquals (m, n)
-        then true
+        if obj.ReferenceEquals (m, n) then true
+        elif isEmpty m && isEmpty n then true
+        elif isEmpty m || isEmpty n then false
         else
             if m.Height <> n.Height then false
             else
@@ -890,8 +892,7 @@ type FMap<[<EqualityConditionalOn>] 'Key, [<EqualityConditionalOn; ComparisonCon
         res
 
     override this.Equals that =
-        if obj.ReferenceEquals (this, that)
-        then true
+        if obj.ReferenceEquals (this, that) then true
         else
             match that with
             | :? FMap<'Key, 'Value> as that ->
@@ -903,8 +904,7 @@ type FMap<[<EqualityConditionalOn>] 'Key, [<EqualityConditionalOn; ComparisonCon
 
     interface IStructuralEquatable with
         member this.Equals(that, comparer) =
-            if obj.ReferenceEquals (this, that)
-            then true
+            if obj.ReferenceEquals (this, that) then true
             else
                 match that with
                 | :? FMap<'Key, 'Value> as that ->

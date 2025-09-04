@@ -698,8 +698,9 @@ module FSetTree =
         Array.fold (fun acc k -> add comparer k acc) empty l
 
     let rec equals (s: FSetTree<'T>) (t: FSetTree<'T>) =
-        if obj.ReferenceEquals (s, t)
-        then true
+        if obj.ReferenceEquals (s, t) then true
+        elif isEmpty s && isEmpty t then true
+        elif isEmpty s || isEmpty t then false
         else
             if s.Height <> t.Height then false
             else
@@ -712,8 +713,9 @@ module FSetTree =
                     equals sNode tNode
 
     let rec equalsComparer (comparer : IEqualityComparer) (s: FSetTree<'T>) (t: FSetTree<'T>) =
-        if obj.ReferenceEquals (s, t)
-        then true
+        if obj.ReferenceEquals (s, t) then true
+        elif isEmpty s && isEmpty t then true
+        elif isEmpty s || isEmpty t then false
         else
             if s.Height <> t.Height then false
             else
@@ -921,8 +923,7 @@ type FSet<[<EqualityConditionalOn>] 'T when 'T: comparison>(comparer: IComparer<
         this.ComputeHashCode()
 
     override this.Equals that =
-        if obj.ReferenceEquals (this, that)
-        then true
+        if obj.ReferenceEquals (this, that) then true
         else
             match that with
             | :? FSet<'T> as that ->
@@ -935,8 +936,7 @@ type FSet<[<EqualityConditionalOn>] 'T when 'T: comparison>(comparer: IComparer<
 
     interface IStructuralEquatable with
         member this.Equals(that, comparer) =
-            if obj.ReferenceEquals (this, that)
-            then true
+            if obj.ReferenceEquals (this, that) then true
             else
                 match that with
                 | :? FSet<'T> as that ->
