@@ -37,7 +37,7 @@ module FSetTree =
     let inline isEmpty (t: FSetTree<'T>) =
         isNull t
 
-    let inline private asNode (value: FSetTree<'T>) : FSetTreeNode<'T> =
+    let inline internal asNode (value: FSetTree<'T>) : FSetTreeNode<'T> =
         value :?> FSetTreeNode<'T>
 
     let rec countAux (t: FSetTree<'T>) acc =
@@ -727,6 +727,33 @@ module FSetTree =
                     comparer.Equals (sNode.Key, tNode.Key) &&
                     equalsComparer comparer sNode tNode
 
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+module private FSetTreeNode =
+
+    let rec equals (this : FSetTreeNode<'T>) (that : FSetTreeNode<'T>) = 
+        if Object.ReferenceEquals (this, that) then true
+        elif isNull this && isNull that then true
+        elif isNull this || isNull that then false
+        else
+            if this.Height <> that.Height then false
+            elif not (Unchecked.equals this.Key that.Key) then false
+            else
+                let leftEquals = 
+                    match this.Left with
+                    | :? FSetTreeNode<'T> as thisLeftNode ->
+                        match that.Left with
+                        | :? FSetTreeNode<'T> as thatLeftNode -> equals thisLeftNode thatLeftNode
+                        | _ -> false
+                    | _ -> not (that.Left :? FSetTreeNode<'T>) && FSetTree.equals this.Left that.Left
+                if leftEquals then
+                    match this.Right with
+                    | :? FSetTreeNode<'T> as thisRightNode ->
+                        match that.Right with
+                        | :? FSetTreeNode<'T> as thatRightNode -> equals thisRightNode thatRightNode
+                        | _ -> false
+                    | _ -> not (that.Right :? FSetTreeNode<'T>) && FSetTree.equals this.Right that.Right
+                else false
+
 /// Like F# Set but with fast equality.
 [<Sealed>]
 [<CompiledName("FSharpFSet`1")>]
@@ -927,32 +954,20 @@ type FSet<[<EqualityConditionalOn>] 'T when 'T: comparison>(comparer: IComparer<
         else
             match that with
             | :? FSet<'T> as that ->
-                FSetTree.equals this.Tree that.Tree
+                let thisIsNode = this.Tree :? FSetTreeNode<'T>
+                let thatIsNode = that.Tree :? FSetTreeNode<'T>
+                if thisIsNode && thatIsNode then
+                    let thisNode = this.Tree :?> FSetTreeNode<'T>
+                    let thatNode = that.Tree :?> FSetTreeNode<'T>
+                    FSetTreeNode.equals thisNode thatNode
+                elif not thisIsNode && not thatIsNode then
+                    FSetTree.equals this.Tree that.Tree
+                else false
             | _ -> false
 
     interface System.IComparable with
         member this.CompareTo(that: obj) =
             FSetTree.compare this.Comparer this.Tree ((that :?> FSet<'T>).Tree)
-
-    interface IStructuralEquatable with
-        member this.Equals(that, comparer) =
-            if obj.ReferenceEquals (this, that) then true
-            else
-                match that with
-                | :? FSet<'T> as that ->
-                    FSetTree.equalsComparer comparer this.Tree that.Tree
-                | _ -> false
-
-        member this.GetHashCode(comparer) =
-            let combineHash x y =
-                (x <<< 1) + y + 631
-
-            let mutable res = 0
-
-            for x in this do
-                res <- combineHash res (comparer.GetHashCode(x))
-
-            res
 
     interface ICollection<'T> with
         member s.Add x =

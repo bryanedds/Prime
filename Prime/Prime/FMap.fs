@@ -36,7 +36,7 @@ module FMapTree =
     let inline isEmpty (m: FMapTree<'Key, 'Value>) =
         isNull m
 
-    let inline private asNode (value: FMapTree<'Key, 'Value>) : FMapTreeNode<'Key, 'Value> =
+    let inline internal asNode (value: FMapTree<'Key, 'Value>) : FMapTreeNode<'Key, 'Value> =
         value :?> FMapTreeNode<'Key, 'Value>
 
     let rec sizeAux acc (m: FMapTree<'Key, 'Value>) =
@@ -691,22 +691,33 @@ module FMapTree =
                     Unchecked.equals mNode.Value nNode.Value &&
                     equals mNode nNode
 
-    let rec equalsComparer (comparer : IEqualityComparer) (m: FMapTree<'Key, 'Value>) (n: FMapTree<'Key, 'Value>) =
-        if obj.ReferenceEquals (m, n) then true
-        elif isEmpty m && isEmpty n then true
-        elif isEmpty m || isEmpty n then false
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+module private FMapTreeNode =
+
+    let rec equals (this : FMapTreeNode<'Key, 'Value>) (that : FMapTreeNode<'Key, 'Value>) = 
+        if Object.ReferenceEquals (this, that) then true
+        elif isNull this && isNull that then true
+        elif isNull this || isNull that then false
         else
-            if m.Height <> n.Height then false
+            if this.Height <> that.Height then false
+            elif not (Unchecked.equals this.Key that.Key) then false
+            elif not (Unchecked.equals this.Value that.Value) then false
             else
-                if m.Height = 1 && n.Height = 1 then
-                    comparer.Equals (m.Key, n.Key) &&
-                    comparer.Equals (m.Value, n.Value)
-                else
-                    let mNode = asNode m
-                    let nNode = asNode n
-                    comparer.Equals (mNode.Key, nNode.Key) &&
-                    comparer.Equals (mNode.Value, nNode.Value) &&
-                    equalsComparer comparer mNode nNode
+                let leftEquals = 
+                    match this.Left with
+                    | :? FMapTreeNode<'Key, 'Value> as thisLeftNode ->
+                        match that.Left with
+                        | :? FMapTreeNode<'Key, 'Value> as thatLeftNode -> equals thisLeftNode thatLeftNode
+                        | _ -> false
+                    | _ -> not (that.Left :? FMapTreeNode<'Key, 'Value>) && FMapTree.equals this.Left that.Left
+                if leftEquals then
+                    match this.Right with
+                    | :? FMapTreeNode<'Key, 'Value> as thisRightNode ->
+                        match that.Right with
+                        | :? FMapTreeNode<'Key, 'Value> as thatRightNode -> equals thisRightNode thatRightNode
+                        | _ -> false
+                    | _ -> not (that.Right :? FMapTreeNode<'Key, 'Value>) && FMapTree.equals this.Right that.Right
+                else false
 
 /// Like F# Map but with fast equality.
 [<System.Diagnostics.DebuggerTypeProxy(typedefof<FMapDebugView<_, _>>)>]
@@ -896,32 +907,19 @@ type FMap<[<EqualityConditionalOn>] 'Key, [<EqualityConditionalOn; ComparisonCon
         else
             match that with
             | :? FMap<'Key, 'Value> as that ->
-                FMapTree.equals this.Tree that.Tree
+                let thisIsNode = this.Tree :? FMapTreeNode<'Key, 'Value>
+                let thatIsNode = that.Tree :? FMapTreeNode<'Key, 'Value>
+                if thisIsNode && thatIsNode then
+                    let thisNode = this.Tree :?> FMapTreeNode<'Key, 'Value>
+                    let thatNode = that.Tree :?> FMapTreeNode<'Key, 'Value>
+                    FMapTreeNode.equals thisNode thatNode
+                elif not thisIsNode && not thatIsNode then
+                    FMapTree.equals this.Tree that.Tree
+                else false
             | _ -> false
 
     override this.GetHashCode() =
         this.ComputeHashCode()
-
-    interface IStructuralEquatable with
-        member this.Equals(that, comparer) =
-            if obj.ReferenceEquals (this, that) then true
-            else
-                match that with
-                | :? FMap<'Key, 'Value> as that ->
-                    FMapTree.equalsComparer comparer this.Tree that.Tree
-                | _ -> false
-
-        member this.GetHashCode(comparer) =
-            let combineHash x y =
-                (x <<< 1) + y + 631
-
-            let mutable res = 0
-
-            for (KeyValue(x, y)) in this do
-                res <- combineHash res (comparer.GetHashCode x)
-                res <- combineHash res (comparer.GetHashCode y)
-
-            res
 
     interface IEnumerable<KeyValuePair<'Key, 'Value>> with
         member _.GetEnumerator() =
