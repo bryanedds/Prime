@@ -562,7 +562,7 @@ module FMapTree =
 
     /// Imperative left-to-right iterators.
     [<NoEquality; NoComparison>]
-    type MapIterator<'Key, 'Value when 'Key: comparison> =
+    type FMapIterator<'Key, 'Value when 'Key: comparison> =
         {
             /// invariant: always collapseLHS result
             mutable stack: FMapTree<'Key, 'Value> list

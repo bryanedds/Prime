@@ -483,7 +483,7 @@ module FSetTree =
 
     // Imperative left-to-right iterators.
     [<NoEquality; NoComparison>]
-    type SetIterator<'T> when 'T: comparison =
+    type FSetIterator<'T> when 'T: comparison =
         {
             mutable stack: FSetTree<'T> list // invariant: always collapseLHS result
             mutable started: bool // true when MoveNext has been called
