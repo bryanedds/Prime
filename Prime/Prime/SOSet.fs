@@ -39,6 +39,10 @@ module SOSet =
         member this.GetEnumerator () =
             new SOSetEnumerator<'a> (this.Entries.GetEnumerator ())
 
+        /// Check that an SOSet contains a value with the given key.
+        member this.Contains item =
+            SUMap.containsKey item this.Indices
+
         interface 'a IEnumerable with
             member this.GetEnumerator () =
                 this.GetEnumerator ()

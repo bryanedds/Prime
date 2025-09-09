@@ -12,6 +12,18 @@ module UList =
     type [<ReferenceEquality; DefaultValue "[]">] 'a UList =
         private
             { mutable List : 'a TList }
+
+        /// Get the length of a UList (constant-time).
+        member this.Length =
+            let struct (result, tlist) = TList.length this.List
+            this.List <- tlist
+            result
+
+        /// Get the value of the given index.
+        member this.Item index =
+            let struct (result, tlist) = TList.get index this.List
+            this.List <- tlist
+            result
     
         interface 'a IEnumerable with
             member this.GetEnumerator () =
@@ -22,11 +34,6 @@ module UList =
         interface IEnumerable with
             member this.GetEnumerator () =
                 (this :> 'a IEnumerable).GetEnumerator () :> IEnumerator
-
-        member this.Item index =
-            let struct (result, tlist) = TList.get index this.List
-            this.List <- tlist
-            result
 
     /// Create a UList containing the given sequence of values.
     let makeFromSeq config items =

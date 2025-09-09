@@ -37,6 +37,10 @@ module OMap =
         /// Get the enumerator.
         member this.GetEnumerator () =
             new OMapEnumerator<'k, 'v> (this.Entries.GetEnumerator ())
+        
+        /// Check that an OMap contains a value with the given key.
+        member this.ContainsKey key =
+            UMap.containsKey key this.Indices
 
         /// Try to find a value with the given key in an OMap without allocating.
         /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.

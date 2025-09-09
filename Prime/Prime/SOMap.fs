@@ -39,6 +39,10 @@ module SOMap =
         member this.GetEnumerator () =
             new SOMapEnumerator<'k, 'v> (this.Entries.GetEnumerator ())
 
+        /// Check that an SOMap contains a value with the given key.
+        member this.ContainsKey key =
+            SUMap.containsKey key this.Indices
+        
         /// Try to find a value with the given key in an SOMap without allocating.
         /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.
         member this.TryGetValue (key, valueRef : 'v outref) =

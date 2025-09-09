@@ -14,11 +14,11 @@ module UMap =
         private
             { mutable Map : TMap<'k, 'v> }
 
-        /// Attempt to get the value with the given key.
-        member this.TryGetValue (key, valueRef : 'v outref) =
-            let struct (found, tmap) = TMap.tryGetValue (key, this.Map, &valueRef)
+        /// Get the length of a UMap (constant-time).
+        member this.Length =
+            let struct (result, tmap) = TMap.length this.Map
             this.Map <- tmap
-            found
+            result
 
         /// Check that a UMap contains the given key.
         member this.ContainsKey key =
@@ -26,6 +26,13 @@ module UMap =
             | (true, _) -> true
             | (_, _) -> false
 
+        /// Attempt to get the value with the given key.
+        member this.TryGetValue (key, valueRef : 'v outref) =
+            let struct (found, tmap) = TMap.tryGetValue (key, this.Map, &valueRef)
+            this.Map <- tmap
+            found
+
+        /// Get the value for the given key.
         member this.Item with get key =
             let struct (item, tmap) = TMap.find key this.Map
             this.Map <- tmap

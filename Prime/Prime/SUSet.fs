@@ -13,6 +13,18 @@ module SUSet =
     type [<ReferenceEquality; DefaultValue "[]">] SUSet<'a when 'a : equality> =
         private
             { mutable Set : 'a STSet }
+
+        /// Get the length of a SUSet (constant-time).
+        member this.Length =
+            let struct (result, tset) = STSet.length this.Set
+            this.Set <- tset
+            result
+
+        /// Determine that a SUSet contains the given value.
+        member this.Contains value =
+            let struct (result, tset) = STSet.contains value this.Set
+            this.Set <- tset
+            result
     
         interface 'a IEnumerable with
             member this.GetEnumerator () =

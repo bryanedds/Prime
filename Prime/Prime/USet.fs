@@ -14,6 +14,12 @@ module USet =
         private
             { mutable Set : 'a TSet }
 
+        /// Get the length of a USet (constant-time).
+        member this.Length =
+            let struct (result, tset) = TSet.length this.Set
+            this.Set <- tset
+            result
+
         /// Determine that a USet contains the given value.
         member this.Contains value =
             let struct (result, tset) = TSet.contains value this.Set

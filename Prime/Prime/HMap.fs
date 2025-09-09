@@ -202,6 +202,11 @@ module HMap =
         member this.GetEnumerator () =
             (HNode.toSeq this.Node).GetEnumerator ()
 
+        member this.ContainsKey key =
+            match this.TryGetValue key with
+            | (true, _) -> true
+            | (_, _) -> false
+
         member this.TryGetValue (key, valueRef : 'v outref) =
             let h = key.GetHashCode ()
             match HNode.tryFind h key 0 this.Node with
@@ -212,11 +217,6 @@ module HMap =
             match this.TryGetValue key with
             | (true, value) -> Some value
             | (false, _) -> None
-
-        member this.ContainsKey key =
-            match this.TryGetValue key with
-            | (true, _) -> true
-            | (_, _) -> false
 
         member this.Item
             with get (key : 'k) =

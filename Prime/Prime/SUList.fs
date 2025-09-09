@@ -13,6 +13,13 @@ module SUList =
         private
             { mutable List : 'a STList }
 
+        /// Get the length of a UList (constant-time).
+        member this.Length =
+            let struct (result, tlist) = STList.length this.List
+            this.List <- tlist
+            result
+
+        /// Get the value of the given index.
         member this.Item index =
             let struct (result, tlist) = STList.get index this.List
             this.List <- tlist

@@ -38,6 +38,10 @@ module OSet =
         member this.GetEnumerator () =
             new OSetEnumerator<'a> (this.Entries.GetEnumerator ())
 
+        /// Check that an OSet contains a value with the given key.
+        member this.Contains item =
+            UMap.containsKey item this.Indices
+
         interface 'a IEnumerable with
             member this.GetEnumerator () =
                 this.GetEnumerator ()

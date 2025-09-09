@@ -14,11 +14,25 @@ module SUMap =
         private
             { mutable Map : STMap<'k, 'v> }
 
+        /// Get the length of a UMap (constant-time).
+        member this.Length =
+            let struct (result, tmap) = STMap.length this.Map
+            this.Map <- tmap
+            result
+
+        /// Check that a SUMap contains the given key.
+        member this.ContainsKey key =
+            match this.TryGetValue key with
+            | (true, _) -> true
+            | (_, _) -> false
+
+        /// Attempt to get the value with the given key.
         member this.TryGetValue (key, valueRef : 'v outref) =
             let struct (found, tmap) = STMap.tryGetValue (key, this.Map, &valueRef)
             this.Map <- tmap
             found
 
+        /// Get the value for the given key.
         member this.Item with get key =
             let struct (item, tmap) = STMap.find key this.Map
             this.Map <- tmap
