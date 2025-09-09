@@ -36,6 +36,28 @@ module SUSet =
             member this.GetEnumerator () =
                 (this :> 'a seq).GetEnumerator () :> IEnumerator
 
+        interface 'a ICollection with
+            member this.IsReadOnly =
+                false
+            member this.Count =
+                this.Length
+            member this.Add item =
+                let tset = STSet.add item this.Set
+                this.Set <- tset
+            member this.Remove item =
+                let result = this.Contains item
+                let tset = STSet.remove item this.Set
+                this.Set <- tset
+                result
+            member this.Contains item =
+                this.Contains item
+            member this.Clear () =
+                let tset = STSet.clear this.Set
+                this.Set <- tset
+            member this.CopyTo (array, arrayIndex) =
+                let tset = STSet.copyTo array arrayIndex this.Set
+                this.Set <- tset
+
     /// Create a SUSet containing the given sequence of values.
     let makeFromSeq<'a when 'a : equality> comparer config items =
         { Set = STSet.makeFromSeq<'a> comparer config items }
@@ -63,6 +85,11 @@ module SUSet =
     /// Remove all matching elements from a SUSet.
     let remove value set =
         { Set = STSet.remove value set.Set }
+
+    /// Copy the elements of a USet to an array, starting at the given index.
+    let copyTo (array : 'a array, arrayIndex : int) (set : 'a SUSet) =
+        let tset = STSet.copyTo array arrayIndex set.Set
+        set.Set <- tset
 
     /// Remove all elements from a SUSet.
     let clear set =

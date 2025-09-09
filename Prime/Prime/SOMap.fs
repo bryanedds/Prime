@@ -35,6 +35,16 @@ module SOMap =
               Entries : struct (bool * 'k * 'v) FStack
               InactiveCount : int }
 
+        /// Get the length of an SOMap.
+        member this.Length =
+            this.Indices.Length
+
+        /// The index operator.
+        member this.Item
+            with get (key : 'k) =
+                let index = this.Indices.[key]
+                this.Entries.[index]
+
         /// Get the enumerator.
         member this.GetEnumerator () =
             new SOMapEnumerator<'k, 'v> (this.Entries.GetEnumerator ())
@@ -53,12 +63,6 @@ module SOMap =
                 valueRef <- v
                 true
             | false -> false
-
-        /// The index operator.
-        member this.Item
-            with get (key : 'k) =
-                let index = this.Indices.[key]
-                this.Entries.[index]
 
         interface IEnumerable<'k * 'v> with
             member this.GetEnumerator () =
@@ -88,6 +92,10 @@ module SOMap =
     /// Check that an SOMap is empty.
     let notEmpty map =
         SUMap.notEmpty map.Indices
+
+    /// Get the length of an SOMap.
+    let length map =
+        SUMap.length map.Indices
 
     /// Get the map key comparer.
     let comparer map =

@@ -134,6 +134,12 @@ module TSet =
                 set
         else set.HashSet.Remove value |> ignore; set
 
+    /// Copy the elements of a TSet to an array, starting at a particular array index.
+    let copyTo (array : 'a[]) (arrayIndex : int) set =
+        let set = validate set
+        set.HashSet.CopyTo (array, arrayIndex)
+        set
+
     /// Remove all elements from a TSet.
     let clear set =
         if TConfig.isFunctional set.TConfig then

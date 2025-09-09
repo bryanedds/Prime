@@ -184,6 +184,7 @@ module HMap =
     /// A fast persistent hash map.
     /// Works in effectively constant-time for look-ups and updates.
     /// Also unlike FSharp.Map, has fast reference equality short-circuit.
+    /// TODO: implement length, Length, and ICollection.Count here if it can be done efficiently.
     type [<CustomEquality; NoComparison; DefaultValue "[]">] HMap<'k, 'v when 'k : equality> =
         private
             { Node : HNode<'k, 'v>
@@ -198,6 +199,16 @@ module HMap =
 
         override this.GetHashCode () =
             hash (box this.Node)
+
+        member this.Item
+            with get (key : 'k) =
+                let h = Unchecked.hash key
+                HNode.find h key 0 this.Node
+
+        member this.Pairs =
+            this.Node
+            |> HNode.toSeq
+            |> Seq.map (fun kvp -> (kvp.Key, kvp.Value))
 
         member this.GetEnumerator () =
             (HNode.toSeq this.Node).GetEnumerator ()
@@ -217,16 +228,6 @@ module HMap =
             match this.TryGetValue key with
             | (true, value) -> Some value
             | (false, _) -> None
-
-        member this.Item
-            with get (key : 'k) =
-                let h = Unchecked.hash key
-                HNode.find h key 0 this.Node
-
-        member this.Pairs =
-            this.Node
-            |> HNode.toSeq
-            |> Seq.map (fun kvp -> (kvp.Key, kvp.Value))
 
         interface IEnumerable<KeyValuePair<'k, 'v>> with
             member this.GetEnumerator () =

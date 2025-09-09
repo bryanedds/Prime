@@ -32,6 +32,10 @@ module KeyedArray =
         member this.Length =
             this.Current_
 
+        /// Index a keyed value.
+        member this.Item key =
+            &this.Values_.[this.Indices_.[key]]
+
         member private this.Overflowing =
             this.Current_ = this.Values.Length
 
@@ -112,10 +116,6 @@ module KeyedArray =
         /// Attempt to get a keyed value.
         member this.TryGetValue (key, valueRef : _ outref) =
             this.Indices_.TryGetValue (key, valueRef)
-
-        /// Index a keyed value.
-        member this.Item key =
-            &this.Values_.[this.Indices_.[key]]
 
         interface struct (bool * 'k * 'v) IEnumerable with
             member this.GetEnumerator () = this.Values_.GetEnumerator ()

@@ -36,6 +36,28 @@ module USet =
             member this.GetEnumerator () =
                 (this :> 'a seq).GetEnumerator () :> IEnumerator
 
+        interface 'a ICollection with
+            member this.IsReadOnly =
+                false
+            member this.Count =
+                this.Length
+            member this.Add item =
+                let tset = TSet.add item this.Set
+                this.Set <- tset
+            member this.Remove item =
+                let result = this.Contains item
+                let tset = TSet.remove item this.Set
+                this.Set <- tset
+                result
+            member this.Contains item =
+                this.Contains item
+            member this.Clear () =
+                let tset = TSet.clear this.Set
+                this.Set <- tset
+            member this.CopyTo (array, arrayIndex) =
+                let tset = TSet.copyTo array arrayIndex this.Set
+                this.Set <- tset
+
     /// Create a USet containing the given sequence of values.
     let makeFromSeq<'a> comparer config items =
         { Set = TSet.makeFromSeq<'a> comparer config items }
@@ -63,6 +85,11 @@ module USet =
     /// Remove all matching elements from a USet.
     let remove value set =
         { Set = TSet.remove value set.Set }
+
+    /// Copy the elements of a USet to an array, starting at the given index.
+    let copyTo (array : 'a array, arrayIndex : int) (set : 'a USet) =
+        let tset = TSet.copyTo array arrayIndex set.Set
+        set.Set <- tset
 
     /// Remove all elements from a USet.
     let clear set =

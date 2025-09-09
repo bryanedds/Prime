@@ -173,6 +173,7 @@ module HSet =
     /// A fast persistent hash set.
     /// Works in effectively constant-time for look-ups and updates.
     /// Also unlike FSharp.Set, has fast reference equality short-circuit.
+    /// TODO: implement length, Length, and ICollection.Count here if it can be done efficiently.
     type [<CustomEquality; NoComparison; DefaultValue "[]">] HSet<'a when 'a : equality> =
         private
             { Node : 'a HNode
@@ -203,6 +204,22 @@ module HSet =
         interface IEnumerable with
             member this.GetEnumerator () =
                 this.GetEnumerator ()
+
+        interface 'a ICollection with
+            member this.IsReadOnly =
+                true
+            member this.Count =
+                raise (NotSupportedException "Cannot get the count of a functional hash set. Use HSet.length to get the count.")
+            member this.Add _ =
+                raise (NotSupportedException "Cannot add to a functional hash set. Use HSet.add to create a new set with the item added.")
+            member this.Remove _ =
+                raise (NotSupportedException "Cannot remove from a functional hash set. Use HSet.remove to create a new set with the item removed.")
+            member this.Contains item =
+                this.Contains item
+            member this.Clear () =
+                raise (NotSupportedException "Cannot clear a functional hash set. Use HSet.makeEmpty to create a new empty set.")
+            member this.CopyTo (_, _) =
+                raise (NotSupportedException "Cannot copy from a functional hash set. Use HSet.toSeq to get a sequence of the set's items and copy from that.")
 
     /// Create an empty HSet.
     let makeEmpty () =

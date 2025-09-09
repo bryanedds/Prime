@@ -34,6 +34,16 @@ module OMap =
               Entries : struct (bool * 'k * 'v) FStack
               InactiveCount : int }
 
+        /// Get the length of an OMap.
+        member this.Length =
+            this.Indices.Length
+
+        /// The index operator.
+        member this.Item
+            with get (key : 'k) =
+                let index = this.Indices.[key]
+                this.Entries.[index]
+
         /// Get the enumerator.
         member this.GetEnumerator () =
             new OMapEnumerator<'k, 'v> (this.Entries.GetEnumerator ())
@@ -52,12 +62,6 @@ module OMap =
                 valueRef <- v
                 true
             | false -> false
-
-        /// The index operator.
-        member this.Item
-            with get (key : 'k) =
-                let index = this.Indices.[key]
-                this.Entries.[index]
 
         interface IEnumerable<'k * 'v> with
             member this.GetEnumerator () =
@@ -87,6 +91,10 @@ module OMap =
     /// Check that an OMap is empty.
     let notEmpty map =
         UMap.notEmpty map.Indices
+
+    /// Get the length of an OMap.
+    let length map =
+        map.Indices.Length
 
     /// Get the map key comparer.
     let comparer map =

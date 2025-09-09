@@ -20,6 +20,12 @@ module UMap =
             this.Map <- tmap
             result
 
+        /// Get the value for the given key.
+        member this.Item with get key =
+            let struct (item, tmap) = TMap.find key this.Map
+            this.Map <- tmap
+            item
+
         /// Check that a UMap contains the given key.
         member this.ContainsKey key =
             match this.TryGetValue key with
@@ -31,12 +37,6 @@ module UMap =
             let struct (found, tmap) = TMap.tryGetValue (key, this.Map, &valueRef)
             this.Map <- tmap
             found
-
-        /// Get the value for the given key.
-        member this.Item with get key =
-            let struct (item, tmap) = TMap.find key this.Map
-            this.Map <- tmap
-            item
 
         interface IEnumerable<'k * 'v> with
             member this.GetEnumerator () =

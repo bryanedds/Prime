@@ -37,6 +37,15 @@ type ForgetfulDictionary<'k, 'v when 'k : equality> (capacity : int, comparer : 
         for entry in accesses do accesses.[entry.Key] <- now
         entries.Values
 
+    member this.Item
+        with get key = 
+            let mutable v = Unchecked.defaultof<'v>
+            if this.TryGetValue (key, &v) then v
+            else raise (KeyNotFoundException("The key was not found in the dictionary."))
+        and set key value =
+            entries.[key] <- value
+            accesses.[key] <- Stopwatch.GetTimestamp ()
+
     member this.ContainsKey key =
         if entries.ContainsKey key then
             accesses.[key] <- Stopwatch.GetTimestamp ()
@@ -48,15 +57,6 @@ type ForgetfulDictionary<'k, 'v when 'k : equality> (capacity : int, comparer : 
             accesses.[key] <- Stopwatch.GetTimestamp ()
             true
         else false
-
-    member this.Item
-        with get key = 
-            let mutable v = Unchecked.defaultof<'v>
-            if this.TryGetValue (key, &v) then v
-            else raise (KeyNotFoundException("The key was not found in the dictionary."))
-        and set key value =
-            entries.[key] <- value
-            accesses.[key] <- Stopwatch.GetTimestamp ()
 
     member this.Add (key, value) =
         entries.Add (key, value)

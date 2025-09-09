@@ -35,6 +35,10 @@ module SOSet =
               Entries : struct (bool * 'a) FStack
               InactiveCount : int }
 
+        /// Get the length of an SOSet.
+        member this.Length =
+            this.Indices.Length
+
         /// Get the enumerator.
         member this.GetEnumerator () =
             new SOSetEnumerator<'a> (this.Entries.GetEnumerator ())
@@ -50,6 +54,22 @@ module SOSet =
         interface IEnumerable with
             member this.GetEnumerator () =
                 this.GetEnumerator ()
+
+        interface 'a ICollection with
+            member this.IsReadOnly =
+                true
+            member this.Count =
+                this.Length
+            member this.Add _ =
+                raise (NotSupportedException "Cannot add to a functional hash set. Use SOSet.add to create a new set with the item added.")
+            member this.Remove _ =
+                raise (NotSupportedException "Cannot remove from a functional hash set. Use SOSet.remove to create a new set with the item removed.")
+            member this.Contains item =
+                this.Contains item
+            member this.Clear () =
+                raise (NotSupportedException "Cannot clear a functional hash set. Use SOSet.makeEmpty to create a new empty set.")
+            member this.CopyTo (_, _) =
+                raise (NotSupportedException "Cannot copy from a functional hash set. Use SOSet.toSeq to get a sequence of the set's items and copy from that.")
 
     let private compact set =
         let entries = FStack.filter (fun (struct (active, _)) -> active) set.Entries
@@ -71,6 +91,10 @@ module SOSet =
     /// Check that an SOSet is empty.
     let notEmpty set =
         SUMap.notEmpty set.Indices
+
+    /// Get the length of an SOSet.
+    let length set =
+        set.Indices.Length
 
     /// Get the set key comparer.
     let comparer set =

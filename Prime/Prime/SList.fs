@@ -26,6 +26,22 @@ module SList =
         member this.Length =
             this.TotalLength_
 
+        member this.Item
+            with get (i : int) =
+                if i < this.TotalLength_ then
+                    let j = i / this.Capacity_
+                    let k = i % this.Capacity_
+                    this.Lists_.[j].[k]
+                else raise (IndexOutOfRangeException "Index out of range.")
+            and set (i : int) (value : 'a) =
+                if i < this.TotalLength_ then
+                    let j = i / this.Capacity_
+                    let k = i % this.Capacity_
+                    this.Lists_.[j].[k] <- value
+
+        member this.GetEnumerator () =
+            (Seq.concat this.Lists_).GetEnumerator ()
+
         member this.Add item =
             let lastList = this.Lists_.[dec this.Lists_.Count]
             if lastList.Count < this.Capacity_ then
@@ -67,22 +83,6 @@ module SList =
             this.Lists_.Clear ()
             this.Lists_.Add firstList
             this.TotalLength_ <- 0
-
-        member this.Item
-            with get (i : int) =
-                if i < this.TotalLength_ then
-                    let j = i / this.Capacity_
-                    let k = i % this.Capacity_
-                    this.Lists_.[j].[k]
-                else raise (IndexOutOfRangeException "Index out of range.")
-            and set (i : int) (value : 'a) =
-                if i < this.TotalLength_ then
-                    let j = i / this.Capacity_
-                    let k = i % this.Capacity_
-                    this.Lists_.[j].[k] <- value
-
-        member this.GetEnumerator () =
-            (Seq.concat this.Lists_).GetEnumerator ()
 
         member this.CopyTo (arr : 'a array, index : int) =
             let mutable i = 0
