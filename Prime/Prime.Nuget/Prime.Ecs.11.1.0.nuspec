@@ -16,9 +16,9 @@
         <language>en-US</language>
         <tags>F# Functional Programming Ecs</tags>
         <dependencies>
-			<dependency id="Csv" version="2.0.93" />
-			<dependency id="FParsec" version="1.1.1" />
-			<dependency id="FSharp.Core" version="9.0.300" />
+            <dependency id="Csv" version="2.0.93" />
+            <dependency id="FParsec" version="1.1.1" />
+            <dependency id="FSharp.Core" version="9.0.300" />
             <dependency id="Prime" version="11.1.0" />
         </dependencies>
     </metadata>
