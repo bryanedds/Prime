@@ -125,6 +125,7 @@ type [<DefaultValue "[]">] FList<'T>(front) =
     interface IReadOnlyCollection<'T> with
         member this.Count = this.Length
 
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module FList =
 

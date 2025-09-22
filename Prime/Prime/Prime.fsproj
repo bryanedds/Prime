@@ -45,9 +45,9 @@
 		<Compile Include="Map.fs" />
 		<Compile Include="HashSet.fs" />
 		<Compile Include="Dictionary.fs" />
+		<Compile Include="FList.fs" />
 		<Compile Include="FSet.fs" />
 		<Compile Include="FMap.fs" />
-		<Compile Include="FList.fs" />
 		<Compile Include="FQueue.fs" />
 		<Compile Include="FDeque.fs" />
 		<Compile Include="SArray.fs" />

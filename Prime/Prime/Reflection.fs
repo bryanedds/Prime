@@ -203,11 +203,14 @@ module Reflection =
     let pairsToMap mapType objs =
         pairsToMapping "Microsoft.FSharp.Collections.MapModule" mapType objs
 
+    let objsToFList listType objs =
+        objsToCollection "Prime.FListModule" listType objs
+
     let objsToFSet setType objs =
-        objsToCollection "Microsoft.FSharp.Collections.FSetModule" setType objs
+        objsToCollection "Prime.FSetModule" setType objs
 
     let pairsToFMap mapType objs =
-        pairsToMapping "Microsoft.FSharp.Collections.FMapModule" mapType objs
+        pairsToMapping "Prime.FMapModule" mapType objs
 
     let tryGetUnionCase (ty : Type) caseName =
         match UnionCaseNames.TryGetValue ty with
@@ -293,6 +296,9 @@ module TypeExtension =
             elif this.Name = typedefof<_ list>.Name then Some (Reflection.objsToList this [])
             elif this.Name = typedefof<_ Set>.Name then Some (Reflection.objsToSet this Set.empty)
             elif this.Name = typedefof<Map<_, _>>.Name then Some (Reflection.pairsToMap this Map.empty)
+            elif this.Name = typedefof<_ FList>.Name then Some (Reflection.objsToFList this [])
+            elif this.Name = typedefof<_ FSet>.Name then Some (Reflection.objsToFSet this FSet.empty)
+            elif this.Name = typedefof<FMap<_, _>>.Name then Some (Reflection.pairsToFMap this FMap.empty)
             elif FSharpType.IsUnion this then
                 let unionCases = FSharpType.GetUnionCases this
                 if (unionCases.[0].GetFields ()).Length = 0
