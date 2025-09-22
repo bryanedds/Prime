@@ -776,7 +776,8 @@ type FMap<[<EqualityConditionalOn>] 'Key, [<EqualityConditionalOn; ComparisonCon
 
     static member Empty: FMap<'Key, 'Value> = empty
 
-    static member Create(ie: IEnumerable<_>) : FMap<'Key, 'Value> =
+    /// NOTE: do not move / rename this function as reflection code relies on it being exactly here!
+    static member OfSeq (ie: IEnumerable<_>) : FMap<'Key, 'Value> =
         let comparer = LanguagePrimitives.FastGenericComparer<'Key>
         new FMap<_, _>(comparer, FMapTree.ofSeq comparer ie)
 
@@ -1270,7 +1271,7 @@ module FMap =
 
     [<CompiledName("OfSeq")>]
     let ofSeq elements =
-        FMap<_, _>.Create elements
+        FMap<_, _>.OfSeq elements
 
     [<CompiledName("OfArray")>]
     let ofArray (elements: ('Key * 'Value) array) =

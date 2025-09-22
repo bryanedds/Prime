@@ -1009,7 +1009,8 @@ type FSet<[<EqualityConditionalOn>] 'T when 'T: comparison>(comparer: IComparer<
         let comparer = LanguagePrimitives.FastGenericComparer<'T>
         FSet(comparer, FSetTree.ofSeq comparer elements)
 
-    static member Create(elements: seq<'T>) =
+    /// NOTE: do not move / rename this function as reflection code relies on it being exactly here!
+    static member OfSeq (elements: seq<'T>) =
         FSet<'T>(elements)
 
     static member FromArray(arr: 'T array) : FSet<'T> =

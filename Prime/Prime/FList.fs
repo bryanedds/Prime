@@ -105,6 +105,7 @@ type [<DefaultValue "[]">] FList<'T>(front) =
         FList<'T>(xs)
 
     /// Returns an an FList of the seq.
+    /// NOTE: do not move / rename this function as reflection code relies on it being exactly here!
     static member OfSeq xs =
         FList<'T>(List.ofSeq xs)
 
