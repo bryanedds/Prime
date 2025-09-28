@@ -226,6 +226,11 @@ module FStack =
         let stack = { Front = stack.Front; Back = Array.add a stack.Back }
         balance stack
 
+    /// Add a sequence of elements to the end of an FStack.
+    let conjMany (items : 'a seq) stack =
+        let stack = { Front = stack.Front; Back = Array.append (Seq.toArray items) stack.Back }
+        balance stack
+
     /// Attempt to pop an element off the given FStack.
     let tryUnconj stack =
         match stack.Back with
