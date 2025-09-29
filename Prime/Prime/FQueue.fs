@@ -120,7 +120,8 @@ type [<DefaultValue "[]">] FQueue<'T>(front: list<'T>, rBack: list<'T>) =
 
     interface System.IEquatable<FQueue<'T>> with
         member this.Equals(y: FQueue<'T>) =
-            if this.Length <> y.Length then false
+            if refEq this y then true
+            elif this.Length <> y.Length then false
             else if this.GetHashCode() <> y.GetHashCode() then false
             else Seq.forall2 (Unchecked.equals) this y
 

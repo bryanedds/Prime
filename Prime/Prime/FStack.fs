@@ -57,14 +57,18 @@ module FStack =
         override this.Equals that =
             match that with
             | :? ('a FStack) as that ->
-                refEq this that || // OPTIMIZATION: first check ref equality
-                Seq.forall2 Unchecked.equals this that
+                if refEq this that then true
+                elif this.Length <> that.Length then false
+                else Seq.forall2 Unchecked.equals this that
             | _ -> false
 
         override this.GetHashCode () =
             let mutable hash = 1
             for a in this do hash <- 31 * hash + Unchecked.hash a
             hash
+
+        member this.Length =
+            this.Front.Length + this.Back.Length
 
         member this.Item with get index =
             if index >= 0 then
@@ -107,7 +111,7 @@ module FStack =
     let isEmpty stack =
         length stack = 0
 
-    /// Check that an FSatck has one or more elements.
+    /// Check that an FStack has one or more elements.
     let notEmpty stack =
         length stack <> 0
 

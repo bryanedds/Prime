@@ -185,8 +185,9 @@ type [<DefaultValue "[]">] FDeque<'T>(front, rBack) =
 
     interface IEquatable<FDeque<'T>> with
         member this.Equals(y) =
-            if this.Length <> y.Length then false
-            else if this.GetHashCode() <> y.GetHashCode() then false
+            if refEq this y then true
+            elif this.Length <> y.Length then false
+            elif this.GetHashCode() <> y.GetHashCode() then false
             else Seq.forall2 (Unchecked.equals) this y
 
     interface IEnumerable<'T> with

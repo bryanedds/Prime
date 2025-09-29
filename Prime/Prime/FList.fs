@@ -111,7 +111,8 @@ type [<DefaultValue "[]">] FList<'T>(front) =
 
     interface IEquatable<FList<'T>> with
         member this.Equals(y) =
-            if this.Length <> y.Length then false
+            if refEq this y then true
+            elif this.Length <> y.Length then false
             else if this.GetHashCode() <> y.GetHashCode() then false
             else Seq.forall2 (Unchecked.equals) this y
 
