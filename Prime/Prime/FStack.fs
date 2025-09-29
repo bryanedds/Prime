@@ -103,9 +103,8 @@ module FStack =
         else stack
 
     /// The number of elements in an FStack.
-    and length stack =
-        stack.Front.Length +
-        stack.Back.Length
+    and length (stack : 'a FStack) =
+        stack.Length
         
     /// Check that an FStack has no elements.
     let isEmpty stack =
