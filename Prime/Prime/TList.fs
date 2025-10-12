@@ -112,9 +112,9 @@ module TList =
     let makeEmpty<'a> config =
         makeFromSeq config (List<'a> ())
 
-    /// Get the semantics configuration of a TList.
+    /// Get the semantic configuration of a TList.
     let config list =
-        struct (list.TConfig, list)
+        list.TConfig
 
     /// Get the value of the given index.
     let get index list =

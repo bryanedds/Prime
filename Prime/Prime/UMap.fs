@@ -58,27 +58,29 @@ module UMap =
 
     /// Get the comparer function used to determine key uniqueness in a UMap.
     let comparer map =
-        let struct (result, tmap) = TMap.comparer map.Map
-        map.Map <- tmap
-        result
+        TMap.comparer map.Map
 
     /// Get the semantic configuration of the TSet.
     let config map =
-        let struct (result, tmap) = TMap.config map.Map
-        map.Map <- tmap
-        result
+        TMap.config map.Map
 
     /// Add an entry to a UMap.
     let add key value map =
-        { Map = TMap.add key value map.Map }
+        match TMap.config map.Map with
+        | Functional -> { Map = TMap.add key value map.Map }
+        | Imperative -> TMap.add key value map.Map |> ignore; map
 
     /// Remove any entry with a matching key from a UMap.
     let remove key map =
-        { Map = TMap.remove key map.Map }
+        match TMap.config map.Map with
+        | Functional -> { Map = TMap.remove key map.Map }
+        | Imperative -> TMap.remove key map.Map |> ignore; map
 
     /// Clear all elements from a UMap.
     let clear map =
-        { Map = TMap.clear map.Map }
+        match TMap.config map.Map with
+        | Functional -> { Map = TMap.clear map.Map }
+        | Imperative -> TMap.clear map.Map |> ignore; map
 
     /// Check that a UMap has no entries.
     let isEmpty map =
@@ -118,11 +120,15 @@ module UMap =
 
     /// Add all the given entries to a UMap.
     let addMany entries map =
-        { Map = TMap.addMany entries map.Map }
+        match TMap.config map.Map with
+        | Functional -> { Map = TMap.addMany entries map.Map }
+        | Imperative -> TMap.addMany entries map.Map |> ignore; map
 
     /// Remove all values with the given keys from a UMap.
     let removeMany keys map =
-        { Map = TMap.removeMany keys map.Map }
+        match TMap.config map.Map with
+        | Functional -> { Map = TMap.removeMany keys map.Map }
+        | Imperative -> TMap.removeMany keys map.Map |> ignore; map
 
     /// Convert a sequence of keys and values to a UMap.
     let ofSeq comparer config pairs =

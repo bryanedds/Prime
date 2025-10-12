@@ -47,11 +47,9 @@ module UList =
     let makeEmpty<'a> config =
         { List = TList.makeEmpty<'a> config }
 
-    /// Get the semantics configuration of a UList.
+    /// Get the semantic configuration of a UList.
     let config list =
-        let struct (result, tlist) = TList.config list.List
-        list.List <- tlist
-        result
+        TList.config list.List
 
     /// Get the value of the given index.
     let get (index : int) (list : 'a UList) =
@@ -59,19 +57,27 @@ module UList =
 
     /// Set the value of the given index.
     let set index value list =
-        { List = TList.set index value list.List }
+        match TList.config list.List with
+        | Functional -> { List = TList.set index value list.List }
+        | Imperative -> TList.set index value list.List |> ignore; list
 
     /// Add an element to a UList.
     let add value list =
-        { List = TList.add value list.List }
+        match TList.config list.List with
+        | Functional -> { List = TList.add value list.List }
+        | Imperative -> TList.add value list.List |> ignore; list
 
     /// Remove all matching elements from a UList.
     let remove value list =
-        { List = TList.remove value list.List }
+        match TList.config list.List with
+        | Functional -> { List = TList.remove value list.List }
+        | Imperative -> TList.remove value list.List |> ignore; list
 
     /// Remove all elements from a UList.
     let clear list =
-        { List = TList.clear list.List }
+        match TList.config list.List with
+        | Functional -> { List = TList.clear list.List }
+        | Imperative -> TList.clear list.List |> ignore; list
 
     /// Check that a UList has no elements.
     let isEmpty list =
@@ -183,11 +189,15 @@ module UList =
 
     /// Add all the given items to a UList.
     let addMany items list =
-        { List = TList.addMany items list.List }
+        match TList.config list.List with
+        | Functional -> { List = TList.addMany items list.List }
+        | Imperative -> TList.addMany items list.List |> ignore; list
 
     /// Remove all the given items from a UList.
     let removeMany items list =
-        { List = TList.removeMany items list.List }
+        match TList.config list.List with
+        | Functional -> { List = TList.removeMany items list.List }
+        | Imperative -> TList.removeMany items list.List |> ignore; list
 
     /// Make a UList with a single element.
     let singleton<'a> config item =

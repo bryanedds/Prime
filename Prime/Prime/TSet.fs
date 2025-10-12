@@ -108,11 +108,11 @@ module TSet =
 
     /// Get the comparer function used to determine uniqueness in a TSet.
     let comparer set =
-        struct (set.HashSet.Comparer, set)
+        set.HashSet.Comparer
 
     /// Get the semantic configuration of the TSet.
     let config set =
-        struct (set.TConfig, set)
+        set.TConfig
 
     /// Add an element to a TSet.
     let add value set =

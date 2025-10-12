@@ -105,11 +105,11 @@ module TMap =
         
     /// Get the comparer function used to determine key uniqueness in a TMap.
     let comparer map =
-        struct (map.Dict.Comparer, map)
+        map.Dict.Comparer
 
     /// Get the semantic configuration of the TSet.
     let config map =
-        struct (map.TConfig, map)
+        map.TConfig
 
     /// Add an entry to a TMap.
     let add key value map =

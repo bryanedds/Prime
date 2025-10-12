@@ -58,27 +58,29 @@ module SUMap =
 
     /// Get the comparer function used to determine key uniqueness in a SUMap.
     let comparer map =
-        let struct (result, tmap) = STMap.comparer map.Map
-        map.Map <- tmap
-        result
+        STMap.comparer map.Map
 
     /// Get the semantic configuration of the TSet.
     let config map =
-        let struct (result, tmap) = STMap.config map.Map
-        map.Map <- tmap
-        result
+        STMap.config map.Map
 
     /// Add an entry to a SUMap.
     let add key value map =
-        { Map = STMap.add key value map.Map }
+        match STMap.config map.Map with
+        | Functional -> { Map = STMap.add key value map.Map }
+        | Imperative -> STMap.add key value map.Map |> ignore; map
 
     /// Remove any entry with a matching key from a SUMap.
     let remove key map =
-        { Map = STMap.remove key map.Map }
+        match STMap.config map.Map with
+        | Functional -> { Map = STMap.remove key map.Map }
+        | Imperative -> STMap.remove key map.Map |> ignore; map
 
     /// Clear all elements from a SUMap.
     let clear map =
-        { Map = STMap.clear map.Map }
+        match STMap.config map.Map with
+        | Functional -> { Map = STMap.clear map.Map }
+        | Imperative -> STMap.clear map.Map |> ignore; map
 
     /// Check that a SUMap has no entries.
     let isEmpty map =

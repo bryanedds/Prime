@@ -68,23 +68,23 @@ module USet =
 
     /// Get the comparer function used to determine uniqueness in a USet.
     let comparer set =
-        let struct (result, tset) = TSet.comparer set.Set
-        set.Set <- tset
-        result
+        TSet.comparer set.Set
 
     /// Get the semantic configuration of the USet.
     let config set =
-        let struct (result, tset) = TSet.config set.Set
-        set.Set <- tset
-        result
+        TSet.config set.Set
 
     /// Add an element to a USet.
     let add value set =
-        { Set = TSet.add value set.Set }
+        match TSet.config set.Set with
+        | Functional -> { Set = TSet.add value set.Set }
+        | Imperative -> TSet.add value set.Set |> ignore; set
 
     /// Remove all matching elements from a USet.
     let remove value set =
-        { Set = TSet.remove value set.Set }
+        match TSet.config set.Set with
+        | Functional -> { Set = TSet.remove value set.Set }
+        | Imperative -> TSet.remove value set.Set |> ignore; set
 
     /// Copy the elements of a USet to an array, starting at the given index.
     let copyTo (array : 'a array, arrayIndex : int) (set : 'a USet) =
@@ -93,7 +93,9 @@ module USet =
 
     /// Remove all elements from a USet.
     let clear set =
-        { Set = TSet.clear set.Set }
+        match TSet.config set.Set with
+        | Functional -> { Set = TSet.clear set.Set }
+        | Imperative -> TSet.clear set.Set |> ignore; set
 
     /// Check that a USet has no elements.
     let isEmpty set =
@@ -117,12 +119,16 @@ module USet =
 
     /// Add all the given values to a USet.
     let addMany values set =
-        { Set = TSet.addMany values set.Set }
+        match TSet.config set.Set with
+        | Functional -> { Set = TSet.addMany values set.Set }
+        | Imperative -> TSet.addMany values set.Set |> ignore; set
 
     /// Remove all the given values from a USet.
     let removeMany values set =
-        { Set = TSet.removeMany values set.Set }
-        
+        match TSet.config set.Set with
+        | Functional -> { Set = TSet.removeMany values set.Set }
+        | Imperative -> TSet.removeMany values set.Set |> ignore; set
+
     /// Make a USet from a sequence of values.
     let ofSeq comparer config values =
         Seq.fold

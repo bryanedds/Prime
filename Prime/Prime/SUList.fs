@@ -47,11 +47,9 @@ module SUList =
     let makeEmpty<'a> config =
         { List = STList.makeEmpty<'a> config }
 
-    /// Get the semantics configuration of a SUList.
+    /// Get the semantic configuration of a SUList.
     let config list =
-        let struct (result, tlist) = STList.config list.List
-        list.List <- tlist
-        result
+        STList.config list.List
 
     /// Get the value of the given index.
     let get (index : int) (list : 'a SUList) =
@@ -59,19 +57,27 @@ module SUList =
 
     /// Set the value of the given index.
     let set index value list =
-        { List = STList.set index value list.List }
+        match STList.config list.List with
+        | Functional -> { List = STList.set index value list.List }
+        | Imperative -> STList.set index value list.List |> ignore; list
 
     /// Add an element to a SUList.
     let add value list =
-        { List = STList.add value list.List }
+        match STList.config list.List with
+        | Functional -> { List = STList.add value list.List }
+        | Imperative -> STList.add value list.List |> ignore; list
 
     /// Remove all matching elements from a SUList.
     let remove value list =
-        { List = STList.remove value list.List }
+        match STList.config list.List with
+        | Functional -> { List = STList.remove value list.List }
+        | Imperative -> STList.remove value list.List |> ignore; list
 
     /// Remove all elements from a SUList.
     let clear list =
-        { List = STList.clear list.List }
+        match STList.config list.List with
+        | Functional -> { List = STList.clear list.List }
+        | Imperative -> STList.clear list.List |> ignore; list
 
     /// Check that a SUList has no elements.
     let isEmpty list =
@@ -183,11 +189,15 @@ module SUList =
 
     /// Add all the given items to a SUList.
     let addMany items list =
-        { List = STList.addMany items list.List }
+        match STList.config list.List with
+        | Functional -> { List = STList.addMany items list.List }
+        | Imperative -> STList.addMany items list.List |> ignore; list
 
     /// Remove all the given items from a SUList.
     let removeMany items list =
-        { List = STList.removeMany items list.List }
+        match STList.config list.List with
+        | Functional -> { List = STList.removeMany items list.List }
+        | Imperative -> STList.removeMany items list.List |> ignore; list
 
     /// Make a SUList with a single element.
     let singleton<'a> config item =

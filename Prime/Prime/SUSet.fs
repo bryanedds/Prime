@@ -68,23 +68,23 @@ module SUSet =
 
     /// Get the comparer function used to determine uniqueness in a SUSet.
     let comparer set =
-        let struct (result, tset) = STSet.comparer set.Set
-        set.Set <- tset
-        result
+        STSet.comparer set.Set
 
     /// Get the semantic configuration of the SUSet.
     let config set =
-        let struct (result, tset) = STSet.config set.Set
-        set.Set <- tset
-        result
+        STSet.config set.Set
 
     /// Add an element to a SUSet.
     let add value set =
-        { Set = STSet.add value set.Set }
+        match STSet.config set.Set with
+        | Functional -> { Set = STSet.add value set.Set }
+        | Imperative -> STSet.add value set.Set |> ignore; set
 
     /// Remove all matching elements from a SUSet.
     let remove value set =
-        { Set = STSet.remove value set.Set }
+        match STSet.config set.Set with
+        | Functional -> { Set = STSet.remove value set.Set }
+        | Imperative -> STSet.remove value set.Set |> ignore; set
 
     /// Copy the elements of a USet to an array, starting at the given index.
     let copyTo (array : 'a array, arrayIndex : int) (set : 'a SUSet) =
@@ -93,7 +93,9 @@ module SUSet =
 
     /// Remove all elements from a SUSet.
     let clear set =
-        { Set = STSet.clear set.Set }
+        match STSet.config set.Set with
+        | Functional -> { Set = STSet.clear set.Set }
+        | Imperative -> STSet.clear set.Set |> ignore; set
 
     /// Check that a SUSet has no elements.
     let isEmpty set =
@@ -119,12 +121,16 @@ module SUSet =
 
     /// Add all the given values to a SUSet.
     let addMany values set =
-        { Set = STSet.addMany values set.Set }
+        match STSet.config set.Set with
+        | Functional -> { Set = STSet.addMany values set.Set }
+        | Imperative -> STSet.addMany values set.Set |> ignore; set
 
     /// Remove all the given values from a SUSet.
     let removeMany values set =
-        { Set = STSet.removeMany values set.Set }
-        
+        match STSet.config set.Set with
+        | Functional -> { Set = STSet.removeMany values set.Set }
+        | Imperative -> STSet.removeMany values set.Set |> ignore; set
+
     /// Make a SUSet from a sequence of values.
     let ofSeq comparer config values =
         Seq.fold
