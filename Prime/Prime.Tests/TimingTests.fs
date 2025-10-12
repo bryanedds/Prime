@@ -76,7 +76,7 @@ module TimingTests =
         
         // run umap imperative timings without computation expressions
         runMapTimings
-            (fun entries -> Array.fold (fun map (k, v) -> UMap.add k v map) (UMap.makeEmpty HashIdentity.Structural Functional) entries)
+            (fun entries -> Array.fold (fun map (k, v) -> UMap.add k v map) (UMap.makeEmpty HashIdentity.Structural Imperative) entries)
             (fun entries map -> Array.iter (fun (k, _) -> UMap.find k map |> ignore) entries)
             "UMap Imperative"
         
