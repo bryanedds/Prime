@@ -85,8 +85,9 @@ module SArray =
     let empty =
         { TotalLength = 0; SegmentSize = 0; SegmentRemainder = 0; Segments = [||] }
 
-    let zeroCreate<'a> length =
-        if length < 0 then raise (ArgumentException ("Invalid argument.", nameof length))
+    // OPTIMIZATION: using inline to eliminate closure allocation for segmentInit.
+    let inline private create<'a> length segmentInit : 'a SArray =
+        if length < 0 then raise (ArgumentOutOfRangeException (nameof length, length, "Length cannot be negative."))
         let size = sizeof<'a>
         let segmentSize = Constants.Runtime.LohSize / size / 2
         let (segmentCount, segmentRemainder) = Math.DivRem (length, segmentSize)
@@ -95,9 +96,18 @@ module SArray =
                 (if segmentRemainder = 0 then segmentCount else inc segmentCount)
                 (fun i ->
                     if i < segmentCount
-                    then Array.zeroCreate<'a> segmentSize
-                    else Array.zeroCreate<'a> segmentRemainder)
+                    then segmentInit segmentSize (i * segmentSize)
+                    else segmentInit segmentRemainder (i * segmentSize))
         { TotalLength = length; SegmentSize = segmentSize; SegmentRemainder = segmentRemainder; Segments = segments }
+
+    let zeroCreate length =
+        create length (fun length _ -> Array.zeroCreate length)
+
+    let init count initializer =
+        create count (fun length offset -> Array.init length ((+) offset >> initializer))
+
+    let replicate count initial =
+        create count (fun length _ -> Array.replicate length initial)
 
     let length sarray =
         sarray.TotalLength
