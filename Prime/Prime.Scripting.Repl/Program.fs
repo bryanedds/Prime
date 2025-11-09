@@ -18,13 +18,8 @@ module Program =
         while Console.KeyAvailable do ignore (Console.ReadKey true)
         Console.Write "> "
         match Console.ReadLine () with
-        | input when input.Trim () = "exit" ->
-            world
-        | input when input.Trim () = "timings" ->
-            Timings.runTimings ()
-            world
-        | input when String.IsNullOrWhiteSpace input ->
-            runRepl world
+        | input when input.Trim () = "exit" -> ()
+        | input when String.IsNullOrWhiteSpace input -> runRepl world
         | input ->
             let expr = scvalue<Scripting.Expr> input
             try let result = ScriptingSystem.eval expr world
@@ -38,18 +33,15 @@ module Program =
     let [<EntryPoint; STAThread>] main _ =
         let world = ScriptingWorld.make ()
         Console.Write "Attempting to evaluate Amsl prelude... "
-        let world =
-            match ScriptingSystem.tryEvalScript Constants.Scripting.PreludeFilePath world with
-            | Left err ->
-                Console.WriteLine "Error!"
-                Console.WriteLine err
-                world
-            | Right (_, _) ->
-                Console.WriteLine "Success!"
-                world
+        match ScriptingSystem.tryEvalScript Constants.Scripting.PreludeFilePath world with
+        | Left err ->
+            Console.WriteLine "Error!"
+            Console.WriteLine err
+        | Right (_, _) ->
+            Console.WriteLine "Success!"
         Console.WriteLine "Welcome to the Amsl Repl!"
         Console.WriteLine "Try writing a symbolic expression like [+ 2 2] or [[fun [x] [* x x]] 5]"
         Console.WriteLine "Type 'timings' to run Prime collection timings."
         Console.WriteLine "Type 'exit' when done!"
-        runRepl world |> ignore
+        runRepl world
         0

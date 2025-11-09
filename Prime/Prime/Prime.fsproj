@@ -87,7 +87,6 @@
 		<Compile Include="SymbolicConverter.fs" />
 		<Compile Include="SymbolicOperators.fs" />
 		<Compile Include="PrettyPrinter.fs" />
-		<Compile Include="Timings.fs" />
 		<Compile Include="AssemblyInfo.fs" />
 		<None Include="Interactive.fsx" />
 	</ItemGroup>
