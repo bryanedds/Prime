@@ -13,7 +13,7 @@ open System.Runtime.InteropServices
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("Bryan Edds")>]
 [<assembly: AssemblyProduct("Prime.Ecs")>]
-[<assembly: AssemblyCopyright("Copyright © Bryan Edds 2023")>]
+[<assembly: AssemblyCopyright("Copyright © Bryan Edds")>]
 [<assembly: AssemblyTrademark("")>]
 [<assembly: AssemblyCulture("")>]
 
