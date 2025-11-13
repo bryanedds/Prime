@@ -15,7 +15,7 @@ module Program =
         static member make () = { ScriptingEnv = Scripting.Env.make () }
         
     let rec private runRepl world =
-        while Console.KeyAvailable do ignore (Console.ReadKey true)
+        while Console.KeyAvailable do Console.ReadKey true |> ignore<ConsoleKeyInfo>
         Console.Write "> "
         match Console.ReadLine () with
         | input when input.Trim () = "exit" -> ()

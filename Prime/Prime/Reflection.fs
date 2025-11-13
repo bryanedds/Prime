@@ -396,17 +396,17 @@ module TypeExtension =
                 PropertiesWritableArray.TryAdd (this, properties) |> ignore<bool>
                 properties
 
-        /// Get the generic name of the type, EG - Option<String>
+        /// Get the generic name of the type, EG - Option<String>.
         /// Thread-safe.
         member this.GetGenericName () : string =
             let sb = StringBuilder ()
             let name = this.Name
             if this.IsGenericType then
                 let gargs = this.GetGenericArguments () |> Array.map (fun garg -> garg.GetGenericName ())
-                ignore (sb.Append (name.Substring (0, name.IndexOf '`')))
-                ignore (sb.Append "<")
-                ignore (sb.Append (String.Join (", ", gargs)))
-                ignore (sb.Append ">")
+                sb.Append (name.Substring (0, name.IndexOf '`')) |> ignore<StringBuilder>
+                sb.Append "<" |> ignore<StringBuilder>
+                sb.Append (String.Join (", ", gargs)) |> ignore<StringBuilder>
+                sb.Append ">" |> ignore<StringBuilder>
                 sb.ToString ()
             else name
 
