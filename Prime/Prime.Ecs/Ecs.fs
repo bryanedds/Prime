@@ -85,12 +85,12 @@ and ArchetypeId (terms : Map<string, Term>) =
         hashCode
 
     member this.AddTerm termName term =
-        if strEq termName (nameof EntityId) then
+        if termName = nameof EntityId then
             failwith "Cannot update an archetype's EntityId term."
         ArchetypeId (Map.add termName term terms)
 
     member this.RemoveTerm termName =
-        if strEq termName (nameof EntityId) then
+        if termName = nameof EntityId then
             failwith "All archetypes require an EntityId component."
         ArchetypeId (Map.remove termName terms)
 

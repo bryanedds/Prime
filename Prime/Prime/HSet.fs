@@ -184,7 +184,7 @@ module HSet =
             | :? HSet<'a> as that ->
                 // OPTIMIZATION: elide deep comparison with reference equality.
                 refEq this that || // OPTIMIZATION: first check ref equality
-                obj.Equals (this.Node, that.Node)
+                objEq this.Node that.Node
             | _ -> false
 
         override this.GetHashCode () =

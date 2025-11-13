@@ -221,7 +221,7 @@ and [<NoEquality; NoComparison>] Subquery =
         | (Bool b, Bool b2) -> Bool (b = b2)
         | (Int i, Int i2) -> Bool (i = i2)
         | (Single f, Single f2) -> Bool (f = f2)
-        | (String str, String str2) -> Bool (strEq str str2)
+        | (String str, String str2) -> Bool (str = str2)
         | (Cmp c, Cmp c2) -> Bool (c.Equals c2)
         | (Obj o, Obj o2) -> Bool (o.Equals o2)
         | (EntityId entityId, EntityId entityId2) -> Bool (genEq entityId entityId2)
@@ -420,8 +420,8 @@ and [<NoEquality; NoComparison>] Subquery =
             match terms.TryGetValue termName with
             | (true, term) ->
                 match term with
-                | Intra (compName, _)  -> Bool (strEq compName compName2)
-                | Extra (compName, _, _)  -> Bool (strEq compName compName2)
+                | Intra (compName, _)  -> Bool (compName = compName2)
+                | Extra (compName, _, _)  -> Bool (compName = compName2)
                 | Error _ as err -> err
                 | _ -> Error "Invalid Named argument; Intra or Extra required."
             | (false, _) -> Error "Non-existent term."

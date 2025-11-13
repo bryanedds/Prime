@@ -108,14 +108,8 @@ module Operators =
     /// (=) as a function.
     let inline eq<'a when 'a : equality> (left : 'a) (right : 'a) = left = right
 
-    /// Compare two strings.
-    let inline strCmp str str2 = String.CompareOrdinal (str, str2)
-
-    /// Test for string equality.
-    let inline strEq str str2 = String.Equals (str, str2)
-
-    /// Test for string inequality.
-    let inline strNeq str str2 = strCmp str str2 <> 0
+    /// (<>) as a function.
+    let inline neq<'a when 'a : equality> (left : 'a) (right : 'a) = left <> right
 
     /// Test for object equality.
     let inline objEq (a : obj) (b : obj) = obj.Equals (a, b)
@@ -129,35 +123,26 @@ module Operators =
     /// Test for reference inequality.
     let inline refNeq<'a> (a : 'a) (b : 'a) = not (obj.ReferenceEquals (a, b))
 
-    /// Test for equality generically, often faster than (=).
+    /// Test for equality generically.
     let inline genEq<'a when 'a : equality> (a : 'a) (b : 'a) = LanguagePrimitives.GenericEquality a b
 
-    /// Test for inequality generically, often faster than (=).
+    /// Test for inequality generically.
     let inline genNeq<'a when 'a : equality> (a : 'a) (b : 'a) = not (LanguagePrimitives.GenericEquality a b)
-
-    /// Inspect two options for equality.
-    let inline optEq aOpt bOpt =
-        match aOpt with
-        | Some a -> match bOpt with Some b -> a = b | None -> false
-        | None -> match bOpt with Some _ -> false | None -> true
-
-    /// Inspect two options for inequality.
-    let inline optNeq aOpt bOpt = not (optEq aOpt bOpt)
-
-    /// Inspect two voptions for equality.
-    let inline voptEq aOpt bOpt =
-        match aOpt with
-        | ValueSome a -> match bOpt with ValueSome b -> a = b | ValueNone -> false
-        | ValueNone -> match bOpt with ValueSome _ -> false | ValueNone -> true
-
-    /// Inspect two voptions for inequality.
-    let inline voptNeq aOpt bOpt = not (voptEq aOpt bOpt)
 
     /// Test for sequence equality.
     let inline seqEq<'a> (seq : 'a seq) (seq2 : 'a seq) = Enumerable.SequenceEqual (seq, seq2)
 
     /// Test for sequence equality.
     let inline seqNeq<'a> (seq : 'a seq) (seq2 : 'a seq) = not (Enumerable.SequenceEqual (seq, seq2))
+
+    /// Test for string equality ordinally.
+    let inline strEq str str2 = String.Equals (str, str2)
+
+    /// Test for string inequality ordinally.
+    let inline strNeq str str2 = not (String.Equals (str, str2))
+
+    /// Compare two strings ordinally.
+    let inline strCmp str str2 = String.CompareOrdinal (str, str2)
 
     /// Attempt to cast an obj to type 'a, returning 'a option.
     let inline tryCast<'a> (obj : obj) = match obj with :? 'a as a -> Some a | _ -> None
@@ -224,5 +209,5 @@ module Operators =
     /// Test for object equality.
     let inline (===) (a : obj) (b : obj) = objEq a b
 
-    /// Test for object equality.
+    /// Test for object inequality.
     let inline (=/=) (a : obj) (b : obj) = objNeq a b

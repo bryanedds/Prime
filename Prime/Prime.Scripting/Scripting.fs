@@ -923,14 +923,14 @@ module Scripting =
                 | (true, value) -> Some value
             | (true, value) -> Some value
 
-        let private tryGetProceduralBinding name env =
+        let private tryGetProceduralBinding (name : string) env =
             let offsetRef = ref -1
             let indexOptRef = ref None
             let optBinding =
                 List.tryFindPlus
                     (fun frame ->
                         offsetRef := !offsetRef + 1
-                        indexOptRef := Array.tryFindIndexBack (fun struct (bindingName, _) -> name.Equals bindingName) frame // OPTIMIZATION: faster than (=) here
+                        indexOptRef := Array.tryFindIndexBack (fun struct (bindingName, _) -> name = bindingName) frame // OPTIMIZATION: faster than (=) here
                         match !indexOptRef with
                         | Some index -> Some frame.[index]
                         | None -> None)

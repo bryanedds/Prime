@@ -121,9 +121,9 @@ type [<CustomEquality; NoComparison>] Symbol =
 
     static member equals left right =
         match (left, right) with
-        | (Atom (str, _), Atom (str2, _)) -> strEq str str2
-        | (Number (str, _), Number (str2, _)) -> strEq str str2
-        | (Text (str, _), Text (str2, _)) -> strEq str str2
+        | (Atom (str, _), Atom (str2, _)) -> str = str2
+        | (Number (str, _), Number (str2, _)) -> str = str2
+        | (Text (str, _), Text (str2, _)) -> str = str2
         | (Quote (sym, _), Quote (sym2, _)) -> Symbol.equals sym sym2
         | (Symbols (syms, _), Symbols (syms2, _)) ->
             if List.length syms = List.length syms2

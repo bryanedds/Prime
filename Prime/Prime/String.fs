@@ -158,7 +158,7 @@ module String =
             let mutable result = true
             let mutable i = 0
             while result && i < length do
-                result <- strEq strs.[i] strs2.[i]
+                result <- strs.[i] = strs2.[i]
                 i <- inc i
             result
          else false
@@ -182,7 +182,7 @@ module String =
             let mutable result = true
             let mutable i = dec length
             while result && i >= 0 do
-                result <- strEq strs.[i] strs2.[i]
+                result <- strs.[i] = strs2.[i]
                 i <- dec i
             result
          else false

@@ -194,7 +194,7 @@ module HMap =
             match that with
             | :? HMap<'k, 'v> as that ->
                 refEq this that || // OPTIMIZATION: first check ref equality
-                obj.Equals (this.Node, that.Node)
+                objEq this.Node that.Node
             | _ -> false
 
         override this.GetHashCode () =
