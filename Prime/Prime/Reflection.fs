@@ -331,10 +331,10 @@ module TypeExtension =
         /// Thread-safe if type converter ctor is.
         member this.TryGetCustomTypeConverter () =
             let globalConverterAttributes =
-                [| for attribute in TypeDescriptor.GetAttributes this do
+                [|for attribute in TypeDescriptor.GetAttributes this do
                     match attribute with
                     | :? TypeConverterAttribute as tca -> yield tca
-                    | _ -> () |]
+                    | _ -> ()|]
             let typeConverterAttributes =
                 this.GetCustomAttributes (typeof<TypeConverterAttribute>, true)
                 |> Array.map (fun attr -> attr :?> TypeConverterAttribute)
