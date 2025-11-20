@@ -142,3 +142,15 @@ module Array =
         for i in 0 .. dec arr.Length do
             hashCode <- hashCode ^^^ hash arr.[i]
         hashCode
+
+[<AutoOpen>]
+module ArrayExtension =
+    type 'a ``[]`` with
+
+        /// Check that an array is empty.
+        member this.IsEmpty =
+            Array.isEmpty this
+
+        /// Check that an array is non-empty.
+        member this.NotEmpty =
+            Array.notEmpty this
