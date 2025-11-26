@@ -36,8 +36,4 @@
 		<ProjectReference Include="..\Prime.Scripting\Prime.Scripting.fsproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Update="FSharp.Core" Version="9.0.300" />
-	</ItemGroup>
-
 </Project>
