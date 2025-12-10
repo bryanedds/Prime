@@ -5,7 +5,6 @@ namespace Prime.Ecs
 open System
 open System.Collections.Generic
 open System.IO
-open System.Numerics
 open System.Runtime.InteropServices
 open FSharp.Quotations
 open Prime
