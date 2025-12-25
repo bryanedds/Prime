@@ -131,7 +131,7 @@ type [<CustomEquality; NoComparison>] Symbol =
             else false
         | (_, _) -> false
 
-    /// Try to get the origin of the symbol if it has one.
+    /// Get the origin of the symbol if it has one.
     static member getOriginOpt symbol =
         match symbol with
         | Atom (_, originOpt)
@@ -148,6 +148,10 @@ type [<CustomEquality; NoComparison>] Symbol =
         | Text (str, _) -> Text (str, originOpt)
         | Quote (sym, _) -> Quote (sym, originOpt)
         | Symbols (syms, _) -> Symbols (syms, originOpt)
+
+    /// Get the origin of the symbol if it has one.
+    member this.OriginOpt =
+        Symbol.getOriginOpt this
 
     override this.GetHashCode () =
         Symbol.hash this
@@ -483,7 +487,7 @@ type ConversionException (message : string, symbolOpt : Symbol option) =
     member this.SymbolOpt = symbolOpt
     override this.ToString () =
         message + "\n" +
-        (match symbolOpt with Some symbol -> SymbolOrigin.tryPrint (Symbol.getOriginOpt symbol) + "\n" | None -> "") +
+        (match symbolOpt with Some symbol -> SymbolOrigin.tryPrint symbol.OriginOpt + "\n" | None -> "") +
         base.ToString ()
 
 [<AutoOpen>]
