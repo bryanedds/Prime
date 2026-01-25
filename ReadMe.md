@@ -14,4 +14,4 @@ The Prime F# Code Library [![License](https://img.shields.io/badge/license-MIT-b
 - A powerful and reusable scripting language, AMSL, with the types in the **Scripting** module.
 - So many extension primitives I couldn't hope to mention them all!
 
-Prime is built with clean and modular **Abstract Data Type** programming style as presented here - https://vimeo.com/128464151
+Prime is built with clean and modular **Abstract Data Type** programming style as presented here - https://www.youtube.com/watch?v=n-ROF4k5Bb8
