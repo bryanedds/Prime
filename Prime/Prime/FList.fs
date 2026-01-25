@@ -203,7 +203,7 @@ module FList =
     let map mapper (q: FList<'T>) : FList<'T2> = Seq.map mapper q |> ofSeq
 
     /// O(n). Choose implemented in terms of seq (to save some development time).
-    let choose chooser (q: FList<'T option>) : FList<'T2> = Seq.choose chooser q |> ofSeq
+    let choose chooser (q: FList<'T>) : FList<'T2> = Seq.choose chooser q |> ofSeq
 
     /// O(n). Append implemented in terms of seq (to save some development time).
     let append (q: FList<'T>) (q2: FList<'T>) = Seq.append q q2 |> ofSeq

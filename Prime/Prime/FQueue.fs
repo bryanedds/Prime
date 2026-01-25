@@ -221,7 +221,7 @@ module FQueue =
     let iter action (q: FQueue<'T>) = Seq.iter action q
 
     /// O(n). Choose implemented in terms of seq (to save some development time).
-    let choose chooser (q: FQueue<'T option>) : FQueue<'T2> = Seq.choose chooser q |> ofSeq
+    let choose chooser (q: FQueue<'T>) : FQueue<'T2> = Seq.choose chooser q |> ofSeq
 
     /// O(n). Append implemented in terms of seq (to save some development time).
     let append (q: FQueue<'T>) (q2: FQueue<'T>) = Seq.append q q2 |> ofSeq

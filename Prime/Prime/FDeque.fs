@@ -313,7 +313,7 @@ module FDeque =
     let iter action (q: FDeque<'T>) = Seq.iter action q
 
     /// O(n). Choose implemented in terms of seq (to save some development time).
-    let choose chooser (q: FDeque<'T option>) : FDeque<'T2> = Seq.choose chooser q |> ofSeq
+    let choose chooser (q: FDeque<'T>) : FDeque<'T2> = Seq.choose chooser q |> ofSeq
 
     /// O(n). Append implemented in terms of seq (to save some development time).
     let append (q: FDeque<'T>) (q2: FDeque<'T>) = Seq.append q q2 |> ofSeq
