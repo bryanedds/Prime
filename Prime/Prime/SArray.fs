@@ -100,14 +100,14 @@ module SArray =
                     else segmentInit segmentRemainder (i * segmentSize))
         { TotalLength = length; SegmentSize = segmentSize; SegmentRemainder = segmentRemainder; Segments = segments }
 
-    let zeroCreate length =
-        create length (fun length _ -> Array.zeroCreate length)
+    let zeroCreate<'a> length =
+        create<'a> length (fun length _ -> Array.zeroCreate length)
 
-    let init count initializer =
-        create count (fun length offset -> Array.init length ((+) offset >> initializer))
+    let init<'a> count initializer =
+        create<'a> count (fun length offset -> Array.init length ((+) offset >> initializer))
 
-    let replicate count initial =
-        create count (fun length _ -> Array.replicate length initial)
+    let replicate<'a> count initial =
+        create<'a> count (fun length _ -> Array.replicate length initial)
 
     let length sarray =
         sarray.TotalLength
