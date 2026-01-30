@@ -677,12 +677,12 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                             match Reflection.tryGetUnionCase aType unionName with
                             | Some aCase ->
                                 let a = ofSymbol aCase.DeclaringType symbol
-                                let compressionUnion = (FSharpType.GetUnionCases destType).[0]
+                                let compressionUnion = (Reflection.getUnionCases destType).Item 0 :?> UnionCaseInfo
                                 FSharpValue.MakeUnion (compressionUnion, [|a|])
                             | None ->
                                 let bType = gargs.[1]
                                 let b = ofSymbol bType symbol
-                                let compressionUnion = (FSharpType.GetUnionCases destType).[1]
+                                let compressionUnion = (Reflection.getUnionCases destType).Item 1 :?> UnionCaseInfo
                                 FSharpValue.MakeUnion (compressionUnion, [|b|])
                         | _ -> failconv "Expected Atom value for SymbolicCompression union name." (Some symbol)
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
@@ -692,7 +692,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 elif FSharpType.IsTuple destType then
                     match symbol with
                     | Symbols (symbols, _) ->
-                        let elementTypes = FSharpType.GetTupleElements destType
+                        let elementTypes = Reflection.getTupleElements destType
                         let elements =
                             symbols
                             |> Array.ofList
@@ -709,14 +709,16 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     | Symbols (symbols, _) ->
                         if destType.IsDefined (typeof<SymbolicExpansionAttribute>, true) then
                             let expansionAttribute = destType.GetCustomAttribute<SymbolicExpansionAttribute> true                            
-                            let fieldInfos = FSharpType.GetRecordFields (destType, true)
+                            let fieldInfos = Reflection.getRecordFields destType
                             if List.forall (function Symbols ([Atom _; _], _) -> true | _ -> false) symbols then
                                 let fieldMap =
                                     symbols
                                     |> List.map (function Symbols ([Atom (fieldName, _); fieldSymbol], _) -> (fieldName, fieldSymbol) | _ -> failwithumf ())
                                     |> Map.ofList
                                 let fields =
-                                    Array.map (fun (info : PropertyInfo) ->
+                                    fieldInfos.Values
+                                    |> Seq.cast<PropertyInfo>
+                                    |> Seq.map (fun (info : PropertyInfo) ->
                                         match Map.tryFind info.Name fieldMap with
                                         | Some fieldSymbol -> ofSymbol info.PropertyType fieldSymbol
                                         | None ->
@@ -728,11 +730,14 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                                                     | Some fieldSymbol -> ofSymbol info.PropertyType fieldSymbol
                                                     | None -> info.PropertyType.GetDefaultValue ()
                                             else info.PropertyType.GetDefaultValue ())
-                                        fieldInfos
+                                    |> Seq.toArray
                                 FSharpValue.MakeRecord (destType, fields, true)
                             else failconv "Expected Symbols in pairs for expanded Record" (Some symbol)
                         else
-                            let fieldInfos = FSharpType.GetRecordFields (destType, true)
+                            let fieldInfos =
+                                (Reflection.getRecordFields destType).Values
+                                |> Seq.cast<PropertyInfo>
+                                |> Seq.toArray
                             let fields =
                                 symbols
                                 |> Array.ofList
@@ -754,7 +759,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                             | _ -> failconv ("Expected Symbols for Union with fields.") (Some symbol)
                         | None ->
                             let unionCases = Reflection.getUnionCases destType
-                            let unionNames = unionCases.Keys |> String.concat " | "
+                            let unionNames = unionCases.Keys |> Seq.cast<string> |> String.concat " | "
                             failconv ("Expected one of the following Atom values for Union name: '" + unionNames + "'.") (Some symbol)
                     | Symbols (symbols, _) ->
                         match symbols with
@@ -772,7 +777,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                                 FSharpValue.MakeUnion (unionCase, unionValues, true)
                             | None ->
                                 let unionCases = Reflection.getUnionCases destType
-                                let unionNames = unionCases.Keys |> String.concat " | "
+                                let unionNames = unionCases.Keys |> Seq.cast<string> |> String.concat " | "
                                 failconv ("Expected one of the following Atom values for Union name: '" + unionNames + "'.") (Some symbol)
                         | (Number (_, _) | Text (_, _) | Quote (_, _) | Symbols (_, _)) :: _ ->
                             failconv "Expected Atom value for Union name." (Some symbol)
@@ -815,7 +820,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             match source with
             | null ->
                 if pointType = typeof<unit> then "[]" :> obj
-                elif FSharpType.IsUnion pointType then (FSharpType.GetUnionCases pointType).[0].Name :> obj
+                elif FSharpType.IsUnion pointType then ((Reflection.getUnionCases pointType).Item 0 :?> UnionCaseInfo).Name :> obj
                 // here we are totally fucked because PropertyGrid passes typeof<obj> to the converter's ctor and we
                 // have no information about what the fuck to do...
                 else source

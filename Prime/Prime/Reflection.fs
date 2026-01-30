@@ -10,6 +10,7 @@ open System.Collections.Generic
 open System.Text
 open System.Reflection
 open FSharp.Reflection
+open System.Collections.Specialized
 
 /// An evaluatable expression for defining a property.
 type [<ReferenceEquality>] PropertyExpr =
@@ -117,8 +118,14 @@ module Reflection =
             (fun (assembly : Assembly) -> assembly.FullName.StartsWith ("FSharp.Core,", StringComparison.Ordinal))
             (AppDomain.CurrentDomain.GetAssemblies ())
 
-    let private UnionCaseNames =
-        ConcurrentDictionary<Type, ConcurrentDictionary<string, UnionCaseInfo>> HashIdentity.Reference
+    let private TupleElements =
+        ConcurrentDictionary<Type, Type array> HashIdentity.Reference
+
+    let private RecordFields =
+        ConcurrentDictionary<Type, OrderedDictionary> HashIdentity.Reference
+
+    let private UnionCases =
+        ConcurrentDictionary<Type, OrderedDictionary> HashIdentity.Reference
 
     /// Check that a property is either a DesignerProperty or a ComputedProperty.
     let isRuntimeProperty property =
@@ -212,28 +219,45 @@ module Reflection =
     let pairsToFMap mapType objs =
         pairsToMapping "Prime.FMapModule" mapType objs
 
-    let tryGetUnionCase (ty : Type) caseName =
-        match UnionCaseNames.TryGetValue ty with
-        | (true, cases) ->
-            match cases.TryGetValue caseName with
-            | (true, case) -> Some case
-            | (false, _) -> None
+    let getTupleElements (ty : Type) =
+        match TupleElements.TryGetValue ty with
+        | (true, elements) -> elements
         | (false, _) ->
-            let cases = FSharpType.GetUnionCases (ty, true)
-            let cases' = ConcurrentDictionary ([|for case in cases do KeyValuePair (case.Name, case)|], StringComparer.Ordinal)
-            UnionCaseNames.[ty] <- cases'
-            match cases'.TryGetValue caseName with
-            | (true, case) -> Some case
-            | (false, _) -> None
+            let elements = FSharpType.GetTupleElements ty
+            TupleElements.[ty] <- elements
+            elements
+
+    let getRecordFields (ty : Type) =
+        match RecordFields.TryGetValue ty with
+        | (true, fields) -> fields
+        | (false, _) ->
+            let fields = FSharpType.GetRecordFields (ty, true)
+            let fields' = OrderedDictionary ()
+            for case in fields do fields'.Add (case.Name, case)
+            RecordFields.[ty] <- fields'
+            fields'
+
+    let tryGetRecordField (ty : Type) (fieldName : string) =
+        let fields = getRecordFields ty
+        if fields.Contains fieldName
+        then Some (fields.[fieldName] :?> PropertyInfo)
+        else None
 
     let getUnionCases (ty : Type) =
-        match UnionCaseNames.TryGetValue ty with
+        match UnionCases.TryGetValue ty with
         | (true, cases) -> cases
         | (false, _) ->
             let cases = FSharpType.GetUnionCases (ty, true)
-            let cases' = ConcurrentDictionary ([|for case in cases do KeyValuePair (case.Name, case)|], StringComparer.Ordinal)
-            UnionCaseNames.[ty] <- cases'
+            let cases' = OrderedDictionary ()
+            for case in cases do cases'.Add (case.Name, case)
+            UnionCases.[ty] <- cases'
             cases'
+
+    let tryGetUnionCase (ty : Type) (caseName : string) =
+        let cases = getUnionCases ty
+        if cases.Contains caseName
+        then Some (cases.[caseName] :?> UnionCaseInfo)
+        else None
 
 [<RequireQualifiedAccess>]
 module Type =
