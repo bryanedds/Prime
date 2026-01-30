@@ -33,6 +33,9 @@ type ComplexUnionAbstract =
         static member make x = ComplexUnionAbstract x
 
 module SymbolTests =
+
+    let [<Test>] spacedOnStringWithSpacesAndNumberWorks () =
+        Assert.Equal ("Material Properties 2", "Material Properties 2".Spaced)
     
     let [<Test>] canConvertStringToAtom () =
         let converter = SymbolicConverter (true, None, typeof<Symbol>)

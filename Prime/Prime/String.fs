@@ -9,7 +9,7 @@ open System.Text.RegularExpressions
 [<AutoOpen>]
 module StringExtensions =
 
-    let private regex = Regex "([A-Z][a-z]+)"
+    let private regex = Regex "([A-Z][a-z]+|[0-9]+)"
 
     type String with
 
