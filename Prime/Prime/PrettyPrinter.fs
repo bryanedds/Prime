@@ -14,7 +14,8 @@ type PrettyPrinter =
       ThresholdMin : int
       ThresholdMax : int }
 
-    static member defaultPrinter =
+    /// The default pretty printer.
+    static member val defaultPrinter =
         { TitleWords = Set.empty
           HeaderWords = Set.empty
           DetailWords = Set.empty
