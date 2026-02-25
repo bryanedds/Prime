@@ -12,6 +12,7 @@ module SymbolicOperators =
     let private ValueToSymbolMemo = ConcurrentDictionary<struct (Type * obj), Symbol> HashIdentity.Structural
     let private SCValueMemo = ConcurrentDictionary<struct (Type * string), obj> HashIdentity.Structural
     let private SCStringMemo = ConcurrentDictionary<struct (Type * obj), string> HashIdentity.Structural
+    let private SentinelMemo = ConcurrentDictionary<Type, obj> HashIdentity.Structural
 
     /// Convert a value to a value of the given type using symbolic conversion.
     /// Thread-safe.
@@ -107,22 +108,37 @@ module SymbolicOperators =
     let scvalue<'a> str =
         scvaluePlus<'a> false None str
 
-    /// Get the default value of type 'a taking into account DefaultValue decorations.
+    /// Get the default value of type 'a taking into account DefaultValueAttributes on it type.
     /// Thread-safe.
     let scdefaultof<'a> () : 'a =
-        let defaultPropertyType = typeof<'a>
-        let defaultValueAttributeOpt =
-            defaultPropertyType.GetCustomAttributes (typeof<DefaultValueAttribute>, true)
-            |> Array.map (fun attr -> attr :?> DefaultValueAttribute)
-            |> Array.tryHead
-        match defaultValueAttributeOpt with
-        | Some defaultValueAttribute ->
-            match defaultValueAttribute.DefaultValue with
+        let ty = typeof<'a>
+        match ty.TryGetDefaultValue () with
+        | Some defaultValueObj ->
+            match defaultValueObj with
             | :? 'a as defaultValue -> defaultValue
             | _ as defaultValue ->
                 let defaultValueType = defaultValue.GetType ()
                 let converter = SymbolicConverter (false, None, defaultValueType)
-                if converter.CanConvertFrom defaultPropertyType
+                if converter.CanConvertFrom ty
                 then converter.ConvertFrom defaultValue :?> 'a
-                else failwith ("Cannot convert '" + scstring defaultValue + "' to type '" + defaultPropertyType.Name + "'.")
+                else failwith ("Cannot convert '" + scstring defaultValue + "' to type '" + ty.Name + "'.")
         | None -> Unchecked.defaultof<'a>
+
+    /// Get the sentinel value of type 'a taking into account DefaultValueAttributes on it type.
+    /// NOTE: be cautious when dealing with mutable values since they are cached and therefore aliased!
+    /// Thread-safe.
+    let scsentinel<'a> () : 'a =
+        SentinelMemo.GetOrAdd
+            (typeof<'a>,
+             fun ty ->
+                match ty.TryGetDefaultValue () with
+                | Some defaultValueObj ->
+                    match defaultValueObj with
+                    | :? 'a as defaultValue -> defaultValue :> obj
+                    | _ as defaultValue ->
+                        let defaultValueType = defaultValue.GetType ()
+                        let converter = SymbolicConverter (false, None, defaultValueType)
+                        if converter.CanConvertFrom ty
+                        then converter.ConvertFrom defaultValue
+                        else ty.GetSentinelValue ()
+                | None -> ty.GetSentinelValue ()) :?> 'a

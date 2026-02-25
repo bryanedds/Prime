@@ -7,10 +7,12 @@ open System.ComponentModel
 open System.Collections
 open System.Collections.Concurrent
 open System.Collections.Generic
+open System.Collections.Specialized
 open System.Text
 open System.Reflection
+open System.Runtime.Serialization
 open FSharp.Reflection
-open System.Collections.Specialized
+open Prime
 
 /// An evaluatable expression for defining a property.
 type [<ReferenceEquality>] PropertyExpr =
@@ -310,26 +312,67 @@ module TypeExtension =
     /// Type extension for Type.
     type Type with
 
-        /// Attempt to get the default value for a type.
-        /// Never returns null.
-        /// Thread-safe if value ctor is.
+        /// Attempt to get the default value from just the type's DefaultValueAttribute when available.
+        member this.TryGetDefaultValueFromAttribute () =
+            let attributeOpt =
+                this.GetCustomAttributes (typeof<DefaultValueAttribute>, true)
+                |> Array.map (fun attr -> attr :?> DefaultValueAttribute)
+                |> Array.tryHead
+            match attributeOpt with
+            | Some attribute -> Some attribute.DefaultValue
+            | None -> None
+
+        /// Attempt to get the default value for a type, including from its DefaultValueAttribute when available.
+        /// Never returns Some null.
+        /// Thread-safe if invoked ctor is.
         member this.TryGetDefaultValue () =
-            if this.IsPrimitive || this.IsValueType then Some (Activator.CreateInstance this)
-            elif this = typeof<string> then Some (String.Empty :> obj)
-            elif this.Name = typedefof<_ array>.Name then Some (Reflection.objsToArray this [||])
-            elif this.Name = typedefof<_ list>.Name then Some (Reflection.objsToList this [])
-            elif this.Name = typedefof<_ Set>.Name then Some (Reflection.objsToSet this Set.empty)
-            elif this.Name = typedefof<Map<_, _>>.Name then Some (Reflection.pairsToMap this Map.empty)
-            elif this.Name = typedefof<_ FList>.Name then Some (Reflection.objsToFList this [])
-            elif this.Name = typedefof<_ FSet>.Name then Some (Reflection.objsToFSet this FSet.empty)
-            elif this.Name = typedefof<FMap<_, _>>.Name then Some (Reflection.pairsToFMap this FMap.empty)
-            elif FSharpType.IsUnion this then
-                let unionCases = FSharpType.GetUnionCases this
-                if (unionCases.[0].GetFields ()).Length = 0
-                then Some (FSharpValue.MakeUnion (unionCases.[0], [||]))
+            match this.TryGetDefaultValueFromAttribute () with
+            | None ->
+                if this.IsPrimitive || this.IsValueType then Some (Activator.CreateInstance this)
+                elif this = typeof<string> then Some (String.Empty :> obj)
+                elif this.Name = typedefof<_ array>.Name then Some (Reflection.objsToArray this [||])
+                elif this.Name = typedefof<_ list>.Name then Some (Reflection.objsToList this [])
+                elif this.Name = typedefof<_ Set>.Name then Some (Reflection.objsToSet this Set.empty)
+                elif this.Name = typedefof<Map<_, _>>.Name then Some (Reflection.pairsToMap this Map.empty)
+                elif this.Name = typedefof<_ FList>.Name then Some (Reflection.objsToFList this [])
+                elif this.Name = typedefof<_ FSet>.Name then Some (Reflection.objsToFSet this FSet.empty)
+                elif this.Name = typedefof<FMap<_, _>>.Name then Some (Reflection.pairsToFMap this FMap.empty)
+                elif FSharpType.IsUnion this then
+                    let unionCases = FSharpType.GetUnionCases this
+                    if (unionCases.[0].GetFields ()).Length = 0
+                    then Some (FSharpValue.MakeUnion (unionCases.[0], [||]))
+                    else Some (FormatterServices.GetUninitializedObject this)
+                elif notNull (this.GetConstructor [||]) then Some (Activator.CreateInstance ())
+                elif FSharpType.IsRecord this then Some (FormatterServices.GetUninitializedObject this)
                 else None
-            elif notNull (this.GetConstructor [||]) then Some (Activator.CreateInstance ())
-            else None
+            | Some _ as someDefaultValue -> someDefaultValue
+
+        /// Get the default value for a type.
+        /// Never returns null.
+        /// Thread-safe if invoked ctor is.
+        member this.GetDefaultValue () =
+            match this.TryGetDefaultValue () with
+            | Some value -> value
+            | None -> failwith ("Could not get default value for type '" + this.Name + "'.")
+
+        /// Attempt to get the sentinel value for a type.
+        /// Never returns Some null.
+        /// Thread-safe if invoked ctor is.
+        member this.TryGetSentinelValue () =
+            match this.TryGetDefaultValue () with
+            | Some _ as defaultOpt -> defaultOpt
+            | None ->
+                if FSharpType.IsUnion this || FSharpType.IsRecord this
+                then Some (FormatterServices.GetUninitializedObject this)
+                else None
+
+        /// Get the sentinel value for a type.
+        /// Never returns null.
+        /// Thread-safe if invoked ctor is.
+        member this.GetSentinelValue () =
+            match this.TryGetSentinelValue () with
+            | Some value -> value
+            | None -> FormatterServices.GetUninitializedObject this
 
         /// Special overload to get the public instance properties of a type.
         /// Thread-safe.
@@ -337,14 +380,6 @@ module TypeExtension =
             if cached
             then getProperties this
             else this.GetProperties ()
-
-        /// Get the default value for a type.
-        /// Never returns null.
-        /// Thread-safe if value ctor is.
-        member this.GetDefaultValue () =
-            match this.TryGetDefaultValue () with
-            | Some value -> value
-            | None -> failwith ("Could not get default value for type '" + this.Name + "'.")
 
         /// Get the type descriptor for this type as returned by the global TypeDescriptor.
         /// Thread-safe.
