@@ -330,7 +330,7 @@ module TypeExtension =
             | None ->
                 if this.IsPrimitive || this.IsValueType then Some (Activator.CreateInstance this)
                 elif this = typeof<string> then Some (String.Empty :> obj)
-                elif this.Name = typedefof<_ array>.Name then Some (Reflection.objsToArray this [||])
+                elif this.IsArray then Some (Reflection.objsToArray this [||])
                 elif this.Name = typedefof<_ list>.Name then Some (Reflection.objsToList this [])
                 elif this.Name = typedefof<_ Set>.Name then Some (Reflection.objsToSet this Set.empty)
                 elif this.Name = typedefof<Map<_, _>>.Name then Some (Reflection.pairsToMap this Map.empty)
