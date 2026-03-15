@@ -273,3 +273,12 @@ module FStack =
 /// A functional stack with fast iteration and amortized sqrt n conj.
 /// NOTE: not supported by SymbolicConverter.
 type 'a FStack = 'a FStack.FStack
+
+[<AutoOpen>]
+module FStackOperators =
+
+    /// FStack pattern matching.
+    let (|EmptyFStack|NonEmptyFStack|) (stack : 'a FStack) =
+        if stack.IsEmpty
+        then EmptyFStack
+        else NonEmptyFStack stack

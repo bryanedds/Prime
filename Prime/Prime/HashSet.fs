@@ -7,6 +7,14 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module HashSet =
 
+    /// Check that a hash set is empty.
+    let isEmpty (hashSet : _ HashSet) =
+        hashSet.Count = 0
+
+    /// Check that a hash set is non-empty.
+    let notEmpty (hashSet : _ HashSet) =
+        hashSet.Count > 0
+
     /// Hash a hash set.
     let hash (hashSet : _ HashSet) =
         let mutable h = 0
@@ -42,6 +50,12 @@ module HashSet =
 [<AutoOpen>]
 module HashSetOperators =
 
+    /// HashSet pattern matching.
+    let (|EmptyHashSet|NonEmptyHashSet|) (set : 'a HashSet) =
+        if set.IsEmpty
+        then EmptyHashSet
+        else NonEmptyHashSet set
+
     /// Make a concrete HashSet instance populated with the given items and using vanilla hashing.
     let hashSet<'a> items =
         let hashSet = HashSet ()
@@ -53,3 +67,12 @@ module HashSetOperators =
         let hashSet = HashSet comparer
         for item in items do hashSet.Add item |> ignore
         hashSet
+
+[<AutoOpen>]
+module HashSetExtension =
+
+    type 'a HashSet with
+
+        /// Check that a hash set is non-empty.
+        member this.NotEmpty =
+            HashSet.notEmpty this

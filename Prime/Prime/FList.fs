@@ -219,3 +219,9 @@ module FListOperators =
         match q.TryUncons with
         | Some(a, b) -> Cons(a, b)
         | None -> Nil
+
+    /// FList pattern matching.
+    let (|EmptyFList|NonEmptyFList|) (list : 'a FList) =
+        if list.IsEmpty
+        then EmptyFList
+        else NonEmptyFList list

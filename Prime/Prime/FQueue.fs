@@ -228,3 +228,12 @@ module FQueue =
 
     /// O(n). Concat implemented in terms of seq (to save some development time).
     let concat (q: FQueue<'T seq>) = Seq.concat q |> ofSeq
+
+[<AutoOpen>]
+module FQueueOperators =
+
+    /// FQueue pattern matching.
+    let (|EmptyFQueue|NonEmptyFQueue|) (q : 'a FQueue) =
+        if q.IsEmpty
+        then EmptyFQueue
+        else NonEmptyFQueue q

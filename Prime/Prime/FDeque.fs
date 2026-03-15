@@ -320,3 +320,12 @@ module FDeque =
 
     /// O(n). Concat implemented in terms of seq (to save some development time).
     let concat (q: FDeque<'T seq>) = Seq.concat q |> ofSeq
+
+[<AutoOpen>]
+module FDequeOperators =
+
+    /// FDeque pattern matching.
+    let (|EmptyFDeque|NonEmptyFDeque|) (q : 'a FDeque) =
+        if q.IsEmpty
+        then EmptyFDeque
+        else NonEmptyFDeque q

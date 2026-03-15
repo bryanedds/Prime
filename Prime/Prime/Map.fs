@@ -111,6 +111,10 @@ module MapExtensions =
     /// Map extension methods.
     type Map<'k, 'v when 'k : comparison> with
 
+        /// Check that a map is non-empty.
+        member this.NotEmpty =
+            Map.notEmpty this
+
         /// Convert entries to pairs.
         member this.Pairs =
             this |> Seq.map (fun entry -> (entry.Key, entry.Value))
@@ -121,6 +125,12 @@ module MapExtensions =
 
 [<AutoOpen>]
 module MapOperators =
+
+    /// Map pattern matching.
+    let (|EmptyMap|NonEmptyMap|) (map : Map<'k, 'v>) =
+        if map.IsEmpty
+        then EmptyMap
+        else NonEmptyMap map
 
     /// Combine the contents of two maps, taking an item from the second map in case of a key overlap.
     let inline (@@) map map2 =

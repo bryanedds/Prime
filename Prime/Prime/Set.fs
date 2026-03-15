@@ -64,3 +64,21 @@ module Set =
     let foldi mapper map =
         let mutable i = 0
         Set.fold (fun s a -> let r = mapper i s a in i <- inc i; r) map
+
+[<AutoOpen>]
+module SetOperators =
+
+    /// Set pattern matching.
+    let (|EmptySet|NonEmptySet|) (set : 'a Set) =
+        if set.IsEmpty
+        then EmptySet
+        else NonEmptySet set
+
+[<AutoOpen>]
+module SetExtension =
+
+    type Set<'a when 'a : comparison> with
+
+        /// Check that a set is non-empty.
+        member this.NotEmpty =
+            Set.notEmpty this

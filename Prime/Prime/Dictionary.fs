@@ -7,6 +7,14 @@ open System.Collections.Generic
 [<RequireQualifiedAccess>]
 module Dictionary =
 
+    /// Check that a dictionary is empty.
+    let isEmpty (dictionary : Dictionary<_, _>) =
+        dictionary.Count = 0
+
+    /// Check that a dictionary is non-empty.
+    let notEmpty (dictionary : Dictionary<_, _>) =
+        dictionary.Count > 0
+
     /// Hash a dictionary.
     let hash (dictionary : Dictionary<_, _>) =
         let mutable h = 0
@@ -57,6 +65,10 @@ module DictionaryExtension =
     /// Dictionary extension methods.
     type Dictionary<'k, 'v> with
 
+        /// Check that a dictionary is non-empty.
+        member this.NotEmpty =
+            Dictionary.notEmpty this
+
         /// Try to add a keyed value, returning false if the key is already present.
         /// TODO: in .NET 8, this function will exist and involve only a single look-up, allowing us to remove this.
         member inline this.TryAdd (key, value) =
@@ -74,6 +86,12 @@ module DictionaryExtension =
 
 [<AutoOpen>]
 module DictionaryOperators =
+
+    /// Dictionary pattern matching.
+    let (|EmptyDictionary|NonEmptyDictionary|) (list : Dictionary<'k, 'v>) =
+        if list.IsEmpty
+        then EmptyDictionary
+        else NonEmptyDictionary list
 
     /// Like dict, but returns a concrete Dictionary instance with structural hashing.
     /// NOTE: Also uses forced adding, allowing multiple of the same key in the kvps.

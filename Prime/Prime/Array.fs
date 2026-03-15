@@ -144,7 +144,17 @@ module Array =
         hashCode
 
 [<AutoOpen>]
+module ArrayOperators =
+
+    /// Array pattern matching.
+    let (|EmptyArray|NonEmptyArray|) (arr : 'a ``[]``) =
+        match arr with
+        | [||] -> EmptyArray
+        | _ -> NonEmptyArray arr
+
+[<AutoOpen>]
 module ArrayExtension =
+
     type 'a ``[]`` with
 
         /// Check that an array is empty.

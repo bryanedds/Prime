@@ -6,23 +6,6 @@ open System
 open System.Text
 open System.Text.RegularExpressions
 
-[<AutoOpen>]
-module StringExtensions =
-
-    let private regex = Regex "([A-Z][a-z]*|[0-9][a-z]+)"
-
-    type String with
-
-        /// Separate a string into words according to capitalization (but not punctuation).
-        member this.Spaced =
-            let mutable first = true
-            let builder = StringBuilder ()
-            for match_ in regex.Matches this do
-                if not first then builder.Append " " |> ignore<StringBuilder>
-                builder.Append match_.Value |> ignore<StringBuilder>
-                first <- false
-            builder.ToString ()
-
 [<RequireQualifiedAccess>]
 module String =
 
@@ -205,3 +188,29 @@ module String =
         let mutable hashValue = 0 // OPTIMIZATION: mutation for speed
         for name in strs do hashValue <- hashValue ^^^ hash name
         hashValue
+
+[<AutoOpen>]
+module StringOperators =
+
+    /// String pattern matching.
+    let (|EmptyString|NonEmptyString|) (str : string) =
+        match str with
+        | "" -> EmptyString
+        | _ -> NonEmptyString str
+
+[<AutoOpen>]
+module StringExtensions =
+
+    let private regex = Regex "([A-Z][a-z]*|[0-9][a-z]+)"
+
+    type String with
+
+        /// Separate a string into words according to capitalization (but not punctuation).
+        member this.Spaced =
+            let mutable first = true
+            let builder = StringBuilder ()
+            for match_ in regex.Matches this do
+                if not first then builder.Append " " |> ignore<StringBuilder>
+                builder.Append match_.Value |> ignore<StringBuilder>
+                first <- false
+            builder.ToString ()

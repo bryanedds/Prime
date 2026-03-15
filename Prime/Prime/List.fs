@@ -368,3 +368,21 @@ module List =
         let mutable enr = set.GetEnumerator ()
         while enr.MoveNext () do
             action enr.Current
+
+[<AutoOpen>]
+module ListOperators =
+
+    /// List pattern matching.
+    let (|EmptyList|NonEmptyList|) (list : 'a list) =
+        match list with
+        | [] -> EmptyList
+        | _ -> NonEmptyList list
+
+[<AutoOpen>]
+module ListExtension =
+
+    type 'a Microsoft.FSharp.Collections.List with
+
+        /// Check that an array is non-empty.
+        member this.NotEmpty =
+            List.notEmpty this

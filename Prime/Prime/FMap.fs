@@ -1308,3 +1308,12 @@ module FMap =
     [<CompiledName("MaxKeyValue")>]
     let maxKeyValue (table: FMap<_, _>) =
         table.MaxKeyValue
+
+[<AutoOpen>]
+module FMapOperators =
+
+    /// FMap pattern matching.
+    let (|EmptyFMap|NonEmptyFMap|) (map : FMap<'k, 'v>) =
+        if map.IsEmpty
+        then EmptyFMap
+        else NonEmptyFMap map

@@ -159,6 +159,28 @@ module Seq =
     let eval seq =
         seq |> Seq.toArray |> Seq.ofArray
 
+[<AutoOpen>]
+module SeqOperators =
+
+    /// Seq pattern matching.
+    let (|EmptySeq|NonEmptySeq|) (seq : 'a seq) =
+        if Seq.isEmpty seq
+        then EmptySeq
+        else NonEmptySeq seq
+
+[<AutoOpen>]
+module SeqExtension =
+
+    type 'a System.Collections.Generic.IEnumerable with
+
+        /// Check that a sequence is empty.
+        member this.IsEmpty =
+            Seq.isEmpty this
+
+        /// Check that a sequence is non-empty.
+        member this.NotEmpty =
+            Seq.notEmpty this
+
 [<RequireQualifiedAccess>]
 module IEnumerable =
 

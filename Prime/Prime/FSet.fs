@@ -1198,3 +1198,12 @@ module FSet =
     [<CompiledName("MaxElement")>]
     let maxElement (set: FSet<'T>) =
         set.MaximumElement
+
+[<AutoOpen>]
+module FSetOperators =
+
+    /// FSet pattern matching.
+    let (|EmptyFSet|NonEmptyFSet|) (set : 'a FSet) =
+        if set.IsEmpty
+        then EmptyFSet
+        else NonEmptyFSet set
