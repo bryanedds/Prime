@@ -69,7 +69,7 @@ module HashSetOperators =
         hashSet
 
 [<AutoOpen>]
-module HashSetExtension =
+module HashSetExtensions =
 
     type 'a HashSet with
 

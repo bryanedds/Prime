@@ -75,7 +75,7 @@ module SetOperators =
         else NonEmptySet set
 
 [<AutoOpen>]
-module SetExtension =
+module SetExtensions =
 
     type Set<'a when 'a : comparison> with
 

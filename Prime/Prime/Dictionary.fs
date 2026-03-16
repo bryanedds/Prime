@@ -60,7 +60,7 @@ module Dictionary =
         List.toDict comparer [(key, value)]
 
 [<AutoOpen>]
-module DictionaryExtension =
+module DictionaryExtensions =
 
     /// Dictionary extension methods.
     type Dictionary<'k, 'v> with

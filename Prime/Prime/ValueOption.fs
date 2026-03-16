@@ -22,7 +22,7 @@ module ValueOption =
         | ValueNone -> None
 
 [<AutoOpen>]
-module ValueOptionExtension =
+module ValueOptionExtensions =
 
     /// ValueOption extension methods.
     type 'a ValueOption with

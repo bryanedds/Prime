@@ -106,7 +106,7 @@ module Map =
         Seq.fold (fun map (kvp : KeyValuePair<_, _>) -> Map.add kvp.Key kvp.Value map) map map2
 
 [<AutoOpen>]
-module MapExtensions =
+module MapExtensionss =
 
     /// Map extension methods.
     type Map<'k, 'v when 'k : comparison> with

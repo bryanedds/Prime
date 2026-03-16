@@ -295,7 +295,7 @@ module Type =
             | None -> Array.head properties
 
 [<AutoOpen>]
-module TypeExtension =
+module TypeExtensions =
 
     let private PropertyArrays = ConcurrentDictionary<Type, PropertyInfo array> (HashIdentity.Reference)
     let private PropertiesWritable = ConcurrentDictionary<string * Type, PropertyInfo> (HashIdentity.Structural)

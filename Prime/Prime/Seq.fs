@@ -169,7 +169,7 @@ module SeqOperators =
         else NonEmptySeq seq
 
 [<AutoOpen>]
-module SeqExtension =
+module SeqExtensions =
 
     type 'a System.Collections.Generic.IEnumerable with
 

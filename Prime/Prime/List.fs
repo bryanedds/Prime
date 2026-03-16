@@ -379,7 +379,7 @@ module ListOperators =
         | _ -> NonEmptyList list
 
 [<AutoOpen>]
-module ListExtension =
+module ListExtensions =
 
     type 'a Microsoft.FSharp.Collections.List with
 

@@ -34,7 +34,7 @@ module Option =
         | None -> 0
 
 [<AutoOpen>]
-module OptionExtension =
+module OptionExtensions =
 
     /// Option extension methods.
     type 'a Option with

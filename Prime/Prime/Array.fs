@@ -153,7 +153,7 @@ module ArrayOperators =
         | _ -> NonEmptyArray arr
 
 [<AutoOpen>]
-module ArrayExtension =
+module ArrayExtensions =
 
     type 'a ``[]`` with
 

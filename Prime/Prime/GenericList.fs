@@ -57,7 +57,7 @@ module GenericListOperators =
         else NonEmptyGenericList list
 
 [<AutoOpen>]
-module GenericListExtension =
+module GenericListExtensions =
 
     type 'a List with
 
