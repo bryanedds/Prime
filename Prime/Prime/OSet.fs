@@ -124,7 +124,7 @@ module OSet =
     let remove item set =
         match UMap.tryFind item set.Indices with
         | Some index ->
-            let struct (_, _) = set.Entries.[index]
+            let struct (_, _) = set.Entries[index]
             let set =
                 { Indices = UMap.remove item set.Indices
                   Entries = FStack.replaceAt index struct (false, Unchecked.defaultof<_>) set.Entries

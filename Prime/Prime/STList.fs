@@ -40,7 +40,7 @@ module STList =
             match log with
             | Add value -> impListOrigin.Add value
             | Remove value -> impListOrigin.Remove value |> ignore
-            | Set (index, value) -> impListOrigin.[index] <- value
+            | Set (index, value) -> impListOrigin[index] <- value
             | Clear -> impListOrigin.Clear ())
             list.Logs ()
         let impList = SList.makeFromSegmentedList impListOrigin
@@ -119,17 +119,17 @@ module STList =
     /// Get the value of the given index.
     let get index list =
         let list = validate list
-        struct (list.ImpList.[index], list)
+        struct (list.ImpList[index], list)
 
     /// Set the value of the given index.
     let set index value list =
         if TConfig.isFunctional list.TConfig then 
             update (fun list ->
                 let list = { list with Logs = Set (index, value) :: list.Logs; LogsLength = list.LogsLength + 1 }
-                list.ImpList.[index] <- value
+                list.ImpList[index] <- value
                 list)
                 list
-        else list.ImpList.[index] <- value; list
+        else list.ImpList[index] <- value; list
 
     /// Add an element to a STList.
     let add value list =

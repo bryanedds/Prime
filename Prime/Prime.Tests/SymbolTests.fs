@@ -157,7 +157,7 @@ module SymbolTests =
 
     let [<Test>] canConvertStringToGenericDictionaryIntInt () =
         let value = scvalue<Dictionary<int, int>> "[[0 1]]"
-        Assert.Equal (1, value.[0])
+        Assert.Equal (1, value[0])
 
     let [<Test>] canConvertFromRecordAbstractToString () =
         let value = scvalue<IntIntRecordAbstract> "[1 2]"

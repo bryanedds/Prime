@@ -41,8 +41,8 @@ module OMap =
         /// The index operator.
         member this.Item
             with get (key : 'k) =
-                let index = this.Indices.[key]
-                this.Entries.[index]
+                let index = this.Indices[key]
+                this.Entries[index]
 
         /// Get the enumerator.
         member this.GetEnumerator () =
@@ -58,7 +58,7 @@ module OMap =
             let mutable indexRef = 0
             match UMap.tryGetValue (key, this.Indices, &indexRef) with
             | true ->
-                let struct (_, _, v) = this.Entries.[indexRef]
+                let struct (_, _, v) = this.Entries[indexRef]
                 valueRef <- v
                 true
             | false -> false
@@ -149,7 +149,7 @@ module OMap =
     /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.
     let tryFind (key : 'k) map : 'v option =
         match UMap.tryFind key map.Indices with
-        | Some index -> match map.Entries.[index] with (_, _, v) -> Some v
+        | Some index -> match map.Entries[index] with (_, _, v) -> Some v
         | None -> None
 
     /// Try to find a value with the given key in an OMap without allocating.
@@ -158,7 +158,7 @@ module OMap =
         let mutable indexRef = 0
         match UMap.tryGetValue (key, map.Indices, &indexRef) with
         | true ->
-            let struct (_, _, v) = map.Entries.[indexRef]
+            let struct (_, _, v) = map.Entries[indexRef]
             valueRef <- v
             true
         | false -> false
@@ -166,7 +166,7 @@ module OMap =
     /// Find a value with the given key in an OMap.
     /// Constant-time complexity with approx. 1/3 speed of Dictionary.GetValue.
     let find (key : 'k) map : 'v =
-        let struct (_, _, v) = map.Entries.[map.Indices.[key]]
+        let struct (_, _, v) = map.Entries[map.Indices[key]]
         v
 
     /// Try to find a value with the predicate.

@@ -97,7 +97,7 @@ module DictionaryOperators =
     /// NOTE: Also uses forced adding, allowing multiple of the same key in the kvps.
     let dictPlus<'k, 'v> (comparer : 'k IEqualityComparer) (kvps : ('k * 'v) seq) =
         let dictionary = Dictionary<'k, 'v> comparer
-        for (key, value) in kvps do dictionary.[key] <- value
+        for (key, value) in kvps do dictionary[key] <- value
         dictionary
 
     /// Convert entries to pairs.

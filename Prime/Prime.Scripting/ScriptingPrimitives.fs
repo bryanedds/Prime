@@ -45,7 +45,7 @@ module ScriptingPrimitives =
         | Violation _ as violation -> Right violation
         | String str ->
             if index >= 0 && index < String.length str
-            then Right $ String (string str.[index])
+            then Right $ String (string str[index])
             else Left $ Violation (["ArgumentOutOfRange"; String.capitalize fnName], "String does not contain element at index " + string index + ".", originOpt)
         | Option opt ->
             match (index, opt) with
@@ -71,7 +71,7 @@ module ScriptingPrimitives =
         | Union (_, fields)
         | Record (_, _, fields) ->
             if index >= 0 && index < Array.length fields
-            then Right fields.[index]
+            then Right fields[index]
             else Left $ Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Structure does not contain element at index " + string index + ".", originOpt)
         | _ -> Left $ Violation (["InvalidArgumentType"; String.capitalize fnName], "Application of " + fnName + " requires an indexed value for its second argument.", originOpt)
 
@@ -86,7 +86,7 @@ module ScriptingPrimitives =
             match Map.tryFind name map with
             | Some index ->
                 if index >= 0 && index < Array.length fields
-                then Right fields.[index]
+                then Right fields[index]
                 else Left $ Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Record does not contain element with name '" + name + "'.", originOpt)
             | None ->
                 Left $ Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Record does not contain element with name '" + name + "'.", originOpt)
@@ -287,7 +287,7 @@ module ScriptingPrimitives =
         | Violation _ as violation -> Left violation
         | String str ->
             if String.notEmpty str
-            then Right (Right struct (String (string str.[0]), String (str.Substring 1)))
+            then Right (Right struct (String (string str[0]), String (str.Substring 1)))
             else Right (Left ())
         | Option opt ->
             match opt with
@@ -356,7 +356,7 @@ module ScriptingPrimitives =
         | (argEvaled, Table map) ->
             match argEvaled with
             | Violation _ as violation -> violation
-            | Tuple elems when Array.length elems = 2 -> Table (Map.add elems.[0] elems.[1] map)
+            | Tuple elems when Array.length elems = 2 -> Table (Map.add elems[0] elems[1] map)
             | _ -> Violation (["InvalidArgumentType"; String.capitalize fnName], "Table entry must consist of a pair.", originOpt)
         | (Violation _ as violation, _) -> violation
         | (_, (Violation _ as violation)) -> violation
@@ -857,7 +857,7 @@ module ScriptingPrimitives =
                     (elem :: elems))
                     [] str
             if List.forall (function String str when String.length str = 1 -> true | _ -> false) list
-            then String (list |> List.rev |> List.map (function String str -> str.[0] | _ -> failwithumf ()) |> String.implode)
+            then String (list |> List.rev |> List.map (function String str -> str[0] | _ -> failwithumf ()) |> String.implode)
             else Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s mapper must return a String of length 1.", originOpt)
         | (mapper, Codata codata) ->
             let codata = evalMapCodata evalApply originOpt mapper codata world
@@ -884,7 +884,7 @@ module ScriptingPrimitives =
                     let entry = Tuple [|key; value|]
                     let entry = evalApply [|mapper; Int i; entry|] originOpt world
                     match entry with
-                    | Tuple elems' when Array.length elems' = 2 -> Map.add elems'.[0] elems'.[1] elems
+                    | Tuple elems' when Array.length elems' = 2 -> Map.add elems'[0] elems'[1] elems
                     | _ -> elems)
                     Map.empty
                     (Map.toList map)
@@ -911,7 +911,7 @@ module ScriptingPrimitives =
                     elem :: elems)
                     [] str
             if List.forall (function String str when String.length str = 1 -> true | _ -> false) list
-            then String (list |> List.rev |> List.map (function String str -> str.[0] | _ -> failwithumf ()) |> String.implode)
+            then String (list |> List.rev |> List.map (function String str -> str[0] | _ -> failwithumf ()) |> String.implode)
             else Violation (["InvalidResult"; String.capitalize fnName], "Function " + fnName + "'s mapper must return a String of length 1.", originOpt)
         | (mapper, Codata codata) ->
             let codata = evalMapCodata evalApply originOpt mapper codata world
@@ -938,7 +938,7 @@ module ScriptingPrimitives =
                     let entry = Tuple [|key; value|]
                     let entry = evalApply [|mapper; entry|] originOpt world
                     match entry with
-                    | Tuple elems' when Array.length elems' = 2 -> Map.add elems'.[0] elems'.[1] elems
+                    | Tuple elems' when Array.length elems' = 2 -> Map.add elems'[0] elems'[1] elems
                     | _ -> elems)
                     Map.empty
                     map

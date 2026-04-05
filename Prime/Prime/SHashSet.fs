@@ -27,17 +27,17 @@ module SHashSet =
         member this.Contains item =
             let hashCode = hash item
             let index = Math.Abs (hashCode % 32)
-            this.HashSets_.[index].Contains item
+            this.HashSets_[index].Contains item
 
         member this.Add item =
             let hashCode = hash item
             let index = Math.Abs (hashCode % 32)
-            this.HashSets_.[index].Add item
+            this.HashSets_[index].Add item
 
         member this.Remove item =
             let hashCode = hash item
             let index = Math.Abs (hashCode % 32)
-            this.HashSets_.[index].Remove item
+            this.HashSets_[index].Remove item
 
         member this.Clear () =
             for set in this.HashSets_ do
@@ -46,24 +46,24 @@ module SHashSet =
         member this.SetEquals hashSet =
             let mutable result = true
             for i in 0 .. dec 32 do
-                result <- result && this.HashSets_.[i].SetEquals hashSet.HashSets_.[i]
+                result <- result && this.HashSets_[i].SetEquals hashSet.HashSets_[i]
             result
 
         member this.UnionWith hashSet =
             for i in 0 .. dec 32 do
-                this.HashSets_.[i].UnionWith hashSet.HashSets_.[i]
+                this.HashSets_[i].UnionWith hashSet.HashSets_[i]
 
         member this.IntersectWith hashSet =
             for i in 0 .. dec 32 do
-                this.HashSets_.[i].IntersectWith hashSet.HashSets_.[i]
+                this.HashSets_[i].IntersectWith hashSet.HashSets_[i]
 
         member this.SymmetricExceptWith hashSet =
             for i in 0 .. dec 32 do
-                this.HashSets_.[i].SymmetricExceptWith hashSet.HashSets_.[i]
+                this.HashSets_[i].SymmetricExceptWith hashSet.HashSets_[i]
 
         member this.ExceptWith hashSet =
             for i in 0 .. dec 32 do
-                this.HashSets_.[i].ExceptWith hashSet.HashSets_.[i]
+                this.HashSets_[i].ExceptWith hashSet.HashSets_[i]
 
         member this.GetEnumerator () =
             (Seq.concat this.HashSets_).GetEnumerator ()
@@ -72,7 +72,7 @@ module SHashSet =
             let mutable i = 0
             let mutable enr = this.GetEnumerator ()
             while enr.MoveNext () do
-                arr.[i + index] <- enr.Current
+                arr[i + index] <- enr.Current
                 i <- inc i
 
         interface 'a IEnumerable with
@@ -94,7 +94,7 @@ module SHashSet =
           Comparer_ = comparer }
 
     let makeFromSegmentedHashSet (sset : SHashSet<'a>) =
-        { HashSets_ = Array.init 32 (fun i -> HashSet<'a> (sset.HashSets_.[i], sset.Comparer_))
+        { HashSets_ = Array.init 32 (fun i -> HashSet<'a> (sset.HashSets_[i], sset.Comparer_))
           Comparer_ = sset.Comparer_ }
 
     let count (sset : 'a SHashSet) =

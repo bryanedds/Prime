@@ -51,7 +51,7 @@ module SetTests =
         if not success then
             Trace.WriteLine "FAILURE:"
             List.iteri2 (fun i fsset testSet  ->
-                if i > 0 then Trace.WriteLine (sprintf "After action %A" actions.[i-1])
+                if i > 0 then Trace.WriteLine (sprintf "After action %A" actions[i-1])
                 Trace.WriteLine (sprintf "fsset: %A\ntestSet: %A" fsset testSet))
                 (List.rev fssets)
                 (List.rev testMaps)

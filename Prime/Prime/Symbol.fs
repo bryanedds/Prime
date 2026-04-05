@@ -444,7 +444,7 @@ module Symbol =
                 let symbols =
                     List.map (fun str ->
                         if str = "" then Text ("", ValueNone)
-                        elif str.[0] <> OpenSymbolsChar && str.IndexOfAny (Seq.toArray NonAtomChars) <> -1 then Text (str, ValueNone)
+                        elif str[0] <> OpenSymbolsChar && str.IndexOfAny (Seq.toArray NonAtomChars) <> -1 then Text (str, ValueNone)
                         else ofString str None)
                         values
                 Symbols (symbols, ValueNone))

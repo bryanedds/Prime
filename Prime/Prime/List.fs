@@ -111,8 +111,8 @@ module List =
     let rec roll roller state (list : 'a list) =
         if list.IsEmpty then state
         else
-            let curr = list.[0]
-            let next = list.[1]
+            let curr = list[0]
+            let next = list[1]
             let rest = list.Tail
             let state = roller state curr next
             if rest.Tail.IsEmpty then state

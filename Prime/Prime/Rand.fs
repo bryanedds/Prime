@@ -84,7 +84,7 @@ module Rand =
         let arr = Seq.toArray seq
         if Array.notEmpty arr then
             let (index, rand) = nextIntUnder arr.Length rand
-            (Some arr.[index], rand)
+            (Some arr[index], rand)
         else (None, rand)
 
     /// Get a random element from a sequence if there are any elements or raise exception.

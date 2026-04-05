@@ -44,7 +44,7 @@ module HMap =
             let gutterLength = gutter.Length
             let gutter2 = Array.zeroCreate (inc gutterLength) : Hkv<'k, 'v> array
             Array.Copy (gutter, 0, gutter2, 0, gutterLength)
-            gutter2.[gutterLength] <- entry
+            gutter2[gutterLength] <- entry
             gutter2
 
         let private removeFromGutter (k : 'k) (gutter : Hkv<'k, 'v> array) =
@@ -59,7 +59,7 @@ module HMap =
         let private tryFindInGutter (k : 'k) (gutter : Hkv<'k, 'v> array) =
             match Array.FindLastIndex (gutter, fun (entry2 : Hkv<'k, 'v>) -> entry2.K.Equals k) with
             | -1 -> None
-            | index -> Some gutter.[index].V
+            | index -> Some gutter[index].V
 
         let empty =
             Nil
@@ -89,8 +89,8 @@ module HMap =
                     let idx' = hashToIndex hkv'.H dep
                     if idx <> idx' then
                         let arr = cloneArray earr
-                        arr.[idx] <- Singleton hkv
-                        arr.[idx'] <- Singleton hkv'
+                        arr[idx] <- Singleton hkv
+                        arr[idx'] <- Singleton hkv'
                         Multiple arr
 
                     // if replace entry; remain Singleton
@@ -103,16 +103,16 @@ module HMap =
                         let node' = add hkv earr dep' Nil
                         let node' = add hkv' earr dep' node'
                         let arr = cloneArray earr
-                        arr.[idx] <- node'
+                        arr[idx] <- node'
                         Multiple arr
 
                 | Multiple arr ->
 
                     // add entry with recursion
                     let idx = hashToIndex hkv.H dep
-                    let entry = arr.[idx]
+                    let entry = arr[idx]
                     let arr = cloneArray arr
-                    arr.[idx] <- add hkv earr (dep + 1) entry
+                    arr[idx] <- add hkv earr (dep + 1) entry
                     Multiple arr
 
                 | Gutter _ ->
@@ -136,9 +136,9 @@ module HMap =
             | Singleton hkv -> if hkv.K.Equals k then Nil else node
             | Multiple arr ->
                 let idx = hashToIndex h dep
-                let entry = arr.[idx]
+                let entry = arr[idx]
                 let arr = cloneArray arr
-                arr.[idx] <- remove h k (dep + 1) entry
+                arr[idx] <- remove h k (dep + 1) entry
                 if Array.forall isEmpty arr then Nil else Multiple arr // does not collapse Multiple to Singleton, tho could?
             | Gutter gutter ->
                 let gutter = removeFromGutter k gutter
@@ -148,14 +148,14 @@ module HMap =
             match node with
             | Nil -> None
             | Singleton hkv -> if hkv.K.Equals k then Some hkv.V else None
-            | Multiple arr -> let idx = hashToIndex h dep in tryFind h k (dep + 1) arr.[idx]
+            | Multiple arr -> let idx = hashToIndex h dep in tryFind h k (dep + 1) arr[idx]
             | Gutter gutter -> tryFindInGutter k gutter
 
         let rec find (h : int) (k : 'k) (dep : int) (node : HNode<'k, 'v>) : 'v =
             match node with
             | Nil -> failwithKeyNotFound k
             | Singleton hkv -> if hkv.K.Equals k then hkv.V else failwithKeyNotFound k
-            | Multiple arr -> let idx = hashToIndex h dep in find h k (dep + 1) arr.[idx]
+            | Multiple arr -> let idx = hashToIndex h dep in find h k (dep + 1) arr[idx]
             | Gutter gutter -> Option.get (tryFindInGutter k gutter)
 
         let rec fold folder state node =

@@ -271,7 +271,7 @@ and Archetype (archetypeId : ArchetypeId) =
                 | Extra (name, ty, _) ->
                     let storeType = storeTypeGeneric.MakeGenericType [|ty|]
                     let store = Activator.CreateInstance (storeType, name) :?> Store
-                    stores.[name] <- store
+                    stores[name] <- store
                 | _ -> ()
 
     member this.Id = archetypeId
@@ -300,11 +300,11 @@ and Archetype (archetypeId : ArchetypeId) =
                     let index = freeIndex
                     freeIndex <- inc freeIndex
                     index
-        entityIdStore.[index] <- { Active = true; EntityId = entityId }
+        entityIdStore[index] <- { Active = true; EntityId = entityId }
         index
 
     member private this.FreeIndex index =
-        entityIdStore.[index] <- { Active = false; EntityId = 0UL }
+        entityIdStore[index] <- { Active = false; EntityId = 0UL }
         if index = dec freeIndex
         then freeIndex <- dec freeIndex
         else freeList.Add index |> ignore<bool>
@@ -312,7 +312,7 @@ and Archetype (archetypeId : ArchetypeId) =
     member this.Register (comps : Dictionary<string, obj>) entityId =
         let index = this.AllocIndex entityId
         for compEntry in comps do
-            stores.[compEntry.Key].SetItem index compEntry.Value
+            stores[compEntry.Key].SetItem index compEntry.Value
         index
 
     member this.Unregister (index : int) =
@@ -323,7 +323,7 @@ and Archetype (archetypeId : ArchetypeId) =
     member this.GetComponents index =
         let comps = dictPlus<string, obj> StringComparer.Ordinal []
         for storeEntry in stores do
-            comps.Add (storeEntry.Key, storeEntry.Value.[index])
+            comps.Add (storeEntry.Key, storeEntry.Value[index])
         comps
 
     member this.Read count (stream : FileStream) =
@@ -420,7 +420,7 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
 
     /// Thread-safe.
     member this.IndexEntitySlot (entity : EcsEntity) =
-        entitySlots.[entity.EntityId]
+        entitySlots[entity.EntityId]
 
     /// Thread-safe.
     member this.MakeEntity () =
@@ -464,7 +464,7 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
         match event.EcsEventType with
         | ComponentEvent (entity, _) ->
             match subscribedEntities.TryGetValue entity with
-            | (true, count) -> subscribedEntities.[entity] <- inc count
+            | (true, count) -> subscribedEntities[entity] <- inc count
             | (false, _) -> subscribedEntities.Add (entity, 1)
         | _ -> ()
         subscriptionId
@@ -485,7 +485,7 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
                 | (true, count) ->
                     if count = 1
                     then subscribedEntities.Remove entity |> ignore<bool>
-                    else subscribedEntities.[entity] <- inc count
+                    else subscribedEntities[entity] <- inc count
                 | (false, _) -> failwith "Subscribed entities count mismatch."
             | _ -> failwith "Subscribed entities count mismatch."
         result
@@ -543,7 +543,7 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
         match event.EcsEventType with
         | ComponentEvent (entity, _) ->
             match subscribedEntities.TryGetValue entity with
-            | (true, count) -> subscribedEntities.[entity] <- inc count
+            | (true, count) -> subscribedEntities[entity] <- inc count
             | (false, _) -> subscribedEntities.Add (entity, 1)
         | _ -> ()
         subscriptionId
@@ -673,7 +673,7 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
                 lock archetype $ fun () ->
                     archetype.Register comps entity.EntityId
             entitySlots.TryAdd (entity.EntityId, { ArchetypeIndex = archetypeIndex; Archetype = archetype }) |> ignore<bool>
-            entities.[i] <- entity
+            entities[i] <- entity
             if not elideEvents then
                 for compName in archetype.Stores.Keys do
                     let eventData = { EcsEntity = entity; ComponentName = compName }
@@ -696,7 +696,7 @@ and [<TypeConverter (typeof<EcsConverter>)>] Ecs () =
         for i in firstIndex .. lastIndex do
             let entity = this.MakeEntity ()
             entitySlots.TryAdd (entity.EntityId, { ArchetypeIndex = i; Archetype = archetype }) |> ignore<bool>
-            entities.[i - firstIndex] <- entity
+            entities[i - firstIndex] <- entity
         entities
 
 /// An entity's slot in an archetype.
@@ -710,7 +710,7 @@ and [<Struct>] EcsEntitySlot =
         | (false, _) -> failwith ("Invalid entity frame for archetype " + scstring archetypeId + ".")
 
     member this.ToEntityId ecs =
-        { EntityId = this.Archetype.EntityIdStore.[this.ArchetypeIndex].EntityId; Ecs = ecs }
+        { EntityId = this.Archetype.EntityIdStore[this.ArchetypeIndex].EntityId; Ecs = ecs }
 
     member this.ValidatePlus compName =
         let stores = this.Archetype.Stores
@@ -725,22 +725,22 @@ and [<Struct>] EcsEntitySlot =
 
     member this.IndexPlus<'c when 'c : struct and 'c :> 'c Component> compName =
         let stores = this.Archetype.Stores
-        let store = stores.[compName] :?> 'c Store
+        let store = stores[compName] :?> 'c Store
         let i = this.ArchetypeIndex
-        &store.[i]
+        &store[i]
 
     member this.Index<'c when 'c : struct and 'c :> 'c Component> () =
         this.IndexPlus<'c> typeof<'c>.Name
 
     member this.IndexTerm termName =
         let terms = this.Archetype.Id.Terms
-        terms.[termName]
+        terms[termName]
 
     member this.MutatePlus<'c when 'c : struct and 'c :> 'c Component> compName (comp : 'c) =
         let stores = this.Archetype.Stores
-        let store = stores.[compName] :?> 'c Store
+        let store = stores[compName] :?> 'c Store
         let i = this.ArchetypeIndex
-        store.[i] <- comp
+        store[i] <- comp
 
     member this.Mutate<'c when 'c : struct and 'c :> 'c Component> (comp : 'c) =
         this.MutatePlus<'c> typeof<'c>.Name comp
@@ -751,8 +751,8 @@ and [<Struct>] EcsEntitySlot =
         let stores = archetype.Stores
         let store = this.IndexStore<'c> (Option.defaultValue typeof<'c>.Name compName) archetypeId stores
         let i = this.ArchetypeIndex
-        if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
-        statement.Invoke (&store.[i])
+        if not archetype.EntityIdStore[i].Active then failwith "Invalid component access."
+        statement.Invoke (&store[i])
 
     member this.Frame
         (statement : Statement<'c, 'c2>,
@@ -763,9 +763,9 @@ and [<Struct>] EcsEntitySlot =
         let store = this.IndexStore<'c> (Option.defaultValue typeof<'c>.Name compName) archetypeId stores
         let store2 = this.IndexStore<'c2> (Option.defaultValue typeof<'c2>.Name comp2Name) archetypeId stores
         let i = this.ArchetypeIndex
-        if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
+        if not archetype.EntityIdStore[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i])
+            (&store[i], &store2[i])
 
     member this.Frame
         (statement : Statement<'c, 'c2, 'c3>,
@@ -777,9 +777,9 @@ and [<Struct>] EcsEntitySlot =
         let store2 = this.IndexStore<'c2> (Option.defaultValue typeof<'c2>.Name comp2Name) archetypeId stores
         let store3 = this.IndexStore<'c3> (Option.defaultValue typeof<'c3>.Name comp3Name) archetypeId stores
         let i = this.ArchetypeIndex
-        if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
+        if not archetype.EntityIdStore[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i], &store3.[i])
+            (&store[i], &store2[i], &store3[i])
 
     member this.Frame
         (statement : Statement<'c, 'c2, 'c3, 'c4>,
@@ -792,9 +792,9 @@ and [<Struct>] EcsEntitySlot =
         let store3 = this.IndexStore<'c3> (Option.defaultValue typeof<'c3>.Name comp3Name) archetypeId stores
         let store4 = this.IndexStore<'c4> (Option.defaultValue typeof<'c4>.Name comp4Name) archetypeId stores
         let i = this.ArchetypeIndex
-        if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
+        if not archetype.EntityIdStore[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i], &store3.[i], &store4.[i])
+            (&store[i], &store2[i], &store3[i], &store4[i])
 
     member this.Frame
         (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5>,
@@ -808,9 +808,9 @@ and [<Struct>] EcsEntitySlot =
         let store4 = this.IndexStore<'c4> (Option.defaultValue typeof<'c4>.Name comp4Name) archetypeId stores
         let store5 = this.IndexStore<'c5> (Option.defaultValue typeof<'c5>.Name comp5Name) archetypeId stores
         let i = this.ArchetypeIndex
-        if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
+        if not archetype.EntityIdStore[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i])
+            (&store[i], &store2[i], &store3[i], &store4[i], &store5[i])
 
     member this.Frame
         (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6>,
@@ -825,9 +825,9 @@ and [<Struct>] EcsEntitySlot =
         let store5 = this.IndexStore<'c5> (Option.defaultValue typeof<'c5>.Name comp5Name) archetypeId stores
         let store6 = this.IndexStore<'c6> (Option.defaultValue typeof<'c6>.Name comp6Name) archetypeId stores
         let i = this.ArchetypeIndex
-        if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
+        if not archetype.EntityIdStore[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i])
+            (&store[i], &store2[i], &store3[i], &store4[i], &store5[i], &store6[i])
 
     member this.Frame
         (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7>,
@@ -843,9 +843,9 @@ and [<Struct>] EcsEntitySlot =
         let store6 = this.IndexStore<'c6> (Option.defaultValue typeof<'c6>.Name comp6Name) archetypeId stores
         let store7 = this.IndexStore<'c7> (Option.defaultValue typeof<'c7>.Name comp7Name) archetypeId stores
         let i = this.ArchetypeIndex
-        if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
+        if not archetype.EntityIdStore[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i])
+            (&store[i], &store2[i], &store3[i], &store4[i], &store5[i], &store6[i], &store7[i])
 
     member this.Frame
         (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8>,
@@ -862,9 +862,9 @@ and [<Struct>] EcsEntitySlot =
         let store7 = this.IndexStore<'c7> (Option.defaultValue typeof<'c7>.Name comp7Name) archetypeId stores
         let store8 = this.IndexStore<'c8> (Option.defaultValue typeof<'c8>.Name comp8Name) archetypeId stores
         let i = this.ArchetypeIndex
-        if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
+        if not archetype.EntityIdStore[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i])
+            (&store[i], &store2[i], &store3[i], &store4[i], &store5[i], &store6[i], &store7[i], &store8[i])
 
     member this.Frame
         (statement : Statement<'c, 'c2, 'c3, 'c4, 'c5, 'c6, 'c7, 'c8, 'c9>,
@@ -882,9 +882,9 @@ and [<Struct>] EcsEntitySlot =
         let store8 = this.IndexStore<'c8> (Option.defaultValue typeof<'c8>.Name comp8Name) archetypeId stores
         let store9 = this.IndexStore<'c9> (Option.defaultValue typeof<'c9>.Name comp9Name) archetypeId stores
         let i = this.ArchetypeIndex
-        if not archetype.EntityIdStore.[i].Active then failwith "Invalid component access."
+        if not archetype.EntityIdStore[i].Active then failwith "Invalid component access."
         statement.Invoke
-            (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i], &store9.[i])
+            (&store[i], &store2[i], &store3[i], &store4[i], &store5[i], &store6[i], &store7[i], &store8[i], &store9[i])
 
 and [<Struct>] EcsEntity =
     { EntityId : uint64
@@ -943,7 +943,7 @@ and [<Struct>] EcsEntity =
     member this.UpdateTerm updater termName =
         let entitySlot = this.Ecs.IndexEntitySlot this
         let terms = entitySlot.Archetype.Id.Terms
-        let term = updater terms.[termName]
+        let term = updater terms[termName]
         this.UnregisterTerm termName
         this.RegisterTerm termName term
 
@@ -958,9 +958,9 @@ and [<Struct>] EcsEntity =
     member this.ChangePlus<'c when 'c : struct and 'c :> 'c Component> compName (comp : 'c) =
         let entitySlot = this.Ecs.IndexEntitySlot this
         let stores = entitySlot.Archetype.Stores
-        let store = stores.[compName] :?> 'c Store
+        let store = stores[compName] :?> 'c Store
         let i = entitySlot.ArchetypeIndex
-        store.[i] <- comp
+        store[i] <- comp
         this.Ecs.Publish (EcsEvents.Change this) { EcsEntity = this; ComponentName = compName }
 
     member this.Change<'c when 'c : struct and 'c :> 'c Component> (comp : 'c) =
@@ -1112,7 +1112,7 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
             for i in 0 .. dec archetype.Length do
-                let entityId = archetype.EntityIdStore.[i]
+                let entityId = archetype.EntityIdStore[i]
                 if entityId.Active then
                     slots.Add { ArchetypeIndex = i; Archetype = archetype }
         slots
@@ -1122,7 +1122,7 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
         for archetypeEntry in archetypes do
             let archetype = archetypeEntry.Value
             for i in 0 .. dec archetype.Length do
-                let entityId = archetype.EntityIdStore.[i]
+                let entityId = archetype.EntityIdStore[i]
                 if entityId.Active then
                     entities.Add { EntityId = entityId.EntityId; Ecs = ecs }
         entities
@@ -1137,8 +1137,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let store = this.IndexStore<'c> (Option.defaultValue typeof<'c>.Name compName) archetypeId stores
             let mutable i = 0
             while i < store.Length && i < length do
-                if entityIdStore.[i].Active then
-                    statement.Invoke (&store.[i])
+                if entityIdStore[i].Active then
+                    statement.Invoke (&store[i])
                     i <- inc i
 
     member this.Iterate
@@ -1154,8 +1154,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let store2 = this.IndexStore<'c2> (Option.defaultValue typeof<'c2>.Name comp2Name) archetypeId stores
             let mutable i = 0
             while i < store.Length && i < length do
-                if entityIdStore.[i].Active then
-                    statement.Invoke (&store.[i], &store2.[i])
+                if entityIdStore[i].Active then
+                    statement.Invoke (&store[i], &store2[i])
                     i <- inc i
 
     member this.Iterate
@@ -1172,8 +1172,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let store3 = this.IndexStore<'c3> (Option.defaultValue typeof<'c3>.Name comp3Name) archetypeId stores
             let mutable i = 0
             while i < store.Length && i < length do
-                if entityIdStore.[i].Active then
-                    statement.Invoke (&store.[i], &store2.[i], &store3.[i])
+                if entityIdStore[i].Active then
+                    statement.Invoke (&store[i], &store2[i], &store3[i])
                     i <- inc i
 
     member this.Iterate
@@ -1191,8 +1191,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let store4 = this.IndexStore<'c4> (Option.defaultValue typeof<'c4>.Name comp4Name) archetypeId stores
             let mutable i = 0
             while i < store.Length && i < length do
-                if entityIdStore.[i].Active then
-                    statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i])
+                if entityIdStore[i].Active then
+                    statement.Invoke (&store[i], &store2[i], &store3[i], &store4[i])
                     i <- inc i
 
     member this.Iterate
@@ -1211,8 +1211,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let store5 = this.IndexStore<'c5> (Option.defaultValue typeof<'c5>.Name comp5Name) archetypeId stores
             let mutable i = 0
             while i < store.Length && i < length do
-                if entityIdStore.[i].Active then
-                    statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i])
+                if entityIdStore[i].Active then
+                    statement.Invoke (&store[i], &store2[i], &store3[i], &store4[i], &store5[i])
                     i <- inc i
 
     member this.Iterate
@@ -1232,8 +1232,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let store6 = this.IndexStore<'c6> (Option.defaultValue typeof<'c6>.Name comp6Name) archetypeId stores
             let mutable i = 0
             while i < store.Length && i < length do
-                if entityIdStore.[i].Active then
-                    statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i])
+                if entityIdStore[i].Active then
+                    statement.Invoke (&store[i], &store2[i], &store3[i], &store4[i], &store5[i], &store6[i])
                     i <- inc i
 
     member this.Iterate
@@ -1254,8 +1254,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let store7 = this.IndexStore<'c7> (Option.defaultValue typeof<'c7>.Name comp7Name) archetypeId stores
             let mutable i = 0
             while i < store.Length && i < length do
-                if entityIdStore.[i].Active then
-                    statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i])
+                if entityIdStore[i].Active then
+                    statement.Invoke (&store[i], &store2[i], &store3[i], &store4[i], &store5[i], &store6[i], &store7[i])
                     i <- inc i
 
     member this.Iterate
@@ -1277,8 +1277,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let store8 = this.IndexStore<'c8> (Option.defaultValue typeof<'c8>.Name comp8Name) archetypeId stores
             let mutable i = 0
             while i < store.Length && i < length do
-                if entityIdStore.[i].Active then
-                    statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i])
+                if entityIdStore[i].Active then
+                    statement.Invoke (&store[i], &store2[i], &store3[i], &store4[i], &store5[i], &store6[i], &store7[i], &store8[i])
                     i <- inc i
 
     member this.Iterate
@@ -1301,8 +1301,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
             let store9 = this.IndexStore<'c9> (Option.defaultValue typeof<'c9>.Name comp9Name) archetypeId stores
             let mutable i = 0
             while i < store.Length && i < length do
-                if entityIdStore.[i].Active then
-                    statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i], &store9.[i])
+                if entityIdStore[i].Active then
+                    statement.Invoke (&store[i], &store2[i], &store3[i], &store4[i], &store5[i], &store6[i], &store7[i], &store8[i], &store9[i])
                     i <- inc i
 
     member this.IterateParallel
@@ -1320,8 +1320,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                 lock archetype $ fun () ->
                     let mutable i = 0
                     while i < store.Length && i < length do
-                        if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i])
+                        if entityIdStore[i].Active then
+                            statement.Invoke (&store[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
@@ -1341,8 +1341,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                 lock archetype $ fun () ->
                     let mutable i = 0
                     while i < store.Length && i < length do
-                        if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i])
+                        if entityIdStore[i].Active then
+                            statement.Invoke (&store[i], &store2[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
@@ -1363,8 +1363,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                 lock archetype $ fun () ->
                     let mutable i = 0
                     while i < store.Length && i < length do
-                        if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i], &store3.[i])
+                        if entityIdStore[i].Active then
+                            statement.Invoke (&store[i], &store2[i], &store3[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
@@ -1386,8 +1386,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                 lock archetype $ fun () ->
                     let mutable i = 0
                     while i < store.Length && i < length do
-                        if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i])
+                        if entityIdStore[i].Active then
+                            statement.Invoke (&store[i], &store2[i], &store3[i], &store4[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
@@ -1410,8 +1410,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                 lock archetype $ fun () ->
                     let mutable i = 0
                     while i < store.Length && i < length do
-                        if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i])
+                        if entityIdStore[i].Active then
+                            statement.Invoke (&store[i], &store2[i], &store3[i], &store4[i], &store5[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
@@ -1435,8 +1435,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                 lock archetype $ fun () ->
                     let mutable i = 0
                     while i < store.Length && i < length do
-                        if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i])
+                        if entityIdStore[i].Active then
+                            statement.Invoke (&store[i], &store2[i], &store3[i], &store4[i], &store5[i], &store6[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
@@ -1461,8 +1461,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                 lock archetype $ fun () ->
                     let mutable i = 0
                     while i < store.Length && i < length do
-                        if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i])
+                        if entityIdStore[i].Active then
+                            statement.Invoke (&store[i], &store2[i], &store3[i], &store4[i], &store5[i], &store6[i], &store7[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
@@ -1488,8 +1488,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                 lock archetype $ fun () ->
                     let mutable i = 0
                     while i < store.Length && i < length do
-                        if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i])
+                        if entityIdStore[i].Active then
+                            statement.Invoke (&store[i], &store2[i], &store3[i], &store4[i], &store5[i], &store6[i], &store7[i], &store8[i])
                             i <- inc i))
         this.ThreadTasks tasks
 
@@ -1516,8 +1516,8 @@ and Query (compNames : string HashSet, subqueries : Subquery seq, ecs : Ecs) as 
                 lock archetype $ fun () ->
                     let mutable i = 0
                     while i < store.Length && i < length do
-                        if entityIdStore.[i].Active then
-                            statement.Invoke (&store.[i], &store2.[i], &store3.[i], &store4.[i], &store5.[i], &store6.[i], &store7.[i], &store8.[i], &store9.[i])
+                        if entityIdStore[i].Active then
+                            statement.Invoke (&store[i], &store2[i], &store3[i], &store4[i], &store5[i], &store6[i], &store7[i], &store8[i], &store9[i])
                             i <- inc i))
         this.ThreadTasks tasks
 

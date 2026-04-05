@@ -364,7 +364,7 @@ module Scripting =
             | _ -> None
 
         static member internal isKeyword (str : string) =
-            str.Length > 0 && Char.IsUpper str.[0]
+            str.Length > 0 && Char.IsUpper str[0]
 
         static member internal isBinding (str : string) =
             str.Length > 0 && not (Expr.isKeyword str)
@@ -538,7 +538,7 @@ module Scripting =
                     let fieldSymbols =
                         Seq.map (fun (kvp : KeyValuePair<_, _>) ->
                             let key = kvp.Value
-                            let value = fields.[kvp.Key]
+                            let value = fields[kvp.Key]
                             let keySymbol = Atom (key, ValueNone)
                             let valueSymbol = this.ExprToSymbol value
                             Symbols ([keySymbol; valueSymbol], ValueNone))
@@ -932,7 +932,7 @@ module Scripting =
                         offsetRef := !offsetRef + 1
                         indexOptRef := Array.tryFindIndexBack (fun struct (bindingName, _) -> name = bindingName) frame // OPTIMIZATION: faster than (=) here
                         match !indexOptRef with
-                        | Some index -> Some frame.[index]
+                        | Some index -> Some frame[index]
                         | None -> None)
                     env.ProceduralFrames
             match optBinding with
@@ -962,14 +962,14 @@ module Scripting =
                 Some binding
             | ProceduralBinding (offset, index) ->
                 let frame = (List.skip offset env.ProceduralFrames).Head
-                let struct (_, binding) = frame.[index]
+                let struct (_, binding) = frame[index]
                 Some binding
 
         let tryAddDeclarationBinding name value env =
             let isTopLevel = List.isEmpty env.ProceduralFrames
             if isTopLevel then
 #if DEBUG
-                env.LocalFrame.[name] <- value; true
+                env.LocalFrame[name] <- value; true
 #else
                 env.LocalFrame.TryAdd (name, value)
 #endif
@@ -979,11 +979,11 @@ module Scripting =
             match appendType with
             | AddToNewFrame size ->
                 let frame = makeProceduralFrame size
-                frame.[0] <- struct (name, value)
+                frame[0] <- struct (name, value)
                 addProceduralFrame frame env
             | AddToHeadFrame offset ->
                 match env.ProceduralFrames with
-                | frame :: _ -> frame.[offset] <- struct (name, value)
+                | frame :: _ -> frame[offset] <- struct (name, value)
                 | [] -> failwithumf ()
 
         let addProceduralBindings appendType bindings env =
@@ -992,7 +992,7 @@ module Scripting =
                 let frame = makeProceduralFrame size
                 let mutable index = 0
                 for binding in bindings do
-                    frame.[index] <- binding
+                    frame[index] <- binding
                     index <- index + 1
                 addProceduralFrame frame env
             | AddToHeadFrame start ->
@@ -1000,7 +1000,7 @@ module Scripting =
                 | frame :: _ ->
                     let mutable index = start
                     for binding in bindings do
-                        frame.[index] <- binding
+                        frame[index] <- binding
                         index <- index + 1
                 | [] -> failwithumf ()
 

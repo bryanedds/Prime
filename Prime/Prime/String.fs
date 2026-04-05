@@ -49,7 +49,7 @@ module String =
             if n = 0 then acc
             else
                 let n = n - 1
-                loop n (str.[n] :: acc)
+                loop n (str[n] :: acc)
         loop (String.length str) []
     
     /// Converts a list of characters into a string.
@@ -141,7 +141,7 @@ module String =
             let mutable result = true
             let mutable i = 0
             while result && i < length do
-                result <- strs.[i] = strs2.[i]
+                result <- strs[i] = strs2[i]
                 i <- inc i
             result
          else false
@@ -153,7 +153,7 @@ module String =
             let mutable result = true
             let mutable i = 0
             while result && i < length do
-                result <- objEq strs.[i] strs2.[i]
+                result <- objEq strs[i] strs2[i]
                 i <- inc i
             result
          else false
@@ -165,7 +165,7 @@ module String =
             let mutable result = true
             let mutable i = dec length
             while result && i >= 0 do
-                result <- strs.[i] = strs2.[i]
+                result <- strs[i] = strs2[i]
                 i <- dec i
             result
          else false
@@ -175,7 +175,7 @@ module String =
         let mutable result = 0
         let mutable i = 0
         while result = 0 && i < strs.Length && i < strs2.Length do
-            result <- strCmp strs.[i] strs2.[i]
+            result <- strCmp strs[i] strs2[i]
             i <- inc i
         if result = 0 then
             if strs.Length < strs2.Length then result <- -1

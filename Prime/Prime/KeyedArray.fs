@@ -34,7 +34,7 @@ module KeyedArray =
 
         /// Index a keyed value.
         member this.Item key =
-            &this.Values_.[this.Indices_.[key]]
+            &this.Values_[this.Indices_[key]]
 
         member private this.Overflowing =
             this.Current_ = this.Values.Length
@@ -60,12 +60,12 @@ module KeyedArray =
                 // reorg
                 let mutable current = 0
                 for key in Seq.toArray this.Keys_.Values do
-                    let index = this.Indices_.[key]
-                    let value = this.Values_.[index]
+                    let index = this.Indices_[key]
+                    let value = this.Values_[index]
                     this.Keys_.Remove index |> ignore
                     this.Keys_.Add (current, key)
-                    this.Indices_.[key] <- current
-                    this.Values_.[current] <- value
+                    this.Indices_[key] <- current
+                    this.Values_[current] <- value
                     current <- inc current
 
                 // shrink
@@ -85,11 +85,11 @@ module KeyedArray =
                 let index = this.Current_
                 this.Keys_.Add (index, key) |> ignore
                 this.Indices_.Add (key, index)
-                this.Values_.[index] <- struct (true, key, value)
+                this.Values_[index] <- struct (true, key, value)
                 this.Current_ <- inc this.Current_
                 index
             | (true, index) ->
-                this.Values_.[index] <- struct (true, key, value)
+                this.Values_[index] <- struct (true, key, value)
                 index
         
         /// Remove a keyed value if it exists.
@@ -98,7 +98,7 @@ module KeyedArray =
             | (true, index) ->
                 this.Keys_.Remove index |> ignore
                 this.Indices_.Remove key |> ignore
-                this.Values_.[index] <- struct (false, key, Unchecked.defaultof<'v>)
+                this.Values_[index] <- struct (false, key, Unchecked.defaultof<'v>)
                 this.Removed_ <- inc this.Removed_
                 this.Compact ()
             | (false, _) -> ()
@@ -110,7 +110,7 @@ module KeyedArray =
         /// Attempt to find a keyed value.
         member this.TryFind key =
             match this.Indices_.TryGetValue key with
-            | (true, index) -> Some this.Values_.[index]
+            | (true, index) -> Some this.Values_[index]
             | (false, _) -> None
 
         /// Attempt to get a keyed value.
@@ -180,7 +180,7 @@ module KeyedArray =
         let mutable state = state
         let mutable index = 0
         while index < length do
-            let struct (exists, key, value) = arr.[index]
+            let struct (exists, key, value) = arr[index]
             if exists then state <- folder state key value
         state
 

@@ -112,7 +112,7 @@ module UMap =
 
     /// Find the given keyed value or raise a KeyNotFoundException.
     let find key (map : UMap<'k, 'v>) =
-        map.[key]
+        map[key]
 
     /// Check that a UMap contains the given key.
     let containsKey key (map : UMap<'k, 'v>) =

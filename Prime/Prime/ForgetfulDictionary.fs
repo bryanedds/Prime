@@ -29,12 +29,12 @@ type ForgetfulDictionary<'k, 'v when 'k : equality> (capacity : int, comparer : 
 
     member this.Keys =
         let now = Stopwatch.GetTimestamp ()
-        for entry in accesses do accesses.[entry.Key] <- now
+        for entry in accesses do accesses[entry.Key] <- now
         entries.Keys
 
     member this.Values =
         let now = Stopwatch.GetTimestamp ()
-        for entry in accesses do accesses.[entry.Key] <- now
+        for entry in accesses do accesses[entry.Key] <- now
         entries.Values
 
     member this.Item
@@ -43,18 +43,18 @@ type ForgetfulDictionary<'k, 'v when 'k : equality> (capacity : int, comparer : 
             if this.TryGetValue (key, &v) then v
             else raise (KeyNotFoundException("The key was not found in the dictionary."))
         and set key value =
-            entries.[key] <- value
-            accesses.[key] <- Stopwatch.GetTimestamp ()
+            entries[key] <- value
+            accesses[key] <- Stopwatch.GetTimestamp ()
 
     member this.ContainsKey key =
         if entries.ContainsKey key then
-            accesses.[key] <- Stopwatch.GetTimestamp ()
+            accesses[key] <- Stopwatch.GetTimestamp ()
             true
         else false
 
     member this.TryGetValue (key, value: 'v outref) =
         if entries.TryGetValue (key, &value) then
-            accesses.[key] <- Stopwatch.GetTimestamp ()
+            accesses[key] <- Stopwatch.GetTimestamp ()
             true
         else false
 
@@ -72,17 +72,17 @@ type ForgetfulDictionary<'k, 'v when 'k : equality> (capacity : int, comparer : 
 
     member this.GetEnumeratorGeneralized () =
         let now = Stopwatch.GetTimestamp ()
-        for entry in accesses do accesses.[entry.Key] <- now
+        for entry in accesses do accesses[entry.Key] <- now
         entries.GetEnumerator () :> IEnumerator
 
     member this.GetEnumerator () =
         let now = Stopwatch.GetTimestamp ()
-        for entry in accesses do accesses.[entry.Key] <- now
+        for entry in accesses do accesses[entry.Key] <- now
         entries.GetEnumerator () :> IEnumerator<KeyValuePair<'k, 'v>>
 
     member this.CopyTo (array, index) =
         let now = Stopwatch.GetTimestamp ()
-        for entry in accesses do accesses.[entry.Key] <- now // TODO: don't update access time of entries before 'index'.
+        for entry in accesses do accesses[entry.Key] <- now // TODO: don't update access time of entries before 'index'.
         (entries :> ICollection).CopyTo (array, index)
 
     member this.Evict (accessAgeTicks : int64) =
@@ -104,7 +104,7 @@ type ForgetfulDictionary<'k, 'v when 'k : equality> (capacity : int, comparer : 
         member this.Count = this.Count
         member this.Keys = this.Keys
         member this.Values = this.Values
-        member this.Item with get value = this.[value] and set key value = this.[key] <- value
+        member this.Item with get value = this[value] and set key value = this[key] <- value
         member this.Contains kvp = match this.TryGetValue kvp.Key with (true, value) -> objEq kvp.Value value | (false, _) -> false
         member this.ContainsKey key = this.ContainsKey key
         member this.TryGetValue (key, value) = this.TryGetValue (key, &value)

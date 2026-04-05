@@ -72,8 +72,8 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             elif sourceType.Name = typedefof<KeyValuePair<_, _>>.Name then
                 let gargs = sourceType.GetGenericArguments ()
                 let kvp = Reflection.objToKeyValuePair source
-                let keySymbol = toSymbol gargs.[0] kvp.Key
-                let valueSymbol = toSymbol gargs.[1] kvp.Value
+                let keySymbol = toSymbol gargs[0] kvp.Key
+                let valueSymbol = toSymbol gargs[1] kvp.Value
                 Symbols ([keySymbol; valueSymbol], ValueNone)
 
             // symbolize DesignerProperty
@@ -101,7 +101,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 if isSome.Invoke (source, null) :?> bool then
                     let getValue = sourceType.GetMethod "get_Value"
                     let value = getValue.Invoke (source, null)
-                    let valueSymbol = toSymbol gargs.[0] value
+                    let valueSymbol = toSymbol gargs[0] value
                     Symbols ([Atom ("Some", ValueNone); valueSymbol], ValueNone)
                 else Atom ("None", ValueNone)
 
@@ -109,20 +109,20 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             elif sourceType.Name = typedefof<_ list>.Name then
                 let gargs = sourceType.GetGenericArguments ()
                 let items = Reflection.objToObjList source
-                let symbols = List.map (toSymbol gargs.[0]) items
+                let symbols = List.map (toSymbol gargs[0]) items
                 Symbols (symbols, ValueNone)
 
             // symbolize Set
             elif sourceType.Name = typedefof<_ Set>.Name then
                 let gargs = sourceType.GetGenericArguments ()
                 let items = Reflection.objToComparableSet source |> List.ofSeq
-                let symbols = List.map (toSymbol gargs.[0]) items
+                let symbols = List.map (toSymbol gargs[0]) items
                 Symbols (symbols, ValueNone)
 
             // symbolize Map
             elif sourceType.Name = typedefof<Map<_, _>>.Name then
                 let gargs = sourceType.GetGenericArguments ()
-                let itemType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs.[0]; gargs.[1]|]
+                let itemType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs[0]; gargs[1]|]
                 let items = Reflection.objToObjList source
                 let symbols = List.map (toSymbol itemType) items
                 Symbols (symbols, ValueNone)
@@ -131,34 +131,34 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             elif sourceType.Name = typedefof<_ FList>.Name then
                 let gargs = sourceType.GetGenericArguments ()
                 let items = Reflection.objToObjSeq source |> List.ofSeq
-                let symbols = List.map (toSymbol gargs.[0]) items
+                let symbols = List.map (toSymbol gargs[0]) items
                 Symbols (symbols, ValueNone)
 
             // symbolize FQueue
             elif sourceType.Name = typedefof<_ FQueue>.Name then
                 let gargs = sourceType.GetGenericArguments ()
                 let items = Reflection.objToObjSeq source |> List.ofSeq
-                let symbols = List.map (toSymbol gargs.[0]) items
+                let symbols = List.map (toSymbol gargs[0]) items
                 Symbols (symbols, ValueNone)
 
             // symbolize FDeque
             elif sourceType.Name = typedefof<_ FDeque>.Name then
                 let gargs = sourceType.GetGenericArguments ()
                 let items = Reflection.objToObjSeq source |> List.ofSeq
-                let symbols = List.map (toSymbol gargs.[0]) items
+                let symbols = List.map (toSymbol gargs[0]) items
                 Symbols (symbols, ValueNone)
 
             // symbolize FSet
             elif sourceType.Name = typedefof<_ FSet>.Name then
                 let gargs = sourceType.GetGenericArguments ()
                 let items = Reflection.objToComparableSet source |> List.ofSeq
-                let symbols = List.map (toSymbol gargs.[0]) items
+                let symbols = List.map (toSymbol gargs[0]) items
                 Symbols (symbols, ValueNone)
 
             // symbolize FMap
             elif sourceType.Name = typedefof<FMap<_, _>>.Name then
                 let gargs = sourceType.GetGenericArguments ()
-                let itemType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs.[0]; gargs.[1]|]
+                let itemType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs[0]; gargs[1]|]
                 let items = Reflection.objToObjList source
                 let symbols = List.map (toSymbol itemType) items
                 Symbols (symbols, ValueNone)
@@ -167,13 +167,13 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             elif sourceType.Name = typedefof<_ OSet>.Name then
                 let gargs = sourceType.GetGenericArguments ()
                 let items = Reflection.objToComparableSet source |> List.ofSeq
-                let symbols = List.map (toSymbol gargs.[0]) items
+                let symbols = List.map (toSymbol gargs[0]) items
                 Symbols (symbols, ValueNone)
 
             // symbolize OMap
             elif sourceType.Name = typedefof<OMap<_, _>>.Name then
                 let gargs = sourceType.GetGenericArguments ()
-                let itemType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs.[0]; gargs.[1]|]
+                let itemType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs[0]; gargs[1]|]
                 let items = Reflection.objToObjList source
                 let symbols = List.map (toSymbol itemType) items
                 Symbols (symbols, ValueNone)
@@ -182,13 +182,13 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             elif sourceType.Name = typedefof<_ HSet>.Name then
                 let gargs = sourceType.GetGenericArguments ()
                 let items = Reflection.objToComparableSet source |> List.ofSeq
-                let symbols = List.map (toSymbol gargs.[0]) items
+                let symbols = List.map (toSymbol gargs[0]) items
                 Symbols (symbols, ValueNone)
 
             // symbolize HMap
             elif sourceType.Name = typedefof<HMap<_, _>>.Name then
                 let gargs = sourceType.GetGenericArguments ()
-                let itemType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs.[0]; gargs.[1]|]
+                let itemType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs[0]; gargs[1]|]
                 let items = Reflection.objToObjList source
                 let symbols = List.map (toSymbol itemType) items
                 Symbols (symbols, ValueNone)
@@ -196,7 +196,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             // symbolize KeyValuePair
             elif sourceType.Name = typedefof<KeyValuePair<_, _>>.Name then
                 let gargs = sourceType.GetGenericArguments ()
-                let kvpType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs.[0]; gargs.[1]|]
+                let kvpType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs[0]; gargs[1]|]
                 let keyProperty = kvpType.GetProperty "Key"
                 let valueProperty = kvpType.GetProperty "Value"
                 let keyObj = keyProperty.GetValue source
@@ -209,7 +209,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             // symbolize List
             elif sourceType.Name = typedefof<_ List>.Name then
                 let gargs = sourceType.GetGenericArguments ()
-                let itemType = gargs.[0]
+                let itemType = gargs[0]
                 let items = Reflection.objToObjList source
                 let symbols = List.map (toSymbol itemType) items
                 Symbols (symbols, ValueNone)
@@ -217,7 +217,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             // symbolize Stack
             elif sourceType.Name = typedefof<_ Stack>.Name then
                 let gargs = sourceType.GetGenericArguments ()
-                let itemType = gargs.[0]
+                let itemType = gargs[0]
                 let items = Reflection.objToObjList source
                 let symbols = List.map (toSymbol itemType) items
                 Symbols (symbols, ValueNone)
@@ -225,7 +225,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             // symbolize Queue
             elif sourceType.Name = typedefof<_ Queue>.Name then
                 let gargs = sourceType.GetGenericArguments ()
-                let itemType = gargs.[0]
+                let itemType = gargs[0]
                 let items = Reflection.objToObjList source
                 let symbols = List.map (toSymbol itemType) items
                 Symbols (symbols, ValueNone)
@@ -233,7 +233,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             // symbolize HashSet
             elif sourceType.Name = typedefof<_ HashSet>.Name then
                 let gargs = sourceType.GetGenericArguments ()
-                let itemType = gargs.[0]
+                let itemType = gargs[0]
                 let items = Reflection.objToObjList source
                 let symbols = List.map (toSymbol itemType) items
                 Symbols (symbols, ValueNone)
@@ -241,7 +241,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             // symbolize Dictionary
             elif sourceType.Name = typedefof<Dictionary<_, _>>.Name then
                 let gargs = sourceType.GetGenericArguments ()
-                let kvpType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs.[0]; gargs.[1]|]
+                let kvpType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs[0]; gargs[1]|]
                 let kvps = Reflection.objToObjList source
                 let symbols = List.map (toSymbol kvpType) kvps
                 Symbols (symbols, ValueNone)
@@ -249,12 +249,12 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             // symbolize SymbolicCompression
             elif sourceType.Name = typedefof<SymbolicCompression<_, _>>.Name then
                 let (unionCase, unionFields) = FSharpValue.GetUnionFields (source, sourceType)
-                let value = unionFields.[0]
+                let value = unionFields[0]
                 let valueType = value.GetType ()
                 if unionCase.Tag = 0 then toSymbol valueType value
                 else
                     let (_, unionFields) = FSharpValue.GetUnionFields (value, valueType)
-                    let value = unionFields.[0]
+                    let value = unionFields[0]
                     let valueType = value.GetType ()
                     toSymbol valueType value
 
@@ -262,7 +262,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             elif FSharpType.IsTuple sourceType then
                 let tupleFields = FSharpValue.GetTupleFields source
                 let tupleElementTypes = FSharpType.GetTupleElements sourceType
-                let tupleFieldSymbols = Array.mapi (fun i tupleField -> toSymbol tupleElementTypes.[i] tupleField) tupleFields
+                let tupleFieldSymbols = Array.mapi (fun i tupleField -> toSymbol tupleElementTypes[i] tupleField) tupleFields
                 Symbols (List.ofArray tupleFieldSymbols, ValueNone)
 
             // symbolize Record
@@ -285,7 +285,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 else
                     let recordFields = FSharpValue.GetRecordFields (source, true)
                     let recordFieldTypes = FSharpType.GetRecordFields (sourceType, true)
-                    let recordFieldSymbols = Array.mapi (fun i recordField -> toSymbol recordFieldTypes.[i].PropertyType recordField) recordFields
+                    let recordFieldSymbols = Array.mapi (fun i recordField -> toSymbol recordFieldTypes[i].PropertyType recordField) recordFields
                     Symbols (List.ofArray recordFieldSymbols, ValueNone)
 
             // symbolize Union
@@ -293,7 +293,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 let (unionCase, unionFields) = FSharpValue.GetUnionFields (source, sourceType)
                 let unionFieldInfos = unionCase.GetFields ()
                 if not (Array.isEmpty unionFields) then
-                    let unionFieldSymbols = Array.mapi (fun i unionField -> toSymbol unionFieldInfos.[i].PropertyType unionField) unionFields
+                    let unionFieldSymbols = Array.mapi (fun i unionField -> toSymbol unionFieldInfos[i].PropertyType unionField) unionFields
                     let unionSymbols = Array.cons (Atom (unionCase.Name, ValueNone)) unionFieldSymbols
                     Symbols (List.ofArray unionSymbols, ValueNone)
                 else Atom (unionCase.Name, ValueNone)
@@ -317,7 +317,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             match toSymbolMemo.TryGetValue struct (sourceType, source) with
             | (false, _) ->
                 let symbol = toSymbolInternal sourceType source
-                toSymbolMemo.[struct (sourceType, source)] <- symbol
+                toSymbolMemo[struct (sourceType, source)] <- symbol
                 symbol
             | (true, symbol) -> symbol
         | _ -> toSymbolInternal sourceType source
@@ -337,7 +337,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             | Number (str, _) ->
                 // allow for numbers with single-character suffixes
                 let trimmed =
-                    if Char.IsLetter str.[str.Length - 1]
+                    if Char.IsLetter str[str.Length - 1]
                     then str.Substring (0, str.Length - 1)
                     else str
                 try (TypeDescriptor.GetConverter destType).ConvertFromString trimmed
@@ -414,7 +414,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Atom ("None", _) -> destType.GetDefaultValue ()
                     | Symbols ([Atom ("Some", _); valueSymbol], _) ->
-                        let value = ofSymbol gargs.[0] valueSymbol
+                        let value = ofSymbol gargs[0] valueSymbol
                         let some = destType.GetMethod "Some"
                         some.Invoke (null, [|value|])
                     | _ -> failconv "Expected (Atom 'None') or (Symbols ([Atom 'Some'; _))) for conversion to ValueOption."
@@ -424,7 +424,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let itemType = gargs.[0]
+                        let itemType = gargs[0]
                         let items = List.map (ofSymbol itemType) symbols
                         Reflection.objsToList destType items
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
@@ -435,7 +435,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let itemType = gargs.[0]
+                        let itemType = gargs[0]
                         let items = List.map (ofSymbol itemType) symbols
                         Reflection.objsToSet destType items
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
@@ -460,7 +460,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let itemType = gargs.[0]
+                        let itemType = gargs[0]
                         let items = List.map (ofSymbol itemType) symbols
                         Reflection.objsToCollection typedefof<_ FList>.Name destType items
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
@@ -471,7 +471,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let itemType = gargs.[0]
+                        let itemType = gargs[0]
                         let items = List.map (ofSymbol itemType) symbols
                         Reflection.objsToCollection typedefof<_ FQueue>.Name destType items
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
@@ -482,7 +482,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let itemType = gargs.[0]
+                        let itemType = gargs[0]
                         let items = List.map (ofSymbol itemType) symbols
                         Reflection.objsToCollection typedefof<_ FDeque>.Name destType items
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
@@ -493,7 +493,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let itemType = gargs.[0]
+                        let itemType = gargs[0]
                         let items = List.map (ofSymbol itemType) symbols
                         Reflection.objsToFSet destType items
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
@@ -518,7 +518,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let itemType = gargs.[0]
+                        let itemType = gargs[0]
                         let items = List.map (ofSymbol itemType) symbols
                         let set = Reflection.objsToSet (typedefof<_ Set>.MakeGenericType gargs) items
                         let hSetModule = destType.DeclaringType
@@ -549,7 +549,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let itemType = gargs.[0]
+                        let itemType = gargs[0]
                         let items = List.map (ofSymbol itemType) symbols
                         let set = Reflection.objsToSet (typedefof<_ Set>.MakeGenericType gargs) items
                         let hSetModule = destType.DeclaringType
@@ -598,7 +598,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let itemType = gargs.[0]
+                        let itemType = gargs[0]
                         let itemObjs = List.map (ofSymbol itemType) symbols
                         let itemsListType = typedefof<_ list>.MakeGenericType [|itemType|]
                         let items = Reflection.objsToList itemsListType itemObjs
@@ -612,7 +612,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let itemType = gargs.[0]
+                        let itemType = gargs[0]
                         let itemObjs = List.map (ofSymbol itemType) symbols
                         let itemsListType = typedefof<_ list>.MakeGenericType [|itemType|]
                         let items = Reflection.objsToList itemsListType itemObjs
@@ -626,7 +626,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let itemType = gargs.[0]
+                        let itemType = gargs[0]
                         let itemObjs = List.map (ofSymbol itemType) symbols
                         let itemsListType = typedefof<_ list>.MakeGenericType [|itemType|]
                         let items = Reflection.objsToList itemsListType itemObjs
@@ -640,7 +640,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     match symbol with
                     | Symbols (symbols, _) ->
                         let gargs = destType.GetGenericArguments ()
-                        let itemType = gargs.[0]
+                        let itemType = gargs[0]
                         let itemObjs = List.map (ofSymbol itemType) symbols
                         let itemsListType = typedefof<_ list>.MakeGenericType [|itemType|]
                         let items = Reflection.objsToList itemsListType itemObjs
@@ -673,14 +673,14 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                         match symbols with
                         | (Atom (unionName, _)) :: _ ->
                             let gargs = destType.GetGenericArguments ()
-                            let aType = gargs.[0]
+                            let aType = gargs[0]
                             match Reflection.tryGetUnionCase aType unionName with
                             | Some aCase ->
                                 let a = ofSymbol aCase.DeclaringType symbol
                                 let compressionUnion = (Reflection.getUnionCases destType).Item 0 :?> UnionCaseInfo
                                 FSharpValue.MakeUnion (compressionUnion, [|a|])
                             | None ->
-                                let bType = gargs.[1]
+                                let bType = gargs[1]
                                 let b = ofSymbol bType symbol
                                 let compressionUnion = (Reflection.getUnionCases destType).Item 1 :?> UnionCaseInfo
                                 FSharpValue.MakeUnion (compressionUnion, [|b|])
@@ -697,7 +697,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                             symbols
                             |> Array.ofList
                             |> Array.tryTake elementTypes.Length
-                            |> Array.mapi (fun i elementSymbol -> ofSymbol elementTypes.[i] elementSymbol)
+                            |> Array.mapi (fun i elementSymbol -> ofSymbol elementTypes[i] elementSymbol)
                         let elements = padWithDefaults elementTypes elements
                         FSharpValue.MakeTuple (elements, destType)
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
@@ -742,7 +742,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                                 symbols
                                 |> Array.ofList
                                 |> Array.tryTake fieldInfos.Length
-                                |> Array.mapi (fun i fieldSymbol -> ofSymbol fieldInfos.[i].PropertyType fieldSymbol)
+                                |> Array.mapi (fun i fieldSymbol -> ofSymbol fieldInfos[i].PropertyType fieldSymbol)
                             let fields = padWithDefaultProperties fieldInfos fields
                             FSharpValue.MakeRecord (destType, fields, true)
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
@@ -772,7 +772,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                                     symbolTail
                                     |> Array.ofList
                                     |> Array.tryTake unionFieldInfos.Length
-                                    |> Array.mapi (fun i unionSymbol -> ofSymbol unionFieldInfos.[i].PropertyType unionSymbol)
+                                    |> Array.mapi (fun i unionSymbol -> ofSymbol unionFieldInfos[i].PropertyType unionSymbol)
                                 let unionValues = padWithDefaultProperties unionFieldInfos unionValues
                                 FSharpValue.MakeUnion (unionCase, unionValues, true)
                             | None ->
@@ -801,7 +801,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             match ofSymbolMemo.TryGetValue struct (destType, symbol) with
             | (false, _) ->
                 let result = ofSymbolInternal destType symbol
-                ofSymbolMemo.[struct (destType, symbol)] <- result
+                ofSymbolMemo[struct (destType, symbol)] <- result
                 result
             | (true, symbol) -> symbol
         | None -> ofSymbolInternal destType symbol

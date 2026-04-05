@@ -126,7 +126,7 @@ module SOSet =
     let remove item set =
         match SUMap.tryFind item set.Indices with
         | Some index ->
-            let struct (_, _) = set.Entries.[index]
+            let struct (_, _) = set.Entries[index]
             let set =
                 { Indices = SUMap.remove item set.Indices
                   Entries = FStack.replaceAt index struct (false, Unchecked.defaultof<_>) set.Entries

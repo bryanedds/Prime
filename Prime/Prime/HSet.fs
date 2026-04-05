@@ -42,7 +42,7 @@ module HSet =
             let gutterLength = gutter.Length
             let gutter2 = Array.zeroCreate (inc gutterLength) : Hv<'a> array
             Array.Copy (gutter, 0, gutter2, 0, gutterLength)
-            gutter2.[gutterLength] <- entry
+            gutter2[gutterLength] <- entry
             gutter2
 
         let private removeFromGutter (v : 'a) (gutter : Hv<'a> array) =
@@ -85,8 +85,8 @@ module HSet =
                     let idx' = hashToIndex hv'.H dep
                     if idx <> idx' then
                         let arr = cloneArray earr
-                        arr.[idx] <- Singleton hv
-                        arr.[idx'] <- Singleton hv'
+                        arr[idx] <- Singleton hv
+                        arr[idx'] <- Singleton hv'
                         Multiple arr
     
                     // if replace entry; remain Singleton
@@ -99,16 +99,16 @@ module HSet =
                         let node' = add hv earr dep' Nil
                         let node' = add hv' earr dep' node'
                         let arr = cloneArray earr
-                        arr.[idx] <- node'
+                        arr[idx] <- node'
                         Multiple arr
     
                 | Multiple arr ->
     
                     // add entry with recursion
                     let idx = hashToIndex hv.H dep
-                    let entry = arr.[idx]
+                    let entry = arr[idx]
                     let arr = cloneArray arr
-                    arr.[idx] <- add hv earr (dep + 1) entry
+                    arr[idx] <- add hv earr (dep + 1) entry
                     Multiple arr
     
                 | Gutter _ ->
@@ -132,9 +132,9 @@ module HSet =
             | Singleton hv -> if hv.V.Equals v then Nil else node
             | Multiple arr ->
                 let idx = hashToIndex h dep
-                let entry = arr.[idx]
+                let entry = arr[idx]
                 let arr = cloneArray arr
-                arr.[idx] <- remove h v (dep + 1) entry
+                arr[idx] <- remove h v (dep + 1) entry
                 if Array.forall isEmpty arr then Nil else Multiple arr // does not collapse Multiple to Singleton, tho could?
             | Gutter gutter ->
                 let gutter = removeFromGutter v gutter
@@ -144,7 +144,7 @@ module HSet =
             match node with
             | Nil -> false
             | Singleton hv -> hv.V.Equals v
-            | Multiple arr -> let idx = hashToIndex h dep in contains h v (dep + 1) arr.[idx]
+            | Multiple arr -> let idx = hashToIndex h dep in contains h v (dep + 1) arr[idx]
             | Gutter gutter -> containedByGutter v gutter
     
         let rec fold folder state node =

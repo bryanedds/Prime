@@ -674,7 +674,7 @@ module FSetTree =
 
         iter
             (fun x ->
-                arr.[j] <- x
+                arr[j] <- x
                 j <- j + 1)
             s
 

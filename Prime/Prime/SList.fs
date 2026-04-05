@@ -31,19 +31,19 @@ module SList =
                 if i < this.TotalLength_ then
                     let j = i / this.Capacity_
                     let k = i % this.Capacity_
-                    this.Lists_.[j].[k]
+                    this.Lists_[j][k]
                 else raise (IndexOutOfRangeException "Index out of range.")
             and set (i : int) (value : 'a) =
                 if i < this.TotalLength_ then
                     let j = i / this.Capacity_
                     let k = i % this.Capacity_
-                    this.Lists_.[j].[k] <- value
+                    this.Lists_[j][k] <- value
 
         member this.GetEnumerator () =
             (Seq.concat this.Lists_).GetEnumerator ()
 
         member this.Add item =
-            let lastList = this.Lists_.[dec this.Lists_.Count]
+            let lastList = this.Lists_[dec this.Lists_.Count]
             if lastList.Count < this.Capacity_ then
                 lastList.Add item
             else
@@ -78,7 +78,7 @@ module SList =
             result
 
         member this.Clear () =
-            let firstList = this.Lists_.[0]
+            let firstList = this.Lists_[0]
             firstList.Clear ()
             this.Lists_.Clear ()
             this.Lists_.Add firstList
@@ -88,7 +88,7 @@ module SList =
             let mutable i = 0
             let mutable enr = this.GetEnumerator ()
             while enr.MoveNext () do
-                arr.[i + index] <- enr.Current
+                arr[i + index] <- enr.Current
                 i <- inc i
 
         interface 'a IEnumerable with
@@ -128,7 +128,7 @@ module SList =
         slist.TotalLength_
 
     let item index (slist : 'a SList) =
-        slist.[index]
+        slist[index]
 
     let add item (slist : 'a SList) =
         slist.Add item
@@ -146,14 +146,14 @@ module SList =
         if count > slist.TotalLength_ then raise (ArgumentException ("Invalid argument.", nameof count))
         let result = makeWithCapacity (slist.TotalLength_ - count)
         for i in count .. dec slist.TotalLength_ do
-            add slist.[i] result
+            add slist[i] result
         result
 
     let take count (slist : 'a SList) =
         if count > slist.TotalLength_ then raise (ArgumentException ("Invalid argument.", nameof count))
         let result = makeWithCapacity count
         for i in 0 .. dec slist.TotalLength_ - count do
-            add slist.[i] result
+            add slist[i] result
         result
 
     let fold folder state slist =
@@ -172,7 +172,7 @@ module SList =
         if left.TotalLength_ <> right.TotalLength_ then raise (ArgumentException ("SList length does not match.", nameof right))
         let result = makeWithCapacity left.TotalLength_
         for i in 0 .. dec left.TotalLength_ do
-            add (mapper left.[i] right.[i]) result
+            add (mapper left[i] right[i]) result
         result
 
     let filter predicate slist =

@@ -24,8 +24,8 @@ type 'a FStackEnumerator (front : 'a array, back : 'a array) =
 
     member this.Current =
         if inFront
-        then front.[index]
-        else back.[index]
+        then front[index]
+        else back[index]
 
     member this.Reset () =
         inFront <- true
@@ -76,8 +76,8 @@ module FStack =
                     let index' = index - this.Front.Length
                     if index' >= this.Back.Length
                     then raise (IndexOutOfRangeException "Cannot index outside of FStack's range.")
-                    else this.Back.[index']
-                else this.Front.[index]
+                    else this.Back[index']
+                else this.Front[index]
             else raise (IndexOutOfRangeException "Cannot index outside of FStack's range.")
 
         member this.GetEnumerator () =
@@ -159,12 +159,12 @@ module FStack =
 
     /// Get the first element of an FStack or raise an IndexOutOfRangeException.
     let head stack =
-        stack.Front.[0]
+        stack.Front[0]
 
     /// Get the first element of an FStack or None.
     let tryHead stack =
         if stack.Front.Length <> 0
-        then Some stack.Front.[0]
+        then Some stack.Front[0]
         else None
 
     /// Remove all elements from an FStack that satisfy the given predicate.
@@ -189,13 +189,13 @@ module FStack =
     let replaceAt index replacement stack =
         if index < stack.Front.Length then
             let front = Array.copy stack.Front
-            front.[index] <- replacement
+            front[index] <- replacement
             { stack with Front = front }
         else
             let index' = index - stack.Front.Length
             if index' < stack.Back.Length then
                 let back = Array.copy stack.Back
-                back.[index'] <- replacement
+                back[index'] <- replacement
                 { stack with Back = back }
             else raise (IndexOutOfRangeException "Cannot index outside of FStack's range.")
 
@@ -216,13 +216,13 @@ module FStack =
                 let index' = index - stack.Front.Length
                 if index' >= stack.Back.Length
                 then None
-                else Some stack.Back.[index']
-            else Some stack.Front.[index]
+                else Some stack.Back[index']
+            else Some stack.Front[index]
         else None
 
     /// Index the FStack at the given 'a offset or raise IndexOutOfRangeException.
     let index i (stack : 'a FStack) =
-        stack.[i]
+        stack[i]
 
     /// Add an element to the end of an FStack.
     let conj a stack =

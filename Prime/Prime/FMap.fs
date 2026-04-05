@@ -557,7 +557,7 @@ module FMapTree =
 
         m
         |> iter (fun x y ->
-            arr.[j] <- KeyValuePair(x, y)
+            arr[j] <- KeyValuePair(x, y)
             j <- j + 1)
 
     /// Imperative left-to-right iterators.
@@ -932,7 +932,7 @@ type FMap<[<EqualityConditionalOn>] 'Key, [<EqualityConditionalOn; ComparisonCon
 
     interface IDictionary<'Key, 'Value> with
         member m.Item
-            with get x = m.[x]
+            with get x = m[x]
             and set _ _ = raise (NotSupportedException("FMap cannot be mutated."))
 
         member m.Keys = m.Keys
@@ -962,7 +962,7 @@ type FMap<[<EqualityConditionalOn>] 'Key, [<EqualityConditionalOn; ComparisonCon
             raise (NotSupportedException("FMap cannot be mutated."))
 
         member m.Contains x =
-            m.ContainsKey x.Key && Unchecked.equals m.[x.Key] x.Value
+            m.ContainsKey x.Key && Unchecked.equals m[x.Key] x.Value
 
         member _.CopyTo(arr, i) =
             FMapTree.copyToArray tree arr i
@@ -993,7 +993,7 @@ type FMap<[<EqualityConditionalOn>] 'Key, [<EqualityConditionalOn; ComparisonCon
     interface IReadOnlyDictionary<'Key, 'Value> with
 
         member m.Item
-            with get key = m.[key]
+            with get key = m[key]
 
         member m.Keys = m.Keys :> IEnumerable<'Key>
 
@@ -1090,7 +1090,7 @@ and KeyCollection<'Key, 'Value when 'Key: comparison>(parent: FMap<'Key, 'Value>
             let mutable i = index
 
             for item in parent do
-                arr.[i] <- item.Key
+                arr[i] <- item.Key
                 i <- i + 1
 
         member _.IsReadOnly = true
@@ -1141,7 +1141,7 @@ and ValueCollection<'Key, 'Value when 'Key: comparison>(parent: FMap<'Key, 'Valu
             let mutable i = index
 
             for item in parent do
-                arr.[i] <- item.Value
+                arr[i] <- item.Value
                 i <- i + 1
 
         member _.IsReadOnly = true
@@ -1183,7 +1183,7 @@ module FMap =
 
     [<CompiledName("Find")>]
     let find key (table: FMap<_, _>) =
-        table.[key]
+        table[key]
 
     [<CompiledName("TryFind")>]
     let tryFind key (table: FMap<_, _>) =

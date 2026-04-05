@@ -11,7 +11,7 @@ module Array =
     let cons (elem : 'a) (arr : 'a array) =
         let tailLength = Array.length arr
         let arr2 = Array.zeroCreate (inc tailLength)
-        arr2.[0] <- elem
+        arr2[0] <- elem
         Array.Copy (arr, 0, arr2, 1, tailLength)
         arr2
 
@@ -19,7 +19,7 @@ module Array =
     let add (elem : 'a) (arr : 'a array) =
         let tailLength = Array.length arr
         let arr2 = Array.zeroCreate (inc tailLength)
-        arr2.[tailLength] <- elem
+        arr2[tailLength] <- elem
         Array.Copy (arr, 0, arr2, 0, tailLength)
         arr2
 
@@ -47,7 +47,7 @@ module Array =
         match Array.tryFindIndex pred arr with
         | Some index ->
             let arr2 = Array.copy arr
-            arr2.[index] <- item
+            arr2[index] <- item
             arr2
         | None -> arr
 
@@ -140,7 +140,7 @@ module Array =
     let hash (arr : _ array) =
         let mutable hashCode = 0
         for i in 0 .. dec arr.Length do
-            hashCode <- hashCode ^^^ hash arr.[i]
+            hashCode <- hashCode ^^^ hash arr[i]
         hashCode
 
 [<AutoOpen>]

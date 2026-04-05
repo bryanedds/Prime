@@ -83,8 +83,8 @@ module TimingTests =
         // run dictionary timings
         let dic = Dictionary<string, string * string> ()
         runMapTimings
-            (fun entries -> Array.iter (fun (k, v) -> dic.[k] <- v) entries)
-            (fun entries () -> Array.iter (fun (k, _) -> dic.[k] |> ignore) entries)
+            (fun entries -> Array.iter (fun (k, v) -> dic[k] <- v) entries)
+            (fun entries () -> Array.iter (fun (k, _) -> dic[k] |> ignore) entries)
             ".NET Dictionary"
         
         // run map timings

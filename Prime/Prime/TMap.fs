@@ -37,7 +37,7 @@ module TMap =
         let dictOrigin = Dictionary<'k, 'v> (map.DictOrigin, map.DictOrigin.Comparer)
         List.foldBack (fun log () ->
             match log with
-            | Add (key, value) -> dictOrigin.[key] <- value
+            | Add (key, value) -> dictOrigin[key] <- value
             | Remove key -> dictOrigin.Remove key |> ignore
             | Clear -> dictOrigin.Clear ())
             map.Logs ()
@@ -116,10 +116,10 @@ module TMap =
         if TConfig.isFunctional map.TConfig then
             update (fun map ->
                 let map = { map with Logs = Add (key, value) :: map.Logs; LogsLength = map.LogsLength + 1 }
-                map.Dict.[key] <- value
+                map.Dict[key] <- value
                 map)
                 map
-        else map.Dict.[key] <- value; map
+        else map.Dict[key] <- value; map
 
     /// Remove any entry with a matching key from a TMap.
     let remove key map =
@@ -171,7 +171,7 @@ module TMap =
     /// Find the given keyed value or raise a KeyNotFoundException.
     let find key map =
         let map = validate map
-        struct (map.Dict.[key], map)
+        struct (map.Dict[key], map)
 
     /// Check that a TMap contains the given key.
     let containsKey key map =

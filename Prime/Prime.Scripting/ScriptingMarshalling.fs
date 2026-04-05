@@ -27,7 +27,7 @@ module ScriptingMarshalling =
                 if FSharpType.IsTuple ty then
                     let tupleElementTypes = FSharpType.GetTupleElements ty
                     let tupleFields = FSharpValue.GetTupleFields value
-                    let tupleFieldOpts = Array.mapi (fun i tupleField -> tryImport tryImportExt tupleElementTypes.[i] tupleField) tupleFields
+                    let tupleFieldOpts = Array.mapi (fun i tupleField -> tryImport tryImportExt tupleElementTypes[i] tupleField) tupleFields
                     match Array.definitizePlus tupleFieldOpts with
                     | (true, tupleFields) -> Some (Tuple tupleFields)
                     | (false, _) -> None
@@ -36,7 +36,7 @@ module ScriptingMarshalling =
                 elif FSharpType.IsRecord ty then
                     let recordFieldInfos = FSharpType.GetRecordFields ty
                     let recordFields = FSharpValue.GetRecordFields value
-                    let recordFieldOpts = Array.mapi (fun i recordField -> tryImport tryImportExt recordFieldInfos.[i].PropertyType recordField) recordFields
+                    let recordFieldOpts = Array.mapi (fun i recordField -> tryImport tryImportExt recordFieldInfos[i].PropertyType recordField) recordFields
                     match Array.definitizePlus recordFieldOpts with
                     | (true, recordFields) ->
                         let recordName = match ty.Name.IndexOf '`' with -1 -> ty.Name | index -> ty.Name.Substring (0, index)
@@ -49,7 +49,7 @@ module ScriptingMarshalling =
                     let (unionCase, unionFields) = FSharpValue.GetUnionFields (value, ty)
                     let unionFieldInfos = unionCase.GetFields ()
                     if not (Array.isEmpty unionFields) then
-                        let unionFieldOpts = Array.mapi (fun i unionField -> tryImport tryImportExt unionFieldInfos.[i].PropertyType unionField) unionFields
+                        let unionFieldOpts = Array.mapi (fun i unionField -> tryImport tryImportExt unionFieldInfos[i].PropertyType unionField) unionFields
                         match Array.definitizePlus unionFieldOpts with
                         | (true, unionFields) ->
                             match unionFields with
@@ -70,14 +70,14 @@ module ScriptingMarshalling =
     and tryImportKeyValuePair tryImportExt (ty : Type) (value : obj) =
         let gargs = ty.GetGenericArguments ()
         let kvp = Reflection.objToKeyValuePair value
-        let keyOpt = tryImport tryImportExt gargs.[0] kvp.Key
-        let valueOpt = tryImport tryImportExt gargs.[1] kvp.Value
+        let keyOpt = tryImport tryImportExt gargs[0] kvp.Key
+        let valueOpt = tryImport tryImportExt gargs[1] kvp.Value
         match (keyOpt, valueOpt) with
         | (Some key, Some value) -> Some (Tuple [|key; value|])
         | (_, _) -> None
 
     and tryImportOption tryImportExt (ty : Type) (value : obj) =
-        let valueType = (ty.GetGenericArguments ()).[0]
+        let valueType = (ty.GetGenericArguments ())[0]
         match Reflection.objToOption value with
         | Some value ->
             match tryImport tryImportExt valueType value with
@@ -87,14 +87,14 @@ module ScriptingMarshalling =
 
     and tryImportEither tryImportExt (ty : Type) (value : obj) =
         let gargs = ty.GetGenericArguments ()
-        let leftType = gargs.[0]
-        let rightType = gargs.[1]
+        let leftType = gargs[0]
+        let rightType = gargs[1]
         match Reflection.objToEither value with
         | Right right -> tryImport tryImportExt rightType right
         | Left left -> tryImport tryImportExt leftType left
 
     and tryImportList tryImportExt (ty : Type) (value : obj) =
-        let itemType = (ty.GetGenericArguments ()).[0]
+        let itemType = (ty.GetGenericArguments ())[0]
         let objList = Reflection.objToObjList value
         let itemOpts = List.map (fun item -> tryImport tryImportExt itemType item) objList
         match List.definitizePlus itemOpts with
@@ -102,7 +102,7 @@ module ScriptingMarshalling =
         | (false, _) -> None
 
     and tryImportSet tryImportExt (ty : Type) (value : obj) =
-        let itemType = (ty.GetGenericArguments ()).[0]
+        let itemType = (ty.GetGenericArguments ())[0]
         let items = Reflection.objToComparableSet value
         let itemOpts = Seq.map (fun item -> tryImport tryImportExt itemType item) items
         match Seq.definitizePlus itemOpts with
@@ -111,8 +111,8 @@ module ScriptingMarshalling =
 
     and tryImportMap tryImportExt (ty : Type) (value : obj) =
         let gargs = ty.GetGenericArguments ()
-        let keyType = gargs.[0]
-        let valueType = gargs.[1]
+        let keyType = gargs[0]
+        let valueType = gargs[1]
         let pairs = Reflection.objToObjList value
         let pairs = List.map Reflection.objToKeyValuePair pairs
         let pairOpts = pairs |> List.map (fun kvp -> (tryImport tryImportExt keyType kvp.Key, tryImport tryImportExt valueType kvp.Value))
@@ -177,7 +177,7 @@ module ScriptingMarshalling =
                     | Union (_, fields)
                     | Record (_, _, fields) ->
                         let fieldInfos = FSharpType.GetTupleElements ty
-                        let fieldOpts = Array.mapi (fun i fieldSymbol -> tryExport tryExportExt fieldInfos.[i] fieldSymbol) fields
+                        let fieldOpts = Array.mapi (fun i fieldSymbol -> tryExport tryExportExt fieldInfos[i] fieldSymbol) fields
                         match Array.definitizePlus fieldOpts with
                         | (true, fields) -> Some (FSharpValue.MakeTuple (fields, ty))
                         | (false, _) -> None
@@ -189,7 +189,7 @@ module ScriptingMarshalling =
                     | Union (_, fields)
                     | Record (_, _, fields) ->
                         let fieldInfos = FSharpType.GetRecordFields ty
-                        let fieldOpts = Array.mapi (fun i fieldSymbol -> tryExport tryExportExt fieldInfos.[i].PropertyType fieldSymbol) fields
+                        let fieldOpts = Array.mapi (fun i fieldSymbol -> tryExport tryExportExt fieldInfos[i].PropertyType fieldSymbol) fields
                         match Array.definitizePlus fieldOpts with
                         | (true, fields) -> Some (FSharpValue.MakeRecord (ty, fields))
                         | (false, _) -> None
@@ -208,7 +208,7 @@ module ScriptingMarshalling =
                         match Array.tryFind (fun (unionCase : UnionCaseInfo) -> unionCase.Name = name) unionCases with
                         | Some unionCase ->
                             let unionFieldInfos = unionCase.GetFields ()
-                            let unionValueOpts = Array.mapi (fun i unionSymbol -> tryExport tryExportExt unionFieldInfos.[i].PropertyType unionSymbol) fields
+                            let unionValueOpts = Array.mapi (fun i unionSymbol -> tryExport tryExportExt unionFieldInfos[i].PropertyType unionSymbol) fields
                             match Array.definitizePlus unionValueOpts with
                             | (true, unionValues) -> Some (FSharpValue.MakeUnion (unionCase, unionValues))
                             | (false, _) -> None
@@ -245,7 +245,7 @@ module ScriptingMarshalling =
         | Option opt ->
             match opt with
             | Some value ->
-                let valueType = (ty.GetGenericArguments ()).[0]
+                let valueType = (ty.GetGenericArguments ())[0]
                 match tryExport tryExportExt valueType value with
                 | Some value -> Some (Activator.CreateInstance (ty, [|value|]))
                 | None -> None
@@ -253,10 +253,10 @@ module ScriptingMarshalling =
         | _ -> None
 
     and tryExportEither tryExportExt (ty : Type) (eir : Expr) =
-        let leftType = (ty.GetGenericArguments ()).[0]
-        let leftCase = (FSharpType.GetUnionCases ty).[1]
-        let rightType = (ty.GetGenericArguments ()).[1]
-        let rightCase = (FSharpType.GetUnionCases ty).[0]
+        let leftType = (ty.GetGenericArguments ())[0]
+        let leftCase = (FSharpType.GetUnionCases ty)[1]
+        let rightType = (ty.GetGenericArguments ())[1]
+        let rightCase = (FSharpType.GetUnionCases ty)[0]
         match eir with
         | Either eir ->
             match eir with
@@ -284,7 +284,7 @@ module ScriptingMarshalling =
     and tryExportSet tryExportExt (ty : Type) (ring : Expr) =
         match ring with
         | Ring set ->
-            let elementType = (ty.GetGenericArguments ()).[0]
+            let elementType = (ty.GetGenericArguments ())[0]
             let elementOpts = Seq.map (fun element -> tryExport tryExportExt elementType element) set
             match Seq.definitizePlus elementOpts with
             | (true, elements) -> Some (Reflection.objsToSet ty elements)
@@ -335,7 +335,7 @@ module ScriptingMarshalling =
              (typeof<int64>.Name, fun _ _ evaled -> match evaled with Int64 value -> value :> obj |> Some | _ -> None)
              (typeof<single>.Name, fun _ _ evaled -> match evaled with Single value -> value :> obj |> Some | _ -> None)
              (typeof<double>.Name, fun _ _ evaled -> match evaled with Double value -> value :> obj |> Some | _ -> None)
-             (typeof<char>.Name, fun _ _ evaled -> match evaled with String value when value.Length = 1 -> value.[0] :> obj |> Some | _ -> None)
+             (typeof<char>.Name, fun _ _ evaled -> match evaled with String value when value.Length = 1 -> value[0] :> obj |> Some | _ -> None)
              (typeof<string>.Name, fun _ _ evaled -> match evaled with String value -> value :> obj |> Some | Keyword value -> value :> obj |> Some | _ -> None)
              (typedefof<Guid>.Name, fun _ ty evaled -> tryExportGuid ty evaled)
              (typedefof<KeyValuePair<_, _>>.Name, tryExportKvp)

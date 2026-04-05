@@ -309,7 +309,7 @@ module ScriptingSystem =
         | Record (_, _, elements) ->
             if index < elements.Length then
                 let elements' = Array.copy elements
-                elements'.[index] <- value
+                elements'[index] <- value
                 match target with
                 | Tuple _ -> Right (Tuple elements')
                 | Union (name, _) -> Right (Union (name, elements'))
@@ -331,7 +331,7 @@ module ScriptingSystem =
             | Some index ->
                 if index < fields.Length then
                     let fields' = Array.copy fields
-                    fields'.[index] <- value
+                    fields'[index] <- value
                     Right (Record (name, map, fields'))
                 else Left $ Violation (["ArgumentOutOfRange"; String.capitalize fnName], "Record does not contain element with name '" + name + "'.", originOpt)
             | None ->
@@ -520,7 +520,7 @@ module ScriptingSystem =
         else
 #if DEBUG
             ignore originOpt // not used in this static branch
-            intrinsics.[name] <- intrinsic
+            intrinsics[name] <- intrinsic
             Unit
 #else       
             Violation (["IntrinsicRedefinition"], "Cannot redefine intrinsics outside of debug mode.", originOpt)
@@ -653,9 +653,9 @@ module ScriptingSystem =
     and evalMany (exprs : Expr array) (world : 'w) =
         let evaleds = Array.zeroCreate exprs.Length
         for i in 0 .. dec exprs.Length do
-            let expr = exprs.[i]
+            let expr = exprs[i]
             let evaled = eval expr world
-            evaleds.[i] <- evaled
+            evaleds[i] <- evaled
         evaleds
 
     /// Evaluate an expression, with logging on violation result.

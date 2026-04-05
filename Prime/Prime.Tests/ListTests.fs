@@ -27,7 +27,7 @@ module ListTests =
     let cloneSet (idx : int) (v : 'v) (vs : ResizeArray<_>) =
         let vs2 = ResizeArray(vs.Capacity)
         vs2.AddRange(vs)
-        vs2.[idx] <- v
+        vs2[idx] <- v
         vs2
 
     /// Keeps a reference to all persistent collections returned after
@@ -89,7 +89,7 @@ module ListTests =
         if not success then
             Trace.WriteLine "FAILURE:"
             List.iteri2 (fun i list testlist  ->
-                if i > 0 then Trace.WriteLine (sprintf "After action %A" actions.[i-1])
+                if i > 0 then Trace.WriteLine (sprintf "After action %A" actions[i-1])
                 Trace.WriteLine (sprintf "list: %A\ntestlist: %A" list testlist))
                 (List.rev lists)
                 (List.rev testlists)
@@ -113,14 +113,14 @@ module ListTests =
         let add (v:int) (ary: int[]) =
             let ary2 = Array.zeroCreate (ary.Length + 1)
             Array.Copy(ary, ary2, ary.Length)
-            ary2.[ary.Length] <- v
+            ary2[ary.Length] <- v
             ary2
 
-        let get (i:int) (ary: int[]) = ary.[i]
+        let get (i:int) (ary: int[]) = ary[i]
 
         let set (i:int) (v:int) (ary: int[]) =
             let ary2 = Array.copy ary
-            ary2.[i] <- v
+            ary2[i] <- v
             ary2
 
         eqListsAfterSteps initialList ary actions add get set ((+) 1) Array.map pred Array.filter eq true

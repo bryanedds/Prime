@@ -47,9 +47,9 @@ type Store<'c when 'c : struct and 'c :> 'c Component> (name) =
     let mutable arr = Array.zeroCreate<'c> Constants.Ecs.ArrayReserve
     member this.Length = arr.Length
     member this.Name = name
-    member this.Item i = &arr.[i]
-    member this.SetItem index comp = arr.[index] <- comp
-    member this.ZeroItem index = arr.[index] <- Unchecked.defaultof<'c>
+    member this.Item i = &arr[i]
+    member this.SetItem index comp = arr[index] <- comp
+    member this.ZeroItem index = arr[index] <- Unchecked.defaultof<'c>
     member this.Grow () =
         let length = int (single (max arr.Length 2) * 1.5f)
         let arr' = Array.zeroCreate<'c> length
@@ -66,7 +66,7 @@ type Store<'c when 'c : struct and 'c :> 'c Component> (name) =
                 stream.Read (buffer, 0, compSize) |> ignore<int>
                 Marshal.Copy (buffer, 0, gch.AddrOfPinnedObject (), compSize)
                 if index = arr.Length then this.Grow ()
-                arr.[index] <- comp :?> 'c
+                arr[index] <- comp :?> 'c
                 index <- inc index
         finally gch.Free ()
     interface Store with

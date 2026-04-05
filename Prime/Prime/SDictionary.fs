@@ -28,38 +28,38 @@ module SDictionary =
             with get (key : 'k) =
                 let hashCode = this.Comparer_.GetHashCode key
                 let index = Math.Abs (hashCode % 32)
-                this.Dictionaries_.[index].[key]
+                this.Dictionaries_[index][key]
             and set (key : 'k) (value : 'v) =
                 let hashCode = this.Comparer_.GetHashCode key
                 let index = Math.Abs (hashCode % 32)
-                this.Dictionaries_.[index].[key] <- value
+                this.Dictionaries_[index][key] <- value
 
         member this.ContainsKey key =
             let hashCode = this.Comparer_.GetHashCode key
             let index = Math.Abs (hashCode % 32)
-            this.Dictionaries_.[index].ContainsKey key
+            this.Dictionaries_[index].ContainsKey key
 
         member this.TryFind key =
             let hashCode = this.Comparer_.GetHashCode key
             let index = Math.Abs (hashCode % 32)
-            match this.Dictionaries_.[index].TryGetValue key with
+            match this.Dictionaries_[index].TryGetValue key with
             | (true, value) -> Some value
             | (false, _) -> None
 
         member this.TryGetValue (key, valueRef : _ outref) =
             let hashCode = this.Comparer_.GetHashCode key
             let index = Math.Abs (hashCode % 32)
-            this.Dictionaries_.[index].TryGetValue (key, &valueRef)
+            this.Dictionaries_[index].TryGetValue (key, &valueRef)
 
         member this.Add (key, value) =
             let hashCode = this.Comparer_.GetHashCode key
             let index = Math.Abs (hashCode % 32)
-            this.Dictionaries_.[index].Add (key, value)
+            this.Dictionaries_[index].Add (key, value)
 
         member this.Remove key =
             let hashCode = this.Comparer_.GetHashCode key
             let index = Math.Abs (hashCode % 32)
-            this.Dictionaries_.[index].Remove key
+            this.Dictionaries_[index].Remove key
 
         member this.Clear () =
             for dict in this.Dictionaries_ do
@@ -78,7 +78,7 @@ module SDictionary =
           Comparer_ = comparer }
 
     let makeFromSegmentedDictionary (sdict : SDictionary<'k, 'v>) =
-        { Dictionaries_ = Array.init 32 (fun i -> Dictionary<'k, 'v> (sdict.Dictionaries_.[i], sdict.Comparer_))
+        { Dictionaries_ = Array.init 32 (fun i -> Dictionary<'k, 'v> (sdict.Dictionaries_[i], sdict.Comparer_))
           Comparer_ = sdict.Comparer_ }
 
     let count (sdict : SDictionary<'k, 'v>) =

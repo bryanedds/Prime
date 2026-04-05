@@ -42,8 +42,8 @@ module SOMap =
         /// The index operator.
         member this.Item
             with get (key : 'k) =
-                let index = this.Indices.[key]
-                this.Entries.[index]
+                let index = this.Indices[key]
+                this.Entries[index]
 
         /// Get the enumerator.
         member this.GetEnumerator () =
@@ -59,7 +59,7 @@ module SOMap =
             let mutable indexRef = 0
             match SUMap.tryGetValue (key, this.Indices, &indexRef) with
             | true ->
-                let struct (_, _, v) = this.Entries.[indexRef]
+                let struct (_, _, v) = this.Entries[indexRef]
                 valueRef <- v
                 true
             | false -> false
@@ -127,7 +127,7 @@ module SOMap =
     let remove (key : 'k) map =
         match SUMap.tryFind key map.Indices with
         | Some index ->
-            let struct (_, _, _) = map.Entries.[index]
+            let struct (_, _, _) = map.Entries[index]
             let map =
                 { Indices = SUMap.remove key map.Indices
                   Entries = FStack.replaceAt index struct (false, Unchecked.defaultof<_>, Unchecked.defaultof<_>) map.Entries
@@ -151,7 +151,7 @@ module SOMap =
     /// Constant-time complexity with approx. 1/3 speed of Dictionary.TryGetValue.
     let tryFind (key : 'k) map : 'v option =
         match SUMap.tryFind key map.Indices with
-        | Some index -> match map.Entries.[index] with (_, _, v) -> Some v
+        | Some index -> match map.Entries[index] with (_, _, v) -> Some v
         | None -> None
 
     /// Try to find a value with the given key in an SOMap without allocating.
@@ -160,7 +160,7 @@ module SOMap =
         let mutable indexRef = 0
         match SUMap.tryGetValue (key, map.Indices, &indexRef) with
         | true ->
-            let struct (_, _, v) = map.Entries.[indexRef]
+            let struct (_, _, v) = map.Entries[indexRef]
             valueRef <- v
             true
         | false -> false
@@ -168,7 +168,7 @@ module SOMap =
     /// Find a value with the given key in an SOMap.
     /// Constant-time complexity with approx. 1/3 speed of Dictionary.GetValue.
     let find (key : 'k) map : 'v =
-        let struct (_, _, value) = map.Entries.[map.Indices.[key]]
+        let struct (_, _, value) = map.Entries[map.Indices[key]]
         value
 
     /// Try to find a value with the predicate.

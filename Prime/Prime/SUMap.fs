@@ -112,7 +112,7 @@ module SUMap =
 
     /// Find the given keyed value or raise a KeyNotFoundException.
     let find key (map : SUMap<'k, 'v>) =
-        map.[key]
+        map[key]
 
     /// Check that a SUMap contains the given key.
     let containsKey key map =

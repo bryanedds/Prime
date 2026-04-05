@@ -77,7 +77,7 @@ module SymbolicOperators =
         | (true, str) -> str
         | (false, _) ->
             let str = scstringPlus<'a> false (Some ValueToSymbolMemo) value
-            SCStringMemo.[struct (typeof<'a>, value)] <- str
+            SCStringMemo[struct (typeof<'a>, value)] <- str
             str
 
     /// Uses a symbolic converter to convert a value to a string.
@@ -100,7 +100,7 @@ module SymbolicOperators =
         | (true, value) -> value :?> 'a
         | (false, _) ->
             let value = scvaluePlus<'a> false (Some SymbolToValueMemo) str
-            SCValueMemo.[struct (typeof<'a>, str)] <- value
+            SCValueMemo[struct (typeof<'a>, str)] <- value
             value
 
     /// Uses a symbolic converter to convert a string to a value.

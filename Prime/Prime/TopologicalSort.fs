@@ -33,7 +33,7 @@ module TopologicalSort =
             fun item ->
                 let dependencies = getDependencies item
                 if notNull dependencies
-                then dependencies.Select (fun key -> map.[key])
+                then dependencies.Select (fun key -> map[key])
                 else null
 
         member source.Group<'T, 'TKey> (getDependencies : 'T -> IEnumerable<'TKey>, getKey : 'T -> 'TKey) : (bool * IList<ICollection<'T>>) =
@@ -77,17 +77,17 @@ module TopologicalSort =
                     cycleFound <- true
             else
                 level <- inProcess
-                visited.[item] <- level
+                visited[item] <- level
                 let dependencies = getDependencies item
                 if notNull dependencies then
                     for dependency in dependencies do
                         let (cycleFound2, depLevel) = IEnumerable.Visit (dependency, getDependencies, sorted, visited)
                         if cycleFound2 then cycleFound <- true
                         level <- Math.Max (level, depLevel)
-                visited.[item] <- inc level
+                visited[item] <- inc level
                 while sorted.Count <= level do
                     sorted.Add (Collection<'T> ())
-                sorted.[level].Add item
+                sorted[level].Add item
             (cycleFound, level)
 
         static member Visit<'T> (item : 'T, getDependencies : 'T -> IEnumerable<'T>, sorted : List<'T>, visited : Dictionary<'T, bool>) : bool =
@@ -98,11 +98,11 @@ module TopologicalSort =
                 if inProcess then
                     cycleFound <- true
             else
-                visited.[item] <- true
+                visited[item] <- true
                 let dependencies = getDependencies item
                 if notNull dependencies then
                     for dependency in dependencies do
                         IEnumerable.Visit (dependency, getDependencies, sorted, visited) |> ignore
-                visited.[item] <- false
+                visited[item] <- false
                 sorted.Add item
             cycleFound

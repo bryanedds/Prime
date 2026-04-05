@@ -53,7 +53,7 @@ module UList =
 
     /// Get the value of the given index.
     let get (index : int) (list : 'a UList) =
-        list.[index]
+        list[index]
 
     /// Set the value of the given index.
     let set index value list =

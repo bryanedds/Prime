@@ -36,7 +36,7 @@ module MapTests =
             | MapAction.RemoveRandom ->
                 let idx = Gen.choose (0, fsmap.Count - 1) |> Gen.sample 0 1 |> List.head
                 let ary = Map.toArray fsmap
-                let key = fst ary.[idx]
+                let key = fst ary[idx]
                 (Map.remove key fsmap, remove key testMap)
             | MapAction.FoldCombine arg ->
                 let newFsmap = Map.fold (fun acc k v -> Map.add k (combineValues v arg) acc) fsmap fsmap

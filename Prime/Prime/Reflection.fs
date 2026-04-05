@@ -226,7 +226,7 @@ module Reflection =
         | (true, elements) -> elements
         | (false, _) ->
             let elements = FSharpType.GetTupleElements ty
-            TupleElements.[ty] <- elements
+            TupleElements[ty] <- elements
             elements
 
     let getRecordFields (ty : Type) =
@@ -236,13 +236,13 @@ module Reflection =
             let fields = FSharpType.GetRecordFields (ty, true)
             let fields' = OrderedDictionary ()
             for case in fields do fields'.Add (case.Name, case)
-            RecordFields.[ty] <- fields'
+            RecordFields[ty] <- fields'
             fields'
 
     let tryGetRecordField (ty : Type) (fieldName : string) =
         let fields = getRecordFields ty
         if fields.Contains fieldName
-        then Some (fields.[fieldName] :?> PropertyInfo)
+        then Some (fields[fieldName] :?> PropertyInfo)
         else None
 
     let getUnionCases (ty : Type) =
@@ -252,13 +252,13 @@ module Reflection =
             let cases = FSharpType.GetUnionCases (ty, true)
             let cases' = OrderedDictionary ()
             for case in cases do cases'.Add (case.Name, case)
-            UnionCases.[ty] <- cases'
+            UnionCases[ty] <- cases'
             cases'
 
     let tryGetUnionCase (ty : Type) (caseName : string) =
         let cases = getUnionCases ty
         if cases.Contains caseName
-        then Some (cases.[caseName] :?> UnionCaseInfo)
+        then Some (cases[caseName] :?> UnionCaseInfo)
         else None
 
 [<RequireQualifiedAccess>]
@@ -339,8 +339,8 @@ module TypeExtensions =
                 elif this.Name = typedefof<FMap<_, _>>.Name then Some (Reflection.pairsToFMap this FMap.empty)
                 elif FSharpType.IsUnion this then
                     let unionCases = FSharpType.GetUnionCases this
-                    if (unionCases.[0].GetFields ()).Length = 0
-                    then Some (FSharpValue.MakeUnion (unionCases.[0], [||]))
+                    if (unionCases[0].GetFields ()).Length = 0
+                    then Some (FSharpValue.MakeUnion (unionCases[0], [||]))
                     else Some (FormatterServices.GetUninitializedObject this)
                 elif notNull (this.GetConstructor [||]) then Some (Activator.CreateInstance ())
                 elif FSharpType.IsRecord this then Some (FormatterServices.GetUninitializedObject this)
