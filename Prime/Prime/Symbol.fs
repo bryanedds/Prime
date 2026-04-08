@@ -26,7 +26,7 @@ type [<Struct>] SymbolPosition =
           Column = int position.Column }
 
     /// The empty SymbolPosition.
-    static member empty =
+    static member val empty =
         { Index = 0
           Line = 0
           Column = 0 }
