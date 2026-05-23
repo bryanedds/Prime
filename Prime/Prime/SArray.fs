@@ -109,6 +109,9 @@ module SArray =
     let replicate<'a> count initial =
         create<'a> count (fun length _ -> Array.replicate length initial)
 
+    let copy sarray =
+        { sarray with Segments = Array.map Array.copy sarray.Segments }
+
     let length sarray =
         sarray.TotalLength
 
