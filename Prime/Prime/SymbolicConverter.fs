@@ -306,6 +306,11 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                     // HACK: we do not want to use this converter here as it strips the time when converting to string!
                     let dateTimeOffsetStr = string source
                     Text (dateTimeOffsetStr, ValueNone)
+                | :? ReferenceConverter ->
+                    // NOTE: for some reason, such as with BodyId.BodySource in Nu, we get back a ReferenceConverter,
+                    // which will only provide an empty string. So instead, we call ToString here.
+                    let str = source.ToString ()
+                    Atom (str, ValueNone)
                 | _ ->
                     if typeConverter.CanConvertTo typeof<Symbol>
                     then typeConverter.ConvertTo (source, typeof<Symbol>) :?> Symbol
@@ -790,8 +795,15 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 else
                     match symbol with
                     | Atom (str, _) | Number (str, _) | Text (str, _) ->
-                        try (TypeDescriptor.GetConverter destType).ConvertFromString str
-                        with _ -> failconv ("Cannot convert from string '" + str + "' to vanilla .NET object of type '" + destType.Name + "'.") (Some symbol)
+                        let converter = TypeDescriptor.GetConverter destType
+                        match converter with
+                        | :? ReferenceConverter ->
+                            failconv
+                                ("Cannot convert from string '" + str + "' using a Sytsem.ComponentModel.ReferenceConverter. " +
+                                 "Usually this indicates the serialization of a non-deserializable type (here '" + destType.Name + "').")
+                        | _ ->
+                            try converter.ConvertFromString str
+                            with _ -> failconv ("Cannot convert from string '" + str + "' to vanilla .NET object of type '" + destType.Name + "'.") (Some symbol)
                     | Quote (_, _) | Symbols (_, _) ->
                         failconv ("Expected Atom, Number, or String value for conversion to vanilla .NET object of type '" + destType.Name + "'.") (Some symbol)
 
