@@ -111,6 +111,12 @@ module Operators =
     /// (<>) as a function.
     let inline neq<'a when 'a : equality> (left : 'a) (right : 'a) = left <> right
 
+    /// Test for reference equality.
+    let inline refEq<'a> (a : 'a) (b : 'a) = obj.ReferenceEquals (a, b)
+
+    /// Test for reference inequality.
+    let inline refNeq<'a> (a : 'a) (b : 'a) = not (obj.ReferenceEquals (a, b))
+
     /// Test for object equality.
     let inline objEq (a : obj) (b : obj) =
         match a with
@@ -119,12 +125,6 @@ module Operators =
 
     /// Test for object inequality.
     let inline objNeq (a : obj) (b : obj) = not (objEq a b)
-
-    /// Test for reference equality.
-    let inline refEq<'a> (a : 'a) (b : 'a) = obj.ReferenceEquals (a, b)
-
-    /// Test for reference inequality.
-    let inline refNeq<'a> (a : 'a) (b : 'a) = not (obj.ReferenceEquals (a, b))
 
     /// Test for equality generically.
     let inline genEq<'a when 'a : equality> (a : 'a) (b : 'a) = LanguagePrimitives.GenericEquality a b
