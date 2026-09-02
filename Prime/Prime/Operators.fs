@@ -112,7 +112,10 @@ module Operators =
     let inline neq<'a when 'a : equality> (left : 'a) (right : 'a) = left <> right
 
     /// Test for object equality.
-    let inline objEq (a : obj) (b : obj) = obj.Equals (a, b)
+    let inline objEq (a : obj) (b : obj) =
+        match a with
+        | :? Array -> a = b // NOTE: arrays are given special deep equality semantics in F#.
+        | _ -> obj.Equals (a, b)
 
     /// Test for object inequality.
     let inline objNeq (a : obj) (b : obj) = not (objEq a b)
