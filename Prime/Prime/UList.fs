@@ -107,9 +107,9 @@ module UList =
         list.List <- tlist
         arr
         
-    /// Convert a UList to a seq. Note that the entire list is iterated eagerly when functional.
+    /// Convert a UList to a seq.
     let toSeq (list : _ UList) =
-        list :> _ seq
+        seq list
 
     /// Convert a UList to an imperative System.Collections.Generic.List.
     let toImpList (list : _ UList) =

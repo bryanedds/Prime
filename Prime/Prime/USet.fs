@@ -140,9 +140,9 @@ module USet =
     let ofSeq1 pairs =
         ofSeq HashIdentity.Structural Functional pairs
 
-    /// Convert a USet to a seq. Note that the entire set is iterated eagerly when functional.
+    /// Convert a USet to a seq.
     let toSeq (set : _ USet) =
-        set :> _ seq
+        seq set
 
     /// Convert a USet to a HashSet.
     let toHashSet (set : _ USet) =

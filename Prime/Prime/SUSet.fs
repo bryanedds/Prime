@@ -138,9 +138,9 @@ module SUSet =
             (makeEmpty comparer config)
             values
 
-    /// Convert a SUSet to a seq. Note that the entire set is iterated eagerly when functional.
+    /// Convert a SUSet to a seq.
     let toSeq (set : _ SUSet) =
-        set :> _ seq
+        seq set
 
     /// Convert a SUSet to a SHashSet.
     let toHashSet (set : _ SUSet) =

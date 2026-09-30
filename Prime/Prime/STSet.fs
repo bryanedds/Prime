@@ -184,12 +184,11 @@ module STSet =
             (makeEmpty comparer config)
             values
 
-    /// Convert a STSet to a seq. Note that the entire set is iterated eagerly when functional.
+    /// Convert a STSet to a seq.
     let toSeq set =
         if TConfig.isFunctional set.TConfig then
-            let list = validate2 set
-            let struct (sarr, list) = struct (SArray.ofSeq list.HashSet, list)
-            struct (sarr :> _ seq, list)
+            let set = validate2 set
+            struct (set.HashSet, set)
         else struct (set.HashSet, set)
 
     /// Convert a STSet to an SHashSet.

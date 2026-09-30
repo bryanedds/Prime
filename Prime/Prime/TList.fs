@@ -186,13 +186,12 @@ module TList =
         let list = validate list
         struct (Array.ofSeq list.ImpList, list)
 
-    /// Convert a TList to a seq. Note that the entire list is iterated eagerly when functional.
+    /// Convert a TList to a seq.
     let toSeq list =
         if TConfig.isFunctional list.TConfig then
             let list = validate2 list
-            let struct (sarr, list) = struct (SArray.ofSeq list.ImpList, list)
-            struct (sarr :> _ seq, list)
-        else struct (list.ImpList, list)
+            struct (seq list.ImpList, list)
+        else struct (seq list.ImpList, list)
 
     /// Convert a TList to an imperative System.Collections.Generic.List.
     let toImpList list =

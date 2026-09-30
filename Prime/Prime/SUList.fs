@@ -107,9 +107,9 @@ module SUList =
         list.List <- tlist
         arr
         
-    /// Convert a SUList to a seq. Note that the entire list is iterated eagerly when functional.
+    /// Convert a SUList to a seq.
     let toSeq (list : _ SUList) =
-        list :> _ seq
+        seq list
 
     /// Convert a SUList to an imperative System.Collections.Generic.List.
     let toImpList (list : _ SUList) =
