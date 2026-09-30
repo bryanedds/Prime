@@ -22,7 +22,7 @@ module SetTests =
         (add : 'a->'s->'s)
         (remove : 'a->'s->'s)
         (fold : ('s->'a->'s)->'s->'s->'s)
-        (combine : 'a->'a->'a)
+        (sum : 'a->'a->'a)
         (eq : 's->Set<'a>->bool) =
 
         let applyAction fsset testSet action =
@@ -30,31 +30,31 @@ module SetTests =
             | SetAction.Add k ->
                 (Set.add k fsset, add k testSet)
             | SetAction.FoldAddingCombination arg ->
-                let newFsset = Set.fold (fun acc e -> Set.add (combine arg e) acc) fsset fsset
-                let newTestSet = fold (fun acc e -> add (combine arg e) acc) testSet testSet
+                let newFsset = Set.fold (fun acc e -> Set.add (sum arg e) acc) fsset fsset
+                let newTestSet = fold (fun acc e -> add (sum arg e) acc) testSet testSet
                 (newFsset, newTestSet)
             | SetAction.Remove k ->
                 (Set.remove k fsset, remove k testSet)
 
-        let (fssets, testMaps) =
+        let (fssets, testSets) =
             Array.fold
                 (fun acc action ->
                     match acc with
-                    | (fsmap :: fsmaps, testMap :: testMaps) ->
-                        let (newF, newT) = applyAction fsmap testMap action
-                        (newF :: fsmap :: fsmaps, newT :: testMap :: testMaps)
+                    | (fsset :: fssets, testSet :: testSets) ->
+                        let (newF, newT) = applyAction fsset testSet action
+                        (newF :: fsset :: fssets, newT :: testSet :: testSets)
                     | _ -> failwithumf ())
                 ([fsset], [testSet])
                 actions
 
-        let success = List.forall2 eq testMaps fssets
+        let success = List.forall2 eq testSets fssets
         if not success then
             Trace.WriteLine "FAILURE:"
             List.iteri2 (fun i fsset testSet  ->
                 if i > 0 then Trace.WriteLine (sprintf "After action %A" actions[i-1])
                 Trace.WriteLine (sprintf "fsset: %A\ntestSet: %A" fsset testSet))
                 (List.rev fssets)
-                (List.rev testMaps)
+                (List.rev testSets)
         success
 
     [<Property (QuietOnSuccess = true)>]
