@@ -24,22 +24,24 @@ type SymbolicCompression<'a, 'b> =
 type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType : Type, ?toSymbolMemoOpt : IDictionary<struct (Type * obj), Symbol>, ?ofSymbolMemoOpt : IDictionary<struct (Type * Symbol), obj>) =
     inherit TypeConverter ()
 
-    static let mutable ConfigOpt = Option<TConfig>.None
+    static let mutable ConfigOpt =
+        Option<TConfig>.None
 
-    /// Initialize symbolic converter functionality to produce T/UCollections with the given TConfig.
-    static member Init config =
-        match ConfigOpt with
-        | Some _ -> Trace.WriteLine "Cannot initialize SymbolicConverter.Config once it's been set. Consider calling SymbolicConverter.Init earlier in your program."
-        | None -> ConfigOpt <- Some config
-
+    /// The TConfig used to create unidirectional collections.
     static member Config =
         match ConfigOpt with
         | Some config -> config
         | None ->
-            Trace.WriteLine "SymbolicConverter.Config not set initialized before first invocation; automatically setting to Functional."
+            Trace.WriteLine "SymbolicConverter.Config not initialized before first invocation; automatically setting to Functional."
             let result = Functional
             ConfigOpt <- Some result
             result
+
+    /// Initialize symbolic converter functionality to produce T/UCollections with the given configuration.
+    static member Init imperative =
+        match ConfigOpt with
+        | Some _ -> Trace.WriteLine "Cannot initialize SymbolicConverter.Config once it's been set. Consider calling SymbolicConverter.Init earlier in your program."
+        | None -> ConfigOpt <- Some (if imperative then Imperative else Functional)
 
     member private this.PadWithDefaults (types : Type array) (values : obj array) =
         if values.Length < types.Length then
