@@ -211,6 +211,21 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                 let symbols = List.map (this.ToSymbol itemType) items
                 Symbols (symbols, ValueNone)
 
+            // symbolize SOSet
+            elif sourceType.Name = typedefof<_ SOSet>.Name then
+                let gargs = sourceType.GetGenericArguments ()
+                let items = Reflection.objToComparableSet source |> List.ofSeq
+                let symbols = List.map (this.ToSymbol gargs[0]) items
+                Symbols (symbols, ValueNone)
+
+            // symbolize SOMap
+            elif sourceType.Name = typedefof<SOMap<_, _>>.Name then
+                let gargs = sourceType.GetGenericArguments ()
+                let itemType = typedefof<KeyValuePair<_, _>>.MakeGenericType [|gargs[0]; gargs[1]|]
+                let items = Reflection.objToObjList source
+                let symbols = List.map (this.ToSymbol itemType) items
+                Symbols (symbols, ValueNone)
+
             // symbolize UList
             elif sourceType.Name = typedefof<_ UList>.Name then
                 let gargs = sourceType.GetGenericArguments ()
@@ -228,7 +243,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             // symbolize UMap
             elif sourceType.Name = typedefof<UMap<_, _>>.Name then
                 let gargs = sourceType.GetGenericArguments ()
-                let itemType = typedefof<_ * _>.MakeGenericType [|gargs[0]; gargs[1]|]
+                let itemType = typedefof<Tuple<_, _>>.MakeGenericType [|gargs[0]; gargs[1]|]
                 let items = Reflection.objToObjList source
                 let symbols = List.map (this.ToSymbol itemType) items
                 Symbols (symbols, ValueNone)
@@ -250,7 +265,7 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
             // symbolize SUMap
             elif sourceType.Name = typedefof<SUMap<_, _>>.Name then
                 let gargs = sourceType.GetGenericArguments ()
-                let itemType = typedefof<_ * _>.MakeGenericType [|gargs[0]; gargs[1]|]
+                let itemType = typedefof<Tuple<_, _>>.MakeGenericType [|gargs[0]; gargs[1]|]
                 let items = Reflection.objToObjList source
                 let symbols = List.map (this.ToSymbol itemType) items
                 Symbols (symbols, ValueNone)
@@ -641,6 +656,37 @@ type SymbolicConverter (printing : bool, designTypeOpt : Type option, pointType 
                         | _ -> failwithumf ()
                     | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
                         failconv "Expected Symbols for conversion to OMap." (Some symbol)
+
+                // desymbolize SOSet
+                elif destType.Name = typedefof<_ SOSet>.Name then
+                    match symbol with
+                    | Symbols (symbols, _) ->
+                        let gargs = destType.GetGenericArguments ()
+                        let itemType = gargs[0]
+                        let items = List.map (this.OfSymbol itemType) symbols
+                        let set = Reflection.objsToSet (typedefof<_ Set>.MakeGenericType gargs) items
+                        let hSetModule = destType.DeclaringType
+                        let ofSeq1 = hSetModule.GetMethod(nameof SOSet.ofSeq).MakeGenericMethod([|itemType|])
+                        ofSeq1.Invoke (null, [|set|])
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
+                        failconv "Expected Symbols for conversion to SOSet." (Some symbol)
+
+                // desymbolize SOMap
+                elif destType.Name = typedefof<SOMap<_, _>>.Name then
+                    match symbol with
+                    | Symbols (symbols, _) ->
+                        let gargs = destType.GetGenericArguments ()
+                        match gargs with
+                        | [|fstType; sndType|] ->
+                            let pairType = typedefof<Tuple<_, _>>.MakeGenericType [|fstType; sndType|]
+                            let pairs = List.map (this.OfSymbol pairType) symbols
+                            let map = Reflection.pairsToMap (typedefof<Map<_, _>>.MakeGenericType gargs) pairs
+                            let hMapModule = destType.DeclaringType
+                            let ofSeqKvp1 = hMapModule.GetMethod(nameof SOMap.ofSeq).MakeGenericMethod(gargs)
+                            ofSeqKvp1.Invoke (null, [|map|])
+                        | _ -> failwithumf ()
+                    | Atom (_, _) | Number (_, _) | Text (_, _) | Quote (_, _) ->
+                        failconv "Expected Symbols for conversion to SOMap." (Some symbol)
 
                 // desymbolize UList
                 elif destType.Name = typedefof<_ UList>.Name then
