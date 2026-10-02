@@ -221,6 +221,31 @@ module Reflection =
     let pairsToFMap mapType objs =
         pairsToMapping "Prime.FMapModule" mapType objs
 
+    let objsToUnidirectionalList (listType : Type) (config : TConfig) (objs : _ seq) =
+        let gargs = listType.GetGenericArguments ()
+        let cast = (typeof<System.Linq.Enumerable>.GetMethod ("Cast", BindingFlags.Static ||| BindingFlags.Public)).MakeGenericMethod gargs
+        let module_ = listType.DeclaringType
+        let ofSeq = module_.GetMethod("ofSeq", BindingFlags.Static ||| BindingFlags.Public).MakeGenericMethod gargs
+        ofSeq.Invoke (null, [|config; cast.Invoke (null, [|objs|])|])
+
+    let objsToUnidirectionalSet (setType : Type) (config : TConfig) (objs : _ seq) =
+        let gargs = setType.GetGenericArguments ()
+        let cast = (typeof<System.Linq.Enumerable>.GetMethod ("Cast", BindingFlags.Static ||| BindingFlags.Public)).MakeGenericMethod gargs
+        let module_ = setType.DeclaringType
+        let ofSeq = module_.GetMethod("ofSeq", BindingFlags.Static ||| BindingFlags.Public).MakeGenericMethod gargs
+        ofSeq.Invoke (null, [|null; config; cast.Invoke (null, [|objs|])|])
+
+    let pairsToUnidirectionalMap (mapType : Type) (config : TConfig) (pairs : _ seq) =
+        let gargs = mapType.GetGenericArguments ()
+        match gargs with
+        | [|fstType; sndType|] ->
+            let pairType = typedefof<Tuple<_, _>>.MakeGenericType [|fstType; sndType|]
+            let cast = (typeof<System.Linq.Enumerable>.GetMethod ("Cast", BindingFlags.Static ||| BindingFlags.Public)).MakeGenericMethod [|pairType|]
+            let module_ = mapType.DeclaringType
+            let ofSeq = module_.GetMethod("ofSeq", BindingFlags.Static ||| BindingFlags.Public).MakeGenericMethod gargs
+            ofSeq.Invoke (null, [|HashIdentity.Structural; config; cast.Invoke (null, [|pairs|])|])
+        | _ -> failwithumf ()
+
     let getTupleElements (ty : Type) =
         match TupleElements.TryGetValue ty with
         | (true, elements) -> elements

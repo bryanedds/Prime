@@ -137,8 +137,8 @@ module USet =
             values
 
     /// Convert a sequence of values to a USet assuming structural comparison and functional representation.
-    let ofSeq1 pairs =
-        ofSeq HashIdentity.Structural Functional pairs
+    let ofSeq1 values =
+        ofSeq HashIdentity.Structural Functional values
 
     /// Convert a USet to a seq. Note that the entire set is iterated eagerly when functional.
     let toSeq (set : _ USet) =
