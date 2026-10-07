@@ -206,7 +206,7 @@ module Symbol =
     let isExplicit (str : string) = str.StartsWith OpenStringStr && str.EndsWith CloseStringStr
 
     let distill (str : string) =
-        if str.StartsWith OpenStringStr && str.EndsWith CloseStringStr
+        if str.StartsWith OpenStringStr && str.EndsWith CloseStringStr && str.Length >= 2
         then str.Substring (1, str.Length - 2)
         else str
 
