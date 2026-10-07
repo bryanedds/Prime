@@ -203,7 +203,7 @@ module Symbol =
 
     let isWhitespaceChar chr = isAnyOf WhitespaceChars chr
     let isStructureChar chr = isAnyOf StructureChars chr
-    let isExplicit (str : string) = str.StartsWith OpenStringStr && str.EndsWith CloseStringStr
+    let isExplicit (str : string) = str.StartsWith OpenStringStr && str.EndsWith CloseStringStr && str.Length >= 2
 
     let distill (str : string) =
         if str.StartsWith OpenStringStr && str.EndsWith CloseStringStr && str.Length >= 2
