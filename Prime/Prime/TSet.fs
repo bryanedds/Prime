@@ -73,13 +73,13 @@ module TSet =
         set
 
     let private validate set =
-        if TConfig.isFunctional set.TConfig
+        if set.TConfig.IsFunctional
         then validate2 set
         else set
 
     /// Create an TSet containing the element of the given hash.
-    let makeFromHashSet (comparer : 'a IEqualityComparer) config (hashSet : 'a HashSet) =
-        if TConfig.isFunctional config then
+    let makeFromHashSet (comparer : 'a IEqualityComparer) (config : TConfig) (hashSet : 'a HashSet) =
+        if config.IsFunctional then
             let set =
                 { TSetOpt = Unchecked.defaultof<'a TSet>
                   TConfig = config
@@ -116,7 +116,7 @@ module TSet =
 
     /// Add an element to a TSet.
     let add value set =
-        if TConfig.isFunctional set.TConfig then
+        if set.TConfig.IsFunctional then
             update (fun set ->
                 let set = { set with Logs = Add value :: set.Logs; LogsLength = set.LogsLength + 1 }
                 set.HashSet.Add value |> ignore
@@ -126,7 +126,7 @@ module TSet =
 
     /// Remove all matching elements from a TSet.
     let remove value set =
-        if TConfig.isFunctional set.TConfig then
+        if set.TConfig.IsFunctional then
             update (fun set ->
                 let set = { set with Logs = Remove value :: set.Logs; LogsLength = set.LogsLength + 1 }
                 set.HashSet.Remove value |> ignore
@@ -142,7 +142,7 @@ module TSet =
 
     /// Remove all elements from a TSet.
     let clear set =
-        if TConfig.isFunctional set.TConfig then
+        if set.TConfig.IsFunctional then
             update (fun set ->
                 let set = { set with Logs = Clear :: set.Logs; LogsLength = set.LogsLength + 1 }
                 set.HashSet.Clear ()
@@ -186,7 +186,7 @@ module TSet =
 
     /// Convert a TSet to a seq. Note that the entire set is iterated eagerly when functional.
     let toSeq set =
-        if TConfig.isFunctional set.TConfig then
+        if set.TConfig.IsFunctional then
             let list = validate2 set
             let struct (sarr, list) = struct (SArray.ofSeq list.HashSet, list)
             struct (sarr :> _ seq, list)

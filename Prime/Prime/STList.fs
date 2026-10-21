@@ -78,13 +78,13 @@ module STList =
         list
 
     let private validate list =
-        if TConfig.isFunctional list.TConfig
+        if list.TConfig.IsFunctional
         then validate2 list
         else list
 
     /// Create a STList containing the given sequence of values.
-    let makeFromSeq config (items : 'a seq) =
-        if TConfig.isFunctional config then 
+    let makeFromSeq (config : TConfig) (items : 'a seq) =
+        if config.IsFunctional then 
             let impList = SList.ofSeq items
             let impListOrigin = SList.makeFromSegmentedList impList
             let list =
@@ -123,7 +123,7 @@ module STList =
 
     /// Set the value of the given index.
     let set index value list =
-        if TConfig.isFunctional list.TConfig then 
+        if list.TConfig.IsFunctional then 
             update (fun list ->
                 let list = { list with Logs = Set (index, value) :: list.Logs; LogsLength = list.LogsLength + 1 }
                 list.ImpList[index] <- value
@@ -133,7 +133,7 @@ module STList =
 
     /// Add an element to a STList.
     let add value list =
-        if TConfig.isFunctional list.TConfig then 
+        if list.TConfig.IsFunctional then 
             update (fun list ->
                 let list = { list with Logs = Add value :: list.Logs; LogsLength = list.LogsLength + 1 }
                 list.ImpList.Add value |> ignore
@@ -143,7 +143,7 @@ module STList =
 
     /// Remove all matching elements from a STList.
     let remove value list =
-        if TConfig.isFunctional list.TConfig then
+        if list.TConfig.IsFunctional then
             update (fun list ->
                 let list = { list with Logs = Remove value :: list.Logs; LogsLength = list.LogsLength + 1 }
                 list.ImpList.Remove value |> ignore
@@ -153,7 +153,7 @@ module STList =
 
     /// Remove all elements from a STList.
     let clear list =
-        if TConfig.isFunctional list.TConfig then
+        if list.TConfig.IsFunctional then
             update (fun list ->
                 let list = { list with Logs = Clear :: list.Logs; LogsLength = list.LogsLength + 1 }
                 list.ImpList.Clear ()
@@ -188,7 +188,7 @@ module STList =
 
     /// Convert a STList to a seq. Note that the entire list is iterated eagerly when functional.
     let toSeq list =
-        if TConfig.isFunctional list.TConfig then
+        if list.TConfig.IsFunctional then
             let list = validate2 list
             let struct (sarr, list) = struct (SArray.ofSeq list.ImpList, list)
             struct (sarr :> _ seq, list)

@@ -73,13 +73,13 @@ module TMap =
         map
 
     let private validate map =
-        if TConfig.isFunctional map.TConfig
+        if map.TConfig.IsFunctional
         then validate2 map
         else map
 
     /// Create a TMap containing the given sequence of entries.
-    let makeFromSeq<'k, 'v> (comparer : 'k IEqualityComparer) config (entries : ('k * 'v) seq) =
-        if TConfig.isFunctional config then 
+    let makeFromSeq<'k, 'v> (comparer : 'k IEqualityComparer) (config : TConfig) (entries : ('k * 'v) seq) =
+        if config.IsFunctional then 
             let dict = dictPlus comparer entries
             let dictOrigin = Dictionary (dict, comparer)
             let map =
@@ -113,7 +113,7 @@ module TMap =
 
     /// Add an entry to a TMap.
     let add key value map =
-        if TConfig.isFunctional map.TConfig then
+        if map.TConfig.IsFunctional then
             update (fun map ->
                 let map = { map with Logs = Add (key, value) :: map.Logs; LogsLength = map.LogsLength + 1 }
                 map.Dict[key] <- value
@@ -123,7 +123,7 @@ module TMap =
 
     /// Remove any entry with a matching key from a TMap.
     let remove key map =
-        if TConfig.isFunctional map.TConfig then
+        if map.TConfig.IsFunctional then
             update (fun map ->
                 let map = { map with Logs = Remove key :: map.Logs; LogsLength = map.LogsLength + 1 }
                 map.Dict.Remove key |> ignore
@@ -133,7 +133,7 @@ module TMap =
 
     /// Remove all elements from a TMap.
     let clear map =
-        if TConfig.isFunctional map.TConfig then
+        if map.TConfig.IsFunctional then
             update (fun map ->
                 let map = { map with Logs = Clear :: map.Logs; LogsLength = map.LogsLength + 1 }
                 map.Dict.Clear ()
@@ -196,7 +196,7 @@ module TMap =
 
     /// Convert a TMap to a seq. Note that the entire map is iterated eagerly when functional.
     let toSeq map =
-        if TConfig.isFunctional map.TConfig then
+        if map.TConfig.IsFunctional then
             let map = validate2 map
             let seq =
                 map.Dict
