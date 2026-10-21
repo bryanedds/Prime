@@ -156,8 +156,9 @@ module PrettyPrinter =
 
     /// Pretty print a symbolic string using the given pretty printer configuation.
     let prettyPrint str prettyPrinter =
-        let symbol = Symbol.ofString str None
-        prettyPrintSymbol symbol prettyPrinter
+        try let symbol = Symbol.ofString str None
+            prettyPrintSymbol symbol prettyPrinter
+        with :? ParseException -> str
 
 /// Configures the pretty printing behavior of a type.
 type [<AttributeUsage (AttributeTargets.Enum ||| AttributeTargets.Struct ||| AttributeTargets.Class); AllowNullLiteral>]
