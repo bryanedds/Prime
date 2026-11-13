@@ -9,6 +9,8 @@ open System.Text.RegularExpressions
 [<RequireQualifiedAccess>]
 module String =
 
+    let private SpacedRegex = Regex "([A-Z][a-z]*|[0-9][a-z]+)"
+
     /// The empty string.
     let [<Literal>] empty = ""
 
@@ -189,6 +191,16 @@ module String =
         for name in strs do hashValue <- hashValue ^^^ hash name
         hashValue
 
+    /// Separate a string into words according to capitalization (but not punctuation).
+    let spaced str =
+        let mutable first = true
+        let builder = StringBuilder ()
+        for match_ in SpacedRegex.Matches str do
+            if not first then builder.Append " " |> ignore<StringBuilder>
+            builder.Append match_.Value |> ignore<StringBuilder>
+            first <- false
+        builder.ToString ()
+
 [<AutoOpen>]
 module StringOperators =
 
@@ -200,17 +212,7 @@ module StringOperators =
 
 [<AutoOpen>]
 module StringExtensions =
-
-    let private regex = Regex "([A-Z][a-z]*|[0-9][a-z]+)"
-
     type String with
 
         /// Separate a string into words according to capitalization (but not punctuation).
-        member this.Spaced =
-            let mutable first = true
-            let builder = StringBuilder ()
-            for match_ in regex.Matches this do
-                if not first then builder.Append " " |> ignore<StringBuilder>
-                builder.Append match_.Value |> ignore<StringBuilder>
-                first <- false
-            builder.ToString ()
+        member this.Spaced = String.spaced this
