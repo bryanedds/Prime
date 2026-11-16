@@ -69,13 +69,6 @@ module DictionaryExtensions =
         member this.NotEmpty =
             Dictionary.notEmpty this
 
-        /// Try to add a keyed value, returning false if the key is already present.
-        /// TODO: in .NET 8, this function will exist and involve only a single look-up, allowing us to remove this.
-        member inline this.TryAdd (key, value) =
-            if not (this.ContainsKey key)
-            then this.Add (key, value); true
-            else false
-
         /// Convert entries to pairs.
         member this.Pairs =
             this |> Seq.map (fun entry -> (entry.Key, entry.Value))
@@ -88,10 +81,10 @@ module DictionaryExtensions =
 module DictionaryOperators =
 
     /// Dictionary pattern matching.
-    let (|EmptyDictionary|NonEmptyDictionary|) (list : Dictionary<'k, 'v>) =
-        if list.IsEmpty
+    let (|EmptyDictionary|NonEmptyDictionary|) (dict : Dictionary<'k, 'v>) =
+        if dict.IsEmpty
         then EmptyDictionary
-        else NonEmptyDictionary list
+        else NonEmptyDictionary dict
 
     /// Like dict, but returns a concrete Dictionary instance with structural hashing.
     /// NOTE: Also uses forced adding, allowing multiple of the same key in the kvps.
